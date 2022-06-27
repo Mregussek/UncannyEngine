@@ -2,7 +2,9 @@
 #include <platform/Platform.h>
 #include <utilities/Variables.h>
 
-auto main() -> uncanny::i32 {
-  uncanny::printHelloUncanny();
+using namespace uncanny;
+
+auto main() -> i32 {
+  printHelloUncanny();
   return 0;
 }

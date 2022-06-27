@@ -11,3 +11,4 @@ message(STATUS "Project Dir: ${PROJECT_SOURCE_DIR}")
 
 add_subdirectory(Engine)
 add_subdirectory(Sandbox)
+add_subdirectory(tests)
