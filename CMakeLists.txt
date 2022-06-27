@@ -1,15 +1,13 @@
+
 cmake_minimum_required(VERSION 3.22)
 project(UncannyEngine)
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB_RECURSE ENGINE_LIBRARY_SOURCES
-        Engine/*.cpp
-        Engine/*.inl
-        Engine/*.h
-)
-add_library(UncannyLibrary ${ENGINE_LIBRARY_SOURCES})
+message(STATUS "Binary Dir: ${CMAKE_BINARY_DIR}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CXX Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "Project Dir: ${PROJECT_SOURCE_DIR}")
 
-add_executable(UncannySandbox Sandbox/main.cpp)
-target_include_directories(UncannySandbox PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine)
-target_link_libraries(UncannySandbox PUBLIC UncannyLibrary)
+add_subdirectory(Engine)
+add_subdirectory(Sandbox)
