@@ -315,7 +315,7 @@ TEST(Vec4TestSet, ComparisonOperation) {
   EXPECT_EQ(vec4::compare(c, a, 0.f), UFALSE);
   EXPECT_EQ(vec4::compare(c, a, 0.0001f), UTRUE);
   EXPECT_EQ(vec4::compare(c, a, 0.00001f), UFALSE);
-  
+
   EXPECT_EQ(a == b, UTRUE);
   EXPECT_EQ(b == a, UTRUE);
 

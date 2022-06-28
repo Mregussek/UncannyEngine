@@ -323,6 +323,54 @@ TEST(Vec3TestSet, ComparisonOperation) {
 }
 
 
+TEST(Vec3TestSet, CrossProductOperation) {
+  vec3 a{ 2.f, 3.f, 4.f };
+  vec3 b{ 5.f, 6.f, 7.f };
+
+  vec3 c = vec3::cross(a, b);
+  EXPECT_EQ_VEC3(c, -3.f, 6.f, -3.f);
+
+  c = vec3::cross(b, a);
+  EXPECT_EQ_VEC3(c, 3.f, -6.f, 3.f);
+}
+
+
+TEST(Vec3TestSet, DotProductOperation) {
+  vec3 a{ 2.f, 3.f, 4.f };
+  vec3 b{ 5.f, 6.f, 7.f };
+
+  f32 c = vec3::dot(a, b);
+  EXPECT_EQ(c, 56);
+
+  c = vec3::dot(b, a);
+  EXPECT_EQ(c, 56);
+}
+
+
+TEST(Vec3TestSet, LengthCalcution) {
+  vec3 a{ 2.f, 3.f, 4.f };
+  vec3 b{ 5.f, 6.f, 7.f };
+
+  f32 c = vec3::length(a);
+  EXPECT_EQ(c, 5.385164807134504f);
+
+  c = vec3::length(b);
+  EXPECT_EQ(c, 10.488088481701515f);
+}
+
+
+TEST(Vec3TestSet, Normalization) {
+  vec3 a{ 2.f, 3.f, 4.f };
+  vec3 b{ 5.f, 6.f, 7.f };
+
+  vec3 c = vec3::normalize(a);
+  EXPECT_EQ_VEC3(c, 0.37139067f, 0.557086f, 0.74278134f);
+
+  c = vec3::normalize(b);
+  EXPECT_EQ_VEC3(c, 0.4767313f, 0.5720775f, 0.6674238f);
+}
+
+
 GTEST_API_ int main(int argc, char **argv) {
   printf("Running main() from %s\n", __FILE__);
   testing::InitGoogleTest(&argc, argv);
