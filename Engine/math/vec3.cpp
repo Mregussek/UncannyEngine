@@ -7,9 +7,9 @@ namespace uncanny
 
 
 vec3::vec3(f32 _x, f32 _y, f32 _z) :
-x(_x),
-y(_y),
-z(_z)
+  x(_x),
+  y(_y),
+  z(_z)
 { }
 
 
@@ -119,7 +119,11 @@ vec3 operator+(f32 left, vec3 right) {
 
 
 vec3 operator-(f32 left, vec3 right) {
-  return right.subtract(left);
+  return {
+    left - right.x,
+    left - right.y,
+    left - right.z
+  };
 }
 
 
@@ -129,7 +133,11 @@ vec3 operator*(f32 left, vec3 right) {
 
 
 vec3 operator/(f32 left, vec3 right) {
-  return right.divide(left);
+  return {
+      left / right.x,
+      left / right.y,
+      left / right.z
+  };
 }
 
 

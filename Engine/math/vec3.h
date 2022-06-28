@@ -12,9 +12,9 @@ namespace uncanny
 
 struct vec3 {
 
-  union { f32 x, r; };
-  union { f32 y, g; };
-  union { f32 z, b; };
+  f32 x{ 0.f };
+  f32 y{ 0.f };
+  f32 z{ 0.f };
 
   vec3() = default;
   vec3(f32 _x, f32 _y, f32 _z);
