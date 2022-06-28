@@ -288,6 +288,36 @@ TEST(Vec4TestSet, DivisionOperation) {
 }
 
 
+TEST(Vec4TestSet, ComparisonOperation) {
+  vec4 a{ 1.f, 2.f, 3.f, 4.f };
+  vec4 b{ 1.f, 2.f, 3.f, 4.f };
+  vec4 c{ 1.f, 2.f, 3.0001f, 4.f };
+  vec4 d{ 0.f, 2.f, 3.f, 4.f };
+
+  EXPECT_EQ(vec4::compare(a, b), UTRUE);
+  EXPECT_EQ(vec4::compare(b, a), UTRUE);
+
+  EXPECT_EQ(vec4::compare(a, c), UFALSE);
+  EXPECT_EQ(vec4::compare(a, d), UFALSE);
+  EXPECT_EQ(vec4::compare(c, a), UFALSE);
+  EXPECT_EQ(vec4::compare(d, a), UFALSE);
+
+  EXPECT_EQ(vec4::compare(a, b, 0.f), UTRUE);
+  EXPECT_EQ(vec4::compare(b, a, 0.f), UTRUE);
+
+  EXPECT_EQ(vec4::compare(a, b, 1.f), UTRUE);
+  EXPECT_EQ(vec4::compare(b, a, 1.f), UTRUE);
+
+  EXPECT_EQ(vec4::compare(a, c, 0.f), UFALSE);
+  EXPECT_EQ(vec4::compare(a, c, 0.0001f), UTRUE);
+  EXPECT_EQ(vec4::compare(a, c, 0.00001f), UFALSE);
+
+  EXPECT_EQ(vec4::compare(c, a, 0.f), UFALSE);
+  EXPECT_EQ(vec4::compare(c, a, 0.0001f), UTRUE);
+  EXPECT_EQ(vec4::compare(c, a, 0.00001f), UFALSE);
+}
+
+
 GTEST_API_ int main(int argc, char **argv) {
   printf("Running main() from %s\n", __FILE__);
   testing::InitGoogleTest(&argc, argv);

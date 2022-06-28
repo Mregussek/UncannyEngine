@@ -26,6 +26,7 @@ struct vec4 {
   template<typename T> vec4 divide(T v) const;
 
   static b32 compare(vec4 a, vec4 b);
+  static b32 compare(vec4 a, vec4 b, f32 margin);
 
   b32 operator==(vec4 other) const;
   b32 operator!=(vec4 other) const;

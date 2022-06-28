@@ -53,9 +53,9 @@ b32 vec3::compare(vec3 a, vec3 b) {
 
 b32 vec3::compare(vec3 a, vec3 b, f32 margin) {
   if (
-      a.x - margin < b.x && b.x < a.x + margin &&
-      a.y - margin < b.y && b.y < a.y + margin &&
-      a.z - margin < b.z && b.z < a.z + margin
+      a.x - margin <= b.x && b.x <= a.x + margin &&
+      a.y - margin <= b.y && b.y <= a.y + margin &&
+      a.z - margin <= b.z && b.z <= a.z + margin
       ) {
     return UTRUE;
   }

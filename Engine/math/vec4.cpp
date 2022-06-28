@@ -22,6 +22,19 @@ b32 vec4::compare(vec4 a, vec4 b) {
 }
 
 
+b32 vec4::compare(vec4 a, vec4 b, f32 margin) {
+  if (
+      a.x - margin <= b.x && b.x <= a.x + margin &&
+      a.y - margin <= b.y && b.y <= a.y + margin &&
+      a.z - margin <= b.z && b.z <= a.z + margin &&
+      a.w - margin <= b.w && b.w <= a.w + margin
+      ) {
+    return UTRUE;
+  }
+  return UFALSE;
+}
+
+
 b32 vec4::operator==(vec4 other) const {
   return compare(*this, other);
 }
