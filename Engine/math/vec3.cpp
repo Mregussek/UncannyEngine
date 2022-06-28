@@ -134,9 +134,9 @@ vec3 operator*(f32 left, vec3 right) {
 
 vec3 operator/(f32 left, vec3 right) {
   return {
-      left / right.x,
-      left / right.y,
-      left / right.z
+      right.x != 0.f ? left / right.x : FLT_MAX,
+      right.y != 0.f ? left / right.y : FLT_MAX,
+      right.z != 0.f ? left / right.z : FLT_MAX
   };
 }
 

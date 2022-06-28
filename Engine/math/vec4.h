@@ -12,10 +12,13 @@ namespace uncanny
 
 struct vec4 {
 
-  union { f32 x, r; };
-  union { f32 y, g; };
-  union { f32 z, b; };
-  union { f32 w, a; };
+  f32 x{ 0.f };
+  f32 y{ 0.f };
+  f32 z{ 0.f };
+  f32 w{ 0.f };
+
+  vec4() = default;
+  vec4(f32 _x, f32 _y, f32 _z, f32 _w);
 
   template<typename T> vec4 add(T v) const;
   template<typename T> vec4 subtract(T v) const;
