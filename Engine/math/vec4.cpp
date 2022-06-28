@@ -41,7 +41,7 @@ b32 vec4::operator==(vec4 other) const {
 
 
 b32 vec4::operator!=(vec4 other) const {
-  return ~compare(*this, other);
+  return !compare(*this, other);
 }
 
 

@@ -69,7 +69,7 @@ b32 vec3::operator==(vec3 other) const {
 
 
 b32 vec3::operator!=(vec3 other) const {
-  return ~compare(*this, other);
+  return !compare(*this, other);
 }
 
 

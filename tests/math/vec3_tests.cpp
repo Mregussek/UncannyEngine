@@ -314,6 +314,12 @@ TEST(Vec3TestSet, ComparisonOperation) {
   EXPECT_EQ(vec3::compare(c, a, 0.f), UFALSE);
   EXPECT_EQ(vec3::compare(c, a, 0.0001f), UTRUE);
   EXPECT_EQ(vec3::compare(c, a, 0.00001f), UFALSE);
+
+  EXPECT_EQ(a == b, UTRUE);
+  EXPECT_EQ(b == a, UTRUE);
+
+  EXPECT_EQ(a != c, UTRUE);
+  EXPECT_EQ(c != a, UTRUE);
 }
 
 
