@@ -293,6 +293,18 @@ TEST(Mat4TestSet, AssignOperator) {
 }
 
 
+TEST(Mat4TestSet, Translation) {
+  /*
+  * [ 1 0 0 0 ]
+  * [ 0 1 0 0 ]
+  * [ 0 0 1 0 ]
+  * [ 2 3 4 1 ]
+  */
+
+  mat4 t = mat4::translation({ 2.f, 3.f, 4.f });
+}
+
+
 GTEST_API_ int main(int argc, char **argv) {
   printf("Running main() from %s\n", __FILE__);
   testing::InitGoogleTest(&argc, argv);

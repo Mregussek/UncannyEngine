@@ -66,11 +66,11 @@ mat4 mat4::lookAt(vec3 eye, vec3 center, vec3 y) {
 }
 
 
-mat4 mat4::translation(vec3 v) {
+mat4 mat4::translation(vec3 t) {
   mat4 result(1.0f);
-  result.elements[0 + 3 * 4] = v.x;
-  result.elements[1 + 3 * 4] = v.y;
-  result.elements[2 + 3 * 4] = v.z;
+  result.elements[0 + 3 * 4] = t.x;
+  result.elements[1 + 3 * 4] = t.y;
+  result.elements[2 + 3 * 4] = t.z;
 
   return result;
 }
