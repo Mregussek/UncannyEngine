@@ -1,21 +1,24 @@
 
-find_package( OpenGL REQUIRED )
-
-set( GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only" )
-set( GLFW_INSTALL OFF CACHE BOOL  "GLFW lib only" )
-
-add_subdirectory(3rdparty/glfw)
 if( MSVC )
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup" )
 endif()
+
+file(GLOB_RECURSE SPDLOG_LIBRARY_SOURCES
+        ${PROJECT_SOURCE_DIR}/3rdparty/spdlog/include/spdlog/*.h
+        )
 
 file(GLOB_RECURSE ENGINE_LIBRARY_SOURCES
         ${PROJECT_SOURCE_DIR}/Engine/*.cpp
         ${PROJECT_SOURCE_DIR}/Engine/*.inl
         ${PROJECT_SOURCE_DIR}/Engine/*.h
         )
-add_library(UncannyLibrary ${ENGINE_LIBRARY_SOURCES})
-target_include_directories(UncannyLibrary PUBLIC ${PROJECT_SOURCE_DIR}/Engine ${OPENGL_INCLUDE_DIRS})
+add_library(UncannyLibrary ${ENGINE_LIBRARY_SOURCES} ${SPDLOG_LIBRARY_SOURCES})
+target_include_directories(UncannyLibrary
+        PUBLIC
+        ${PROJECT_SOURCE_DIR}/Engine
+        ${OPENGL_INCLUDE_DIRS}
+        ${PROJECT_SOURCE_DIR}/3rdparty/spdlog/include
+        )
 target_link_libraries(UncannyLibrary ${OPENGL_LIBRARIES} glfw)
 target_compile_features(UncannyLibrary PUBLIC cxx_std_20)
 

@@ -1,10 +1,15 @@
 
 #include <window/Window.h>
 #include <window/WindowFactory.h>
+#include <utilities/Logger.h>
+
 
 using namespace uncanny;
 
+
 auto main() -> i32 {
+  FLogger::init(FLogger::sLoggerPtr);
+
   FWindowFactory windowFactory{};
 
   FWindowSpecification windowSpecification{};

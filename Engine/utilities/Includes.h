@@ -7,7 +7,6 @@
 #include <string>
 #include <type_traits>
 #include <cmath>
-#include <GLFW/glfw3.h>
 #include <utilities/Variables.h>
 #include <utilities/Libraries.h>
 
