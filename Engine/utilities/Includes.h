@@ -9,6 +9,7 @@
 #include <cmath>
 #include <GLFW/glfw3.h>
 #include <utilities/Variables.h>
+#include <utilities/Libraries.h>
 
 
 #endif //UNCANNYENGINE_INCLUDES_H

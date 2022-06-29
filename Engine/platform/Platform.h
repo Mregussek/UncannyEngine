@@ -9,8 +9,6 @@ namespace uncanny
 
 void printHelloUncanny();
 
-void displayWindowUncanny();
-
 
 }
 
