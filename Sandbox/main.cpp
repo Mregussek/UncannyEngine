@@ -5,6 +5,6 @@
 using namespace uncanny;
 
 auto main() -> i32 {
-  printHelloUncanny();
+  displayWindowUncanny();
   return 0;
 }
