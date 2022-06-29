@@ -6,3 +6,4 @@ file(GLOB_RECURSE ENGINE_LIBRARY_SOURCES
         )
 add_library(UncannyLibrary ${ENGINE_LIBRARY_SOURCES})
 target_include_directories(UncannyLibrary PUBLIC ${PROJECT_SOURCE_DIR}/Engine)
+target_compile_features(UncannyLibrary PUBLIC cxx_std_20)

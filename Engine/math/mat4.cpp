@@ -156,7 +156,7 @@ vec4 operator*(vec4 left, const mat4& right) {
 mat4 mat4::multiplyMat4Mat4(const mat4& m, const mat4& n) {
   mat4 rtn;
 
-  const vec4 left[4]{ m.getColumn<vec4>(0), m.getColumn<vec4>(1), m.getColumn<vec4>(2), m.getColumn<vec4>(3) };
+  const vec4 left[4]{ m.getRow<vec4>(0), m.getRow<vec4>(1), m.getRow<vec4>(2), m.getRow<vec4>(3) };
 
   const vec4 col1{ left[0] * n[0 + 0 * 4] + left[1] * n[1 + 0 * 4] + left[2] * n[2 + 0 * 4] + left[3] * n[3 + 0 * 4] };
   const vec4 col2{ left[0] * n[0 + 1 * 4] + left[1] * n[1 + 1 * 4] + left[2] * n[2 + 1 * 4] + left[3] * n[3 + 1 * 4] };
