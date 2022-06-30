@@ -3,6 +3,7 @@
 #define UNCANNYENGINE_LOGGER_H
 
 
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #include <spdlog/spdlog.h>
 
 

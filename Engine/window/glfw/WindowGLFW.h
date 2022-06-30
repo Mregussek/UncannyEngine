@@ -1,10 +1,12 @@
 
-#ifndef UNCANNYENGINE_FWINDOWGLFW_H
-#define UNCANNYENGINE_FWINDOWGLFW_H
+#ifndef UNCANNYENGINE_WINDOWGLFW_H
+#define UNCANNYENGINE_WINDOWGLFW_H
 
 
 #include "window/Window.h"
-#include <GLFW/glfw3.h>
+
+
+struct GLFWwindow;
 
 
 namespace uncanny
@@ -32,4 +34,4 @@ private:
 
 }
 
-#endif //UNCANNYENGINE_FWINDOWGLFW_H
+#endif //UNCANNYENGINE_WINDOWGLFW_H

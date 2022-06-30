@@ -1,5 +1,7 @@
 
 #include "WindowGLFW.h"
+#include <GLFW/glfw3.h>
+#undef APIENTRY
 #include <utilities/Logger.h>
 
 
