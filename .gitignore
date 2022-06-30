@@ -2,4 +2,6 @@
 .vs
 .idea
 build
+build-test
 cmake-build-debug
+
