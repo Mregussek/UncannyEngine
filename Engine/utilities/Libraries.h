@@ -12,6 +12,11 @@ enum class EWindowLibrary {
 };
 
 
+enum class ERenderLibrary {
+  VULKAN
+};
+
+
 }
 
 

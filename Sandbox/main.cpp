@@ -1,6 +1,7 @@
 
 #include <window/Window.h>
 #include <window/WindowFactory.h>
+#include <renderer/RenderContext.h>
 #include <utilities/Logger.h>
 
 
@@ -9,6 +10,8 @@ using namespace uncanny;
 
 auto main() -> i32 {
   FLogger::init(FLogger::sLoggerPtr);
+
+  FRenderContext context;
 
   FWindowFactory windowFactory{};
 

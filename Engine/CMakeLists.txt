@@ -18,8 +18,10 @@ target_include_directories(UncannyLibrary
         ${PROJECT_SOURCE_DIR}/Engine
         ${OPENGL_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/3rdparty/spdlog/include
+        ${PROJECT_SOURCE_DIR}/3rdparty/volk
+        ${LOCAL_INCLUDE_VULKAN_PATH}
         )
-target_link_libraries(UncannyLibrary ${OPENGL_LIBRARIES} glfw)
+target_link_libraries(UncannyLibrary ${OPENGL_LIBRARIES} glfw volk_headers)
 target_compile_features(UncannyLibrary PUBLIC cxx_std_20)
 
 if( MSVC )
