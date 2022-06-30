@@ -4,7 +4,7 @@ if( MSVC )
 endif()
 
 file(GLOB_RECURSE SPDLOG_LIBRARY_SOURCES
-        ${PROJECT_SOURCE_DIR}/3rdparty/spdlog/include/spdlog/*.h
+        $ENV{SPDLOG_3RDPARTY_DIR}/include/spdlog/*.h
         )
 
 file(GLOB_RECURSE ENGINE_LIBRARY_SOURCES
@@ -16,9 +16,9 @@ add_library(UncannyLibrary ${ENGINE_LIBRARY_SOURCES} ${SPDLOG_LIBRARY_SOURCES})
 target_include_directories(UncannyLibrary
         PUBLIC
         ${PROJECT_SOURCE_DIR}/Engine
-        ${OPENGL_INCLUDE_DIRS}
-        ${PROJECT_SOURCE_DIR}/3rdparty/spdlog/include
-        ${PROJECT_SOURCE_DIR}/3rdparty/volk
+        ${OPENGL_INCLUDE_DIR} ${OPENGL_INCLUDE_DIRS}
+        $ENV{SPDLOG_3RDPARTY_DIR}/include
+        $ENV{VOLK_3RDPARTY_DIR}
         $ENV{VULKAN_SDK}/include
         )
 target_link_libraries(UncannyLibrary ${OPENGL_LIBRARIES} glfw volk_headers)
