@@ -8,15 +8,6 @@ namespace uncanny
 {
 
 
-static u32 retrieveVulkanVersion();
-
-template<typename T> struct is_vk_extension_properties : std::false_type { };
-template<> struct is_vk_extension_properties<VkExtensionProperties> : std::true_type { };
-
-template<typename T> struct is_vk_layer_properties : std::false_type { };
-template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { };
-
-
 template<typename TProperties>
 static void fillInRequiredProperties(const std::vector<const char*>& requiredProperties,
                                       std::vector<const char*>* pReturnProperties);
@@ -27,10 +18,10 @@ b32 FRenderContextVulkan::createInstance() {
 
   VK_CHECK( volkInitialize() );
 
-  const u32 vulkanVersion{ retrieveVulkanVersion() };
+  const u32 vulkanVersion{ retrieveVulkanApiVersion() };
 
   // Instance Layers
-  std::vector<const char*> enabledLayers;
+  std::vector<const char*> enabledLayers{};
   std::vector<const char*> requiredLayers{};
   if constexpr (U_VK_DEBUG) {
     requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
@@ -38,7 +29,7 @@ b32 FRenderContextVulkan::createInstance() {
   fillInRequiredProperties<VkLayerProperties>(requiredLayers, &enabledLayers);
 
   // Instance Extensions
-  std::vector<const char*> enabledExtensions;
+  std::vector<const char*> enabledExtensions{};
   std::vector<const char*> requiredExtensions{ VK_KHR_SURFACE_EXTENSION_NAME };
 #ifdef VK_KHR_WIN32_SURFACE_EXTENSION_NAME
   // there is needed if-macro, as when this ext is not defined there is no variable
@@ -64,8 +55,8 @@ b32 FRenderContextVulkan::createInstance() {
 
   volkLoadInstance(mInstanceVk);
 
-  UDEBUG("Created Vulkan Instance, version {}.{}!", VK_API_VERSION_MAJOR(vulkanVersion),
-         VK_API_VERSION_MINOR(vulkanVersion));
+  UDEBUG("Created Vulkan Instance, version {}.{}!", retrieveVulkanApiMajorVersion(vulkanVersion),
+         retrieveVulkanApiMinorVersion(vulkanVersion));
   return UTRUE;
 }
 
@@ -80,31 +71,6 @@ b32 FRenderContextVulkan::closeInstance() {
 }
 
 
-u32 retrieveVulkanVersion() {
-  const std::array<u32, 4> vulkanVersionsArray{
-    VK_API_VERSION_1_3, VK_API_VERSION_1_2, VK_API_VERSION_1_1, VK_API_VERSION_1_0
-  };
-
-  for(u32 version : vulkanVersionsArray) {
-    const u32 variant{ VK_API_VERSION_VARIANT(version) };
-    const u32 major{ VK_API_VERSION_MAJOR(version) };
-    const u32 minor{ VK_API_VERSION_MINOR(version) };
-    const VkResult result{ vkEnumerateInstanceVersion(&version) };
-    UTRACE("Logging VkResult for vkEnumerateInstanceVersion Variant {} Version {}.{} -> {}", variant,
-           major, minor, result);
-    if (result == VK_SUCCESS) {
-      return version;
-    }
-  }
-
-  UFATAL("Any Vulkan API is not supported on this device, check your drivers!");
-  return 0;
-  // TODO: Handle no support for Vulkan API, remember that vkEnumerateInstanceVersion always
-  //  return VK_SUCCESS, even with 0.0.0 version
-  //  Variant.Major.Minor.Patch -> currently patch does not mean nothing!
-}
-
-
 template<typename TProperties>
 static void iterateOverAndLog(const std::vector<TProperties>& properties,
                               const char* (*pRetrieveFunc)(const TProperties&),
@@ -114,30 +80,50 @@ static void iterateOverAndLog(const std::vector<TProperties>& properties,
 template<typename TProperties>
 static const char* retrievePropertyName(const TProperties&);
 
+template<typename TProperties>
+static b32 isRequiredPropertyAvailable(const char* requiredProperty,
+                                        const std::vector<TProperties>& availableProperties);
+
+
+template<typename T> struct is_vk_extension_properties : std::false_type { };
+template<> struct is_vk_extension_properties<VkExtensionProperties> : std::true_type { };
+
+template<typename T> struct is_vk_layer_properties : std::false_type { };
+template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { };
+
 
 template<typename TProperties>
 void fillInRequiredProperties(const std::vector<const char*>& requiredProperties,
                               std::vector<const char*>* pReturnProperties) {
   uint32_t count{ 0 };
   std::vector<TProperties> availableProperties{};
-  iterateOverAndLog(requiredProperties, retrievePropertyName, "REQUIRED");
 
   if constexpr (is_vk_extension_properties<TProperties>::value) {
     VK_CHECK( vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr) );
     availableProperties.resize(count);
     VK_CHECK( vkEnumerateInstanceExtensionProperties(nullptr, &count, availableProperties.data()) );
-    iterateOverAndLog(availableProperties, retrievePropertyName, "AVAILABLE");
   }
   else if constexpr (is_vk_layer_properties<TProperties>::value) {
     VK_CHECK( vkEnumerateInstanceLayerProperties(&count, nullptr) );
     availableProperties.resize(count);
     VK_CHECK( vkEnumerateInstanceLayerProperties(&count, availableProperties.data()) );
-    iterateOverAndLog(availableProperties, retrievePropertyName, "AVAILABLE");
   }
   else {
     UERROR("Given wrong TProperties type, cannot enable VkInstance layers and extensions!");
     return;
   }
+
+  iterateOverAndLog(requiredProperties, retrievePropertyName, "REQUIRED");
+  if constexpr (U_VK_DEBUG) {
+    iterateOverAndLog(availableProperties, retrievePropertyName, "AVAILABLE");
+  }
+
+  for (const char* required : requiredProperties) {
+    if (isRequiredPropertyAvailable(required, availableProperties)) {
+      pReturnProperties->push_back(required);
+    }
+  }
+  iterateOverAndLog(*pReturnProperties, retrievePropertyName, "RETURN");
 }
 
 
@@ -167,6 +153,22 @@ const char* retrievePropertyName(const TProperties& p) {
   else {
     return "Unknown";
   }
+}
+
+
+template<typename TProperties>
+b32 isRequiredPropertyAvailable(const char* requiredProperty,
+                                const std::vector<TProperties>& availableProperties) {
+  auto isStringInPropertiesVector = [requiredProperty](const TProperties& property){
+    return std::strcmp(retrievePropertyName(property), requiredProperty);
+  };
+  auto it{ std::find_if(availableProperties.begin(), availableProperties.end(),
+                        isStringInPropertiesVector) };
+  if (it != availableProperties.end()) {
+    return UTRUE;
+  }
+
+  return UFALSE;
 }
 
 
