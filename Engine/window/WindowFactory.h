@@ -15,7 +15,7 @@ class FWindowFactory {
 public:
 
   template<EWindowLibrary TWindowLibrary>
-  FWindow* createWindow() {
+  FWindow* create() {
     if constexpr (TWindowLibrary == EWindowLibrary::GLFW) {
       return &mWindowGLFW;
     }
