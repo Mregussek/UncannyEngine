@@ -10,10 +10,20 @@ namespace uncanny
 {
 
 
+class FWindow;
+
+
+struct FRenderContextSpecification {
+
+  FWindow* pWindow{ nullptr };
+
+};
+
+
 class FRenderContext {
 public:
 
-  virtual void init();
+  virtual void init(FRenderContextSpecification renderContextSpecs);
   virtual void terminate();
 
 };

@@ -7,7 +7,8 @@ namespace uncanny
 {
 
 
-void FRenderContextVulkan::init() {
+void FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
+  mSpecs = renderContextSpecs;
 }
 
 

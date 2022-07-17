@@ -15,9 +15,6 @@ auto main() -> i32 {
   FRenderContextFactory renderContextFactory{};
   FWindowFactory windowFactory{};
 
-  FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
-  pRenderContext->init();
-
   FWindowSpecification windowSpecification{};
   windowSpecification.name = "UncannyEngine v0.0.1";
   windowSpecification.width = 720;
@@ -26,11 +23,18 @@ auto main() -> i32 {
   FWindow* pWindow{ windowFactory.create<EWindowLibrary::GLFW>() };
   pWindow->init(windowSpecification);
 
+  FRenderContextSpecification renderContextSpecification;
+  renderContextSpecification.pWindow = pWindow;
+
+  FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
+  pRenderContext->init(renderContextSpecification);
+
   while(pWindow->isNotGoingToClose()) {
     pWindow->swapBuffersAndPollEvents();
   }
 
   pRenderContext->terminate();
   pWindow->terminate();
+
   return 0;
 }
