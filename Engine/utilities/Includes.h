@@ -9,6 +9,7 @@
 #include <cmath>
 #include <utilities/Variables.h>
 #include <utilities/Libraries.h>
+#include <utilities/Versions.h>
 
 
 #endif //UNCANNYENGINE_INCLUDES_H

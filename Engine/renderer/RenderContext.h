@@ -16,6 +16,9 @@ class FWindow;
 struct FRenderContextSpecification {
 
   FWindow* pWindow{ nullptr };
+  const char* pAppName{ nullptr };
+  u32 appVersion{ 0 };
+  u32 engineVersion{ 0 };
 
 };
 

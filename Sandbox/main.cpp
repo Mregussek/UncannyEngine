@@ -16,7 +16,7 @@ auto main() -> i32 {
   FWindowFactory windowFactory{};
 
   FWindowSpecification windowSpecification{};
-  windowSpecification.name = "UncannyEngine v0.0.1";
+  windowSpecification.name = "UncannySandbox";
   windowSpecification.width = 720;
   windowSpecification.height = 405;
 
@@ -25,6 +25,9 @@ auto main() -> i32 {
 
   FRenderContextSpecification renderContextSpecification;
   renderContextSpecification.pWindow = pWindow;
+  renderContextSpecification.pAppName = "Uncanny Sandbox";
+  renderContextSpecification.appVersion = UENGINE_MAKE_VERSION(0, 0, 1);
+  renderContextSpecification.engineVersion = (u32)EEngineVersion::LATEST;
 
   FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
   pRenderContext->init(renderContextSpecification);

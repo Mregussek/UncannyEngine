@@ -19,10 +19,14 @@ public:
 
 private:
 
-  FRenderContextSpecification mSpecs;
+  b32 createInstance();
+  b32 closeInstance();
 
-  VkInstance m_instance{ VK_NULL_HANDLE };
-  VkDebugReportCallbackEXT m_callback{ VK_NULL_HANDLE };
+
+  FRenderContextSpecification mSpecs{};
+
+  VkInstance mInstanceVk{ VK_NULL_HANDLE };
+
 };
 
 

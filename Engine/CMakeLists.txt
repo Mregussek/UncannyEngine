@@ -21,7 +21,7 @@ target_include_directories(UncannyLibrary
         $ENV{VOLK_3RDPARTY_DIR}
         $ENV{VULKAN_SDK}/include
         )
-target_link_libraries(UncannyLibrary ${OPENGL_LIBRARIES} glfw volk_headers)
+target_link_libraries(UncannyLibrary PRIVATE ${OPENGL_LIBRARIES} glfw volk_headers)
 target_compile_features(UncannyLibrary PUBLIC cxx_std_20)
 
 if( MSVC )
