@@ -4,6 +4,9 @@
 
 
 #include "renderer/RenderContext.h"
+#ifdef WIN32
+  #define VK_USE_PLATFORM_WIN32_KHR 1
+#endif
 #include <volk.h>
 
 

@@ -20,6 +20,7 @@ target_include_directories(UncannyLibrary
         $ENV{SPDLOG_3RDPARTY_DIR}/include
         $ENV{VOLK_3RDPARTY_DIR}
         $ENV{VULKAN_SDK}/include
+        $ENV{GLFW_3RDPARTY_DIR}/include
         )
 target_link_libraries(UncannyLibrary PRIVATE ${OPENGL_LIBRARIES} glfw volk_headers)
 target_compile_features(UncannyLibrary PUBLIC cxx_std_20)
