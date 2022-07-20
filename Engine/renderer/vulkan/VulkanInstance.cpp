@@ -31,10 +31,9 @@ b32 FRenderContextVulkan::createInstance() {
   // Instance Extensions
   std::vector<const char*> enabledExtensions{};
   std::vector<const char*> requiredExtensions{ VK_KHR_SURFACE_EXTENSION_NAME };
-#ifdef VK_KHR_WIN32_SURFACE_EXTENSION_NAME
-  // there is needed if-macro, as when this ext is not defined there is no variable
-  requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#endif
+  if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
+    requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+  }
   fillInRequiredProperties<VkExtensionProperties>(requiredExtensions, &enabledExtensions);
 
   VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };

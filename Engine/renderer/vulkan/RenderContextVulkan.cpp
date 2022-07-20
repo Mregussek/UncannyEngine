@@ -13,6 +13,7 @@ void FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) 
   mSpecs = renderContextSpecs;
 
   createInstance();
+  createPhysicalDevice();
 
   UINFO("Initialized Vulkan Render Context!");
 }

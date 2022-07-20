@@ -6,6 +6,8 @@
 #include "renderer/RenderContext.h"
 #ifdef WIN32
   #define VK_USE_PLATFORM_WIN32_KHR 1
+#else
+#define VK_USE_PLATFORM_WIN32_KHR 0
 #endif
 #include <volk.h>
 
@@ -25,10 +27,17 @@ private:
   b32 createInstance();
   b32 closeInstance();
 
+  b32 createPhysicalDevice();
+
 
   FRenderContextSpecification mSpecs{};
 
   VkInstance mInstanceVk{ VK_NULL_HANDLE };
+  VkPhysicalDevice mPhysicalDeviceVk{ VK_NULL_HANDLE };
+  VkPhysicalDeviceProperties mPhysicalDeviceProperties{};
+  VkPhysicalDeviceFeatures mPhysicalDeviceFeatures{};
+  u32 mQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
+  VkQueueFamilyProperties mQueueFamilyProperties{};
 
 };
 
