@@ -33,6 +33,7 @@ private:
   FRenderContextSpecification mSpecs{};
 
   VkInstance mInstanceVk{ VK_NULL_HANDLE };
+  VkDebugReportCallbackEXT mDebugReportCallback{ VK_NULL_HANDLE };
   VkPhysicalDevice mPhysicalDeviceVk{ VK_NULL_HANDLE };
   VkPhysicalDeviceProperties mPhysicalDeviceProperties{};
   VkPhysicalDeviceFeatures mPhysicalDeviceFeatures{};

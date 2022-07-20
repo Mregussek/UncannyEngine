@@ -13,6 +13,12 @@ static void fillInRequiredProperties(const std::vector<const char*>& requiredPro
                                       std::vector<const char*>* pReturnProperties);
 
 
+static VkBool32 debugCallbackFunc(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+                                  uint64_t object, size_t location, int32_t messageCode,
+                                  const char* pLayerPrefix, const char* pMessage,
+                                  void* pUserData);
+
+
 b32 FRenderContextVulkan::createInstance() {
   UTRACE("Creating Vulkan Instance...");
 
@@ -34,6 +40,9 @@ b32 FRenderContextVulkan::createInstance() {
   if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
     requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
   }
+  if constexpr (U_VK_DEBUG) {
+    requiredLayers.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+  }
   fillInRequiredProperties<VkExtensionProperties>(requiredExtensions, &enabledExtensions);
 
   VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
@@ -53,6 +62,20 @@ b32 FRenderContextVulkan::createInstance() {
   VK_CHECK( vkCreateInstance(&createInfo, nullptr, &mInstanceVk) );
 
   volkLoadInstance(mInstanceVk);
+
+  if constexpr (U_VK_DEBUG) {
+    UTRACE("Adding debug report callback to Vulkan...");
+    VkDebugReportCallbackCreateInfoEXT debugInfo{ VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT };
+    debugInfo.flags = VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT
+        | VK_DEBUG_REPORT_ERROR_BIT_EXT;
+    debugInfo.pfnCallback = debugCallbackFunc;
+
+    auto vkCreateDebugReportCallbackEXT =
+        (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(mInstanceVk,
+                                                                  "vkCreateDebugReportCallbackEXT");
+    VK_CHECK( vkCreateDebugReportCallbackEXT(mInstanceVk, &debugInfo, nullptr,
+                                             &mDebugReportCallback) );
+  }
 
   UDEBUG("Created Vulkan Instance, version {}.{}!", retrieveVulkanApiMajorVersion(vulkanVersion),
          retrieveVulkanApiMinorVersion(vulkanVersion));
@@ -169,6 +192,28 @@ b32 isRequiredPropertyAvailable(const char* requiredProperty,
 
   return UFALSE;
 }
+
+
+VkBool32 debugCallbackFunc(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+                           uint64_t object, size_t location, int32_t messageCode,
+                           const char* pLayerPrefix, const char* pMessage, void* pUserData) {
+  const auto error = flags & VK_DEBUG_REPORT_ERROR_BIT_EXT;
+  const auto warning = flags & VK_DEBUG_REPORT_WARNING_BIT_EXT;
+  const auto performanceWarning = flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+
+  if (error) {
+    printf("%s : %s\n", "ERROR", pMessage);
+  }
+  else if (warning) {
+    printf("%s : %s\n", "WARNING", pMessage);
+  }
+  else if (performanceWarning) {
+    printf("%s : %s\n", "PERFORMANCE_WARNING", pMessage);
+  }
+
+  return VK_FALSE;
+}
+
 
 
 }
