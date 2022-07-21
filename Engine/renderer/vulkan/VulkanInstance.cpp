@@ -13,10 +13,11 @@ static void fillInRequiredProperties(const std::vector<const char*>& requiredPro
                                       std::vector<const char*>* pReturnProperties);
 
 
-static VkBool32 debugCallbackFunc(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
-                                  uint64_t object, size_t location, int32_t messageCode,
-                                  const char* pLayerPrefix, const char* pMessage,
-                                  void* pUserData);
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData);
 
 
 b32 FRenderContextVulkan::createInstance() {
@@ -30,18 +31,22 @@ b32 FRenderContextVulkan::createInstance() {
   std::vector<const char*> enabledLayers{};
   std::vector<const char*> requiredLayers{};
   if constexpr (U_VK_DEBUG) {
+    UTRACE("Adding debug validation layers to VkInstance...");
     requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
   }
   fillInRequiredProperties<VkLayerProperties>(requiredLayers, &enabledLayers);
 
   // Instance Extensions
   std::vector<const char*> enabledExtensions{};
-  std::vector<const char*> requiredExtensions{ VK_KHR_SURFACE_EXTENSION_NAME };
+  std::vector<const char*> requiredExtensions{};
   if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
+    UTRACE("Adding surface khr win32 extensions to VkInstance...");
+    requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
   }
   if constexpr (U_VK_DEBUG) {
-    requiredLayers.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    UTRACE("Adding debug report extension to VkInstance...");
+    requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
   fillInRequiredProperties<VkExtensionProperties>(requiredExtensions, &enabledExtensions);
 
@@ -65,16 +70,18 @@ b32 FRenderContextVulkan::createInstance() {
 
   if constexpr (U_VK_DEBUG) {
     UTRACE("Adding debug report callback to Vulkan...");
-    VkDebugReportCallbackCreateInfoEXT debugInfo{ VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT };
-    debugInfo.flags = VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT
-        | VK_DEBUG_REPORT_ERROR_BIT_EXT;
-    debugInfo.pfnCallback = debugCallbackFunc;
 
-    auto vkCreateDebugReportCallbackEXT =
-        (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(mInstanceVk,
-                                                                  "vkCreateDebugReportCallbackEXT");
-    VK_CHECK( vkCreateDebugReportCallbackEXT(mInstanceVk, &debugInfo, nullptr,
-                                             &mDebugReportCallback) );
+    auto vkCreateDebugUtilsMessengerEXT =
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstanceVk,
+                                                                  "vkCreateDebugUtilsMessengerEXT");
+    VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
+    debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    debugInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+    debugInfo.pfnUserCallback = debugCallbackFunc;
+    VK_CHECK( vkCreateDebugUtilsMessengerEXT(mInstanceVk, &debugInfo, nullptr, &mDebugUtilsMsg) );
   }
 
   UDEBUG("Created Vulkan Instance, version {}.{}!", retrieveVulkanApiMajorVersion(vulkanVersion),
@@ -85,6 +92,13 @@ b32 FRenderContextVulkan::createInstance() {
 
 b32 FRenderContextVulkan::closeInstance() {
   UTRACE("Closing Vulkan Instance...");
+
+  if (mDebugUtilsMsg != VK_NULL_HANDLE) {
+    auto vkDestroyDebugUtilsMessengerEXT =
+        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstanceVk,
+                                                                   "vkDestroyDebugUtilsMessengerEXT");
+    vkDestroyDebugUtilsMessengerEXT(mInstanceVk, mDebugUtilsMsg, nullptr);
+  }
 
   vkDestroyInstance(mInstanceVk, nullptr);
 
@@ -194,21 +208,26 @@ b32 isRequiredPropertyAvailable(const char* requiredProperty,
 }
 
 
-VkBool32 debugCallbackFunc(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
-                           uint64_t object, size_t location, int32_t messageCode,
-                           const char* pLayerPrefix, const char* pMessage, void* pUserData) {
-  const auto error = flags & VK_DEBUG_REPORT_ERROR_BIT_EXT;
-  const auto warning = flags & VK_DEBUG_REPORT_WARNING_BIT_EXT;
-  const auto performanceWarning = flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                           VkDebugUtilsMessageTypeFlagsEXT messageType,
+                           const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                           void* pUserData) {
+  const auto error = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+  const auto warning = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
+  const auto info = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+  const auto verbose = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
 
   if (error) {
-    printf("%s : %s\n", "ERROR", pMessage);
+    printf("%s : %s\n", "ERROR", pCallbackData->pMessage);
   }
   else if (warning) {
-    printf("%s : %s\n", "WARNING", pMessage);
+    printf("%s : %s\n", "WARNING", pCallbackData->pMessage);
   }
-  else if (performanceWarning) {
-    printf("%s : %s\n", "PERFORMANCE_WARNING", pMessage);
+  else if (info) {
+    printf("%s : %s\n", "INFO", pCallbackData->pMessage);
+  }
+  else if (verbose) {
+    printf("%s : %s\n", "VERBOSE", pCallbackData->pMessage);
   }
 
   return VK_FALSE;
