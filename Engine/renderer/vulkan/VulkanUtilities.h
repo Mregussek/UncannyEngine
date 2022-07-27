@@ -14,13 +14,19 @@ namespace uncanny
 {
 
 
-u32 retrieveVulkanApiVariantVersion(u32 version);
+struct FDriverVersionInfo {
+  u32 variant{ 0 };
+  u32 major{ 0 };
+  u32 minor{ 0 };
+  u32 patch{ 0 };
+};
 
-u32 retrieveVulkanApiMajorVersion(u32 version);
-
-u32 retrieveVulkanApiMinorVersion(u32 version);
 
 u32 retrieveVulkanApiVersion();
+
+
+FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID);
+
 
 const char* retrieveInfoAboutVkResult(VkResult result);
 
@@ -39,8 +45,7 @@ const char* retrieveInfoAboutVkResult(VkResult result);
   } while(0)
 
 
-#define URETURN_FALSE_IF_NOT_VK_SUCCESS(call) __VK_CHECK_TEMPLATE(call, return UFALSE)
-
 #define U_VK_ASSERT(call) __VK_CHECK_TEMPLATE(call, __debugbreak())
+
 
 #endif //UNCANNYENGINE_VULKANUTILITIES_H

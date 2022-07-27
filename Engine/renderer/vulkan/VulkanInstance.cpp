@@ -115,8 +115,8 @@ b32 FRenderContextVulkan::createInstance() {
     U_VK_ASSERT( vkCreateDebugUtilsMessengerEXT(mInstanceVk, &debugInfo, nullptr, &mDebugUtilsMsg) );
   }
 
-  UDEBUG("Created Vulkan Instance, version {}.{}!", retrieveVulkanApiMajorVersion(vulkanVersion),
-         retrieveVulkanApiMinorVersion(vulkanVersion));
+  UDEBUG("Created Vulkan Instance, version {}.{}!", VK_API_VERSION_MAJOR(vulkanVersion),
+         VK_API_VERSION_MINOR(vulkanVersion));
   return UTRUE;
 }
 

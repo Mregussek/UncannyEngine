@@ -183,9 +183,11 @@ void displayPhysicalDeviceData(const VkPhysicalDeviceProperties& devicePropertie
                                const VkPhysicalDeviceFeatures& deviceFeatures,
                                const VkQueueFamilyProperties& queueFamilyProperties,
                                u32 queueFamilyIndex) {
-  UINFO("PhysicalDevice Info\nPicked: {}\nDriver Version: {}\nVulkan Version Available: {}"
-        ".{}\nType: {}", deviceProperties.deviceName, deviceProperties.driverVersion,
-        VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
+  FDriverVersionInfo driverVersionInfo =
+      decodeDriverVersionVulkan(deviceProperties.driverVersion, deviceProperties.vendorID);
+  UINFO("PhysicalDevice Info\nPicked: {}\nDriver Version: {}.{}\nVulkan Version Available: {}"
+        ".{}\nType: {}", deviceProperties.deviceName, driverVersionInfo.variant,
+        driverVersionInfo.major, VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
         VK_API_VERSION_MINOR(deviceProperties.apiVersion),
         getGpuTypeName(deviceProperties.deviceType));
 

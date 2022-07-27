@@ -4,23 +4,14 @@
 #include <utilities/Logger.h>
 
 
+#define U_NV_DRIVER_VERSION_VARIANT(version)  (((version) >> 22) & 0x3ff)
+#define U_NV_DRIVER_VERSION_MAJOR(version)  (((version) >> 14) & 0x0ff)
+#define U_NV_DRIVER_VERSION_MINOR(version)  (((version) >> 6) & 0x0ff)
+#define U_NV_DRIVER_VERSION_PATCH(version)  ((version) & 0x0ff)
+
+
 namespace uncanny
 {
-
-
-u32 retrieveVulkanApiVariantVersion(u32 version) {
-  return VK_API_VERSION_VARIANT(version);
-}
-
-
-u32 retrieveVulkanApiMajorVersion(u32 version) {
-  return VK_API_VERSION_MAJOR(version);
-}
-
-
-u32 retrieveVulkanApiMinorVersion(u32 version) {
-  return VK_API_VERSION_MINOR(version);
-}
 
 
 u32 retrieveVulkanApiVersion() {
@@ -29,9 +20,9 @@ u32 retrieveVulkanApiVersion() {
   };
 
   for(u32 version : vulkanVersionsArray) {
-    const u32 variant{ retrieveVulkanApiVariantVersion(version) };
-    const u32 major{ retrieveVulkanApiMajorVersion(version) };
-    const u32 minor{ retrieveVulkanApiMinorVersion(version) };
+    const u32 variant{ VK_API_VERSION_VARIANT(version) };
+    const u32 major{ VK_API_VERSION_MAJOR(version) };
+    const u32 minor{ VK_API_VERSION_MINOR(version) };
     const VkResult result{ vkEnumerateInstanceVersion(&version) };
     UTRACE("Logging VkResult for vkEnumerateInstanceVersion Variant {} Version {}.{} -> {}", variant,
            major, minor, result);
@@ -45,6 +36,20 @@ u32 retrieveVulkanApiVersion() {
   // TODO: Handle no support for Vulkan API, remember that vkEnumerateInstanceVersion always
   //  return VK_SUCCESS, even with 0.0.0 version
   //  Variant.Major.Minor.Patch -> currently patch does not mean nothing!
+}
+
+
+FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID) {
+  UTRACE("Trying to decode driver version for vendorID: {}", vendorID);
+  if (vendorID == 4318) { // NVIDIA
+    FDriverVersionInfo info{};
+    info.variant = U_NV_DRIVER_VERSION_VARIANT(version);
+    info.major = U_NV_DRIVER_VERSION_MAJOR(version);
+    info.minor = U_NV_DRIVER_VERSION_MINOR(version);
+    info.patch = U_NV_DRIVER_VERSION_MINOR(version);
+    return info;
+  }
+  return {};
 }
 
 
