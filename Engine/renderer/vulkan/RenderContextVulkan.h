@@ -19,15 +19,15 @@ namespace uncanny
 class FRenderContextVulkan : public FRenderContext {
 public:
 
-  void init(FRenderContextSpecification renderContextSpecs) override;
+  b32 init(FRenderContextSpecification renderContextSpecs) override;
   void terminate() override;
 
 private:
 
-  b32 createInstance();
-  b32 closeInstance();
+  [[nodiscard]] b32 createInstance();
+  [[nodiscard]] b32 closeInstance();
 
-  b32 createPhysicalDevice();
+  [[nodiscard]] b32 createPhysicalDevice();
 
 
   FRenderContextSpecification mSpecs{};

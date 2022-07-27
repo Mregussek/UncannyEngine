@@ -8,9 +8,30 @@ namespace uncanny
 {
 
 
+template<typename T> struct is_vk_extension_properties : std::false_type { };
+template<> struct is_vk_extension_properties<VkExtensionProperties> : std::true_type { };
+
+template<typename T> struct is_vk_layer_properties : std::false_type { };
+template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { };
+
+
 template<typename TProperties>
 static void fillInRequiredProperties(const std::vector<const char*>& requiredProperties,
                                       std::vector<const char*>* pReturnProperties);
+
+
+template<typename TProperties>
+static void iterateOverAndLog(const std::vector<TProperties>& properties,
+                              const char* (*pRetrieveFunc)(const TProperties&),
+                              const char* areMandatory);
+
+
+template<typename TProperties>
+static const char* retrievePropertyName(const TProperties&);
+
+template<typename TProperties>
+static b32 isRequiredPropertyAvailable(const char* requiredProperty,
+                                       const std::vector<TProperties>& availableProperties);
 
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(
@@ -23,7 +44,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(
 b32 FRenderContextVulkan::createInstance() {
   UTRACE("Creating Vulkan Instance...");
 
-  VK_CHECK( volkInitialize() );
+  // Initializing volk -> loading all vulkan functions
+  VkResult initializedVolk{ volkInitialize() };
+  if (initializedVolk != VK_SUCCESS) {
+    UFATAL("Could not initialize volk library along with Vulkan SDK, check you GPU drivers and "
+           "downloaded Vulkan SDK");
+    return UFALSE;
+  }
 
   const u32 vulkanVersion{ retrieveVulkanApiVersion() };
 
@@ -31,7 +58,7 @@ b32 FRenderContextVulkan::createInstance() {
   std::vector<const char*> enabledLayers{};
   std::vector<const char*> requiredLayers{};
   if constexpr (U_VK_DEBUG) {
-    UTRACE("Adding debug validation layers to VkInstance...");
+    UTRACE("Adding khronos validation layer to VkInstance...");
     requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
   }
   fillInRequiredProperties<VkLayerProperties>(requiredLayers, &enabledLayers);
@@ -64,7 +91,11 @@ b32 FRenderContextVulkan::createInstance() {
   createInfo.ppEnabledExtensionNames = enabledExtensions.data();
   createInfo.enabledExtensionCount = enabledExtensions.size();
 
-  VK_CHECK( vkCreateInstance(&createInfo, nullptr, &mInstanceVk) );
+  VkResult instanceCreated{ vkCreateInstance(&createInfo, nullptr, &mInstanceVk) };
+  if (instanceCreated != VK_SUCCESS) {
+    UFATAL("Could not create VkInstance, check your vulkan SDK and GPU drivers");
+    return UFALSE;
+  }
 
   volkLoadInstance(mInstanceVk);
 
@@ -81,7 +112,7 @@ b32 FRenderContextVulkan::createInstance() {
     debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
         VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
     debugInfo.pfnUserCallback = debugCallbackFunc;
-    VK_CHECK( vkCreateDebugUtilsMessengerEXT(mInstanceVk, &debugInfo, nullptr, &mDebugUtilsMsg) );
+    U_VK_ASSERT( vkCreateDebugUtilsMessengerEXT(mInstanceVk, &debugInfo, nullptr, &mDebugUtilsMsg) );
   }
 
   UDEBUG("Created Vulkan Instance, version {}.{}!", retrieveVulkanApiMajorVersion(vulkanVersion),
@@ -108,41 +139,21 @@ b32 FRenderContextVulkan::closeInstance() {
 
 
 template<typename TProperties>
-static void iterateOverAndLog(const std::vector<TProperties>& properties,
-                              const char* (*pRetrieveFunc)(const TProperties&),
-                              const char* areMandatory);
-
-
-template<typename TProperties>
-static const char* retrievePropertyName(const TProperties&);
-
-template<typename TProperties>
-static b32 isRequiredPropertyAvailable(const char* requiredProperty,
-                                        const std::vector<TProperties>& availableProperties);
-
-
-template<typename T> struct is_vk_extension_properties : std::false_type { };
-template<> struct is_vk_extension_properties<VkExtensionProperties> : std::true_type { };
-
-template<typename T> struct is_vk_layer_properties : std::false_type { };
-template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { };
-
-
-template<typename TProperties>
 void fillInRequiredProperties(const std::vector<const char*>& requiredProperties,
                               std::vector<const char*>* pReturnProperties) {
   uint32_t count{ 0 };
   std::vector<TProperties> availableProperties{};
 
   if constexpr (is_vk_extension_properties<TProperties>::value) {
-    VK_CHECK( vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr) );
+    U_VK_ASSERT( vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr) );
     availableProperties.resize(count);
-    VK_CHECK( vkEnumerateInstanceExtensionProperties(nullptr, &count, availableProperties.data()) );
+    U_VK_ASSERT( vkEnumerateInstanceExtensionProperties(nullptr, &count,
+                                                        availableProperties.data()) );
   }
   else if constexpr (is_vk_layer_properties<TProperties>::value) {
-    VK_CHECK( vkEnumerateInstanceLayerProperties(&count, nullptr) );
+    U_VK_ASSERT( vkEnumerateInstanceLayerProperties(&count, nullptr) );
     availableProperties.resize(count);
-    VK_CHECK( vkEnumerateInstanceLayerProperties(&count, availableProperties.data()) );
+    U_VK_ASSERT( vkEnumerateInstanceLayerProperties(&count, availableProperties.data()) );
   }
   else {
     UERROR("Given wrong TProperties type, cannot enable VkInstance layers and extensions!");

@@ -26,7 +26,7 @@ struct FRenderContextSpecification {
 class FRenderContext {
 public:
 
-  virtual void init(FRenderContextSpecification renderContextSpecs);
+  virtual b32 init(FRenderContextSpecification renderContextSpecs);
   virtual void terminate();
 
 };

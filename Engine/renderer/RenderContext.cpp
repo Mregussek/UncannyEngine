@@ -7,8 +7,9 @@ namespace uncanny
 {
 
 
-void FRenderContext::init(FRenderContextSpecification renderContextSpecs) {
+b32 FRenderContext::init(FRenderContextSpecification renderContextSpecs) {
   UFATAL("should not be used!");
+  return UFALSE;
 }
 
 

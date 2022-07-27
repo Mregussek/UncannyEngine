@@ -44,9 +44,9 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 
   UTRACE("Retrieving count and data about physical devices...");
   u32 devicesCount{ 0 };
-  VK_CHECK( vkEnumeratePhysicalDevices(mInstanceVk, &devicesCount, nullptr) );
+  U_VK_ASSERT( vkEnumeratePhysicalDevices(mInstanceVk, &devicesCount, nullptr) );
   std::vector<VkPhysicalDevice> devicesVector(devicesCount);
-  VK_CHECK( vkEnumeratePhysicalDevices(mInstanceVk, &devicesCount, devicesVector.data()) );
+  U_VK_ASSERT( vkEnumeratePhysicalDevices(mInstanceVk, &devicesCount, devicesVector.data()) );
 
   FSuitablePhysicalDeviceReturnInfo returnInfo{};
   b32 foundDevice{ pickSuitableDevice(mInstanceVk, devicesVector, &returnInfo) };
@@ -100,7 +100,6 @@ b32 pickSuitableDevice(VkInstance instance, const std::vector<VkPhysicalDevice>&
     // Retrieve queues family
     u32 queuesCount{ 0 };
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queuesCount, nullptr);
-
     std::vector<VkQueueFamilyProperties> queuePropertiesVector(queuesCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queuesCount, queuePropertiesVector.data());
 
@@ -190,9 +189,6 @@ void displayPhysicalDeviceData(const VkPhysicalDeviceProperties& devicePropertie
         VK_API_VERSION_MINOR(deviceProperties.apiVersion),
         getGpuTypeName(deviceProperties.deviceType));
 
-  if (queueFamilyIndex == VK_QUEUE_FAMILY_IGNORED) {
-    return;
-  }
   auto queueFlags{ queueFamilyProperties.queueFlags };
   UINFO("QueueFamilyIndex {} supports check:\ngraphics: {}\ncompute: {}\ntransfer: "
         "{}\nsparse_binding: {}", queueFamilyIndex, queueFlags & VK_QUEUE_GRAPHICS_BIT,

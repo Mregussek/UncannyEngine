@@ -28,15 +28,19 @@ const char* retrieveInfoAboutVkResult(VkResult result);
 }
 
 
-#define VK_CHECK(call) \
-    do { \
-        const VkResult result = call; \
-        if (result != VK_SUCCESS) { \
-          const char* msg{ ::uncanny::retrieveInfoAboutVkResult(result) }; \
-          UERROR("VkResult {} : {}", result, msg); \
-          __debugbreak(); \
-        } \
-    } while(0)
+#define __VK_CHECK_TEMPLATE(call, rtnmode) \
+  do { \
+    const VkResult result = call; \
+    if (result != VK_SUCCESS) { \
+      const char* info{ ::uncanny::retrieveInfoAboutVkResult(result) }; \
+      UERROR("VkResult {} : {}", result, info); \
+      rtnmode; \
+    } \
+  } while(0)
 
+
+#define URETURN_FALSE_IF_NOT_VK_SUCCESS(call) __VK_CHECK_TEMPLATE(call, return UFALSE)
+
+#define U_VK_ASSERT(call) __VK_CHECK_TEMPLATE(call, __debugbreak())
 
 #endif //UNCANNYENGINE_VULKANUTILITIES_H

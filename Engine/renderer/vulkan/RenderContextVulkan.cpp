@@ -7,22 +7,34 @@ namespace uncanny
 {
 
 
-void FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
+b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   UTRACE("Initializing Vulkan Render Context...");
-
   mSpecs = renderContextSpecs;
 
-  createInstance();
-  createPhysicalDevice();
+  b32 properlyCreatedInstance{ createInstance() };
+  if (not properlyCreatedInstance) {
+    UFATAL("Could not create Vulkan Instance!");
+    return UFALSE;
+  }
+
+  b32 properlyCreatedPhysicalDevice{ createPhysicalDevice() };
+  if (not properlyCreatedPhysicalDevice) {
+    UFATAL("Could not pick Vulkan Physical Device!");
+    return UFALSE;
+  }
 
   UINFO("Initialized Vulkan Render Context!");
+  return UTRUE;
 }
 
 
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
-  closeInstance();
+  b32 closedInstance{ closeInstance() };
+  if (not closedInstance) {
+
+  }
 
   UINFO("Terminated Vulkan Render Context!");
 }
