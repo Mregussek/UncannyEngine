@@ -45,7 +45,7 @@ b32 FRenderContextVulkan::createInstance() {
     requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
   }
   if constexpr (U_VK_DEBUG) {
-    UTRACE("Adding debug report extension to VkInstance...");
+    UTRACE("Adding debug utils extension to VkInstance...");
     requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
   fillInRequiredProperties<VkExtensionProperties>(requiredExtensions, &enabledExtensions);
@@ -175,8 +175,7 @@ void iterateOverAndLog(const std::vector<TProperties>& properties,
 }
 
 
-template<typename TProperties>
-const char* retrievePropertyName(const TProperties& p) {
+template<typename TProperties> const char* retrievePropertyName(const TProperties& p) {
   if constexpr (is_vk_extension_properties<TProperties>::value) {
     return p.extensionName;
   }
@@ -232,7 +231,6 @@ VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverit
 
   return VK_FALSE;
 }
-
 
 
 }

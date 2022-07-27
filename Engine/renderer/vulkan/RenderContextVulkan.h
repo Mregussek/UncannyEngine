@@ -7,7 +7,7 @@
 #ifdef WIN32
   #define VK_USE_PLATFORM_WIN32_KHR 1
 #else
-#define VK_USE_PLATFORM_WIN32_KHR 0
+  #define VK_USE_PLATFORM_WIN32_KHR 0
 #endif
 #include <volk.h>
 
