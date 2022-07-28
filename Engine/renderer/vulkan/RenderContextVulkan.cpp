@@ -1,5 +1,6 @@
 
 #include "RenderContextVulkan.h"
+#include "VulkanUtilities.h"
 #include <utilities/Logger.h>
 
 
@@ -16,6 +17,15 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   if (not properlyCreatedInstance) {
     UFATAL("Could not create Vulkan Instance!");
     return UFALSE;
+  }
+
+  // Additionally if flag is enabled create vulkan debugger
+  if constexpr (U_VK_DEBUG) {
+    b32 properlyCreatedDebugUtilsMsg{ createDebugUtilsMessenger() };
+    if (not properlyCreatedDebugUtilsMsg) {
+      UERROR("Could not create Debug Utils Messenger!");
+      return UFALSE;
+    }
   }
 
   // Secondly created physical device...
@@ -41,10 +51,8 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
-  b32 closedInstance{ closeInstance() };
-  if (not closedInstance) {
-
-  }
+  closeDebugUtilsMessenger();
+  closeInstance();
 
   UINFO("Terminated Vulkan Render Context!");
 }

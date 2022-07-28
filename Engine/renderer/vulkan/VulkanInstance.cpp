@@ -18,8 +18,8 @@ template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { }
 
 
 template<typename TProperties>
-static void fillInRequiredProperties(const std::vector<const char*>& requiredProperties,
-                                      std::vector<const char*>* pReturnProperties);
+static void ensureAllRequiredPropertiesAreAvailable(
+    const std::vector<const char*>& requiredProperties);
 
 
 template<typename TProperties>
@@ -33,17 +33,7 @@ static const char* retrievePropertyName(const TProperties&);
 
 template<typename TProperties>
 static b32 isRequiredPropertyInVector(const char* requiredProperty,
-                                      const std::vector<TProperties>& availableProperties);
-
-
-static b32 windowSupportVulkan(FWindow* pWindow, std::vector<const char*>* pEnabledExtensions);
-
-
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData);
+                                      const std::vector<TProperties>& vec);
 
 
 b32 FRenderContextVulkan::createInstance() {
@@ -57,39 +47,27 @@ b32 FRenderContextVulkan::createInstance() {
     return UFALSE;
   }
 
-  // Instance Layers
-  std::vector<const char*> enabledLayers{};
-  std::vector<const char*> requiredLayers{};
-  if constexpr (U_VK_DEBUG) {
-    UTRACE("Adding khronos validation layer to VkInstance...");
-    requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
-  }
-  fillInRequiredProperties<VkLayerProperties>(requiredLayers, &enabledLayers);
-
-  // Instance Extensions
-  std::vector<const char*> enabledExtensions{};
-  std::vector<const char*> requiredExtensions{};
-  if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
-    UTRACE("Adding surface khr win32 extensions to VkInstance...");
-    requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-    requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-  }
-  if constexpr (U_VK_DEBUG) {
-    UTRACE("Adding debug utils extension to VkInstance...");
-    requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-  }
-  fillInRequiredProperties<VkExtensionProperties>(requiredExtensions, &enabledExtensions);
-
   // Checking window system support for vulkan renderer
-  b32 windowSystemSupportsVulkan{ windowSupportVulkan(mSpecs.pWindow, &enabledExtensions) };
+  b32 windowSystemSupportsVulkan{ windowSurfaceSupportVulkan() };
   if (not windowSystemSupportsVulkan) {
     UFATAL("Window system does not support vulkan renderer, so surface cannot be created!");
     return UFALSE;
   }
 
+  // Instance Layers
+  std::vector<const char*> requiredLayers{};
+  getRequiredDebugInstanceLayers(&requiredLayers);
+
+  // Instance Extensions
+  std::vector<const char*> requiredExtensions{};
+  getRequiredDebugInstanceExtensions(&requiredExtensions);
+  getRequiredWindowSurfaceExtensions(&requiredExtensions);
+
   // Log instance layers and extensions
-  iterateOverAndLog(enabledLayers, retrievePropertyName, "Enable Instance Layers");
-  iterateOverAndLog(enabledExtensions, retrievePropertyName, "Enable Instance Extensions");
+  ensureAllRequiredPropertiesAreAvailable<VkLayerProperties>(requiredLayers);
+  ensureAllRequiredPropertiesAreAvailable<VkExtensionProperties>(requiredExtensions);
+  iterateOverAndLog(requiredLayers, retrievePropertyName, "Enable Instance Layers");
+  iterateOverAndLog(requiredExtensions, retrievePropertyName, "Enable Instance Extensions");
 
   // Vulkan API version is needed
   const u32 vulkanVersion{ retrieveVulkanApiVersion() };
@@ -103,10 +81,10 @@ b32 FRenderContextVulkan::createInstance() {
 
   VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
   createInfo.pApplicationInfo = &appInfo;
-  createInfo.ppEnabledLayerNames = enabledLayers.data();
-  createInfo.enabledLayerCount = enabledLayers.size();
-  createInfo.ppEnabledExtensionNames = enabledExtensions.data();
-  createInfo.enabledExtensionCount = enabledExtensions.size();
+  createInfo.ppEnabledLayerNames = requiredLayers.data();
+  createInfo.enabledLayerCount = requiredLayers.size();
+  createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+  createInfo.enabledExtensionCount = requiredExtensions.size();
 
   VkResult instanceCreated{ vkCreateInstance(&createInfo, nullptr, &mInstanceVk) };
   if (instanceCreated != VK_SUCCESS) {
@@ -115,22 +93,6 @@ b32 FRenderContextVulkan::createInstance() {
   }
 
   volkLoadInstance(mInstanceVk);
-
-  if constexpr (U_VK_DEBUG) {
-    UTRACE("Adding debug report callback to Vulkan...");
-
-    auto vkCreateDebugUtilsMessengerEXT =
-        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstanceVk,
-                                                                  "vkCreateDebugUtilsMessengerEXT");
-    VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
-    debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    debugInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-    debugInfo.pfnUserCallback = debugCallbackFunc;
-    U_VK_ASSERT( vkCreateDebugUtilsMessengerEXT(mInstanceVk, &debugInfo, nullptr, &mDebugUtilsMsg) );
-  }
 
   UDEBUG("Created Vulkan Instance, version {}.{}!", VK_API_VERSION_MAJOR(vulkanVersion),
          VK_API_VERSION_MINOR(vulkanVersion));
@@ -141,13 +103,6 @@ b32 FRenderContextVulkan::createInstance() {
 b32 FRenderContextVulkan::closeInstance() {
   UTRACE("Closing Vulkan Instance...");
 
-  if (mDebugUtilsMsg != VK_NULL_HANDLE) {
-    auto vkDestroyDebugUtilsMessengerEXT =
-        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstanceVk,
-                                                                   "vkDestroyDebugUtilsMessengerEXT");
-    vkDestroyDebugUtilsMessengerEXT(mInstanceVk, mDebugUtilsMsg, nullptr);
-  }
-
   vkDestroyInstance(mInstanceVk, nullptr);
 
   UDEBUG("Closed Vulkan Instance!");
@@ -156,9 +111,8 @@ b32 FRenderContextVulkan::closeInstance() {
 
 
 template<typename TProperties>
-void fillInRequiredProperties(const std::vector<const char*>& requiredProperties,
-                              std::vector<const char*>* pReturnProperties) {
-  uint32_t count{ 0 };
+void ensureAllRequiredPropertiesAreAvailable(const std::vector<const char*>& requiredProperties) {
+  u32 count{ 0 };
   std::vector<TProperties> availableProperties{};
 
   if constexpr (is_vk_extension_properties<TProperties>::value) {
@@ -173,7 +127,7 @@ void fillInRequiredProperties(const std::vector<const char*>& requiredProperties
     U_VK_ASSERT( vkEnumerateInstanceLayerProperties(&count, availableProperties.data()) );
   }
   else {
-    UERROR("Given wrong TProperties type, cannot enable VkInstance layers and extensions!");
+    UERROR("Given wrong TProperties type, cannot validate VkInstance layers and extensions!");
     return;
   }
 
@@ -182,8 +136,8 @@ void fillInRequiredProperties(const std::vector<const char*>& requiredProperties
   }
 
   for (const char* required : requiredProperties) {
-    if (isRequiredPropertyInVector(required, availableProperties)) {
-      pReturnProperties->push_back(required);
+    if (not isRequiredPropertyInVector(required, availableProperties)) {
+      UTRACE("Property {} is not available!", required);
     }
   }
 }
@@ -219,70 +173,15 @@ template<typename TProperties> const char* retrievePropertyName(const TPropertie
 
 template<typename TProperties>
 b32 isRequiredPropertyInVector(const char* requiredProperty,
-                               const std::vector<TProperties>& availableProperties) {
-  auto isStringInPropertiesVector = [requiredProperty](const TProperties& property){
+                               const std::vector<TProperties>& vec) {
+  auto it{ std::find_if(vec.begin(), vec.end(), [requiredProperty](TProperties property){
     return std::strcmp(retrievePropertyName(property), requiredProperty);
-  };
-  auto it{ std::find_if(availableProperties.begin(), availableProperties.end(),
-                        isStringInPropertiesVector) };
-  if (it != availableProperties.end()) {
+  })};
+  if (it != vec.end()) {
     return UTRUE;
   }
 
   return UFALSE;
-}
-
-
-b32 windowSupportVulkan(FWindow* pWindow, std::vector<const char*>* pEnabledExtensions) {
-  if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
-    i32 isVulkanSupportedByGLFW{ glfwVulkanSupported() };
-    if (not isVulkanSupportedByGLFW) {
-      UERROR("GLFW does not even minimally support Vulkan API!");
-      return UFALSE;
-    }
-
-    u32 extensionsCountGLFW{ 0 };
-    const char** requiredExtensionsGLFW{ glfwGetRequiredInstanceExtensions(&extensionsCountGLFW) };
-
-    for (u32 i = 0; i < extensionsCountGLFW; i++) {
-      if (not isRequiredPropertyInVector(requiredExtensionsGLFW[i], *pEnabledExtensions)) {
-        UTRACE("Pushing required GLFW EXT {} to enabledExtensions!", requiredExtensionsGLFW[i]);
-        pEnabledExtensions->push_back(requiredExtensionsGLFW[i]);
-      }
-    }
-
-    UTRACE("Current window {} supports vulkan!", pWindow->getSpecs().name);
-    return UTRUE;
-  }
-
-  UERROR("Current window {} does not support vulkan renderer!", pWindow->getSpecs().name);
-  return UFALSE;
-}
-
-
-VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                           VkDebugUtilsMessageTypeFlagsEXT messageType,
-                           const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                           void* pUserData) {
-  const auto error = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-  const auto warning = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-  const auto info = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
-  const auto verbose = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
-
-  if (error) {
-    printf("%s : %s\n", "ERROR", pCallbackData->pMessage);
-  }
-  else if (warning) {
-    printf("%s : %s\n", "WARNING", pCallbackData->pMessage);
-  }
-  else if (info) {
-    printf("%s : %s\n", "INFO", pCallbackData->pMessage);
-  }
-  else if (verbose) {
-    printf("%s : %s\n", "VERBOSE", pCallbackData->pMessage);
-  }
-
-  return VK_FALSE;
 }
 
 

@@ -24,8 +24,17 @@ public:
 
 private:
 
+  void getRequiredDebugInstanceLayers(std::vector<const char*>* pRequiredLayers) const;
+  void getRequiredDebugInstanceExtensions(std::vector<const char*>* pRequiredExtensions) const;
+
+  b32 windowSurfaceSupportVulkan() const;
+  void getRequiredWindowSurfaceExtensions(std::vector<const char*>* pRequiredExtensions) const;
+
   [[nodiscard]] b32 createInstance();
   [[nodiscard]] b32 closeInstance();
+
+  [[nodiscard]] b32 createDebugUtilsMessenger();
+  [[nodiscard]] b32 closeDebugUtilsMessenger();
 
   [[nodiscard]] b32 createPhysicalDevice();
 
