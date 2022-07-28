@@ -25,10 +25,10 @@ public:
 private:
 
   [[nodiscard]] b32 createInstance();
-  [[nodiscard]] b32 closeInstance();
+  b32 closeInstance();
 
   [[nodiscard]] b32 createDebugUtilsMessenger();
-  [[nodiscard]] b32 closeDebugUtilsMessenger();
+  b32 closeDebugUtilsMessenger();
 
   [[nodiscard]] b32 createPhysicalDevice();
 
@@ -42,8 +42,8 @@ private:
   VkPhysicalDevice mPhysicalDeviceVk{ VK_NULL_HANDLE };
   VkPhysicalDeviceProperties mPhysicalDeviceProperties{};
   VkPhysicalDeviceFeatures mPhysicalDeviceFeatures{};
-  u32 mQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
-  VkQueueFamilyProperties mQueueFamilyProperties{};
+  std::vector<u32> mQueueFamilyIndexVector{};
+  std::vector<VkQueueFamilyProperties> mQueueFamilyPropertiesVector{};
 
 };
 

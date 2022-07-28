@@ -9,50 +9,45 @@ namespace uncanny
 {
 
 
-struct FSuitableQueueFamilyReturnInfo {
-  VkQueueFamilyProperties queueFamilyProperties{};
-  u32 queueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
-};
-
-
 struct FSuitablePhysicalDeviceReturnInfo {
   VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
-  FSuitableQueueFamilyReturnInfo queueFamilyReturnInfo{};
+  VkPhysicalDeviceFeatures physicalDeviceFeatures{};
+  VkPhysicalDeviceProperties physicalDeviceProperties{};
+  std::vector<VkQueueFamilyProperties> queueFamilyPropertiesVector{};
+  std::vector<u32> queueFamilyIndexVector{};
 };
 
 
 static b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
-                              const std::vector<VkPhysicalDevice>& devicesVector,
+                              const FPhysicalDeviceDependencies& dependencies,
                               FSuitablePhysicalDeviceReturnInfo* pReturnInfo);
 
 
-static b32 pickSuitableQueueFamilyIndex(
-    FWindow* pWindow, VkInstance instance, VkPhysicalDevice physicalDevice,
-    const std::vector<VkQueueFamilyProperties>& queuePropertiesVector, u32 queuesCount,
-    FSuitableQueueFamilyReturnInfo* pReturnInfo);
+static b32 isProperDeviceType(EPhysicalDeviceType deviceType, VkPhysicalDeviceType vkDeviceType);
 
 
-static VkBool32 supportsPlatformPresentation(VkInstance instance, VkPhysicalDevice physicalDevice,
-                                             u32 familyIndex);
+static b32 isCapableOfGraphicsOperations(u32 queueFamilyIndex, VkQueueFlags queueFlags,
+                                         FWindow* pWindow, VkInstance instance,
+                                         VkPhysicalDevice device);
 
 
-static void displayPhysicalDeviceData(const VkPhysicalDeviceProperties& deviceProperties,
-                                      const VkPhysicalDeviceFeatures& deviceFeatures,
-                                      const VkQueueFamilyProperties& queueFamilyProperties,
-                                      u32 queueFamilyIndex);
+static b32 supportsPlatformPresentation(VkInstance instance, VkPhysicalDevice physicalDevice,
+                                        u32 familyIndex);
+
+
+static void displayPhysicalDeviceData(
+    const VkPhysicalDeviceProperties& deviceProperties,
+    const VkPhysicalDeviceFeatures& deviceFeatures,
+    const std::vector<VkQueueFamilyProperties>& queueFamilyPropertiesVector,
+    const std::vector<u32>& queueFamilyIndex);
 
 
 b32 FRenderContextVulkan::createPhysicalDevice() {
   UTRACE("Creating Physical Device...");
 
-  UTRACE("Retrieving count and data about physical devices...");
-  u32 devicesCount{ 0 };
-  U_VK_ASSERT( vkEnumeratePhysicalDevices(mInstanceVk, &devicesCount, nullptr) );
-  std::vector<VkPhysicalDevice> devicesVector(devicesCount);
-  U_VK_ASSERT( vkEnumeratePhysicalDevices(mInstanceVk, &devicesCount, devicesVector.data()) );
-
   FSuitablePhysicalDeviceReturnInfo returnInfo{};
-  b32 foundDevice{ pickSuitableDevice(mSpecs.pWindow, mInstanceVk, devicesVector, &returnInfo) };
+  b32 foundDevice{
+    pickSuitableDevice(mSpecs.pWindow, mInstanceVk, mSpecs.physicalDeviceDependencies, &returnInfo) };
   if (not foundDevice) {
     UFATAL("Could not pick suitable VkPhysicalDevice! There is no integrated GPU nor discrete, "
            "there is no GPU supporting graphics nor platform presentation");
@@ -61,15 +56,13 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 
   UTRACE("Assigning return infos to class member variables...");
   mPhysicalDeviceVk = returnInfo.physicalDevice;
-  mQueueFamilyIndex = returnInfo.queueFamilyReturnInfo.queueFamilyIndex;
-  mQueueFamilyProperties = returnInfo.queueFamilyReturnInfo.queueFamilyProperties;
-
-  UTRACE("Saving physical device properties and features to member variables...");
-  vkGetPhysicalDeviceProperties(mPhysicalDeviceVk, &mPhysicalDeviceProperties);
-  vkGetPhysicalDeviceFeatures(mPhysicalDeviceVk, &mPhysicalDeviceFeatures);
+  mPhysicalDeviceFeatures = returnInfo.physicalDeviceFeatures;
+  mPhysicalDeviceProperties = returnInfo.physicalDeviceProperties;
+  mQueueFamilyIndexVector = returnInfo.queueFamilyIndexVector;
+  mQueueFamilyPropertiesVector = returnInfo.queueFamilyPropertiesVector;
 
   displayPhysicalDeviceData(mPhysicalDeviceProperties, mPhysicalDeviceFeatures,
-                            mQueueFamilyProperties, mQueueFamilyIndex);
+                            mQueueFamilyPropertiesVector, mQueueFamilyIndexVector);
 
   UDEBUG("Created Physical Device!");
   return UTRUE;
@@ -77,10 +70,15 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 
 
 b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
-                       const std::vector<VkPhysicalDevice>& devicesVector,
+                       const FPhysicalDeviceDependencies& dependencies,
                        FSuitablePhysicalDeviceReturnInfo* pReturnInfo) {
-  UTRACE("Trying to find suitable vulkan physical device...");
+  UTRACE("Retrieving count and data about physical devices...");
+  u32 devicesCount{ 0 };
+  U_VK_ASSERT( vkEnumeratePhysicalDevices(instance, &devicesCount, nullptr) );
+  std::vector<VkPhysicalDevice> devicesVector(devicesCount);
+  U_VK_ASSERT( vkEnumeratePhysicalDevices(instance, &devicesCount, devicesVector.data()) );
 
+  UTRACE("Trying to find suitable vulkan physical device...");
   for (VkPhysicalDevice device : devicesVector) {
     // Retrieve device properties and features
     VkPhysicalDeviceProperties deviceProperties;
@@ -88,38 +86,86 @@ b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
     VkPhysicalDeviceFeatures deviceFeatures;
     vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-    // Make sure that device is GPU (integrated or discrete)
-    b32 isIntegratedGPU{ deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU };
-    b32 isDiscreteGPU{ deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU };
-    if (not (isIntegratedGPU or isDiscreteGPU)) {
-      continue;
-    }
-
-    // TODO: add VkPhysicalDeviceProperties.limits check
-    // properties.limits ---> VkPhysicalDeviceLimits (check this for some parameters)
-
-    // TODO: add VkPhysicalDeviceFeatures check
-    // deviceFeatures ---> (check this for some shaders support, draw support etc.)
-
     // Retrieve queues family
     u32 queuesCount{ 0 };
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queuesCount, nullptr);
     std::vector<VkQueueFamilyProperties> queuePropertiesVector(queuesCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queuesCount, queuePropertiesVector.data());
 
-    // Make sure that proper queue family supports graphics operations
-    FSuitableQueueFamilyReturnInfo queueReturnInfo{};
-    b32 foundQueueFamily{ pickSuitableQueueFamilyIndex(pWindow, instance, device,
-                                                       queuePropertiesVector,
-                                                       queuesCount, &queueReturnInfo) };
-    if (not foundQueueFamily) {
+    UTRACE("Make sure that device is correct type");
+    b32 mainTypeProper = isProperDeviceType(dependencies.deviceType, deviceProperties.deviceType);
+    b32 fallbackTypeProper = isProperDeviceType(dependencies.deviceTypeFallback, deviceProperties.deviceType);
+    if (not (mainTypeProper or fallbackTypeProper)) {
+      UTRACE("Device {} isn't main nor fallback type", deviceProperties.deviceName);
+      continue;
+    }
+
+    UTRACE("Make sure that device has proper count of queues family indexes");
+    if (dependencies.queueFamilyIndexesCount > queuesCount) {
+      UTRACE("Device {} doesn't have enough count of QueueFamilyIndexes", deviceProperties.deviceName);
+      continue;
+    }
+
+    UTRACE("Make sure that proper queue family supports required operations");
+    for (u32 i = 0; i < queuesCount; i++) {
+      VkQueueFlags queueFlags{ queuePropertiesVector[i].queueFlags };
+      u32 availableQueueCount{ queuePropertiesVector[i].queueCount };
+
+      if (dependencies.pQueueFamilyDependencies[i].queuesCountNeeded > availableQueueCount) {
+        UTRACE("Device {} queueFamilyIndex {} doesn't have enough count of Queues",
+               deviceProperties.deviceName, i);
+        continue;
+      }
+      if (dependencies.pQueueFamilyDependencies[i].graphics) {
+        if (not isCapableOfGraphicsOperations(i, queueFlags, pWindow, instance, device)) {
+          UTRACE("Device {} queueFamilyIndex {} doesn't support graphics",
+                 deviceProperties.deviceName, i);
+          continue;
+        }
+      }
+      if (dependencies.pQueueFamilyDependencies[i].compute) {
+        // TODO: implement compute capabilities check for queue family index
+        UTRACE("Device {} queueFamilyIndex {} doesn't support compute",
+               deviceProperties.deviceName, i);
+        continue;
+      }
+      if (dependencies.pQueueFamilyDependencies[i].transfer) {
+        // TODO: implement transfer capabilities check for queue family index
+        UTRACE("Device {} queueFamilyIndex {} doesn't support transfer",
+               deviceProperties.deviceName, i);
+        continue;
+      }
+      if (dependencies.pQueueFamilyDependencies[i].sparseBinding) {
+        // TODO: implement sparseBinding capabilities check for queue family index
+        UTRACE("Device {} queueFamilyIndex {} doesn't support sparseBinding",
+               deviceProperties.deviceName, i);
+        continue;
+      }
+
+      // If everything is fine assign return values...
+      UTRACE("Assigning queue family to return info...");
+      pReturnInfo->queueFamilyIndexVector.push_back(i);
+      pReturnInfo->queueFamilyPropertiesVector.push_back(queuePropertiesVector[i]);
+
+      // If required of queue families indexes count is ready, break loop
+      if (dependencies.queueFamilyIndexesCount - 1 == i) {
+        UTRACE("As there is enough queue families indexes as in dependencies, breaking...");
+        break;
+      }
+    }
+
+    // If there are missing count of queue families, cannot use device
+    if (dependencies.queueFamilyIndexesCount != pReturnInfo->queueFamilyIndexVector.size()) {
+      UTRACE("Missing queue families indexes count, cannot use device {} != {}",
+             dependencies.queueFamilyIndexesCount, pReturnInfo->queueFamilyIndexVector.size());
       continue;
     }
 
     // If everything is fine assign return values...
     UTRACE("Assigning physical device info to return info...");
     pReturnInfo->physicalDevice = device;
-    pReturnInfo->queueFamilyReturnInfo = queueReturnInfo;
+    pReturnInfo->physicalDeviceProperties = deviceProperties;
+    pReturnInfo->physicalDeviceFeatures = deviceFeatures;
     return UTRUE;
   }
 
@@ -128,52 +174,66 @@ b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
 }
 
 
-b32 pickSuitableQueueFamilyIndex(FWindow* pWindow, VkInstance instance,
-                                 VkPhysicalDevice physicalDevice,
-                                 const std::vector<VkQueueFamilyProperties>& queuePropertiesVector,
-                                 u32 queuesCount, FSuitableQueueFamilyReturnInfo* pReturnInfo) {
-  UTRACE("Trying to pick suitable queue family index...");
-
-  for (u32 i = 0; i < queuesCount; i++) {
-    VkQueueFlags queueFlags{ queuePropertiesVector[i].queueFlags };
-    u32 graphicsSupport{ queueFlags & VK_QUEUE_GRAPHICS_BIT };
-    if (not graphicsSupport) {
-      UTRACE("Ignoring queue family index {} as it does not support graphics!", i);
-      continue;
-    }
-
-    VkBool32 presentationSupport{ supportsPlatformPresentation(instance, physicalDevice, i) };
-    if (not presentationSupport) {
-      UTRACE("Ignoring queue family index {} as it does not support platform present!", i);
-      continue;
-    }
-
-    b32 windowSurfacePresentationSupport{
-      windowSurfaceSupportPresentationOnPhysicalDevice(pWindow, instance, physicalDevice, i) };
-    if (not windowSurfacePresentationSupport) {
-      UTRACE("Ignoring queue family index {} as it does not support window surface present!", i);
-      continue;
-    }
-
-    // If everything is fine assign return values...
-    UTRACE("Assigning queue family to return info...");
-    pReturnInfo->queueFamilyIndex = i;
-    pReturnInfo->queueFamilyProperties = queuePropertiesVector[i];
+b32 isProperDeviceType(EPhysicalDeviceType deviceType, VkPhysicalDeviceType vkDeviceType) {
+  if (
+      deviceType == EPhysicalDeviceType::DISCRETE &&
+      vkDeviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+      ) {
+    UTRACE("Device is discrete type");
+    return UTRUE;
+  }
+  else if (
+      deviceType == EPhysicalDeviceType::INTEGRATED &&
+      vkDeviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
+      ) {
+    UTRACE("Device is integrated type");
     return UTRUE;
   }
 
-  UERROR("Could not find suitable queues family index!");
+  UERROR("Device is unknown type! Vulkan Result: {}", vkDeviceType);
   return UFALSE;
 }
 
 
-VkBool32 supportsPlatformPresentation(VkInstance instance, VkPhysicalDevice physicalDevice,
-                                      u32 familyIndex) {
+b32 isCapableOfGraphicsOperations(u32 queueFamilyIndex, VkQueueFlags queueFlags, FWindow* pWindow,
+                                  VkInstance instance, VkPhysicalDevice device) {
+  u32 graphicsSupport{ queueFlags & VK_QUEUE_GRAPHICS_BIT };
+  if (not graphicsSupport) {
+    UTRACE("Ignoring queue family index {} as it does not support graphics!", queueFamilyIndex);
+    return UFALSE;
+  }
+
+  b32 presentationSupport{ supportsPlatformPresentation(instance, device, queueFamilyIndex) };
+  if (not presentationSupport) {
+    UTRACE("Ignoring queue family index {} as it does not support platform present!", queueFamilyIndex);
+    return UFALSE;
+  }
+
+  b32 windowSurfacePresentationSupport{
+      windowSurfaceSupportPresentationOnPhysicalDevice(pWindow, instance, device, queueFamilyIndex) };
+  if (not windowSurfacePresentationSupport) {
+    UTRACE("Ignoring queue family index {} as it does not support window surface present!", queueFamilyIndex);
+    return UFALSE;
+  }
+
+  return UTRUE;
+}
+
+
+b32 supportsPlatformPresentation(VkInstance instance, VkPhysicalDevice physicalDevice,
+                                 u32 familyIndex) {
   if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
     auto vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
-    return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, familyIndex);
+    VkBool32 result{ vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, familyIndex) };
+    if (result) {
+      UTRACE("Presentation supported by Win32 Platform!");
+      return UTRUE;
+    }
+
+    UERROR("Presentation is not supported by Win32 Platform!");
+    return UFALSE;
   }
   else {
     return VK_FALSE;
@@ -196,8 +256,8 @@ static const char* getGpuTypeName(VkPhysicalDeviceType type) {
 
 void displayPhysicalDeviceData(const VkPhysicalDeviceProperties& deviceProperties,
                                const VkPhysicalDeviceFeatures& deviceFeatures,
-                               const VkQueueFamilyProperties& queueFamilyProperties,
-                               u32 queueFamilyIndex) {
+                               const std::vector<VkQueueFamilyProperties>& queueFamilyPropertiesVector,
+                               const std::vector<u32>& queueFamilyIndexVector) {
   FDriverVersionInfo driverVersionInfo =
       decodeDriverVersionVulkan(deviceProperties.driverVersion, deviceProperties.vendorID);
   UINFO("PhysicalDevice Info\nPicked: {}\nDriver Version: {}.{}\nVulkan Version Available: {}"
@@ -206,11 +266,18 @@ void displayPhysicalDeviceData(const VkPhysicalDeviceProperties& devicePropertie
         VK_API_VERSION_MINOR(deviceProperties.apiVersion),
         getGpuTypeName(deviceProperties.deviceType));
 
-  auto queueFlags{ queueFamilyProperties.queueFlags };
-  UINFO("QueueFamilyIndex {} supports check:\ngraphics: {}\ncompute: {}\ntransfer: "
-        "{}\nsparse_binding: {}", queueFamilyIndex, queueFlags & VK_QUEUE_GRAPHICS_BIT,
-        queueFlags & VK_QUEUE_COMPUTE_BIT, queueFlags & VK_QUEUE_TRANSFER_BIT,
-        queueFlags & VK_QUEUE_SPARSE_BINDING_BIT);
+  for (u32 i = 0; i < queueFamilyIndexVector.size(); i++) {
+    UINFO("QueueFamilyIndex {} supports check:\ngraphics: {}\ncompute: {}\ntransfer: "
+          "{}\nsparse_binding: {}\nqueuesCountAvailable: {}",
+          queueFamilyIndexVector[i],
+          queueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_GRAPHICS_BIT,
+          queueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_COMPUTE_BIT,
+          queueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_TRANSFER_BIT,
+          queueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT,
+          queueFamilyPropertiesVector[i].queueCount);
+  }
+
+
 }
 
 

@@ -68,6 +68,8 @@ b32 FRenderContextVulkan::closeDebugUtilsMessenger() {
     UDEBUG("Closed Debug Utils Messenger!");
     return UTRUE;
   }
+
+  return UFALSE;
 }
 
 
