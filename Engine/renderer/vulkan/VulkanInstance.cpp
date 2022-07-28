@@ -56,11 +56,15 @@ b32 FRenderContextVulkan::createInstance() {
 
   // Instance Layers
   std::vector<const char*> requiredLayers{};
-  getRequiredDebugInstanceLayers(&requiredLayers);
+  if constexpr (U_VK_DEBUG) {
+    getRequiredDebugInstanceLayers(&requiredLayers);
+  }
 
   // Instance Extensions
   std::vector<const char*> requiredExtensions{};
-  getRequiredDebugInstanceExtensions(&requiredExtensions);
+  if constexpr (U_VK_DEBUG) {
+    getRequiredDebugInstanceExtensions(&requiredExtensions);
+  }
   getRequiredWindowSurfaceInstanceExtensions(mSpecs.pWindow, &requiredExtensions);
 
   // Log instance layers and extensions
