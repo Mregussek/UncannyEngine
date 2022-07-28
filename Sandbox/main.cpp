@@ -10,11 +10,12 @@ using namespace uncanny;
 
 
 auto main() -> i32 {
+  // Utilities setup
   FLogger::init(FLogger::sLoggerPtr);
-
   FRenderContextFactory renderContextFactory{};
   FWindowFactory windowFactory{};
 
+  // Window subsystem configuration
   FWindowSpecification windowSpecification{};
   windowSpecification.name = "UncannySandbox";
   windowSpecification.width = 720;
@@ -23,19 +24,34 @@ auto main() -> i32 {
   FWindow* pWindow{ windowFactory.create<EWindowLibrary::GLFW>() };
   pWindow->init(windowSpecification);
 
-  FRenderContextSpecification renderContextSpecification;
+  // Rendering subsystem configuration
+  FQueueFamilyDependencies queueFamilyDependencies[1];
+  queueFamilyDependencies[0].queuesCountNeeded = 1;
+  queueFamilyDependencies[0].graphics = UTRUE;
+
+  FPhysicalDeviceDependencies physicalDeviceDependencies{};
+  physicalDeviceDependencies.deviceType = EPhysicalDeviceType::DISCRETE;
+  physicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
+  physicalDeviceDependencies.presentationSupport = UTRUE;
+  physicalDeviceDependencies.queueFamilyIndexesCount = 1;
+  physicalDeviceDependencies.pQueueFamilyDependencies = queueFamilyDependencies;
+
+  FRenderContextSpecification renderContextSpecification{};
   renderContextSpecification.pWindow = pWindow;
   renderContextSpecification.pAppName = "Uncanny Sandbox";
   renderContextSpecification.appVersion = UENGINE_MAKE_VERSION(0, 0, 1);
   renderContextSpecification.engineVersion = (u32)EEngineVersion::LATEST;
+  renderContextSpecification.physicalDeviceDependencies = physicalDeviceDependencies;
 
   FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
   pRenderContext->init(renderContextSpecification);
 
+  // Running loop
   while(pWindow->isNotGoingToClose()) {
     pWindow->swapBuffersAndPollEvents();
   }
 
+  // Terminating everything
   pRenderContext->terminate();
   pWindow->terminate();
 
