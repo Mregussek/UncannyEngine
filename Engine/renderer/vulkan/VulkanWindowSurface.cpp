@@ -9,11 +9,21 @@ namespace uncanny
 {
 
 
-b32 FRenderContextVulkan::windowSurfaceSupportVulkan() const {
+b32 FRenderContextVulkan::createWindowSurface() {
+  UTRACE("Creating window surface...");
   FWindow* pWindow{ mSpecs.pWindow }; // wrapper
+
+
+
+  UDEBUG("Created window surface!");
+  return UTRUE;
+}
+
+
+b32 windowSurfaceSupportVulkanAPI(FWindow* pWindow) {
   if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
     i32 isVulkanSupportedByGLFW{ glfwVulkanSupported() };
-    if (not isVulkanSupportedByGLFW) {
+    if (isVulkanSupportedByGLFW == GLFW_FALSE) {
       UERROR("GLFW does not even minimally support Vulkan API!");
       return UFALSE;
     }
@@ -27,26 +37,41 @@ b32 FRenderContextVulkan::windowSurfaceSupportVulkan() const {
 }
 
 
-void FRenderContextVulkan::getRequiredWindowSurfaceExtensions(
-    std::vector<const char*>* pRequiredExtensions) const {
-  UTRACE("Adding window surface extensions to VkInstance...");
-  u32 extensionsCountGLFW{ 0 };
-  const char** requiredExtensionsGLFW{ glfwGetRequiredInstanceExtensions(&extensionsCountGLFW) };
+void getRequiredWindowSurfaceInstanceExtensions(
+    FWindow* pWindow, std::vector<const char*>* pRequiredExtensions) {
+  if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
+    UTRACE("Adding Window GLFW surface extensions to VkInstance...");
+    u32 extensionsCountGLFW{ 0 };
+    const char** requiredExtensionsGLFW{ glfwGetRequiredInstanceExtensions(&extensionsCountGLFW) };
 
-  for (u32 i = 0; i < extensionsCountGLFW; i++) {
-    pRequiredExtensions->push_back(requiredExtensionsGLFW[i]);
+    for (u32 i = 0; i < extensionsCountGLFW; i++) {
+      pRequiredExtensions->push_back(requiredExtensionsGLFW[i]);
+    }
+    return;
   }
+
+  UERROR("Unknown window {} library, cannot retrieve required vulkan instance extensions!",
+         pWindow->getSpecs().name);
 }
 
 
-b32 FRenderContextVulkan::createWindowSurface() {
-  UTRACE("Creating window surface...");
-  FWindow* pWindow{ mSpecs.pWindow }; // wrapper
+b32 windowSurfaceSupportPresentationOnPhysicalDevice(
+    FWindow* pWindow, VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
+  if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
+    i32 supported = glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice,
+                                                             queueFamilyIndex);
+    if (supported == GLFW_TRUE) {
+      UTRACE("Presentation supported for WindowSurface on physical device and queue family index!");
+      return UTRUE;
+    }
 
+    UERROR("WindowSurface does not support presentation on physical device and queue family index");
+    return UFALSE;
+  }
 
-
-  UDEBUG("Created window surface!");
-  return UTRUE;
+  UERROR("Unknown window {} library, cannot retrieve required vulkan instance extensions!",
+         pWindow->getSpecs().name);
+  return UFALSE;
 }
 
 

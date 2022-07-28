@@ -1,9 +1,9 @@
 
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
+#include "VulkanDebugUtils.h"
+#include "VulkanWindowSurface.h"
 #include <utilities/Logger.h>
-#include <window/Window.h>
-#include <window/glfw/WindowGLFW.h>
 
 
 namespace uncanny
@@ -48,7 +48,7 @@ b32 FRenderContextVulkan::createInstance() {
   }
 
   // Checking window system support for vulkan renderer
-  b32 windowSystemSupportsVulkan{ windowSurfaceSupportVulkan() };
+  b32 windowSystemSupportsVulkan{ windowSurfaceSupportVulkanAPI(mSpecs.pWindow) };
   if (not windowSystemSupportsVulkan) {
     UFATAL("Window system does not support vulkan renderer, so surface cannot be created!");
     return UFALSE;
@@ -61,7 +61,7 @@ b32 FRenderContextVulkan::createInstance() {
   // Instance Extensions
   std::vector<const char*> requiredExtensions{};
   getRequiredDebugInstanceExtensions(&requiredExtensions);
-  getRequiredWindowSurfaceExtensions(&requiredExtensions);
+  getRequiredWindowSurfaceInstanceExtensions(mSpecs.pWindow, &requiredExtensions);
 
   // Log instance layers and extensions
   ensureAllRequiredPropertiesAreAvailable<VkLayerProperties>(requiredLayers);

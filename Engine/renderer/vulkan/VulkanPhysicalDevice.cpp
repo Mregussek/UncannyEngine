@@ -2,6 +2,7 @@
 #include "RenderContextVulkan.h"
 #include <utilities/Logger.h>
 #include "VulkanUtilities.h"
+#include "VulkanWindowSurface.h"
 
 
 namespace uncanny
@@ -20,13 +21,15 @@ struct FSuitablePhysicalDeviceReturnInfo {
 };
 
 
-static b32 pickSuitableDevice(VkInstance instance, const std::vector<VkPhysicalDevice>& devicesVector,
+static b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
+                              const std::vector<VkPhysicalDevice>& devicesVector,
                               FSuitablePhysicalDeviceReturnInfo* pReturnInfo);
 
 
-static b32 pickSuitableQueueFamilyIndex(VkInstance instance, VkPhysicalDevice physicalDevice,
-                                        const std::vector<VkQueueFamilyProperties>& queuePropertiesVector,
-                                        u32 queuesCount, FSuitableQueueFamilyReturnInfo* pReturnInfo);
+static b32 pickSuitableQueueFamilyIndex(
+    FWindow* pWindow, VkInstance instance, VkPhysicalDevice physicalDevice,
+    const std::vector<VkQueueFamilyProperties>& queuePropertiesVector, u32 queuesCount,
+    FSuitableQueueFamilyReturnInfo* pReturnInfo);
 
 
 static VkBool32 supportsPlatformPresentation(VkInstance instance, VkPhysicalDevice physicalDevice,
@@ -49,7 +52,7 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
   U_VK_ASSERT( vkEnumeratePhysicalDevices(mInstanceVk, &devicesCount, devicesVector.data()) );
 
   FSuitablePhysicalDeviceReturnInfo returnInfo{};
-  b32 foundDevice{ pickSuitableDevice(mInstanceVk, devicesVector, &returnInfo) };
+  b32 foundDevice{ pickSuitableDevice(mSpecs.pWindow, mInstanceVk, devicesVector, &returnInfo) };
   if (not foundDevice) {
     UFATAL("Could not pick suitable VkPhysicalDevice! There is no integrated GPU nor discrete, "
            "there is no GPU supporting graphics nor platform presentation");
@@ -73,7 +76,8 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 }
 
 
-b32 pickSuitableDevice(VkInstance instance, const std::vector<VkPhysicalDevice>& devicesVector,
+b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
+                       const std::vector<VkPhysicalDevice>& devicesVector,
                        FSuitablePhysicalDeviceReturnInfo* pReturnInfo) {
   UTRACE("Trying to find suitable vulkan physical device...");
 
@@ -105,7 +109,8 @@ b32 pickSuitableDevice(VkInstance instance, const std::vector<VkPhysicalDevice>&
 
     // Make sure that proper queue family supports graphics operations
     FSuitableQueueFamilyReturnInfo queueReturnInfo{};
-    b32 foundQueueFamily{ pickSuitableQueueFamilyIndex(instance, device, queuePropertiesVector,
+    b32 foundQueueFamily{ pickSuitableQueueFamilyIndex(pWindow, instance, device,
+                                                       queuePropertiesVector,
                                                        queuesCount, &queueReturnInfo) };
     if (not foundQueueFamily) {
       continue;
@@ -123,7 +128,8 @@ b32 pickSuitableDevice(VkInstance instance, const std::vector<VkPhysicalDevice>&
 }
 
 
-b32 pickSuitableQueueFamilyIndex(VkInstance instance, VkPhysicalDevice physicalDevice,
+b32 pickSuitableQueueFamilyIndex(FWindow* pWindow, VkInstance instance,
+                                 VkPhysicalDevice physicalDevice,
                                  const std::vector<VkQueueFamilyProperties>& queuePropertiesVector,
                                  u32 queuesCount, FSuitableQueueFamilyReturnInfo* pReturnInfo) {
   UTRACE("Trying to pick suitable queue family index...");
@@ -132,11 +138,20 @@ b32 pickSuitableQueueFamilyIndex(VkInstance instance, VkPhysicalDevice physicalD
     VkQueueFlags queueFlags{ queuePropertiesVector[i].queueFlags };
     u32 graphicsSupport{ queueFlags & VK_QUEUE_GRAPHICS_BIT };
     if (not graphicsSupport) {
+      UTRACE("Ignoring queue family index {} as it does not support graphics!", i);
       continue;
     }
 
     VkBool32 presentationSupport{ supportsPlatformPresentation(instance, physicalDevice, i) };
     if (not presentationSupport) {
+      UTRACE("Ignoring queue family index {} as it does not support platform present!", i);
+      continue;
+    }
+
+    b32 windowSurfacePresentationSupport{
+      windowSurfaceSupportPresentationOnPhysicalDevice(pWindow, instance, physicalDevice, i) };
+    if (not windowSurfacePresentationSupport) {
+      UTRACE("Ignoring queue family index {} as it does not support window surface present!", i);
       continue;
     }
 

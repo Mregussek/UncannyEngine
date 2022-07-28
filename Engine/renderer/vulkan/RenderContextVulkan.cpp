@@ -51,7 +51,9 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
-  closeDebugUtilsMessenger();
+  if constexpr (U_VK_DEBUG) {
+    closeDebugUtilsMessenger();
+  }
   closeInstance();
 
   UINFO("Terminated Vulkan Render Context!");

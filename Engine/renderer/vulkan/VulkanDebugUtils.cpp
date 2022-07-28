@@ -1,6 +1,7 @@
 
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
+#include "VulkanDebugUtils.h"
 #include <utilities/Logger.h>
 
 
@@ -15,8 +16,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(
     void* pUserData);
 
 
-void FRenderContextVulkan::getRequiredDebugInstanceLayers(
-    std::vector<const char*>* pRequiredLayers) const {
+void getRequiredDebugInstanceLayers(std::vector<const char*>* pRequiredLayers) {
   if constexpr (U_VK_DEBUG) {
     UTRACE("Adding khronos validation layer to VkInstance...");
     pRequiredLayers->push_back("VK_LAYER_KHRONOS_validation");
@@ -24,8 +24,7 @@ void FRenderContextVulkan::getRequiredDebugInstanceLayers(
 }
 
 
-void FRenderContextVulkan::getRequiredDebugInstanceExtensions(
-    std::vector<const char*>* pRequiredExtensions) const {
+void getRequiredDebugInstanceExtensions(std::vector<const char*>* pRequiredExtensions) {
   if constexpr (U_VK_DEBUG) {
     UTRACE("Adding debug utils extension to VkInstance...");
     pRequiredExtensions->push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
