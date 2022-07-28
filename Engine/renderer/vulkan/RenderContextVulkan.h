@@ -33,17 +33,19 @@ private:
   [[nodiscard]] b32 createPhysicalDevice();
 
   [[nodiscard]] b32 createWindowSurface();
+  b32 closeWindowSurface();
 
 
   FRenderContextSpecification mSpecs{};
 
-  VkInstance mInstanceVk{ VK_NULL_HANDLE };
-  VkDebugUtilsMessengerEXT mDebugUtilsMsg{ VK_NULL_HANDLE };
-  VkPhysicalDevice mPhysicalDeviceVk{ VK_NULL_HANDLE };
-  VkPhysicalDeviceProperties mPhysicalDeviceProperties{};
-  VkPhysicalDeviceFeatures mPhysicalDeviceFeatures{};
+  VkInstance mVkInstance{ VK_NULL_HANDLE };
+  VkDebugUtilsMessengerEXT mVkDebugUtilsMsg{ VK_NULL_HANDLE };
+  VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
+  VkPhysicalDeviceProperties mVkPhysicalDeviceProperties{};
+  VkPhysicalDeviceFeatures mVkPhysicalDeviceFeatures{};
   std::vector<u32> mQueueFamilyIndexVector{};
-  std::vector<VkQueueFamilyProperties> mQueueFamilyPropertiesVector{};
+  std::vector<VkQueueFamilyProperties> mVkQueueFamilyPropertiesVector{};
+  VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
 
 };
 

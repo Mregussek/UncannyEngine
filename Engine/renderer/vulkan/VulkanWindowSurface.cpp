@@ -1,5 +1,6 @@
 
 #include "RenderContextVulkan.h"
+#include "VulkanUtilities.h"
 #include <utilities/Logger.h>
 #include <window/Window.h>
 #include <window/glfw/WindowGLFW.h>
@@ -13,9 +14,30 @@ b32 FRenderContextVulkan::createWindowSurface() {
   UTRACE("Creating window surface...");
   FWindow* pWindow{ mSpecs.pWindow }; // wrapper
 
-
+  if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
+    UTRACE("Creating Win32 KHR window surface...");
+    VkWin32SurfaceCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
+    createInfo.hinstance = GetModuleHandle(nullptr);
+    if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
+      FWindowGLFW* pWindowGLFW{ dynamic_cast<FWindowGLFW*>(pWindow) };
+      createInfo.hwnd = pWindowGLFW->getWindowHandle();
+    }
+    auto vkCreateWin32SurfaceKHR =
+        (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(mVkInstance, "vkCreateWin32SurfaceKHR");
+    U_VK_ASSERT( vkCreateWin32SurfaceKHR(mVkInstance, &createInfo, nullptr, &mVkWindowSurface) );
+  }
 
   UDEBUG("Created window surface!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::closeWindowSurface() {
+  UTRACE("Closing Window Surface...");
+
+  vkDestroySurfaceKHR(mVkInstance, mVkWindowSurface, nullptr);
+
+  UDEBUG("Closed Window Surface!");
   return UTRUE;
 }
 

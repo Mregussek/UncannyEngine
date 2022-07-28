@@ -37,7 +37,7 @@ b32 FRenderContextVulkan::createDebugUtilsMessenger() {
     UTRACE("Adding debug report callback to Vulkan...");
 
     auto vkCreateDebugUtilsMessengerEXT =
-        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstanceVk,
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mVkInstance,
                                                                   "vkCreateDebugUtilsMessengerEXT");
     VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
     debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -46,7 +46,8 @@ b32 FRenderContextVulkan::createDebugUtilsMessenger() {
     debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
     debugInfo.pfnUserCallback = debugCallbackFunc;
-    U_VK_ASSERT( vkCreateDebugUtilsMessengerEXT(mInstanceVk, &debugInfo, nullptr, &mDebugUtilsMsg) );
+    U_VK_ASSERT( vkCreateDebugUtilsMessengerEXT(mVkInstance, &debugInfo, nullptr,
+                                                &mVkDebugUtilsMsg) );
 
     UDEBUG("Created Debug Utils Messenger!");
     return UTRUE;
@@ -57,13 +58,13 @@ b32 FRenderContextVulkan::createDebugUtilsMessenger() {
 
 
 b32 FRenderContextVulkan::closeDebugUtilsMessenger() {
-  if (mDebugUtilsMsg != VK_NULL_HANDLE) {
+  if (mVkDebugUtilsMsg != VK_NULL_HANDLE) {
     UTRACE("Closing Debug Utils Messenger...");
 
     auto vkDestroyDebugUtilsMessengerEXT =
-        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mInstanceVk,
+        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mVkInstance,
                                                                    "vkDestroyDebugUtilsMessengerEXT");
-    vkDestroyDebugUtilsMessengerEXT(mInstanceVk, mDebugUtilsMsg, nullptr);
+    vkDestroyDebugUtilsMessengerEXT(mVkInstance, mVkDebugUtilsMsg, nullptr);
 
     UDEBUG("Closed Debug Utils Messenger!");
     return UTRUE;

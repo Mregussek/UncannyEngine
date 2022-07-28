@@ -74,4 +74,10 @@ FWindowSpecification FWindowGLFW::getSpecs() const {
 }
 
 
+#ifdef WIN32
+HWND FWindowGLFW::getWindowHandle() const {
+  return glfwGetWin32Window(mWindowPtr);
+}
+#endif
+
 }

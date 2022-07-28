@@ -47,7 +47,7 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 
   FSuitablePhysicalDeviceReturnInfo returnInfo{};
   b32 foundDevice{
-    pickSuitableDevice(mSpecs.pWindow, mInstanceVk, mSpecs.physicalDeviceDependencies, &returnInfo) };
+    pickSuitableDevice(mSpecs.pWindow, mVkInstance, mSpecs.physicalDeviceDependencies, &returnInfo) };
   if (not foundDevice) {
     UFATAL("Could not pick suitable VkPhysicalDevice! There is no integrated GPU nor discrete, "
            "there is no GPU supporting graphics nor platform presentation");
@@ -55,14 +55,14 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
   }
 
   UTRACE("Assigning return infos to class member variables...");
-  mPhysicalDeviceVk = returnInfo.physicalDevice;
-  mPhysicalDeviceFeatures = returnInfo.physicalDeviceFeatures;
-  mPhysicalDeviceProperties = returnInfo.physicalDeviceProperties;
+  mVkPhysicalDevice = returnInfo.physicalDevice;
+  mVkPhysicalDeviceFeatures = returnInfo.physicalDeviceFeatures;
+  mVkPhysicalDeviceProperties = returnInfo.physicalDeviceProperties;
   mQueueFamilyIndexVector = returnInfo.queueFamilyIndexVector;
-  mQueueFamilyPropertiesVector = returnInfo.queueFamilyPropertiesVector;
+  mVkQueueFamilyPropertiesVector = returnInfo.queueFamilyPropertiesVector;
 
-  displayPhysicalDeviceData(mPhysicalDeviceProperties, mPhysicalDeviceFeatures,
-                            mQueueFamilyPropertiesVector, mQueueFamilyIndexVector);
+  displayPhysicalDeviceData(mVkPhysicalDeviceProperties, mVkPhysicalDeviceFeatures,
+                            mVkQueueFamilyPropertiesVector, mQueueFamilyIndexVector);
 
   UDEBUG("Created Physical Device!");
   return UTRUE;

@@ -90,13 +90,13 @@ b32 FRenderContextVulkan::createInstance() {
   createInfo.ppEnabledExtensionNames = requiredExtensions.data();
   createInfo.enabledExtensionCount = requiredExtensions.size();
 
-  VkResult instanceCreated{ vkCreateInstance(&createInfo, nullptr, &mInstanceVk) };
+  VkResult instanceCreated{ vkCreateInstance(&createInfo, nullptr, &mVkInstance) };
   if (instanceCreated != VK_SUCCESS) {
     UFATAL("Could not create VkInstance, check your vulkan SDK and GPU drivers");
     return UFALSE;
   }
 
-  volkLoadInstance(mInstanceVk);
+  volkLoadInstance(mVkInstance);
 
   UDEBUG("Created Vulkan Instance, version {}.{}!", VK_API_VERSION_MAJOR(vulkanVersion),
          VK_API_VERSION_MINOR(vulkanVersion));
@@ -107,7 +107,7 @@ b32 FRenderContextVulkan::createInstance() {
 b32 FRenderContextVulkan::closeInstance() {
   UTRACE("Closing Vulkan Instance...");
 
-  vkDestroyInstance(mInstanceVk, nullptr);
+  vkDestroyInstance(mVkInstance, nullptr);
 
   UDEBUG("Closed Vulkan Instance!");
   return UTRUE;

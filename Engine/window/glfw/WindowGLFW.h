@@ -30,6 +30,10 @@ public:
   [[nodiscard]] EWindowLibrary getLibrary() const override;
   [[nodiscard]] FWindowSpecification getSpecs() const override;
 
+#ifdef WIN32
+  [[nodiscard]] HWND getWindowHandle() const;
+#endif
+
 private:
 
   FWindowSpecification mSpecs{};
