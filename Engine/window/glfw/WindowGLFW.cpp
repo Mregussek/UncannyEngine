@@ -7,44 +7,54 @@ namespace uncanny
 {
 
 
+static void errorCallbackGLFW(i32 error, const char* description) {
+  UERROR("GLFW Error {}: {}", error, description);
+}
+
+
 void FWindowGLFW::init(FWindowSpecification windowSpecification) {
   UTRACE("Initializing GLFW window...");
+  mSpecs = windowSpecification;
+
+  glfwSetErrorCallback(errorCallbackGLFW);
 
   const i32 isGlfwInitialized{ glfwInit() };
   if (!isGlfwInitialized) {
     UFATAL("Cannot initialize GLFW library! ErrCode: {}", isGlfwInitialized);
     return;
   }
-  mWindowSpecs = windowSpecification;
-  mWindowPtr = glfwCreateWindow(mWindowSpecs.width, mWindowSpecs.height, mWindowSpecs.name, nullptr,
-                                nullptr);
+
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  if (mSpecs.config.resizable) {
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  }
+
+  mWindowPtr = glfwCreateWindow(mSpecs.width, mSpecs.height, mSpecs.name, nullptr, nullptr);
   if (!mWindowPtr) {
     UFATAL("Cannot initialize GLFW window!");
     glfwTerminate();
     return;
   }
-  glfwMakeContextCurrent(mWindowPtr);
-  glClearColor( 0.4f, 0.3f, 0.4f, 0.0f );
-  UINFO("Initialized GLFW window! name: {} width: {} height: {}",
-        mWindowSpecs.name, mWindowSpecs.width, mWindowSpecs.height);
+  UINFO("Initialized GLFW window! name: {} width: {} height: {}", mSpecs.name, mSpecs.width,
+        mSpecs.height);
 }
 
 
 void FWindowGLFW::terminate() {
-  UINFO("Terminating GLFW window! name: {}", mWindowSpecs.name);
+  UINFO("Terminating GLFW window! name: {}", mSpecs.name);
+  glfwDestroyWindow(mWindowPtr);
   glfwTerminate();
 }
 
 
 void FWindowGLFW::swapBuffersAndPollEvents() {
-  glClear(GL_COLOR_BUFFER_BIT);
-  glfwSwapBuffers(mWindowPtr);
+  glfwGetFramebufferSize(mWindowPtr, &mSpecs.width, &mSpecs.height);
   glfwPollEvents();
 }
 
 
 void FWindowGLFW::close() {
-  UINFO("Closing GLFW window! name: {}", mWindowSpecs.name);
+  UINFO("Closing GLFW window! name: {}", mSpecs.name);
   glfwSetWindowShouldClose(mWindowPtr, GLFW_TRUE);
 }
 
@@ -60,7 +70,7 @@ EWindowLibrary FWindowGLFW::getLibrary() const {
 
 
 FWindowSpecification FWindowGLFW::getSpecs() const {
-  return mWindowSpecs;
+  return mSpecs;
 }
 
 

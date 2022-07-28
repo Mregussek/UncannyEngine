@@ -10,7 +10,13 @@ namespace uncanny
 {
 
 
+struct FWindowConfiguration {
+  u32 resizable{ UFALSE };
+};
+
+
 struct FWindowSpecification {
+  FWindowConfiguration config{};
   const char* name{ "" };
   i32 width{ 0 };
   i32 height{ 0 };

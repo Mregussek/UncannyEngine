@@ -16,16 +16,20 @@ auto main() -> i32 {
   FWindowFactory windowFactory{};
 
   // Window subsystem configuration
+  FWindowConfiguration windowConfiguration{};
+  windowConfiguration.resizable = UFALSE;
+
   FWindowSpecification windowSpecification{};
   windowSpecification.name = "UncannySandbox";
   windowSpecification.width = 720;
   windowSpecification.height = 405;
+  windowSpecification.config = windowConfiguration;
 
   FWindow* pWindow{ windowFactory.create<EWindowLibrary::GLFW>() };
   pWindow->init(windowSpecification);
 
   // Rendering subsystem configuration
-  FQueueFamilyDependencies queueFamilyDependencies[1];
+  FQueueFamilyDependencies queueFamilyDependencies[1]{};
   queueFamilyDependencies[0].queuesCountNeeded = 1;
   queueFamilyDependencies[0].graphics = UTRUE;
 

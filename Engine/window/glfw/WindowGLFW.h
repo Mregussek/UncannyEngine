@@ -32,7 +32,7 @@ public:
 
 private:
 
-  FWindowSpecification mWindowSpecs{};
+  FWindowSpecification mSpecs{};
   GLFWwindow* mWindowPtr{ nullptr };
 
 };
