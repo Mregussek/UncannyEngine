@@ -27,6 +27,9 @@ public:
   void close() override;
   [[nodiscard]] b32 isNotGoingToClose() const override;
 
+  [[nodiscard]] EWindowLibrary getLibrary() const override;
+  [[nodiscard]] FWindowSpecification getSpecs() const override;
+
 private:
 
   FWindowSpecification mWindowSpecs{};

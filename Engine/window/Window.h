@@ -28,6 +28,9 @@ public:
   virtual void close();
   [[nodiscard]] virtual b32 isNotGoingToClose() const;
 
+  [[nodiscard]] virtual EWindowLibrary getLibrary() const;
+  [[nodiscard]] virtual FWindowSpecification getSpecs() const;
+
 };
 
 

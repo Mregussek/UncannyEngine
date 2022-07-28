@@ -1,7 +1,9 @@
 
 #include "RenderContextVulkan.h"
-#include <utilities/Logger.h>
 #include "VulkanUtilities.h"
+#include <utilities/Logger.h>
+#include <window/Window.h>
+#include <window/glfw/WindowGLFW.h>
 
 
 namespace uncanny
@@ -30,8 +32,11 @@ template<typename TProperties>
 static const char* retrievePropertyName(const TProperties&);
 
 template<typename TProperties>
-static b32 isRequiredPropertyAvailable(const char* requiredProperty,
-                                       const std::vector<TProperties>& availableProperties);
+static b32 isRequiredPropertyInVector(const char* requiredProperty,
+                                      const std::vector<TProperties>& availableProperties);
+
+
+static b32 windowSupportVulkan(FWindow* pWindow, std::vector<const char*>* pEnabledExtensions);
 
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(
@@ -51,8 +56,6 @@ b32 FRenderContextVulkan::createInstance() {
            "downloaded Vulkan SDK");
     return UFALSE;
   }
-
-  const u32 vulkanVersion{ retrieveVulkanApiVersion() };
 
   // Instance Layers
   std::vector<const char*> enabledLayers{};
@@ -76,6 +79,20 @@ b32 FRenderContextVulkan::createInstance() {
     requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
   fillInRequiredProperties<VkExtensionProperties>(requiredExtensions, &enabledExtensions);
+
+  // Checking window system support for vulkan renderer
+  b32 windowSystemSupportsVulkan{ windowSupportVulkan(mSpecs.pWindow, &enabledExtensions) };
+  if (not windowSystemSupportsVulkan) {
+    UFATAL("Window system does not support vulkan renderer, so surface cannot be created!");
+    return UFALSE;
+  }
+
+  // Log instance layers and extensions
+  iterateOverAndLog(enabledLayers, retrievePropertyName, "Enable Instance Layers");
+  iterateOverAndLog(enabledExtensions, retrievePropertyName, "Enable Instance Extensions");
+
+  // Vulkan API version is needed
+  const u32 vulkanVersion{ retrieveVulkanApiVersion() };
 
   VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
   appInfo.apiVersion = vulkanVersion;
@@ -160,17 +177,15 @@ void fillInRequiredProperties(const std::vector<const char*>& requiredProperties
     return;
   }
 
-  iterateOverAndLog(requiredProperties, retrievePropertyName, "REQUIRED");
   if constexpr (U_VK_DEBUG) {
     iterateOverAndLog(availableProperties, retrievePropertyName, "AVAILABLE");
   }
 
   for (const char* required : requiredProperties) {
-    if (isRequiredPropertyAvailable(required, availableProperties)) {
+    if (isRequiredPropertyInVector(required, availableProperties)) {
       pReturnProperties->push_back(required);
     }
   }
-  iterateOverAndLog(*pReturnProperties, retrievePropertyName, "RETURN");
 }
 
 
@@ -203,8 +218,8 @@ template<typename TProperties> const char* retrievePropertyName(const TPropertie
 
 
 template<typename TProperties>
-b32 isRequiredPropertyAvailable(const char* requiredProperty,
-                                const std::vector<TProperties>& availableProperties) {
+b32 isRequiredPropertyInVector(const char* requiredProperty,
+                               const std::vector<TProperties>& availableProperties) {
   auto isStringInPropertiesVector = [requiredProperty](const TProperties& property){
     return std::strcmp(retrievePropertyName(property), requiredProperty);
   };
@@ -214,6 +229,33 @@ b32 isRequiredPropertyAvailable(const char* requiredProperty,
     return UTRUE;
   }
 
+  return UFALSE;
+}
+
+
+b32 windowSupportVulkan(FWindow* pWindow, std::vector<const char*>* pEnabledExtensions) {
+  if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
+    i32 isVulkanSupportedByGLFW{ glfwVulkanSupported() };
+    if (not isVulkanSupportedByGLFW) {
+      UERROR("GLFW does not even minimally support Vulkan API!");
+      return UFALSE;
+    }
+
+    u32 extensionsCountGLFW{ 0 };
+    const char** requiredExtensionsGLFW{ glfwGetRequiredInstanceExtensions(&extensionsCountGLFW) };
+
+    for (u32 i = 0; i < extensionsCountGLFW; i++) {
+      if (not isRequiredPropertyInVector(requiredExtensionsGLFW[i], *pEnabledExtensions)) {
+        UTRACE("Pushing required GLFW EXT {} to enabledExtensions!", requiredExtensionsGLFW[i]);
+        pEnabledExtensions->push_back(requiredExtensionsGLFW[i]);
+      }
+    }
+
+    UTRACE("Current window {} supports vulkan!", pWindow->getSpecs().name);
+    return UTRUE;
+  }
+
+  UERROR("Current window {} does not support vulkan renderer!", pWindow->getSpecs().name);
   return UFALSE;
 }
 

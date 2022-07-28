@@ -8,7 +8,7 @@ namespace uncanny
 
 
 enum class EWindowLibrary {
-  GLFW
+  NONE, GLFW
 };
 
 

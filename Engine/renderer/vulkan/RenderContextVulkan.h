@@ -29,6 +29,8 @@ private:
 
   [[nodiscard]] b32 createPhysicalDevice();
 
+  [[nodiscard]] b32 createWindowSurface();
+
 
   FRenderContextSpecification mSpecs{};
 

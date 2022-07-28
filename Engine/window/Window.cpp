@@ -33,4 +33,16 @@ b32 FWindow::isNotGoingToClose() const {
 }
 
 
+EWindowLibrary FWindow::getLibrary() const {
+  UFATAL("should not be used!");
+  return EWindowLibrary::NONE;
+}
+
+
+FWindowSpecification FWindow::getSpecs() const {
+  UFATAL("should not be used!");
+  return {};
+}
+
+
 }

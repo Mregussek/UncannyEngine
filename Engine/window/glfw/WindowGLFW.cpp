@@ -54,4 +54,14 @@ b32 FWindowGLFW::isNotGoingToClose() const {
 }
 
 
+EWindowLibrary FWindowGLFW::getLibrary() const {
+  return EWindowLibrary::GLFW;
+}
+
+
+FWindowSpecification FWindowGLFW::getSpecs() const {
+  return mWindowSpecs;
+}
+
+
 }
