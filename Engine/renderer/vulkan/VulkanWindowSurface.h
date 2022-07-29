@@ -7,15 +7,16 @@ namespace uncanny
 {
 
 
-b32 windowSurfaceSupportVulkanAPI(FWindow* pWindow);
+b32 windowSurfaceSupportVulkanAPI(const FWindow* pWindow);
 
 
 void getRequiredWindowSurfaceInstanceExtensions(
-    FWindow* pWindow, std::vector<const char*>* pRequiredExtensions);
+    const FWindow* pWindow, std::vector<const char*>* pRequiredExtensions);
 
 
 b32 windowSurfaceSupportPresentationOnPhysicalDevice(
-    FWindow* pWindow, VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
+    const FWindow* pWindow, VkInstance instance, VkPhysicalDevice physicalDevice,
+    u32 queueFamilyIndex);
 
 
 }

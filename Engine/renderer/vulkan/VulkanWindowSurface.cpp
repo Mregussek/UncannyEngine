@@ -12,14 +12,13 @@ namespace uncanny
 
 b32 FRenderContextVulkan::createWindowSurface() {
   UTRACE("Creating window surface...");
-  FWindow* pWindow{ mSpecs.pWindow }; // wrapper
 
   if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
     UTRACE("Creating Win32 KHR window surface...");
     VkWin32SurfaceCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
     createInfo.hinstance = GetModuleHandle(nullptr);
-    if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
-      FWindowGLFW* pWindowGLFW{ dynamic_cast<FWindowGLFW*>(pWindow) };
+    if (mSpecs.pWindow->getLibrary() == EWindowLibrary::GLFW) {
+      const FWindowGLFW* pWindowGLFW{ dynamic_cast<const FWindowGLFW*>(mSpecs.pWindow) };
       createInfo.hwnd = pWindowGLFW->getWindowHandle();
     }
     auto vkCreateWin32SurfaceKHR =
@@ -42,7 +41,7 @@ b32 FRenderContextVulkan::closeWindowSurface() {
 }
 
 
-b32 windowSurfaceSupportVulkanAPI(FWindow* pWindow) {
+b32 windowSurfaceSupportVulkanAPI(const FWindow* pWindow) {
   if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
     i32 isVulkanSupportedByGLFW{ glfwVulkanSupported() };
     if (isVulkanSupportedByGLFW == GLFW_FALSE) {
@@ -60,7 +59,7 @@ b32 windowSurfaceSupportVulkanAPI(FWindow* pWindow) {
 
 
 void getRequiredWindowSurfaceInstanceExtensions(
-    FWindow* pWindow, std::vector<const char*>* pRequiredExtensions) {
+    const FWindow* pWindow, std::vector<const char*>* pRequiredExtensions) {
   if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
     UTRACE("Adding Window GLFW surface extensions to VkInstance...");
     u32 extensionsCountGLFW{ 0 };
@@ -78,7 +77,8 @@ void getRequiredWindowSurfaceInstanceExtensions(
 
 
 b32 windowSurfaceSupportPresentationOnPhysicalDevice(
-    FWindow* pWindow, VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
+    const FWindow* pWindow, VkInstance instance, VkPhysicalDevice physicalDevice,
+    u32 queueFamilyIndex) {
   if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
     i32 supported = glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice,
                                                              queueFamilyIndex);

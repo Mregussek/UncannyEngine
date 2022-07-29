@@ -20,7 +20,7 @@ enum class EPhysicalDeviceType {
 
 struct FQueueFamilyDependencies {
   // @brief queues priorities for given count
-  f32* pQueuePriorities{ nullptr };
+  const f32* pQueuePriorities{ nullptr };
   // @brief how many queues of such type are needed
   u32 queuesCountNeeded{ 0 };
   // @brief support graphics operations
@@ -42,12 +42,12 @@ struct FPhysicalDeviceDependencies {
   // @brief how many queue family indexes types are needed (for graphics, for transfer etc.)
   u32 queueFamilyIndexesCount{ 0 };
   // @brief dependencies for queue families. Count should be equal to queueFamilyIndexesNeeded
-  FQueueFamilyDependencies* pQueueFamilyDependencies{ nullptr };
+  const FQueueFamilyDependencies* pQueueFamilyDependencies{ nullptr };
 };
 
 
 struct FRenderContextSpecification {
-  FWindow* pWindow{ nullptr };
+  const FWindow* pWindow{ nullptr };
   FPhysicalDeviceDependencies physicalDeviceDependencies{};
   const char* pAppName{ nullptr };
   u32 appVersion{ 0 };

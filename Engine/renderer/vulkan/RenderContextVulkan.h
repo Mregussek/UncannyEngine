@@ -55,6 +55,8 @@ private:
   std::vector<VkQueueFamilyProperties> mVkQueueFamilyPropertiesVector{};
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
+  // Logical Device
+  VkDevice mVkDevice{ VK_NULL_HANDLE };
 
 };
 

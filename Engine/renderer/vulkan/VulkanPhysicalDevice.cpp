@@ -18,7 +18,7 @@ struct FSuitablePhysicalDeviceReturnInfo {
 };
 
 
-static b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
+static b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
                               const FPhysicalDeviceDependencies& dependencies,
                               FSuitablePhysicalDeviceReturnInfo* pReturnInfo);
 
@@ -27,7 +27,7 @@ static b32 isProperDeviceType(EPhysicalDeviceType deviceType, VkPhysicalDeviceTy
 
 
 static b32 isCapableOfGraphicsOperations(u32 queueFamilyIndex, VkQueueFlags queueFlags,
-                                         FWindow* pWindow, VkInstance instance,
+                                         const FWindow* pWindow, VkInstance instance,
                                          VkPhysicalDevice device);
 
 
@@ -71,7 +71,7 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 }
 
 
-b32 pickSuitableDevice(FWindow* pWindow, VkInstance instance,
+b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
                        const FPhysicalDeviceDependencies& dependencies,
                        FSuitablePhysicalDeviceReturnInfo* pReturnInfo) {
   UTRACE("Retrieving count and data about physical devices...");
@@ -197,8 +197,9 @@ b32 isProperDeviceType(EPhysicalDeviceType deviceType, VkPhysicalDeviceType vkDe
 }
 
 
-b32 isCapableOfGraphicsOperations(u32 queueFamilyIndex, VkQueueFlags queueFlags, FWindow* pWindow,
-                                  VkInstance instance, VkPhysicalDevice device) {
+b32 isCapableOfGraphicsOperations(u32 queueFamilyIndex, VkQueueFlags queueFlags,
+                                  const FWindow* pWindow, VkInstance instance,
+                                  VkPhysicalDevice device) {
   u32 graphicsSupport{ queueFlags & VK_QUEUE_GRAPHICS_BIT };
   if (not graphicsSupport) {
     UTRACE("Ignoring queue family index {} as it does not support graphics!", queueFamilyIndex);
