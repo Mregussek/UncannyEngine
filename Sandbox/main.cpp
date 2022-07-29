@@ -29,14 +29,16 @@ auto main() -> i32 {
   pWindow->init(windowSpecification);
 
   // Rendering subsystem configuration
+  f32 queuePriorities[1]{ 1.f };
+
   FQueueFamilyDependencies queueFamilyDependencies[1]{};
   queueFamilyDependencies[0].queuesCountNeeded = 1;
+  queueFamilyDependencies[0].pQueuePriorities = queuePriorities;
   queueFamilyDependencies[0].graphics = UTRUE;
 
   FPhysicalDeviceDependencies physicalDeviceDependencies{};
   physicalDeviceDependencies.deviceType = EPhysicalDeviceType::DISCRETE;
   physicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
-  physicalDeviceDependencies.presentationSupport = UTRUE;
   physicalDeviceDependencies.queueFamilyIndexesCount = 1;
   physicalDeviceDependencies.pQueueFamilyDependencies = queueFamilyDependencies;
 

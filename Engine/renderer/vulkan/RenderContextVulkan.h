@@ -35,16 +35,25 @@ private:
   [[nodiscard]] b32 createWindowSurface();
   b32 closeWindowSurface();
 
+  [[nodiscard]] b32 createLogicalDevice();
+  b32 closeLogicalDevice();
 
+
+  // Class members
   FRenderContextSpecification mSpecs{};
-
+  // Instance
   VkInstance mVkInstance{ VK_NULL_HANDLE };
+  // Debugger
   VkDebugUtilsMessengerEXT mVkDebugUtilsMsg{ VK_NULL_HANDLE };
+  // Physical Device members
   VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
   VkPhysicalDeviceProperties mVkPhysicalDeviceProperties{};
   VkPhysicalDeviceFeatures mVkPhysicalDeviceFeatures{};
+  VkPhysicalDeviceMemoryProperties mVkPhysicalDeviceMemoryProperties{};
+  // QueueFamily Members
   std::vector<u32> mQueueFamilyIndexVector{};
   std::vector<VkQueueFamilyProperties> mVkQueueFamilyPropertiesVector{};
+  // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
 
 };

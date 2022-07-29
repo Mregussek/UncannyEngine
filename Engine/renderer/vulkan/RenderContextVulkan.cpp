@@ -28,18 +28,25 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     }
   }
 
-  // Secondly created physical device...
+  // Secondly creating physical device (needed for logical device)...
   b32 properlyCreatedPhysicalDevice{ createPhysicalDevice() };
   if (not properlyCreatedPhysicalDevice) {
     UFATAL("Could not pick Vulkan Physical Device!");
     return UFALSE;
   }
 
-  // We can create surface only with instance and check presentation support with
-  // physical device that is why third step is window surface creation...
+  // We can create window surface (dependent only on VkInstance) and check presentation
+  // support with physical device that is why third step is window surface creation...
   b32 properlyCreatedWindowSurface{ createWindowSurface() };
   if (not properlyCreatedWindowSurface) {
     UFATAL("Could not create window surface, rendering is not available!");
+    return UFALSE;
+  }
+
+  // We create logical device (dependent only on VkPhysicalDevice)
+  b32 properlyCreatedLogicalDevice{ createLogicalDevice() };
+  if (not properlyCreatedLogicalDevice) {
+    UFATAL("Could not create logical device!");
     return UFALSE;
   }
 
@@ -51,6 +58,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
+  closeLogicalDevice();
   closeWindowSurface();
   if constexpr (U_VK_DEBUG) {
     closeDebugUtilsMessenger();

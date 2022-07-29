@@ -1,8 +1,8 @@
 
 #include "RenderContextVulkan.h"
-#include <utilities/Logger.h>
 #include "VulkanUtilities.h"
 #include "VulkanWindowSurface.h"
+#include <utilities/Logger.h>
 
 
 namespace uncanny
@@ -60,6 +60,8 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
   mVkPhysicalDeviceProperties = returnInfo.physicalDeviceProperties;
   mQueueFamilyIndexVector = returnInfo.queueFamilyIndexVector;
   mVkQueueFamilyPropertiesVector = returnInfo.queueFamilyPropertiesVector;
+
+  vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &mVkPhysicalDeviceMemoryProperties);
 
   displayPhysicalDeviceData(mVkPhysicalDeviceProperties, mVkPhysicalDeviceFeatures,
                             mVkQueueFamilyPropertiesVector, mQueueFamilyIndexVector);

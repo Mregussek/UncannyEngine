@@ -4,6 +4,7 @@
 
 
 #include <utilities/Variables.h>
+#include <utilities/Includes.h>
 #include <volk.h>
 
 
@@ -12,6 +13,13 @@
 
 namespace uncanny
 {
+
+
+template<typename T> struct is_vk_extension_properties : std::false_type { };
+template<> struct is_vk_extension_properties<VkExtensionProperties> : std::true_type { };
+
+template<typename T> struct is_vk_layer_properties : std::false_type { };
+template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { };
 
 
 struct FDriverVersionInfo {

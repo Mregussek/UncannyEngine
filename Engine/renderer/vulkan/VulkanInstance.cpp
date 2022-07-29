@@ -10,30 +10,20 @@ namespace uncanny
 {
 
 
-template<typename T> struct is_vk_extension_properties : std::false_type { };
-template<> struct is_vk_extension_properties<VkExtensionProperties> : std::true_type { };
-
-template<typename T> struct is_vk_layer_properties : std::false_type { };
-template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { };
-
-
-template<typename TProperties>
-static void ensureAllRequiredPropertiesAreAvailable(
+template<typename TProperties> static void ensureAllRequiredPropertiesAreAvailable(
     const std::vector<const char*>& requiredProperties);
 
 
-template<typename TProperties>
-static void iterateOverAndLog(const std::vector<TProperties>& properties,
-                              const char* (*pRetrieveFunc)(const TProperties&),
-                              const char* areMandatory);
+template<typename TProperties> static void iterateOverAndLog(
+    const std::vector<TProperties>& properties, const char* (*pRetrieveFunc)(const TProperties&),
+    const char* areMandatory);
 
 
-template<typename TProperties>
-static const char* retrievePropertyName(const TProperties&);
+template<typename TProperties> static const char* retrievePropertyName(const TProperties&);
 
-template<typename TProperties>
-static b32 isRequiredPropertyInVector(const char* requiredProperty,
-                                      const std::vector<TProperties>& vec);
+
+template<typename TProperties> static b32 isRequiredPropertyInVector(
+    const char* requiredProperty, const std::vector<TProperties>& vec);
 
 
 b32 FRenderContextVulkan::createInstance() {
