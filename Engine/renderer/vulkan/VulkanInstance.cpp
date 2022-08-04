@@ -67,18 +67,21 @@ b32 FRenderContextVulkan::createInstance() {
   const u32 vulkanVersion{ retrieveVulkanApiVersion() };
 
   VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-  appInfo.apiVersion = vulkanVersion;
+  appInfo.pNext = nullptr;
   appInfo.pApplicationName = mSpecs.pAppName;
   appInfo.applicationVersion = mSpecs.appVersion;
   appInfo.pEngineName = "Uncanny Engine";
   appInfo.engineVersion = mSpecs.engineVersion;
+  appInfo.apiVersion = vulkanVersion;
 
   VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
+  createInfo.pNext = nullptr;
+  createInfo.flags = 0;
   createInfo.pApplicationInfo = &appInfo;
-  createInfo.ppEnabledLayerNames = requiredLayers.data();
   createInfo.enabledLayerCount = requiredLayers.size();
-  createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+  createInfo.ppEnabledLayerNames = requiredLayers.data();
   createInfo.enabledExtensionCount = requiredExtensions.size();
+  createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
   VkResult instanceCreated{ vkCreateInstance(&createInfo, nullptr, &mVkInstance) };
   if (instanceCreated != VK_SUCCESS) {
@@ -97,6 +100,10 @@ b32 FRenderContextVulkan::createInstance() {
 b32 FRenderContextVulkan::closeInstance() {
   UTRACE("Closing Vulkan Instance...");
 
+  if (mVkInstance == VK_NULL_HANDLE) {
+    UWARN("Instance is not closed, as it wasn't created!");
+    return UTRUE;
+  }
   vkDestroyInstance(mVkInstance, nullptr);
 
   UDEBUG("Closed Vulkan Instance!");

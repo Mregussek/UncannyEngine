@@ -74,8 +74,12 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 b32 FRenderContextVulkan::closePhysicalDevice() {
   UTRACE("Closing Physical Device...");
 
-  // Physical device is destroyed along with VkInstance!
-  mVkPhysicalDevice = VK_NULL_HANDLE;
+  if (mVkPhysicalDevice == VK_NULL_HANDLE) {
+    UWARN("Physical device is not closed, as it wasn't created!");
+    return UTRUE;
+  }
+
+  mVkPhysicalDevice = VK_NULL_HANDLE; // Physical device is destroyed along with VkInstance!
 
   UDEBUG("Closed Physical Device!");
   return UTRUE;

@@ -34,6 +34,11 @@ b32 FRenderContextVulkan::createWindowSurface() {
 b32 FRenderContextVulkan::closeWindowSurface() {
   UTRACE("Closing Window Surface...");
 
+  if (mVkWindowSurface == VK_NULL_HANDLE) {
+    UWARN("Window surface is not created, so it won't be closed!");
+    return UTRUE;
+  }
+
   vkDestroySurfaceKHR(mVkInstance, mVkWindowSurface, nullptr);
 
   UDEBUG("Closed Window Surface!");

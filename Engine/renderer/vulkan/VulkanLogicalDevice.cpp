@@ -66,7 +66,7 @@ b32 FRenderContextVulkan::createLogicalDevice() {
 
   VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
   createInfo.pNext = nullptr;
-  createInfo.flags = VK_FALSE;
+  createInfo.flags = 0;
   createInfo.queueCreateInfoCount = (u32)deviceQueueInfoVector.size();
   createInfo.pQueueCreateInfos = deviceQueueInfoVector.data();
   createInfo.enabledLayerCount = 0;             // deprecated!
@@ -88,6 +88,11 @@ b32 FRenderContextVulkan::createLogicalDevice() {
 
 b32 FRenderContextVulkan::closeLogicalDevice() {
   UTRACE("Closing vulkan logical device...");
+
+  if (mVkDevice == VK_NULL_HANDLE) {
+    UWARN("Logical device is not created, so it won't be closed!");
+    return UTRUE;
+  }
 
   vkDestroyDevice(mVkDevice, nullptr);
 
