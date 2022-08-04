@@ -38,21 +38,16 @@ template<typename TProperties> static void iterateOverAndLog(
 b32 FRenderContextVulkan::createLogicalDevice() {
   UTRACE("Creating vulkan logical device...");
 
-  uint32_t layerCount{ 0 };
-  U_VK_ASSERT( vkEnumerateDeviceLayerProperties(mVkPhysicalDevice, &layerCount, nullptr) );
-  std::vector<VkLayerProperties> availableLayers(layerCount);
-  U_VK_ASSERT( vkEnumerateDeviceLayerProperties(mVkPhysicalDevice, &layerCount,
-                                                availableLayers.data()) );
-
-  uint32_t extensionCount{ 0 };
+  u32 extensionCount{ 0 };
   U_VK_ASSERT( vkEnumerateDeviceExtensionProperties(mVkPhysicalDevice, nullptr, &extensionCount,
                                                     nullptr));
   std::vector<VkExtensionProperties> availableExtensions(extensionCount);
   U_VK_ASSERT( vkEnumerateDeviceExtensionProperties(mVkPhysicalDevice, nullptr, &extensionCount,
                                                     availableExtensions.data()) );
 
-  iterateOverAndLog(availableLayers, retrievePropertyName, "AVAILABLE");
-  iterateOverAndLog(availableExtensions, retrievePropertyName, "AVAILABLE");
+  if constexpr (U_VK_DEBUG) {
+    iterateOverAndLog(availableExtensions, retrievePropertyName, "AVAILABLE");
+  }
 
   std::vector<VkDeviceQueueCreateInfo> deviceQueueInfoVector(
       mSpecs.physicalDeviceDependencies.queueFamilyIndexesCount);
@@ -74,8 +69,8 @@ b32 FRenderContextVulkan::createLogicalDevice() {
   createInfo.flags = VK_FALSE;
   createInfo.queueCreateInfoCount = (u32)deviceQueueInfoVector.size();
   createInfo.pQueueCreateInfos = deviceQueueInfoVector.data();
-  createInfo.enabledLayerCount = 0;
-  createInfo.ppEnabledLayerNames = nullptr;
+  createInfo.enabledLayerCount = 0;             // deprecated!
+  createInfo.ppEnabledLayerNames = nullptr;    // deprecated!
   createInfo.enabledExtensionCount = 0;
   createInfo.ppEnabledExtensionNames = nullptr;
   createInfo.pEnabledFeatures = &mVkPhysicalDeviceFeatures;

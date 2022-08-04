@@ -60,6 +60,7 @@ void FRenderContextVulkan::terminate() {
 
   closeLogicalDevice();
   closeWindowSurface();
+  closePhysicalDevice();
   if constexpr (U_VK_DEBUG) {
     closeDebugUtilsMessenger();
   }

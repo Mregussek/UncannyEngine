@@ -71,6 +71,17 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 }
 
 
+b32 FRenderContextVulkan::closePhysicalDevice() {
+  UTRACE("Closing Physical Device...");
+
+  // Physical device is destroyed along with VkInstance!
+  mVkPhysicalDevice = VK_NULL_HANDLE;
+
+  UDEBUG("Closed Physical Device!");
+  return UTRUE;
+}
+
+
 b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
                        const FPhysicalDeviceDependencies& dependencies,
                        FSuitablePhysicalDeviceReturnInfo* pReturnInfo) {
@@ -192,7 +203,7 @@ b32 isProperDeviceType(EPhysicalDeviceType deviceType, VkPhysicalDeviceType vkDe
     return UTRUE;
   }
 
-  UERROR("Device is unknown type! Vulkan Result: {}", vkDeviceType);
+  UWARN("Device is unknown type! Vulkan Result: {}", vkDeviceType);
   return UFALSE;
 }
 

@@ -31,6 +31,7 @@ private:
   b32 closeDebugUtilsMessenger();
 
   [[nodiscard]] b32 createPhysicalDevice();
+  b32 closePhysicalDevice();
 
   [[nodiscard]] b32 createWindowSurface();
   b32 closeWindowSurface();
