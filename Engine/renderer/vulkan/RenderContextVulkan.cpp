@@ -50,6 +50,13 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // Assigning all graphics command queues for rendering operations
+  b32 properlyCreatedGraphicsQueues{ createGraphicsQueues() };
+  if (not properlyCreatedGraphicsQueues) {
+    UFATAL("There is no graphics queues, rendering in not available!");
+    return UFALSE;
+  }
+
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
 }
@@ -58,6 +65,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
+  closeGraphicsQueues();
   closeLogicalDevice();
   closeWindowSurface();
   closePhysicalDevice();

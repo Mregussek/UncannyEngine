@@ -142,18 +142,21 @@ b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
       }
       if (dependencies.pQueueFamilyDependencies[i].compute) {
         // TODO: implement compute capabilities check for queue family index
+        UERROR("UncannyEngine TODO: implement compute capabilities check for queue family index");
         UTRACE("Device {} queueFamilyIndex {} doesn't support compute",
                deviceProperties.deviceName, i);
         continue;
       }
       if (dependencies.pQueueFamilyDependencies[i].transfer) {
         // TODO: implement transfer capabilities check for queue family index
+        UERROR("UncannyEngine TODO: implement transfer capabilities check for queue family index");
         UTRACE("Device {} queueFamilyIndex {} doesn't support transfer",
                deviceProperties.deviceName, i);
         continue;
       }
       if (dependencies.pQueueFamilyDependencies[i].sparseBinding) {
         // TODO: implement sparseBinding capabilities check for queue family index
+        UERROR("UncannyEngine TODO: implement sparseBinding capabilities check for queue family index");
         UTRACE("Device {} queueFamilyIndex {} doesn't support sparseBinding",
                deviceProperties.deviceName, i);
         continue;

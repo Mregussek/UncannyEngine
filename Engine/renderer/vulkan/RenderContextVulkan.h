@@ -39,6 +39,9 @@ private:
   [[nodiscard]] b32 createLogicalDevice();
   b32 closeLogicalDevice();
 
+  [[nodiscard]] b32 createGraphicsQueues();
+  b32 closeGraphicsQueues();
+
 
   // Class members
   FRenderContextSpecification mSpecs{};
@@ -58,6 +61,8 @@ private:
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   // Logical Device
   VkDevice mVkDevice{ VK_NULL_HANDLE };
+  // Queues
+  std::vector<VkQueue> mVkGraphicsQueueVector{};
 
 };
 
