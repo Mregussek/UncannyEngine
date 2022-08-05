@@ -29,7 +29,7 @@ public:
   virtual void init(FWindowSpecification windowSpecification);
   virtual void terminate();
 
-  virtual void swapBuffersAndPollEvents();
+  virtual void pollEvents();
 
   virtual void close();
   [[nodiscard]] virtual b32 isNotGoingToClose() const;

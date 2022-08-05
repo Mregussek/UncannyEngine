@@ -17,7 +17,7 @@ void FWindow::terminate() {
 }
 
 
-void FWindow::swapBuffersAndPollEvents() {
+void FWindow::pollEvents() {
   UFATAL("should not be used!");
 }
 

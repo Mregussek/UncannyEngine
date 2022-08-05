@@ -22,7 +22,7 @@ public:
   void init(FWindowSpecification windowSpecification) override;
   void terminate() override;
 
-  void swapBuffersAndPollEvents() override;
+  void pollEvents() override;
 
   void close() override;
   [[nodiscard]] b32 isNotGoingToClose() const override;

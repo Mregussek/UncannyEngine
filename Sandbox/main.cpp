@@ -54,7 +54,7 @@ auto main() -> i32 {
 
   // Running loop
   while(pWindow->isNotGoingToClose()) {
-    pWindow->swapBuffersAndPollEvents();
+    pWindow->pollEvents();
   }
 
   // Terminating everything
