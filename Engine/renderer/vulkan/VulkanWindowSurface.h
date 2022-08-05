@@ -3,8 +3,16 @@
 #define UNCANNYENGINE_VULKANWINDOWSURFACE_H
 
 
+#include <utilities/Variables.h>
+#include <vector>
+
+
 namespace uncanny
 {
+
+
+class FWindow;
+
 
 
 b32 windowSurfaceSupportVulkanAPI(const FWindow* pWindow);

@@ -113,6 +113,8 @@ b32 FRenderContextVulkan::closeInstance() {
 
 template<typename TProperties>
 void ensureAllRequiredPropertiesAreAvailable(const std::vector<const char*>& requiredProperties) {
+  UTRACE("Ensuring all required properties are available for VkInstance...");
+
   u32 count{ 0 };
   std::vector<TProperties> availableProperties{};
 
