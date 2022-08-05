@@ -10,17 +10,29 @@ namespace uncanny
 {
 
 
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+static HWND retrieveHandleFromWindow(const FWindow* pWindow) {
+  if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
+    const FWindowGLFW* pWindowGLFW{ dynamic_cast<const FWindowGLFW*>(pWindow) };
+    return pWindowGLFW->getWindowHandle();
+  }
+
+  UFATAL("Could not retrieve window handle!");
+  return {};
+}
+#endif
+
+
 b32 FRenderContextVulkan::createWindowSurface() {
   UTRACE("Creating window surface...");
 
   if constexpr (VK_USE_PLATFORM_WIN32_KHR) {
     UTRACE("Creating Win32 KHR window surface...");
     VkWin32SurfaceCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
+    createInfo.pNext = nullptr;
+    createInfo.flags = 0;
     createInfo.hinstance = GetModuleHandle(nullptr);
-    if (mSpecs.pWindow->getLibrary() == EWindowLibrary::GLFW) {
-      const FWindowGLFW* pWindowGLFW{ dynamic_cast<const FWindowGLFW*>(mSpecs.pWindow) };
-      createInfo.hwnd = pWindowGLFW->getWindowHandle();
-    }
+    createInfo.hwnd = retrieveHandleFromWindow(mSpecs.pWindow);
     auto vkCreateWin32SurfaceKHR =
         (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(mVkInstance, "vkCreateWin32SurfaceKHR");
     U_VK_ASSERT( vkCreateWin32SurfaceKHR(mVkInstance, &createInfo, nullptr, &mVkWindowSurface) );
