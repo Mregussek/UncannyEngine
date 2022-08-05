@@ -35,6 +35,9 @@ static b32 supportsPlatformPresentation(VkInstance instance, VkPhysicalDevice ph
                                         u32 familyIndex);
 
 
+static b32 supportsSwapchainExtension(VkPhysicalDevice physicalDevice);
+
+
 static void displayPhysicalDeviceData(
     const VkPhysicalDeviceProperties& deviceProperties,
     const VkPhysicalDeviceFeatures& deviceFeatures,
@@ -114,6 +117,12 @@ b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
     b32 fallbackTypeProper = isProperDeviceType(dependencies.deviceTypeFallback, deviceProperties.deviceType);
     if (not (mainTypeProper or fallbackTypeProper)) {
       UTRACE("Device {} isn't main nor fallback type", deviceProperties.deviceName);
+      continue;
+    }
+
+    UTRACE("Make sure that device has swapchain support");
+    if (not supportsSwapchainExtension(device)) {
+      UTRACE("Device {} doesn't have swapchain support!", deviceProperties.deviceName);
       continue;
     }
 
@@ -259,6 +268,28 @@ b32 supportsPlatformPresentation(VkInstance instance, VkPhysicalDevice physicalD
   else {
     return VK_FALSE;
   }
+}
+
+
+b32 supportsSwapchainExtension(VkPhysicalDevice physicalDevice) {
+  u32 extensionCount{ 0 };
+  U_VK_ASSERT( vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount,
+                                                    nullptr));
+  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+  U_VK_ASSERT( vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount,
+                                                    availableExtensions.data()) );
+
+  auto it = std::find_if(availableExtensions.begin(), availableExtensions.end(),
+                         [](VkExtensionProperties& properties) -> b32 {
+    return std::strcmp(properties.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+  });
+  if (it == availableExtensions.end()) {
+    UTRACE("Device does not support swapchain!");
+    return UFALSE;
+  }
+
+  UTRACE("Device supports swapchain!");
+  return UTRUE;
 }
 
 
