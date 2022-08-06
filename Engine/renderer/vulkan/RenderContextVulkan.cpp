@@ -24,8 +24,71 @@ void FRenderContextVulkan::defineDependencies() {
 }
 
 
-void FRenderContextVulkan::validateDependencies() {
+b32 FRenderContextVulkan::validateDependencies() const {
+  UTRACE("Validating dependencies for vulkan renderer...");
 
+  // make sure there is proper queue family index count
+  if (mPhysicalDeviceDependencies.queueFamilyIndexesCount < 1) {
+    UERROR("Queue family indexes count is less than 1, which means no operations on GPU!");
+    return UFALSE;
+  }
+
+  // make sure device type is possible to select
+  if (
+      mPhysicalDeviceDependencies.deviceType == EPhysicalDeviceType::NONE or
+      mPhysicalDeviceDependencies.deviceTypeFallback == EPhysicalDeviceType::NONE) {
+    UERROR("Defined device types are NONE, which means proper GPU cannot be selected!");
+    return UFALSE;
+  }
+
+  // make sure there is enough queue dependencies for every queue family
+  if (
+      mPhysicalDeviceDependencies.queueFamilyIndexesCount >
+      mPhysicalDeviceDependencies.queueFamilyDependencies.size()) {
+    UERROR("There is more queue families than dependencies for queue families, not enough info!");
+    return UFALSE;
+  }
+
+  // make sure that every queue of expected queue family is correctly defined
+  for (const FQueueFamilyDependencies& queueDeps : mPhysicalDeviceDependencies.queueFamilyDependencies) {
+    // make sure there is proper queue for queue family
+    if (queueDeps.queuesCountNeeded < 1) {
+      UERROR("Needed queues for family are less than 1, which means no operations on GPU!");
+      return UFALSE;
+    }
+
+    if (
+        (not queueDeps.graphics) && (not queueDeps.compute) &&
+        (not queueDeps.transfer) && (not queueDeps.sparseBinding)) {
+      UERROR("There is no support info for queue provided, not enough info!");
+      return UFALSE;
+    }
+
+    // make sure there is enough info about every queue needed for queue family
+    if (
+        queueDeps.queuesCountNeeded > queueDeps.queuesPriorities.size() or
+        queueDeps.queuesCountNeeded > queueDeps.queuesTypes.size()) {
+      UERROR("There is more queues need than provided info about them!");
+      return UFALSE;
+    }
+
+    // make sure every queue has correct info provided
+    for (u32 j = 0; j < queueDeps.queuesCountNeeded; j++) {
+      // make sure there is proper queue type
+      if (queueDeps.queuesTypes[j] == EQueueType::NONE) {
+        UERROR("Queue type for queue family is NONE, wrong info provided!");
+        return UFALSE;
+      }
+
+      // make sure priority is between range
+      if (not (0.f <= queueDeps.queuesPriorities[j] && queueDeps.queuesPriorities[j] <= 1.f)) {
+        UERROR("Queue priority is not between range <0.f, 1.f>, wrong info provided!");
+        return UFALSE;
+      }
+    }
+  }
+
+  return UTRUE;
 }
 
 
@@ -37,9 +100,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 
   // define all dependencies for vulkan renderer before setup
   defineDependencies();
-  if constexpr (U_VK_DEBUG) {
-    validateDependencies();
-  }
+  validateDependencies();
 
   // Firstly creating instance as it is mandatory for proper Vulkan work...
   b32 properlyCreatedInstance{ createInstance() };
