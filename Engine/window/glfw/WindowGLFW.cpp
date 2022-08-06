@@ -35,6 +35,9 @@ void FWindowGLFW::init(FWindowSpecification windowSpecification) {
     glfwTerminate();
     return;
   }
+
+  updateFramebufferSize();
+
   UINFO("Initialized GLFW window! name: {} width: {} height: {}", mSpecs.name, mSpecs.width,
         mSpecs.height);
 }
