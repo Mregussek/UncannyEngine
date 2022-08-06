@@ -42,6 +42,9 @@ private:
   [[nodiscard]] b32 createGraphicsQueues();
   b32 closeGraphicsQueues();
 
+  [[nodiscard]] b32 createSwapchain();
+  b32 closeSwapchain();
+
 
   // Class members
   FRenderContextSpecification mSpecs{};

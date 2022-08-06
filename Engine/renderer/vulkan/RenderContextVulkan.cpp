@@ -57,6 +57,13 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // we can create swapchain for acquiring images and presenting them
+  b32 properlyCreatedSwapchain{ createSwapchain() };
+  if (not properlyCreatedSwapchain) {
+    UFATAL("Could not create swapchain, cannot acquire images and present them!");
+    return UFALSE;
+  }
+
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
 }
@@ -65,6 +72,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
+  closeSwapchain();
   closeGraphicsQueues();
   closeLogicalDevice();
   closeWindowSurface();
