@@ -88,6 +88,7 @@ b32 FRenderContextVulkan::validateDependencies() const {
     }
   }
 
+  UDEBUG("Properly defined dependencies for vulkan renderer!");
   return UTRUE;
 }
 
@@ -100,7 +101,11 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 
   // define all dependencies for vulkan renderer before setup
   defineDependencies();
-  validateDependencies();
+  b32 properDependenciesDefined{ validateDependencies() };
+  if (not properDependenciesDefined) {
+    UFATAL("Wrong dependencies defined for vulkan renderer!");
+    return UFALSE;
+  }
 
   // Firstly creating instance as it is mandatory for proper Vulkan work...
   b32 properlyCreatedInstance{ createInstance() };
