@@ -20,6 +20,7 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.deviceType = EPhysicalDeviceType::DISCRETE;
   mPhysicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
   mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
+  mPhysicalDeviceDependencies.queueFamilyTypes = { EQueueFamilyType::GRAPHICS };
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
 }
 
@@ -114,37 +115,47 @@ void FRenderContextVulkan::terminate() {
 
 b32 FRenderContextVulkan::validateDependencies() const {
   UTRACE("Validating dependencies for vulkan renderer...");
+  const auto& physDevDeps{ mPhysicalDeviceDependencies }; // wrapper
 
   // make sure there is proper queue family index count
-  if (mPhysicalDeviceDependencies.queueFamilyIndexesCount < 1) {
+  if (physDevDeps.queueFamilyIndexesCount < 1) {
     UERROR("Queue family indexes count is less than 1, which means no operations on GPU!");
     return UFALSE;
   }
 
   // make sure device type is possible to select
   if (
-      mPhysicalDeviceDependencies.deviceType == EPhysicalDeviceType::NONE or
-      mPhysicalDeviceDependencies.deviceTypeFallback == EPhysicalDeviceType::NONE) {
+      physDevDeps.deviceType == EPhysicalDeviceType::NONE or
+      physDevDeps.deviceTypeFallback == EPhysicalDeviceType::NONE) {
     UERROR("Defined device types are NONE, which means proper GPU cannot be selected!");
     return UFALSE;
   }
 
   // make sure there is enough queue dependencies for every queue family
   if (
-      mPhysicalDeviceDependencies.queueFamilyIndexesCount >
-      mPhysicalDeviceDependencies.queueFamilyDependencies.size()) {
+      physDevDeps.queueFamilyIndexesCount > physDevDeps.queueFamilyDependencies.size() or
+      physDevDeps.queueFamilyIndexesCount > physDevDeps.queueFamilyTypes.size()) {
     UERROR("There is more queue families than dependencies for queue families, not enough info!");
     return UFALSE;
   }
 
   // make sure that every queue of expected queue family is correctly defined
-  for (const FQueueFamilyDependencies& queueDeps : mPhysicalDeviceDependencies.queueFamilyDependencies) {
+  for (u32 i = 0; i < physDevDeps.queueFamilyIndexesCount; i++) {
+    const auto& queueDeps{ physDevDeps.queueFamilyDependencies[i] }; // wrapper
+
+    // make sure queue family type is correct type
+    if (physDevDeps.queueFamilyTypes[i] == EQueueFamilyType::NONE) {
+      UERROR("Queue family type is unknown, wrong info given!");
+      return UFALSE;
+    }
+
     // make sure there is proper queue for queue family
     if (queueDeps.queuesCountNeeded < 1) {
       UERROR("Needed queues for family are less than 1, which means no operations on GPU!");
       return UFALSE;
     }
 
+    // make sure that is sth supported for queue
     if (
         (not queueDeps.graphics) && (not queueDeps.compute) &&
         (not queueDeps.transfer) && (not queueDeps.sparseBinding)) {

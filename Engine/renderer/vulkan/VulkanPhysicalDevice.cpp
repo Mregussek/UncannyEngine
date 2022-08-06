@@ -14,7 +14,7 @@ struct FSuitablePhysicalDeviceReturnInfo {
   VkPhysicalDeviceFeatures physicalDeviceFeatures{};
   VkPhysicalDeviceProperties physicalDeviceProperties{};
   std::vector<VkQueueFamilyProperties> queueFamilyPropertiesVector{};
-  std::vector<u32> queueFamilyIndexVector{};
+  std::vector<FQueueFamily> queueFamilyVector{};
 };
 
 
@@ -42,7 +42,7 @@ static void displayPhysicalDeviceData(
     const VkPhysicalDeviceProperties& deviceProperties,
     const VkPhysicalDeviceFeatures& deviceFeatures,
     const std::vector<VkQueueFamilyProperties>& queueFamilyPropertiesVector,
-    const std::vector<u32>& queueFamilyIndex);
+    const std::vector<FQueueFamily>& queueFamilyVector);
 
 
 b32 FRenderContextVulkan::createPhysicalDevice() {
@@ -61,13 +61,13 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
   mVkPhysicalDevice = returnInfo.physicalDevice;
   mVkPhysicalDeviceFeatures = returnInfo.physicalDeviceFeatures;
   mVkPhysicalDeviceProperties = returnInfo.physicalDeviceProperties;
-  mQueueFamilyIndexVector = returnInfo.queueFamilyIndexVector;
+  mQueueFamilyVector = returnInfo.queueFamilyVector;
   mVkQueueFamilyPropertiesVector = returnInfo.queueFamilyPropertiesVector;
 
   vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &mVkPhysicalDeviceMemoryProperties);
 
   displayPhysicalDeviceData(mVkPhysicalDeviceProperties, mVkPhysicalDeviceFeatures,
-                            mVkQueueFamilyPropertiesVector, mQueueFamilyIndexVector);
+                            mVkQueueFamilyPropertiesVector, mQueueFamilyVector);
 
   UDEBUG("Created Physical Device!");
   return UTRUE;
@@ -173,7 +173,7 @@ b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
 
       // If everything is fine assign return values...
       UTRACE("Assigning queue family to return info...");
-      pReturnInfo->queueFamilyIndexVector.push_back(i);
+      pReturnInfo->queueFamilyVector.push_back({i, dependencies.queueFamilyTypes[i]});
       pReturnInfo->queueFamilyPropertiesVector.push_back(queuePropertiesVector[i]);
 
       // If required of queue families indexes count is ready, break loop
@@ -184,9 +184,9 @@ b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
     }
 
     // If there are missing count of queue families, cannot use device
-    if (dependencies.queueFamilyIndexesCount != pReturnInfo->queueFamilyIndexVector.size()) {
+    if (dependencies.queueFamilyIndexesCount != pReturnInfo->queueFamilyVector.size()) {
       UTRACE("Missing queue families indexes count, cannot use device {} != {}",
-             dependencies.queueFamilyIndexesCount, pReturnInfo->queueFamilyIndexVector.size());
+             dependencies.queueFamilyIndexesCount, pReturnInfo->queueFamilyVector.size());
       continue;
     }
 
@@ -309,7 +309,7 @@ static const char* getGpuTypeName(VkPhysicalDeviceType type) {
 void displayPhysicalDeviceData(const VkPhysicalDeviceProperties& deviceProperties,
                                const VkPhysicalDeviceFeatures& deviceFeatures,
                                const std::vector<VkQueueFamilyProperties>& queueFamilyPropertiesVector,
-                               const std::vector<u32>& queueFamilyIndexVector) {
+                               const std::vector<FQueueFamily>& queueFamilyVector) {
   FDriverVersionInfo driverVersionInfo =
       decodeDriverVersionVulkan(deviceProperties.driverVersion, deviceProperties.vendorID);
   UINFO("PhysicalDevice Info\nPicked: {}\nDriver Version: {}.{}\nVulkan Version Available: {}"
@@ -318,10 +318,10 @@ void displayPhysicalDeviceData(const VkPhysicalDeviceProperties& devicePropertie
         VK_API_VERSION_MINOR(deviceProperties.apiVersion),
         getGpuTypeName(deviceProperties.deviceType));
 
-  for (u32 i = 0; i < queueFamilyIndexVector.size(); i++) {
+  for (u32 i = 0; i < queueFamilyVector.size(); i++) {
     UINFO("QueueFamilyIndex {} supports check:\ngraphics: {}\ncompute: {}\ntransfer: "
           "{}\nsparse_binding: {}\nqueuesCountAvailable: {}",
-          queueFamilyIndexVector[i],
+          queueFamilyVector[i].index,
           queueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_GRAPHICS_BIT,
           queueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_COMPUTE_BIT,
           queueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_TRANSFER_BIT,

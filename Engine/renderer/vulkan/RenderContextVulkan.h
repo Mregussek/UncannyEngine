@@ -16,6 +16,11 @@ namespace uncanny
 {
 
 
+enum class EQueueFamilyType {
+  NONE, GRAPHICS
+};
+
+
 enum class EQueueType {
   NONE, RENDERING, PRESENTING
 };
@@ -23,6 +28,12 @@ enum class EQueueType {
 
 enum class EPhysicalDeviceType {
   NONE, INTEGRATED, DISCRETE
+};
+
+
+struct FQueueFamily {
+  u32 index{ ~0u };
+  EQueueFamilyType type{ EQueueFamilyType::NONE };
 };
 
 
@@ -51,7 +62,9 @@ struct FPhysicalDeviceDependencies {
   EPhysicalDeviceType deviceTypeFallback{ EPhysicalDeviceType::NONE };
   // @brief how many queue family indexes types are needed (for graphics, for transfer etc.)
   u32 queueFamilyIndexesCount{ 0 };
-  // @brief dependencies for queue families. Count should be equal to queueFamilyIndexesNeeded
+  // @brief type for queue families. Count should be equal to queueFamilyIndexesCount
+  std::vector<EQueueFamilyType> queueFamilyTypes{};
+  // @brief dependencies for queue families. Count should be equal to queueFamilyIndexesCount
   std::vector<FQueueFamilyDependencies> queueFamilyDependencies{};
 };
 
@@ -96,13 +109,13 @@ private:
   VkInstance mVkInstance{ VK_NULL_HANDLE };
   // Debugger
   VkDebugUtilsMessengerEXT mVkDebugUtilsMsg{ VK_NULL_HANDLE };
-  // Physical Device members
+  // Physical Device
   VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
   VkPhysicalDeviceProperties mVkPhysicalDeviceProperties{};
   VkPhysicalDeviceFeatures mVkPhysicalDeviceFeatures{};
   VkPhysicalDeviceMemoryProperties mVkPhysicalDeviceMemoryProperties{};
-  // QueueFamily Members
-  std::vector<u32> mQueueFamilyIndexVector{};
+  // Queue Family
+  std::vector<FQueueFamily> mQueueFamilyVector{};
   std::vector<VkQueueFamilyProperties> mVkQueueFamilyPropertiesVector{};
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
@@ -115,8 +128,11 @@ private:
   // Queues
   std::vector<VkQueue> mVkGraphicsQueueVector{};
   // Swapchain
-
-
+  VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
+  VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
+  std::vector<VkImage> mVkImageVector{};
+  std::vector<VkImageView> mVkImageViewVector{};
+  std::vector<VkFramebuffer> mVkFramebufferVector{};
 
 };
 

@@ -19,7 +19,24 @@ void getRequiredSwapchainExtensions(std::vector<const char*>* pRequiredExtension
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
-
+  VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
+  createInfo.pNext = nullptr;
+  createInfo.flags = 0;
+  createInfo.surface = mVkWindowSurface;
+  createInfo.minImageCount = std::max(2u, mVkSurfaceCapabilities.minImageCount);
+  createInfo.imageFormat = mVkSurfaceFormat.format;
+  createInfo.imageColorSpace = mVkSurfaceFormat.colorSpace;
+  createInfo.imageExtent = mVkImageExtent2D;
+  createInfo.imageArrayLayers = 1;
+  createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  // createInfo.imageSharingMode;
+  createInfo.queueFamilyIndexCount = 1; // TODO: need to add proper way of defining queue families
+  // createInfo.pQueueFamilyIndices;
+  createInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+  // createInfo.compositeAlpha;
+  createInfo.presentMode = mVkPresentMode;
+  // createInfo.clipped;
+  createInfo.oldSwapchain = mVkSwapchainOld;
 
   UDEBUG("Created swapchain!");
   return UTRUE;

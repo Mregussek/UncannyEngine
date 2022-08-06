@@ -44,7 +44,7 @@ b32 FRenderContextVulkan::createLogicalDevice() {
     deviceQueueInfoVector[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     deviceQueueInfoVector[i].pNext = nullptr;
     deviceQueueInfoVector[i].flags = VK_FALSE;
-    deviceQueueInfoVector[i].queueFamilyIndex = mQueueFamilyIndexVector[i];
+    deviceQueueInfoVector[i].queueFamilyIndex = mQueueFamilyVector[i].index;
     deviceQueueInfoVector[i].queueCount = queueDependencies.queuesCountNeeded;
     deviceQueueInfoVector[i].pQueuePriorities = queueDependencies.queuesPriorities.data();
   }
