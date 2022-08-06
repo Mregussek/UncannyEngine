@@ -47,8 +47,13 @@ void FWindowGLFW::terminate() {
 }
 
 
-void FWindowGLFW::pollEvents() {
+void FWindowGLFW::updateFramebufferSize() {
   glfwGetFramebufferSize(mWindowPtr, &mSpecs.width, &mSpecs.height);
+}
+
+
+void FWindowGLFW::pollEvents() {
+  updateFramebufferSize();
   glfwPollEvents();
 }
 

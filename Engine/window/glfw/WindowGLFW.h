@@ -22,6 +22,7 @@ public:
   void init(FWindowSpecification windowSpecification) override;
   void terminate() override;
 
+  void updateFramebufferSize() override;
   void pollEvents() override;
 
   void close() override;

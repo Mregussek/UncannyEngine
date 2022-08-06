@@ -17,6 +17,11 @@ void FWindow::terminate() {
 }
 
 
+void FWindow::updateFramebufferSize() {
+  UFATAL("should not be used");
+}
+
+
 void FWindow::pollEvents() {
   UFATAL("should not be used!");
 }

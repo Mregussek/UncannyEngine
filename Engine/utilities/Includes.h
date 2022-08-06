@@ -11,6 +11,7 @@
 #include <vector>
 #include <typeinfo>
 #include <tuple>
+#include <algorithm>
 #include <utilities/Variables.h>
 #include <utilities/Libraries.h>
 #include <utilities/Versions.h>

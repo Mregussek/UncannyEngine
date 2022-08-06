@@ -29,6 +29,7 @@ public:
   virtual void init(FWindowSpecification windowSpecification);
   virtual void terminate();
 
+  virtual void updateFramebufferSize();
   virtual void pollEvents();
 
   virtual void close();
