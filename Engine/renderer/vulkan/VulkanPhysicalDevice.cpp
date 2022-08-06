@@ -50,7 +50,7 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
 
   FSuitablePhysicalDeviceReturnInfo returnInfo{};
   b32 foundDevice{
-    pickSuitableDevice(mSpecs.pWindow, mVkInstance, mSpecs.physicalDeviceDependencies, &returnInfo) };
+    pickSuitableDevice(mSpecs.pWindow, mVkInstance, mPhysicalDeviceDependencies, &returnInfo) };
   if (not foundDevice) {
     UFATAL("Could not pick suitable VkPhysicalDevice! There is no integrated GPU nor discrete, "
            "there is no GPU supporting graphics nor platform presentation");
@@ -137,33 +137,33 @@ b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
       VkQueueFlags queueFlags{ queuePropertiesVector[i].queueFlags };
       u32 availableQueueCount{ queuePropertiesVector[i].queueCount };
 
-      if (dependencies.pQueueFamilyDependencies[i].queuesCountNeeded > availableQueueCount) {
+      if (dependencies.queueFamilyDependencies[i].queuesCountNeeded > availableQueueCount) {
         UTRACE("Device {} queueFamilyIndex {} doesn't have enough count of Queues",
                deviceProperties.deviceName, i);
         continue;
       }
-      if (dependencies.pQueueFamilyDependencies[i].graphics) {
+      if (dependencies.queueFamilyDependencies[i].graphics) {
         if (not isCapableOfGraphicsOperations(i, queueFlags, pWindow, instance, device)) {
           UTRACE("Device {} queueFamilyIndex {} doesn't support graphics",
                  deviceProperties.deviceName, i);
           continue;
         }
       }
-      if (dependencies.pQueueFamilyDependencies[i].compute) {
+      if (dependencies.queueFamilyDependencies[i].compute) {
         // TODO: implement compute capabilities check for queue family index
         UERROR("UncannyEngine TODO: implement compute capabilities check for queue family index");
         UTRACE("Device {} queueFamilyIndex {} doesn't support compute",
                deviceProperties.deviceName, i);
         continue;
       }
-      if (dependencies.pQueueFamilyDependencies[i].transfer) {
+      if (dependencies.queueFamilyDependencies[i].transfer) {
         // TODO: implement transfer capabilities check for queue family index
         UERROR("UncannyEngine TODO: implement transfer capabilities check for queue family index");
         UTRACE("Device {} queueFamilyIndex {} doesn't support transfer",
                deviceProperties.deviceName, i);
         continue;
       }
-      if (dependencies.pQueueFamilyDependencies[i].sparseBinding) {
+      if (dependencies.queueFamilyDependencies[i].sparseBinding) {
         // TODO: implement sparseBinding capabilities check for queue family index
         UERROR("UncannyEngine TODO: implement sparseBinding capabilities check for queue family index");
         UTRACE("Device {} queueFamilyIndex {} doesn't support sparseBinding",

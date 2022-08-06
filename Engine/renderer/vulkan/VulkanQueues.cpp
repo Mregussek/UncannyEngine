@@ -29,7 +29,7 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
     }
 
     u32 graphicsQueuesNeeded{
-        mSpecs.physicalDeviceDependencies.pQueueFamilyDependencies[i].queuesCountNeeded };
+        mPhysicalDeviceDependencies.queueFamilyDependencies[i].queuesCountNeeded };
 
     if (graphicsQueuesNeeded > mVkQueueFamilyPropertiesVector[i].queueCount) {
       UWARN("{} queue family index does not have enough queues, skipping...");

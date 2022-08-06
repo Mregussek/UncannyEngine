@@ -35,18 +35,18 @@ b32 FRenderContextVulkan::createLogicalDevice() {
   iterateOverAndLog(requiredExtensions, "Enable Logical Device Extensions");
 
   std::vector<VkDeviceQueueCreateInfo> deviceQueueInfoVector(
-      mSpecs.physicalDeviceDependencies.queueFamilyIndexesCount);
+      mPhysicalDeviceDependencies.queueFamilyIndexesCount);
 
   for (u32 i = 0; i < deviceQueueInfoVector.size(); i++) {
     const FQueueFamilyDependencies& queueDependencies{
-      mSpecs.physicalDeviceDependencies.pQueueFamilyDependencies[i] };
+      mPhysicalDeviceDependencies.queueFamilyDependencies[i] };
 
     deviceQueueInfoVector[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     deviceQueueInfoVector[i].pNext = nullptr;
     deviceQueueInfoVector[i].flags = VK_FALSE;
     deviceQueueInfoVector[i].queueFamilyIndex = mQueueFamilyIndexVector[i];
     deviceQueueInfoVector[i].queueCount = queueDependencies.queuesCountNeeded;
-    deviceQueueInfoVector[i].pQueuePriorities = queueDependencies.pQueuePriorities;
+    deviceQueueInfoVector[i].pQueuePriorities = queueDependencies.queuesPriorities.data();
   }
 
   VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };

@@ -29,25 +29,11 @@ auto main() -> i32 {
   pWindow->init(windowSpecification);
 
   // Rendering subsystem configuration
-  f32 queuePriorities[1]{ 1.f };
-
-  FQueueFamilyDependencies queueFamilyDependencies[1]{};
-  queueFamilyDependencies[0].queuesCountNeeded = 1;
-  queueFamilyDependencies[0].pQueuePriorities = queuePriorities;
-  queueFamilyDependencies[0].graphics = UTRUE;
-
-  FPhysicalDeviceDependencies physicalDeviceDependencies{};
-  physicalDeviceDependencies.deviceType = EPhysicalDeviceType::DISCRETE;
-  physicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
-  physicalDeviceDependencies.queueFamilyIndexesCount = 1;
-  physicalDeviceDependencies.pQueueFamilyDependencies = queueFamilyDependencies;
-
   FRenderContextSpecification renderContextSpecification{};
   renderContextSpecification.pWindow = pWindow;
   renderContextSpecification.pAppName = "Uncanny Sandbox";
   renderContextSpecification.appVersion = UENGINE_MAKE_VERSION(0, 0, 1);
   renderContextSpecification.engineVersion = (u32)EEngineVersion::LATEST;
-  renderContextSpecification.physicalDeviceDependencies = physicalDeviceDependencies;
 
   FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
   pRenderContext->init(renderContextSpecification);

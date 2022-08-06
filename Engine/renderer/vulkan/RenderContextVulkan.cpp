@@ -8,9 +8,38 @@ namespace uncanny
 {
 
 
+void FRenderContextVulkan::defineDependencies() {
+  UTRACE("Defining dependencies...");
+
+  FQueueFamilyDependencies graphicsQueueFamilyDependencies{};
+  graphicsQueueFamilyDependencies.queuesCountNeeded = 2;
+  graphicsQueueFamilyDependencies.queuesPriorities = { 1.f, 1.f };
+  graphicsQueueFamilyDependencies.queuesTypes = { EQueueType::RENDERING, EQueueType::PRESENTING };
+  graphicsQueueFamilyDependencies.graphics = UTRUE;
+
+  mPhysicalDeviceDependencies.deviceType = EPhysicalDeviceType::DISCRETE;
+  mPhysicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
+  mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
+  mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
+}
+
+
+void FRenderContextVulkan::validateDependencies() {
+
+}
+
+
 b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   UTRACE("Initializing Vulkan Render Context...");
+
+  // assign specs
   mSpecs = renderContextSpecs;
+
+  // define all dependencies for vulkan renderer before setup
+  defineDependencies();
+  if constexpr (U_VK_DEBUG) {
+    validateDependencies();
+  }
 
   // Firstly creating instance as it is mandatory for proper Vulkan work...
   b32 properlyCreatedInstance{ createInstance() };
