@@ -117,6 +117,7 @@ private:
   // Queue Family
   std::vector<FQueueFamily> mQueueFamilyVector{};
   std::vector<VkQueueFamilyProperties> mVkQueueFamilyPropertiesVector{};
+  u32 mGraphicsQueueFamilyIndex{ UUNUSED }; // must be used as index to mQueueFamilyVector
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};

@@ -42,6 +42,12 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
       VkQueue& graphicsQueue{ mVkGraphicsQueueVector.emplace_back(VK_NULL_HANDLE) };
       vkGetDeviceQueue(mVkDevice, mQueueFamilyVector[i].index, j, &graphicsQueue);
     }
+
+    if (
+        mGraphicsQueueFamilyIndex == UUNUSED &&
+        mQueueFamilyVector[i].type == EQueueFamilyType::GRAPHICS) {
+      mGraphicsQueueFamilyIndex = i;
+    }
   }
 
   if (mVkGraphicsQueueVector.empty()) {
@@ -54,6 +60,11 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
       UERROR("There is graphics queue, that is null handle, cannot render anything!");
       return UFALSE;
     }
+  }
+
+  if (mGraphicsQueueFamilyIndex == UUNUSED) {
+    UERROR("There is no graphics queue index, cannot render anything!");
+    return UFALSE;
   }
 
   UDEBUG("Created graphics queues!");
