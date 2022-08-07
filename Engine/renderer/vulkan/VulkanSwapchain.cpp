@@ -16,18 +16,11 @@ void getRequiredSwapchainExtensions(std::vector<const char*>* pRequiredExtension
 }
 
 
-static VkCompositeAlphaFlagBitsKHR getSupportedCompositeAlpha(
-    const VkSurfaceCapabilitiesKHR& surfaceCaps) {
-  if (surfaceCaps.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
-    return VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-  }
-
-  return VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
-}
-
-
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
+
+  // TODO: if some queues using the swapchain will be from other queue families,
+  // there is need to define concurrent sharing mode and pass info about those families
 
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
   createInfo.pNext = nullptr;
@@ -37,16 +30,18 @@ b32 FRenderContextVulkan::createSwapchain() {
   createInfo.imageFormat = mVkSurfaceFormat.format;
   createInfo.imageColorSpace = mVkSurfaceFormat.colorSpace;
   createInfo.imageExtent = mVkImageExtent2D;
-  createInfo.imageArrayLayers = 1;
-  createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-  createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  createInfo.queueFamilyIndexCount = 1;
-  createInfo.pQueueFamilyIndices = &mQueueFamilyVector[mGraphicsQueueFamilyIndex].index;
-  createInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-  createInfo.compositeAlpha = getSupportedCompositeAlpha(mVkSurfaceCapabilities);
+  createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
+  createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; // color images
+  createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
+  createInfo.queueFamilyIndexCount = 0;      // for exclusive sharing mode, param is ignored
+  createInfo.pQueueFamilyIndices = nullptr; // for exclusive sharing mode, param is ignored
+  createInfo.preTransform = mVkSurfaceCapabilities.currentTransform;
+  createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // no transparency with OS
   createInfo.presentMode = mVkPresentMode;
-  createInfo.clipped = VK_TRUE;
+  createInfo.clipped = VK_TRUE; // clipping world that is beyond presented surface (not visible)
   createInfo.oldSwapchain = mVkSwapchainOld;
+
+  U_VK_ASSERT( vkCreateSwapchainKHR(mVkDevice, &createInfo, nullptr, &mVkSwapchainCurrent) );
 
   UDEBUG("Created swapchain!");
   return UTRUE;
@@ -55,6 +50,19 @@ b32 FRenderContextVulkan::createSwapchain() {
 
 b32 FRenderContextVulkan::closeSwapchain() {
   UTRACE("Closing swapchain...");
+
+  if (mVkSwapchainCurrent != VK_NULL_HANDLE) {
+    vkDestroySwapchainKHR(mVkDevice, mVkSwapchainCurrent, nullptr);
+  }
+  else {
+    UWARN("Current swapchain is not created, so it won't be destroyed!");
+  }
+  if (mVkSwapchainOld != VK_NULL_HANDLE) {
+    vkDestroySwapchainKHR(mVkDevice, mVkSwapchainOld, nullptr);
+  }
+  else {
+    UWARN("Old swapchain is not created, so it won't be destroyed!");
+  }
 
   UDEBUG("Closed swapchain!");
   return UTRUE;

@@ -122,7 +122,7 @@ private:
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
   VkSurfaceFormatKHR mVkSurfaceFormat{};
-  VkPresentModeKHR mVkPresentMode{};
+  VkPresentModeKHR mVkPresentMode{ VK_PRESENT_MODE_FIFO_KHR }; // FIFO has to exist as spec says
   VkExtent2D mVkImageExtent2D{};
   // Logical Device
   VkDevice mVkDevice{ VK_NULL_HANDLE };
