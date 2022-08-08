@@ -22,6 +22,9 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
   mPhysicalDeviceDependencies.queueFamilyTypes = { EQueueFamilyType::GRAPHICS };
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
+  mPhysicalDeviceDependencies.depthFormatDependencies = {
+      VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
+  };
 }
 
 
@@ -91,6 +94,13 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // enable depth buffer with depth images for swapchain
+  b32 properlyCreatedDepthImages{ createDepthImages() };
+  if (not properlyCreatedDepthImages) {
+    UFATAL("Could not create depth images, cannot render 3D!");
+    return UFALSE;
+  }
+
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
 }
@@ -99,6 +109,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
+  closeDepthImages();
   closeSwapchain();
   closeGraphicsQueues();
   closeLogicalDevice();

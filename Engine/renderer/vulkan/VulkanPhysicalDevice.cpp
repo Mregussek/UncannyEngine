@@ -2,6 +2,7 @@
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
 #include "VulkanWindowSurface.h"
+#include "VulkanImageDepth.h"
 #include <utilities/Logger.h>
 
 
@@ -13,6 +14,7 @@ struct FSuitablePhysicalDeviceReturnInfo {
   VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
   VkPhysicalDeviceFeatures physicalDeviceFeatures{};
   VkPhysicalDeviceProperties physicalDeviceProperties{};
+  VkFormat depthFormat{ VK_FORMAT_UNDEFINED };
   std::vector<VkQueueFamilyProperties> queueFamilyPropertiesVector{};
   std::vector<FQueueFamily> queueFamilyVector{};
 };
@@ -63,6 +65,7 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
   mVkPhysicalDeviceProperties = returnInfo.physicalDeviceProperties;
   mQueueFamilyVector = returnInfo.queueFamilyVector;
   mVkQueueFamilyPropertiesVector = returnInfo.queueFamilyPropertiesVector;
+  mVkDepthFormat = returnInfo.depthFormat;
 
   vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &mVkPhysicalDeviceMemoryProperties);
 
@@ -123,6 +126,13 @@ b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
     UTRACE("Make sure that device has swapchain support");
     if (not supportsSwapchainExtension(device)) {
       UTRACE("Device {} doesn't have swapchain support!", deviceProperties.deviceName);
+      continue;
+    }
+
+    UTRACE("Make sure that device has depth format support");
+    VkFormat depthFormat{ VK_FORMAT_UNDEFINED };
+    if (not detectSupportedDepthFormat(device, dependencies.depthFormatDependencies, &depthFormat)) {
+      UTRACE("Device {} doesn't support depth format candidates", deviceProperties.deviceName);
       continue;
     }
 
@@ -195,6 +205,7 @@ b32 pickSuitableDevice(const FWindow* pWindow, VkInstance instance,
     pReturnInfo->physicalDevice = device;
     pReturnInfo->physicalDeviceProperties = deviceProperties;
     pReturnInfo->physicalDeviceFeatures = deviceFeatures;
+    pReturnInfo->depthFormat = depthFormat;
     return UTRUE;
   }
 

@@ -66,6 +66,8 @@ struct FPhysicalDeviceDependencies {
   std::vector<EQueueFamilyType> queueFamilyTypes{};
   // @brief dependencies for queue families. Count should be equal to queueFamilyIndexesCount
   std::vector<FQueueFamilyDependencies> queueFamilyDependencies{};
+  // @brief dependencies for depth format
+  std::vector<VkFormat> depthFormatDependencies{};
 };
 
 
@@ -101,6 +103,9 @@ private:
   [[nodiscard]] b32 createSwapchain();
   b32 closeSwapchain();
 
+  [[nodiscard]] b32 createDepthImages();
+  b32 closeDepthImages();
+
 
   // Class members
   FRenderContextSpecification mSpecs{};
@@ -133,7 +138,11 @@ private:
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
   std::vector<VkImage> mVkImagePresentableVector{};
   std::vector<VkImageView> mVkImagePresentableViewVector{};
+  std::vector<VkImage> mVkImageDepthVector{};
+  std::vector<VkImageView> mVkImageDepthViewVector{};
   std::vector<VkFramebuffer> mVkFramebufferVector{};
+  // Depth info
+  VkFormat mVkDepthFormat{ VK_FORMAT_UNDEFINED };
 
 };
 
