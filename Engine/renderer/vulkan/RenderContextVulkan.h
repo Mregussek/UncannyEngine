@@ -131,8 +131,8 @@ private:
   // Swapchain
   VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
-  std::vector<VkImage> mVkImageVector{};
-  std::vector<VkImageView> mVkImageViewVector{};
+  std::vector<VkImage> mVkImagePresentableVector{};
+  std::vector<VkImageView> mVkImagePresentableViewVector{};
   std::vector<VkFramebuffer> mVkFramebufferVector{};
 
 };

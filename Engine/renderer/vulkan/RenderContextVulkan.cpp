@@ -84,7 +84,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
-  // we can create swapchain for acquiring images and presenting them
+  // we can create swapchain for acquiring presentable images
   b32 properlyCreatedSwapchain{ createSwapchain() };
   if (not properlyCreatedSwapchain) {
     UFATAL("Could not create swapchain, cannot acquire images and present them!");
