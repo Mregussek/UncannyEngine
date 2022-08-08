@@ -138,11 +138,12 @@ private:
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
   std::vector<VkImage> mVkImagePresentableVector{};
   std::vector<VkImageView> mVkImagePresentableViewVector{};
-  std::vector<VkImage> mVkImageDepthVector{};
-  std::vector<VkImageView> mVkImageDepthViewVector{};
   std::vector<VkFramebuffer> mVkFramebufferVector{};
   // Depth info
   VkFormat mVkDepthFormat{ VK_FORMAT_UNDEFINED };
+  VkImage mVkDepthImage{ VK_NULL_HANDLE };
+  VkImageView mVkDepthImageView{ VK_NULL_HANDLE };
+  VkDeviceMemory mVkDepthImageMemory{ VK_NULL_HANDLE };
 
 };
 

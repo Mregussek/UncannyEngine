@@ -19,9 +19,6 @@ void getRequiredSwapchainExtensions(std::vector<const char*>* pRequiredExtension
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
-  // TODO: if some queues using the swapchain will be from other queue families,
-  // there is need to define concurrent sharing mode and pass info about those families
-
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
