@@ -10,7 +10,7 @@ namespace uncanny
 {
 
 
-template<typename TProperties> static void ensureAllRequiredPropertiesAreAvailable(
+template<typename TProperties> static b32 areRequiredPropertiesAvailable(
     const std::vector<const char*>& requiredProperties);
 
 
@@ -29,6 +29,13 @@ template<typename TProperties> static b32 isRequiredPropertyInVector(
 b32 FRenderContextVulkan::createInstance() {
   UTRACE("Creating Vulkan Instance...");
 
+  // Checking window system support for vulkan renderer before any initialization
+  b32 windowSystemSupportsVulkan{ windowSurfaceSupportVulkanAPI(mSpecs.pWindow) };
+  if (not windowSystemSupportsVulkan) {
+    UFATAL("Window system does not support vulkan renderer, so surface cannot be created!");
+    return UFALSE;
+  }
+
   // Initializing volk -> loading all vulkan functions
   VkResult initializedVolk{ volkInitialize() };
   if (initializedVolk != VK_SUCCESS) {
@@ -37,10 +44,12 @@ b32 FRenderContextVulkan::createInstance() {
     return UFALSE;
   }
 
-  // Checking window system support for vulkan renderer
-  b32 windowSystemSupportsVulkan{ windowSurfaceSupportVulkanAPI(mSpecs.pWindow) };
-  if (not windowSystemSupportsVulkan) {
-    UFATAL("Window system does not support vulkan renderer, so surface cannot be created!");
+  // Is Vulkan API version available
+  u32 apiVersion{ UVERSION_UNDEFINED };
+  VkResult isVersionAvailable{ vkEnumerateInstanceVersion(&apiVersion) };
+  if (isVersionAvailable != VK_SUCCESS or mInstanceDependencies.vulkanApiVersion >= apiVersion) {
+    UFATAL("Vulkan version {}.{} is not available, cannot start vulkan renderer!",
+           VK_API_VERSION_MAJOR(apiVersion), VK_API_VERSION_MINOR(apiVersion));
     return UFALSE;
   }
 
@@ -50,6 +59,13 @@ b32 FRenderContextVulkan::createInstance() {
     getRequiredDebugInstanceLayers(&requiredLayers);
   }
 
+  // Validate all required layers
+  if (not areRequiredPropertiesAvailable<VkLayerProperties>(requiredLayers)) {
+    UERROR("Some required instance layers are not available, cannot start vulkan renderer!");
+    return UFALSE;
+  }
+  iterateOverAndLog(requiredLayers, retrievePropertyName, "Enable Instance Layers");
+
   // Instance Extensions
   std::vector<const char*> requiredExtensions{};
   if constexpr (U_VK_DEBUG) {
@@ -57,22 +73,21 @@ b32 FRenderContextVulkan::createInstance() {
   }
   getRequiredWindowSurfaceInstanceExtensions(mSpecs.pWindow, &requiredExtensions);
 
-  // Log instance layers and extensions
-  ensureAllRequiredPropertiesAreAvailable<VkLayerProperties>(requiredLayers);
-  ensureAllRequiredPropertiesAreAvailable<VkExtensionProperties>(requiredExtensions);
-  iterateOverAndLog(requiredLayers, retrievePropertyName, "Enable Instance Layers");
+  // Validate all required extensions
+  if (not areRequiredPropertiesAvailable<VkExtensionProperties>(requiredExtensions)) {
+    UERROR("Some required instance extensions are not available, cannot start vulkan renderer!");
+    return UFALSE;
+  }
   iterateOverAndLog(requiredExtensions, retrievePropertyName, "Enable Instance Extensions");
 
-  // Vulkan API version is needed
-  const u32 vulkanVersion{ retrieveVulkanApiVersion() };
-
+  // Create infos...
   VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
   appInfo.pNext = nullptr;
   appInfo.pApplicationName = mSpecs.pAppName;
   appInfo.applicationVersion = mSpecs.appVersion;
   appInfo.pEngineName = "Uncanny Engine";
   appInfo.engineVersion = mSpecs.engineVersion;
-  appInfo.apiVersion = vulkanVersion;
+  appInfo.apiVersion = apiVersion;
 
   VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
   createInfo.pNext = nullptr;
@@ -91,8 +106,8 @@ b32 FRenderContextVulkan::createInstance() {
 
   volkLoadInstance(mVkInstance);
 
-  UDEBUG("Created Vulkan Instance, version {}.{}!", VK_API_VERSION_MAJOR(vulkanVersion),
-         VK_API_VERSION_MINOR(vulkanVersion));
+  UDEBUG("Created Vulkan Instance, version {}.{}!", VK_API_VERSION_MAJOR(apiVersion),
+         VK_API_VERSION_MINOR(apiVersion));
   return UTRUE;
 }
 
@@ -112,7 +127,7 @@ b32 FRenderContextVulkan::closeInstance() {
 
 
 template<typename TProperties>
-void ensureAllRequiredPropertiesAreAvailable(const std::vector<const char*>& requiredProperties) {
+b32 areRequiredPropertiesAvailable(const std::vector<const char*>& requiredProperties) {
   UTRACE("Ensuring all required properties are available for VkInstance...");
 
   u32 count{ 0 };
@@ -131,7 +146,7 @@ void ensureAllRequiredPropertiesAreAvailable(const std::vector<const char*>& req
   }
   else {
     UERROR("Given wrong TProperties type, cannot validate VkInstance layers and extensions!");
-    return;
+    return UFALSE;
   }
 
   if constexpr (U_VK_DEBUG) {
@@ -141,8 +156,11 @@ void ensureAllRequiredPropertiesAreAvailable(const std::vector<const char*>& req
   for (const char* required : requiredProperties) {
     if (not isRequiredPropertyInVector(required, availableProperties)) {
       UTRACE("Property {} is not available!", required);
+      return UFALSE;
     }
   }
+
+  return UTRUE;
 }
 
 
@@ -151,7 +169,7 @@ void iterateOverAndLog(const std::vector<TProperties>& properties,
                        const char* (*pRetrieveFunc)(const TProperties&),
                        const char* areMandatory) {
   UTRACE("{} Instance {} properties:", areMandatory, typeid(TProperties).name());
-  for (const TProperties& property : properties) {
+  for (TProperties property : properties) {
     std::cout << pRetrieveFunc(property) << ", ";
   }
   std::cout << '\n';

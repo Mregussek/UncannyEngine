@@ -11,6 +11,8 @@ namespace uncanny
 void FRenderContextVulkan::defineDependencies() {
   UTRACE("Defining dependencies...");
 
+  mInstanceDependencies.vulkanApiVersion = VK_API_VERSION_1_3;
+
   FQueueFamilyDependencies graphicsQueueFamilyDependencies{};
   graphicsQueueFamilyDependencies.queuesCountNeeded = 2;
   graphicsQueueFamilyDependencies.queuesPriorities = { 1.f, 1.f };

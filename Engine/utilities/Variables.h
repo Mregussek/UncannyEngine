@@ -48,6 +48,7 @@ static_assert(sizeof(b32) == 4, "b32 does not match 32 bits");
 #define UTRUE 1
 
 #define UUNUSED ~0u
+#define UVERSION_UNDEFINED ~0u
 
 
 }

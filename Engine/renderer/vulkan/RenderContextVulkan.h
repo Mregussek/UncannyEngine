@@ -71,6 +71,12 @@ struct FPhysicalDeviceDependencies {
 };
 
 
+struct FInstanceDependencies {
+  // @brief vulkan api version expected
+  u32 vulkanApiVersion{ 0 };
+};
+
+
 class FRenderContextVulkan : public FRenderContext {
 public:
 
@@ -109,6 +115,7 @@ private:
 
   // Class members
   FRenderContextSpecification mSpecs{};
+  FInstanceDependencies mInstanceDependencies{};
   FPhysicalDeviceDependencies mPhysicalDeviceDependencies{};
   // Instance
   VkInstance mVkInstance{ VK_NULL_HANDLE };
@@ -138,7 +145,6 @@ private:
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
   std::vector<VkImage> mVkImagePresentableVector{};
   std::vector<VkImageView> mVkImagePresentableViewVector{};
-  std::vector<VkFramebuffer> mVkFramebufferVector{};
   // Depth info
   VkFormat mVkDepthFormat{ VK_FORMAT_UNDEFINED };
   VkImage mVkDepthImage{ VK_NULL_HANDLE };
