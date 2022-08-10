@@ -21,40 +21,54 @@ static b32 isRequiredPropertyInVector(
     const char* requiredExt, const std::vector<VkExtensionProperties>& availableExt);
 
 
-static void ensureAllRequiredExtensionsAreAvailable(
+static b32 areRequiredExtensionsAvailable(
     VkPhysicalDevice physicalDevice, const std::vector<const char*>& requiredExtensions);
 
 
 b32 FRenderContextVulkan::createLogicalDevice() {
   UTRACE("Creating vulkan logical device...");
 
+  // Device Extensions...
   std::vector<const char*> requiredExtensions{};
   getRequiredSwapchainExtensions(&requiredExtensions);
 
-  ensureAllRequiredExtensionsAreAvailable(mVkPhysicalDevice, requiredExtensions);
+  // Validate Extensions...
+  if (not areRequiredExtensionsAvailable(mVkPhysicalDevice, requiredExtensions)) {
+    UERROR("Some required instance layers are not available, cannot start vulkan renderer!");
+    return UFALSE;
+  }
   iterateOverAndLog(requiredExtensions, "Enable Logical Device Extensions");
+
+  // Retrieve all needed info...
+  FQueueFamilyDependencies graphicsFamilyDependencies{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies) };
 
   VkPhysicalDeviceFeatures physicalDeviceFeatures{};
   vkGetPhysicalDeviceFeatures(mVkPhysicalDevice, &physicalDeviceFeatures);
 
-  std::vector<VkDeviceQueueCreateInfo> deviceQueueInfoVector(
+  // Create as many create infos as needed...
+  std::vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfoVector(
       mPhysicalDeviceDependencies.queueFamilyIndexesCount);
+  if (deviceQueueCreateInfoVector.size() != 1) {
+    UERROR("Too many device queue create infos! Make sure to implement other!");
+    return UFALSE;
+  }
 
-  FQueueFamilyDependencies graphicsFamilyDependencies{
-      getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
-                                 mPhysicalDeviceDependencies.queueFamilyDependencies) };
-  deviceQueueInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-  deviceQueueInfoVector[0].pNext = nullptr;
-  deviceQueueInfoVector[0].flags = VK_FALSE;
-  deviceQueueInfoVector[0].queueFamilyIndex = mGraphicsQueueFamilyIndex;
-  deviceQueueInfoVector[0].queueCount = graphicsFamilyDependencies.queuesCountNeeded;
-  deviceQueueInfoVector[0].pQueuePriorities = graphicsFamilyDependencies.queuesPriorities.data();
+  // Create Queue for graphics...
+  deviceQueueCreateInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+  deviceQueueCreateInfoVector[0].pNext = nullptr;
+  deviceQueueCreateInfoVector[0].flags = VK_FALSE;
+  deviceQueueCreateInfoVector[0].queueFamilyIndex = mGraphicsQueueFamilyIndex;
+  deviceQueueCreateInfoVector[0].queueCount = graphicsFamilyDependencies.queuesCountNeeded;
+  deviceQueueCreateInfoVector[0].pQueuePriorities =
+      graphicsFamilyDependencies.queuesPriorities.data();
 
   VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
-  createInfo.queueCreateInfoCount = (u32)deviceQueueInfoVector.size();
-  createInfo.pQueueCreateInfos = deviceQueueInfoVector.data();
+  createInfo.queueCreateInfoCount = (u32)deviceQueueCreateInfoVector.size();
+  createInfo.pQueueCreateInfos = deviceQueueCreateInfoVector.data();
   createInfo.enabledLayerCount = 0;             // deprecated!
   createInfo.ppEnabledLayerNames = nullptr;    // deprecated!
   createInfo.enabledExtensionCount = requiredExtensions.size();
@@ -121,7 +135,7 @@ b32 isRequiredPropertyInVector(const char* requiredExt,
 }
 
 
-void ensureAllRequiredExtensionsAreAvailable(VkPhysicalDevice physicalDevice,
+b32 areRequiredExtensionsAvailable(VkPhysicalDevice physicalDevice,
                                              const std::vector<const char*>& requiredExtensions) {
   UTRACE("Ensure all required extensions are available for logical device...");
   u32 extensionCount{ 0 };
@@ -138,8 +152,12 @@ void ensureAllRequiredExtensionsAreAvailable(VkPhysicalDevice physicalDevice,
   for (const char* required : requiredExtensions) {
     if (not isRequiredPropertyInVector(required, availableExtensions)) {
       UTRACE("Property {} is not available!", required);
+      return UFALSE;
     }
   }
+
+  UTRACE("All required device extensions are available!");
+  return UTRUE;
 }
 
 
