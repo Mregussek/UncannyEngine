@@ -99,6 +99,12 @@ private:
   [[nodiscard]] b32 createDepthImages();
   b32 closeDepthImages();
 
+  [[nodiscard]] b32 createCommandPool();
+  b32 closeCommandPool();
+
+  [[nodiscard]] b32 createCommandBuffer();
+  b32 closeCommandBuffer();
+
 
   // Class members
   FRenderContextSpecification mSpecs{};
@@ -132,6 +138,10 @@ private:
   VkImage mVkDepthImage{ VK_NULL_HANDLE };
   VkImageView mVkDepthImageView{ VK_NULL_HANDLE };
   VkDeviceMemory mVkDepthImageMemory{ VK_NULL_HANDLE };
+  // Command Pools
+  VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
+  // Command Buffers
+  VkCommandBuffer mVkGraphicsCommandBuffer{ VK_NULL_HANDLE };
 
 };
 

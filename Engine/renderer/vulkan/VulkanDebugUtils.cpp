@@ -61,15 +61,15 @@ b32 FRenderContextVulkan::createDebugUtilsMessenger() {
 b32 FRenderContextVulkan::closeDebugUtilsMessenger() {
   UTRACE("Closing Debug Utils Messenger...");
 
-  if (mVkDebugUtilsMsg == VK_NULL_HANDLE) {
-    UWARN("Debug Utils Messenger is not closed, as it wasn't created!");
-    return UTRUE;
+  if (mVkDebugUtilsMsg != VK_NULL_HANDLE) {
+    auto vkDestroyDebugUtilsMessengerEXT =
+        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+            mVkInstance, "vkDestroyDebugUtilsMessengerEXT");
+    vkDestroyDebugUtilsMessengerEXT(mVkInstance, mVkDebugUtilsMsg, nullptr);
   }
-
-  auto vkDestroyDebugUtilsMessengerEXT =
-      (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(mVkInstance,
-                                                                 "vkDestroyDebugUtilsMessengerEXT");
-  vkDestroyDebugUtilsMessengerEXT(mVkInstance, mVkDebugUtilsMsg, nullptr);
+  else {
+    UWARN("Debug Utils Messenger is not closed, as it wasn't created!");
+  }
 
   UDEBUG("Closed Debug Utils Messenger!");
   return UTRUE;

@@ -102,6 +102,18 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // create command pools for command buffers
+  b32 properlyCreatedCommandPools{ createCommandPool() };
+  if (not properlyCreatedCommandPools) {
+    UFATAL("Could not create command pools, cannot send commands to GPU!");
+    return UFALSE;
+  }
+  b32 properlyCreatedCommandBuffers{ createCommandBuffer() };
+  if (not properlyCreatedCommandBuffers) {
+    UFATAL("Could not create command buffers, cannot send commands to GPU!");
+    return UFALSE;
+  }
+
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
 }
@@ -110,6 +122,8 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
+  closeCommandBuffer();
+  closeCommandPool();
   closeDepthImages();
   closeSwapchain();
   closeGraphicsQueues();

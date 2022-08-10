@@ -89,12 +89,13 @@ b32 FRenderContextVulkan::createLogicalDevice() {
 b32 FRenderContextVulkan::closeLogicalDevice() {
   UTRACE("Closing vulkan logical device...");
 
-  if (mVkDevice == VK_NULL_HANDLE) {
-    UWARN("Logical device is not created, so it won't be closed!");
-    return UTRUE;
+  if (mVkDevice != VK_NULL_HANDLE) {
+    UTRACE("Destroying vulkan logical device...");
+    vkDestroyDevice(mVkDevice, nullptr);
   }
-
-  vkDestroyDevice(mVkDevice, nullptr);
+  else {
+    UWARN("Logical device is not created, so it won't be closed!");
+  }
 
   UDEBUG("Closed vulkan logical device!");
   return UTRUE;

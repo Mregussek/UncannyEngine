@@ -115,11 +115,13 @@ b32 FRenderContextVulkan::createInstance() {
 b32 FRenderContextVulkan::closeInstance() {
   UTRACE("Closing Vulkan Instance...");
 
-  if (mVkInstance == VK_NULL_HANDLE) {
-    UWARN("Instance is not closed, as it wasn't created!");
-    return UTRUE;
+  if (mVkInstance != VK_NULL_HANDLE) {
+    UTRACE("Destroying vulkan instance...");
+    vkDestroyInstance(mVkInstance, nullptr);
   }
-  vkDestroyInstance(mVkInstance, nullptr);
+  else {
+    UWARN("Instance is not closed, as it wasn't created!");
+  }
 
   UDEBUG("Closed Vulkan Instance!");
   return UTRUE;
