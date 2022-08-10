@@ -34,20 +34,21 @@ b32 FRenderContextVulkan::createLogicalDevice() {
   ensureAllRequiredExtensionsAreAvailable(mVkPhysicalDevice, requiredExtensions);
   iterateOverAndLog(requiredExtensions, "Enable Logical Device Extensions");
 
+  VkPhysicalDeviceFeatures physicalDeviceFeatures{};
+  vkGetPhysicalDeviceFeatures(mVkPhysicalDevice, &physicalDeviceFeatures);
+
   std::vector<VkDeviceQueueCreateInfo> deviceQueueInfoVector(
       mPhysicalDeviceDependencies.queueFamilyIndexesCount);
 
-  for (u32 i = 0; i < deviceQueueInfoVector.size(); i++) {
-    const FQueueFamilyDependencies& queueDependencies{
-      mPhysicalDeviceDependencies.queueFamilyDependencies[i] };
-
-    deviceQueueInfoVector[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceQueueInfoVector[i].pNext = nullptr;
-    deviceQueueInfoVector[i].flags = VK_FALSE;
-    deviceQueueInfoVector[i].queueFamilyIndex = mQueueFamilyVector[i].index;
-    deviceQueueInfoVector[i].queueCount = queueDependencies.queuesCountNeeded;
-    deviceQueueInfoVector[i].pQueuePriorities = queueDependencies.queuesPriorities.data();
-  }
+  FQueueFamilyDependencies graphicsFamilyDependencies{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies) };
+  deviceQueueInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+  deviceQueueInfoVector[0].pNext = nullptr;
+  deviceQueueInfoVector[0].flags = VK_FALSE;
+  deviceQueueInfoVector[0].queueFamilyIndex = mGraphicsQueueFamilyIndex;
+  deviceQueueInfoVector[0].queueCount = graphicsFamilyDependencies.queuesCountNeeded;
+  deviceQueueInfoVector[0].pQueuePriorities = graphicsFamilyDependencies.queuesPriorities.data();
 
   VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
   createInfo.pNext = nullptr;
@@ -58,7 +59,7 @@ b32 FRenderContextVulkan::createLogicalDevice() {
   createInfo.ppEnabledLayerNames = nullptr;    // deprecated!
   createInfo.enabledExtensionCount = requiredExtensions.size();
   createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-  createInfo.pEnabledFeatures = &mVkPhysicalDeviceFeatures;
+  createInfo.pEnabledFeatures = &physicalDeviceFeatures;
 
   VkResult result{ vkCreateDevice(mVkPhysicalDevice, &createInfo, nullptr, &mVkDevice) };
   if (result != VK_SUCCESS) {

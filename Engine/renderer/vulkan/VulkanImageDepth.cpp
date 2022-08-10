@@ -55,11 +55,13 @@ b32 FRenderContextVulkan::createDepthImages() {
   U_VK_ASSERT( vkCreateImage(mVkDevice, &imageCreateInfo, nullptr, &mVkDepthImage) );
 
   // allocate memory for depth image
-  VkMemoryRequirements memoryReqs;
+  VkMemoryRequirements memoryReqs{};
   vkGetImageMemoryRequirements(mVkDevice, mVkDepthImage, &memoryReqs);
 
-  u32 memoryTypeIndex{ findMemoryIndex(mVkPhysicalDeviceMemoryProperties,
-                                       memoryReqs.memoryTypeBits,
+  VkPhysicalDeviceMemoryProperties memoryProperties{};
+  vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &memoryProperties);
+
+  u32 memoryTypeIndex{ findMemoryIndex(memoryProperties, memoryReqs.memoryTypeBits,
                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) };
   if (memoryTypeIndex == UUNUSED) {
     UERROR("Required memory type index not found, depth image is not valid!");

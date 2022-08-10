@@ -14,15 +14,14 @@ void FRenderContextVulkan::defineDependencies() {
   mInstanceDependencies.vulkanApiVersion = VK_API_VERSION_1_3;
 
   FQueueFamilyDependencies graphicsQueueFamilyDependencies{};
+  graphicsQueueFamilyDependencies.mainUsage = EQueueFamilyMainUsage::GRAPHICS;
   graphicsQueueFamilyDependencies.queuesCountNeeded = 2;
   graphicsQueueFamilyDependencies.queuesPriorities = { 1.f, 1.f };
-  graphicsQueueFamilyDependencies.queuesTypes = { EQueueType::RENDERING, EQueueType::PRESENTING };
   graphicsQueueFamilyDependencies.graphics = UTRUE;
 
   mPhysicalDeviceDependencies.deviceType = EPhysicalDeviceType::DISCRETE;
   mPhysicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
   mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
-  mPhysicalDeviceDependencies.queueFamilyTypes = { EQueueFamilyType::GRAPHICS };
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
   mPhysicalDeviceDependencies.depthFormatDependencies = {
       VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
@@ -145,9 +144,7 @@ b32 FRenderContextVulkan::validateDependencies() const {
   }
 
   // make sure there is enough queue dependencies for every queue family
-  if (
-      physDevDeps.queueFamilyIndexesCount > physDevDeps.queueFamilyDependencies.size() or
-      physDevDeps.queueFamilyIndexesCount > physDevDeps.queueFamilyTypes.size()) {
+  if (physDevDeps.queueFamilyIndexesCount > physDevDeps.queueFamilyDependencies.size()) {
     UERROR("There is more queue families than dependencies for queue families, not enough info!");
     return UFALSE;
   }
@@ -155,12 +152,6 @@ b32 FRenderContextVulkan::validateDependencies() const {
   // make sure that every queue of expected queue family is correctly defined
   for (u32 i = 0; i < physDevDeps.queueFamilyIndexesCount; i++) {
     const auto& queueDeps{ physDevDeps.queueFamilyDependencies[i] }; // wrapper
-
-    // make sure queue family type is correct type
-    if (physDevDeps.queueFamilyTypes[i] == EQueueFamilyType::NONE) {
-      UERROR("Queue family type is unknown, wrong info given!");
-      return UFALSE;
-    }
 
     // make sure there is proper queue for queue family
     if (queueDeps.queuesCountNeeded < 1) {
@@ -177,9 +168,7 @@ b32 FRenderContextVulkan::validateDependencies() const {
     }
 
     // make sure there is enough info about every queue needed for queue family
-    if (
-        queueDeps.queuesCountNeeded > queueDeps.queuesPriorities.size() or
-        queueDeps.queuesCountNeeded > queueDeps.queuesTypes.size()) {
+    if (queueDeps.queuesCountNeeded > queueDeps.queuesPriorities.size()) {
       UERROR("There is more queues need than provided info about them!");
       return UFALSE;
     }
@@ -187,7 +176,7 @@ b32 FRenderContextVulkan::validateDependencies() const {
     // make sure every queue has correct info provided
     for (u32 j = 0; j < queueDeps.queuesCountNeeded; j++) {
       // make sure there is proper queue type
-      if (queueDeps.queuesTypes[j] == EQueueType::NONE) {
+      if (queueDeps.mainUsage == EQueueFamilyMainUsage::NONE) {
         UERROR("Queue type for queue family is NONE, wrong info provided!");
         return UFALSE;
       }

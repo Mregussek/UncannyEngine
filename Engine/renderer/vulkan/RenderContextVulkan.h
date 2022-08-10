@@ -16,13 +16,8 @@ namespace uncanny
 {
 
 
-enum class EQueueFamilyType {
+enum class EQueueFamilyMainUsage {
   NONE, GRAPHICS
-};
-
-
-enum class EQueueType {
-  NONE, RENDERING, PRESENTING
 };
 
 
@@ -31,17 +26,11 @@ enum class EPhysicalDeviceType {
 };
 
 
-struct FQueueFamily {
-  u32 index{ ~0u };
-  EQueueFamilyType type{ EQueueFamilyType::NONE };
-};
-
-
 struct FQueueFamilyDependencies {
   // @brief queues priorities for given count
   std::vector<f32> queuesPriorities{};
-  // @brief queues types for given count (render need to know for what reason is that queue)
-  std::vector<EQueueType> queuesTypes{};
+  // @brief main usage for queue family
+  EQueueFamilyMainUsage mainUsage{ EQueueFamilyMainUsage::NONE };
   // @brief how many queues of such type are needed
   u32 queuesCountNeeded{ 0 };
   // @brief support graphics operations
@@ -62,8 +51,6 @@ struct FPhysicalDeviceDependencies {
   EPhysicalDeviceType deviceTypeFallback{ EPhysicalDeviceType::NONE };
   // @brief how many queue family indexes types are needed (for graphics, for transfer etc.)
   u32 queueFamilyIndexesCount{ 0 };
-  // @brief type for queue families. Count should be equal to queueFamilyIndexesCount
-  std::vector<EQueueFamilyType> queueFamilyTypes{};
   // @brief dependencies for queue families. Count should be equal to queueFamilyIndexesCount
   std::vector<FQueueFamilyDependencies> queueFamilyDependencies{};
   // @brief dependencies for depth format
@@ -123,13 +110,10 @@ private:
   VkDebugUtilsMessengerEXT mVkDebugUtilsMsg{ VK_NULL_HANDLE };
   // Physical Device
   VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
-  VkPhysicalDeviceProperties mVkPhysicalDeviceProperties{};
-  VkPhysicalDeviceFeatures mVkPhysicalDeviceFeatures{};
-  VkPhysicalDeviceMemoryProperties mVkPhysicalDeviceMemoryProperties{};
   // Queue Family
-  std::vector<FQueueFamily> mQueueFamilyVector{};
-  std::vector<VkQueueFamilyProperties> mVkQueueFamilyPropertiesVector{};
-  u32 mGraphicsQueueFamilyIndex{ UUNUSED }; // must be used as index to mQueueFamilyVector
+  u32 mGraphicsQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
+  std::vector<VkQueueFamilyProperties> mVkQueueFamilyProperties{};
+  std::vector<VkQueue> mVkGraphicsQueueVector{};
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
@@ -138,8 +122,6 @@ private:
   VkExtent2D mVkImageExtent2D{};
   // Logical Device
   VkDevice mVkDevice{ VK_NULL_HANDLE };
-  // Queues
-  std::vector<VkQueue> mVkGraphicsQueueVector{};
   // Swapchain
   VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
@@ -152,6 +134,12 @@ private:
   VkDeviceMemory mVkDepthImageMemory{ VK_NULL_HANDLE };
 
 };
+
+
+// @brief Implementation at VulkanPhysicalDevice.cpp
+FQueueFamilyDependencies getQueueFamilyDependencies(
+    EQueueFamilyMainUsage mainUsage,
+    const std::vector<FQueueFamilyDependencies>& queueFamilyDependenciesVector);
 
 
 }

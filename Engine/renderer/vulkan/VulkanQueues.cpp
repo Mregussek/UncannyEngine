@@ -11,43 +11,13 @@ namespace uncanny
 b32 FRenderContextVulkan::createGraphicsQueues() {
   UTRACE("Creating graphics queues for rendering...");
 
-  // Make sure that length match queue indexes and properties vectors
-  if (mQueueFamilyVector.size() != mVkQueueFamilyPropertiesVector.size()) {
-    UERROR("Length of queues family index vector does not match properties vector size!");
-    return UFALSE;
-  }
+  FQueueFamilyDependencies graphicsFamilyDependencies{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies) };
 
-  // Iterate over all queue families and retrieve queue from logical device if possible
-  for (u32 i = 0; i < mQueueFamilyVector.size(); i++) {
-    UTRACE("Iterating over queue family index {}, making sure that queue has graphics support...",
-           mQueueFamilyVector[i].index);
-
-    if (not(mVkQueueFamilyPropertiesVector[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
-      UTRACE("{} queue family index does not support graphics, continuing loop...",
-             mQueueFamilyVector[i].index);
-      continue;
-    }
-
-    u32 graphicsQueuesNeeded{
-        mPhysicalDeviceDependencies.queueFamilyDependencies[i].queuesCountNeeded };
-
-    if (graphicsQueuesNeeded > mVkQueueFamilyPropertiesVector[i].queueCount) {
-      UWARN("{} queue family index does not have enough queues, skipping...");
-      continue;
-    }
-
-    UTRACE("Retrieving {} graphics queues for family index {} to member variable... ",
-           graphicsQueuesNeeded, mQueueFamilyVector[i].index);
-    for (u32 j = 0; j < graphicsQueuesNeeded; j++) {
-      VkQueue& graphicsQueue{ mVkGraphicsQueueVector.emplace_back(VK_NULL_HANDLE) };
-      vkGetDeviceQueue(mVkDevice, mQueueFamilyVector[i].index, j, &graphicsQueue);
-    }
-
-    if (
-        mGraphicsQueueFamilyIndex == UUNUSED &&
-        mQueueFamilyVector[i].type == EQueueFamilyType::GRAPHICS) {
-      mGraphicsQueueFamilyIndex = i;
-    }
+  for (u32 j = 0; j < graphicsFamilyDependencies.queuesCountNeeded; j++) {
+    VkQueue& graphicsQueue{ mVkGraphicsQueueVector.emplace_back(VK_NULL_HANDLE) };
+    vkGetDeviceQueue(mVkDevice, mGraphicsQueueFamilyIndex, j, &graphicsQueue);
   }
 
   if (mVkGraphicsQueueVector.empty()) {
@@ -60,11 +30,6 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
       UERROR("There is graphics queue, that is null handle, cannot render anything!");
       return UFALSE;
     }
-  }
-
-  if (mGraphicsQueueFamilyIndex == UUNUSED) {
-    UERROR("There is no graphics queue index, cannot render anything!");
-    return UFALSE;
   }
 
   UDEBUG("Created graphics queues!");
