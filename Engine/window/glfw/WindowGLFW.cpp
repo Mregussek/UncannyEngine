@@ -25,9 +25,7 @@ void FWindowGLFW::init(FWindowSpecification windowSpecification) {
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  if (mSpecs.config.resizable) {
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-  }
+  glfwWindowHint(GLFW_RESIZABLE, mSpecs.config.resizable ? GLFW_TRUE : GLFW_FALSE);
 
   mWindowPtr = glfwCreateWindow(mSpecs.width, mSpecs.height, mSpecs.name, nullptr, nullptr);
   if (!mWindowPtr) {

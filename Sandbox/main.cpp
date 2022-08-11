@@ -17,7 +17,7 @@ auto main() -> i32 {
 
   // Window subsystem configuration
   FWindowConfiguration windowConfiguration{};
-  windowConfiguration.resizable = UFALSE;
+  windowConfiguration.resizable = UTRUE;
 
   FWindowSpecification windowSpecification{};
   windowSpecification.name = "UncannySandbox";

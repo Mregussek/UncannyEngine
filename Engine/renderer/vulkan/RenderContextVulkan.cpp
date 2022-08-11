@@ -244,6 +244,7 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
 
 
 b32 FRenderContextVulkan::update() {
+  b32 isSurfaceOutOfDate{ UFALSE };
   u32 imageAcquireTimeout{ UINT32_MAX };
   u32 imageIndex{ UUNUSED };
   VkResult properlyAcquiredNextImage = vkAcquireNextImageKHR(mVkDevice,
@@ -256,11 +257,7 @@ b32 FRenderContextVulkan::update() {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
     case VK_ERROR_OUT_OF_DATE_KHR: {
-      b32 properlyRecreatedSwapchain{ recreateSwapchain() };
-      if (not properlyRecreatedSwapchain) {
-        UERROR("Could not recreate swapchain after acquiring next image!");
-        return UFALSE;
-      }
+      isSurfaceOutOfDate = UTRUE;
       break;
     }
     default: {
@@ -300,17 +297,31 @@ b32 FRenderContextVulkan::update() {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
     case VK_ERROR_OUT_OF_DATE_KHR: {
-      b32 properlyRecreatedSwapchain{ recreateSwapchain() };
-      if (not properlyRecreatedSwapchain) {
-        UERROR("Could not recreate swapchain after presentation!");
-        return UFALSE;
-      }
+      isSurfaceOutOfDate = UTRUE;
       break;
     }
     default: {
       UERROR("Other error than expected during acquiring next image!");
       return UFALSE;
     }
+  }
+
+  if (isSurfaceOutOfDate) {
+    vkDeviceWaitIdle(mVkDevice);
+
+    b32 properlyRecreatedSwapchain{ recreateSwapchain() };
+    if (not properlyRecreatedSwapchain) {
+      UERROR("Could not recreate swapchain after acquiring next image!");
+      return UFALSE;
+    }
+
+    b32 recordedCommandBuffers{ recordCommandBuffers() };
+    if (not recordedCommandBuffers) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+
+    isSurfaceOutOfDate = UFALSE;
   }
 
   return UTRUE;
