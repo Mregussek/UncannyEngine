@@ -87,6 +87,11 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     UFATAL("There is no graphics queues, rendering in not available!");
     return UFALSE;
   }
+  b32 properlyCreatedGraphicsSemaphores{ createGraphicsSemaphores() };
+  if (not properlyCreatedGraphicsSemaphores) {
+    UFATAL("Could not create graphics semaphores, cannot synchronize device!");
+    return UFALSE;
+  }
 
   // we can create swapchain for acquiring presentable images
   b32 properlyCreatedSwapchain{ createSwapchain() };
@@ -126,6 +131,7 @@ void FRenderContextVulkan::terminate() {
   closeCommandPool();
   closeDepthImages();
   closeSwapchain();
+  closeGraphicsSemaphores();
   closeGraphicsQueues();
   closeLogicalDevice();
   closeWindowSurface();

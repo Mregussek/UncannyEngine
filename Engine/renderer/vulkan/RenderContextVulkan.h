@@ -93,6 +93,9 @@ private:
   [[nodiscard]] b32 createGraphicsQueues();
   b32 closeGraphicsQueues();
 
+  [[nodiscard]] b32 createGraphicsSemaphores();
+  b32 closeGraphicsSemaphores();
+
   [[nodiscard]] b32 createSwapchain();
   b32 closeSwapchain();
 
@@ -122,6 +125,9 @@ private:
   std::vector<VkQueue> mVkGraphicsQueueVector{};
   u32 mRenderingQueueIndex{ UUNUSED };    // this index is not queue family! It is for mVkGraphicsQueueVector
   u32 mPresentationQueueIndex{ UUNUSED }; // this index is not queue family! It is for mVkGraphicsQueueVector
+  // Semaphores - synchronizes GPU to GPU execution of commands
+  VkSemaphore mVkSemaphoreImageAvailable{ VK_NULL_HANDLE };
+  VkSemaphore mVkSemaphoreRenderingFinished{ VK_NULL_HANDLE };
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
