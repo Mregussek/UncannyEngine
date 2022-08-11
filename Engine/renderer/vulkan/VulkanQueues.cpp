@@ -32,6 +32,17 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
     }
   }
 
+  if (mVkGraphicsQueueVector.size() >= 2) {
+    UTRACE("Assigning rendering and present queue indexes to 0 and 1 as there is at least 2 queues");
+    mRenderingQueueIndex = 0;
+    mPresentationQueueIndex = 1;
+  }
+  else {
+    UTRACE("Assigning render and present queue indexes to the same 0 index as there is no 2 queues");
+    mRenderingQueueIndex = 0;
+    mPresentationQueueIndex = 0;
+  }
+
   UDEBUG("Created graphics queues!");
   return UTRUE;
 }

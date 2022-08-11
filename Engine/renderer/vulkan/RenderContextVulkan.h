@@ -120,6 +120,8 @@ private:
   u32 mGraphicsQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
   std::vector<VkQueueFamilyProperties> mVkQueueFamilyProperties{};
   std::vector<VkQueue> mVkGraphicsQueueVector{};
+  u32 mRenderingQueueIndex{ UUNUSED };    // this index is not queue family! It is for mVkGraphicsQueueVector
+  u32 mPresentationQueueIndex{ UUNUSED }; // this index is not queue family! It is for mVkGraphicsQueueVector
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
