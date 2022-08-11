@@ -142,6 +142,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
+  vkDeviceWaitIdle(mVkDevice);
 
   closeCommandBuffer();
   closeCommandPool();
