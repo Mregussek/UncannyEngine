@@ -29,6 +29,18 @@ b32 FRenderContextVulkan::createSwapchain() {
     return UFALSE;
   }
 
+  // validate if image usage is color (for presentation)
+  if (not (mVkSurfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) {
+    UERROR("Color attachment image usage should be always supported, sth is wrong!");
+    return UFALSE;
+  }
+
+  // validate pre-transform
+  if (not (mVkSurfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)) {
+    UERROR("Identity surface pre transform is not supported!");
+    return UFALSE;
+  }
+
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
@@ -42,7 +54,7 @@ b32 FRenderContextVulkan::createSwapchain() {
   createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
   createInfo.queueFamilyIndexCount = 0;      // for exclusive sharing mode, param is ignored
   createInfo.pQueueFamilyIndices = nullptr; // for exclusive sharing mode, param is ignored
-  createInfo.preTransform = mVkSurfaceCapabilities.currentTransform;
+  createInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
   createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // no transparency with OS
   createInfo.presentMode = mVkPresentMode;
   createInfo.clipped = VK_TRUE; // clipping world that is beyond presented surface (not visible)

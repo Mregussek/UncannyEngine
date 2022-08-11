@@ -78,7 +78,6 @@ b32 FRenderContextVulkan::createWindowSurface() {
   u32 formatCount{ 0 };
   U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                     &formatCount, nullptr) );
-
   std::vector<VkSurfaceFormatKHR> availableFormats(formatCount);
   U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                     &formatCount, availableFormats.data()) );
@@ -89,7 +88,6 @@ b32 FRenderContextVulkan::createWindowSurface() {
   u32 presentCount{ 0 };
   U_VK_ASSERT( vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                          &presentCount, nullptr) );
-
   std::vector<VkPresentModeKHR> availablePresentModes(presentCount);
   U_VK_ASSERT( vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                          &presentCount, availablePresentModes.data()) );
@@ -104,12 +102,13 @@ b32 FRenderContextVulkan::createWindowSurface() {
 b32 FRenderContextVulkan::closeWindowSurface() {
   UTRACE("Closing Window Surface...");
 
-  if (mVkWindowSurface == VK_NULL_HANDLE) {
-    UWARN("Window surface is not created, so it won't be closed!");
-    return UTRUE;
+  if (mVkWindowSurface != VK_NULL_HANDLE) {
+    UTRACE("Destroying window image surface...");
+    vkDestroySurfaceKHR(mVkInstance, mVkWindowSurface, nullptr);
   }
-
-  vkDestroySurfaceKHR(mVkInstance, mVkWindowSurface, nullptr);
+  else {
+    UWARN("Window surface is not created, so it won't be closed!");
+  }
 
   UDEBUG("Closed Window Surface!");
   return UTRUE;
