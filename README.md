@@ -47,3 +47,7 @@ should be set as a starting project and must be run in order to see results.
 ## Author
 
 Mateusz Rzeczyca
+
+## History
+
+11.08.2022 Clearing screen is working commit hash 3a75c1a14a187e0e75f51a2a607439b0a95d1a11 [tree](https://github.com/Mregussek/UncannyEngine/tree/3a75c1a14a187e0e75f51a2a607439b0a95d1a11)
