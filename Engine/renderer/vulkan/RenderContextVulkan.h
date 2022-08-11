@@ -79,7 +79,7 @@ public:
 private:
 
   void defineDependencies();
-  b32 validateDependencies() const;
+  [[nodiscard]] b32 validateDependencies() const;
 
   [[nodiscard]] b32 createInstance();
   b32 closeInstance();

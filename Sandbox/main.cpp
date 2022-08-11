@@ -36,7 +36,10 @@ auto main() -> i32 {
   renderContextSpecification.engineVersion = (u32)EEngineVersion::LATEST;
 
   FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
-  pRenderContext->init(renderContextSpecification);
+  b32 rendererInitialized{ pRenderContext->init(renderContextSpecification) };
+  if (not rendererInitialized) {
+    pWindow->close();
+  }
 
   // Running loop
   while(pWindow->isNotGoingToClose()) {
