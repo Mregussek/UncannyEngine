@@ -40,10 +40,12 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
     return UFALSE;
   }
 
-  // validate if image usage is color (for presentation)
-  if (not (mVkSurfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) {
-    UERROR("Color attachment image usage should be always supported, sth is wrong!");
-    return UFALSE;
+  // validate image usage
+  for (VkImageUsageFlagBits dependencyImageUsage : mSwapchainDependencies.imageUsageVector) {
+    if (not (mVkSurfaceCapabilities.supportedUsageFlags & dependencyImageUsage)) {
+      UERROR("{} image usage is not supported!", dependencyImageUsage);
+      return UFALSE;
+    }
   }
 
   // validate pre-transform
@@ -60,6 +62,11 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
+  VkImageUsageFlagBits swapchainImageUsage{ (VkImageUsageFlagBits)0 };
+  for (VkImageUsageFlagBits imageUsageFlag : mSwapchainDependencies.imageUsageVector) {
+    swapchainImageUsage = (VkImageUsageFlagBits)(swapchainImageUsage | imageUsageFlag);
+  }
+
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
@@ -69,7 +76,7 @@ b32 FRenderContextVulkan::createSwapchain() {
   createInfo.imageColorSpace = mVkSurfaceFormat.colorSpace;
   createInfo.imageExtent = mVkImageExtent2D;
   createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
-  createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; // color images
+  createInfo.imageUsage = swapchainImageUsage;
   createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
   createInfo.queueFamilyIndexCount = 0;      // for exclusive sharing mode, param is ignored
   createInfo.pQueueFamilyIndices = nullptr; // for exclusive sharing mode, param is ignored

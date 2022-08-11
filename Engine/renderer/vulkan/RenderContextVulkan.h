@@ -29,6 +29,8 @@ enum class EPhysicalDeviceType {
 struct FSwapchainDependencies {
   // @brief count of images used
   u32 usedImageCount{ UUNUSED };
+  // @brief image usage dependencies
+  std::vector<VkImageUsageFlagBits> imageUsageVector{};
 };
 
 
@@ -117,6 +119,8 @@ private:
 
   [[nodiscard]] b32 createCommandBuffer();
   b32 closeCommandBuffer();
+
+  [[nodiscard]] b32 recordCommandBuffers();
 
 
   // Class members

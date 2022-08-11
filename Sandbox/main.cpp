@@ -44,6 +44,7 @@ auto main() -> i32 {
   // Running loop
   while(pWindow->isNotGoingToClose()) {
     pWindow->pollEvents();
+    pRenderContext->update();
   }
 
   // Terminating everything

@@ -33,8 +33,7 @@ b32 FRenderContextVulkan::closeCommandBuffer() {
   for (u32 i = 0; i < mVkGraphicsCommandBufferVector.size(); i++) {
     if (mVkGraphicsCommandBufferVector[i] != VK_NULL_HANDLE) {
       UTRACE("Freeing graphics command buffer {} ...", i);
-      vkFreeCommandBuffers(mVkDevice, mVkGraphicsCommandPool, 1,
-                           &mVkGraphicsCommandBufferVector[i]);
+      vkFreeCommandBuffers(mVkDevice, mVkGraphicsCommandPool, 1, &mVkGraphicsCommandBufferVector[i]);
     }
     else {
       UWARN("Not freeing graphics command buffer {} as it wasn't been created!", i);

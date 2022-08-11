@@ -28,6 +28,9 @@ void FRenderContextVulkan::defineDependencies() {
   };
 
   mSwapchainDependencies.usedImageCount = 2;
+  mSwapchainDependencies.imageUsageVector = {
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT
+  };
 }
 
 
@@ -126,6 +129,12 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  b32 recordedCommandBuffers{ recordCommandBuffers() };
+  if (not recordedCommandBuffers) {
+    UFATAL("Could not record command buffers!");
+    return UFALSE;
+  }
+
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
 }
@@ -149,6 +158,88 @@ void FRenderContextVulkan::terminate() {
   closeInstance();
 
   UINFO("Terminated Vulkan Render Context!");
+}
+
+
+b32 FRenderContextVulkan::recordCommandBuffers() {
+  UTRACE("Recording command buffers!");
+
+  VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+  commandBufferBeginInfo.pNext = nullptr;
+  commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+  commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+  VkClearColorValue clearColor = {
+      { 1.0f, 0.8f, 0.4f, 0.0f }
+  };
+
+  VkImageSubresourceRange imageSubresourceRange{};
+  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  imageSubresourceRange.baseMipLevel = 0;
+  imageSubresourceRange.levelCount = 1;
+  imageSubresourceRange.baseArrayLayer = 0;
+  imageSubresourceRange.layerCount = 1;
+
+  for (u32 i = 0; i < mVkImagePresentableVector.size(); i++) {
+    VkImageMemoryBarrier barrierFromPresentToClear{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+    barrierFromPresentToClear.pNext = nullptr;
+    barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrierFromPresentToClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrierFromPresentToClear.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromPresentToClear.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
+    barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
+
+    VkImageMemoryBarrier barrierFromClearToPresent{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+    barrierFromPresentToClear.pNext = nullptr;
+    barrierFromPresentToClear.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrierFromPresentToClear.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrierFromPresentToClear.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromPresentToClear.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
+    barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
+
+    VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(mVkGraphicsCommandBufferVector[i],
+                                                               &commandBufferBeginInfo) };
+    if (properlyPreparedForCommands != VK_SUCCESS) {
+      UERROR("Cannot record any commands! Wrong output of vkBeginCommandBuffer!");
+      return UFALSE;
+    }
+
+    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VkDependencyFlags{ 0 },
+                         0, nullptr,
+                         0, nullptr,
+                         1, &barrierFromPresentToClear);
+    vkCmdClearColorImage(mVkGraphicsCommandBufferVector[i],
+                         mVkImagePresentableVector[i],
+                         VkImageLayout{ VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL },
+                         &clearColor,
+                         1, &imageSubresourceRange);
+    __debugbreak();
+    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT },
+                         VkDependencyFlags{ 0 },
+                         0, nullptr,
+                         0, nullptr,
+                         1, &barrierFromClearToPresent);
+
+    VkResult properlyRecordedCommands{ vkEndCommandBuffer(mVkGraphicsCommandBufferVector[i]) };
+    if (properlyRecordedCommands != VK_SUCCESS) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+  }
+
+  UDEBUG("Properly record command buffers!");
+  return UTRUE;
 }
 
 
@@ -178,101 +269,6 @@ b32 FRenderContextVulkan::update() {
     }
   }
 
-  VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-  commandBufferBeginInfo.pNext = nullptr;
-  commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-  commandBufferBeginInfo.pInheritanceInfo = nullptr;
-
-  VkClearColorValue clearColor = {
-      { 1.0f, 0.8f, 0.4f, 0.0f }
-  };
-
-  VkImageSubresourceRange imageSubresourceRange{};
-  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  imageSubresourceRange.baseMipLevel = 0;
-  imageSubresourceRange.levelCount = 1;
-  imageSubresourceRange.baseArrayLayer = 0;
-  imageSubresourceRange.layerCount = 1;
-
-  u32 memoryBarrierCount{ 0 };
-  const VkMemoryBarrier* pMemoryBarriers{ nullptr };
-  u32 bufferMemoryBarrierCount{ 0 };
-  const VkBufferMemoryBarrier* pBufferMemoryBarriers{ nullptr };
-  u32 imageMemoryBarrierCount{ 0 };
-  const VkImageMemoryBarrier* pImageMemoryBarriers{ nullptr };
-
-  for (u32 i = 0; i < mVkImagePresentableVector.size(); i++) {
-    VkImageMemoryBarrier barrierFromPresentToClear{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-    barrierFromPresentToClear.pNext = nullptr;
-    barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    barrierFromPresentToClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrierFromPresentToClear.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-    barrierFromPresentToClear.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
-    barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
-
-    VkImageMemoryBarrier barrierFromClearToPresent{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-    barrierFromPresentToClear.pNext = nullptr;
-    barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    barrierFromPresentToClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    barrierFromPresentToClear.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-    barrierFromPresentToClear.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
-    barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
-
-    vkBeginCommandBuffer(mVkGraphicsCommandBufferVector[i], &commandBufferBeginInfo);
-
-    memoryBarrierCount = 0;
-    pMemoryBarriers = nullptr;
-    bufferMemoryBarrierCount = 0;
-    pBufferMemoryBarriers = nullptr;
-    imageMemoryBarrierCount = 1;
-    pImageMemoryBarriers = &barrierFromPresentToClear;
-
-    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
-                         VkDependencyFlags{ 0 },
-                         memoryBarrierCount, pMemoryBarriers,
-                         bufferMemoryBarrierCount, pBufferMemoryBarriers,
-                         imageMemoryBarrierCount, pImageMemoryBarriers);
-
-    u32 rangeCount{1};
-    const VkImageSubresourceRange* pRanges{ &imageSubresourceRange };
-
-    vkCmdClearColorImage(mVkGraphicsCommandBufferVector[i],
-                         mVkImagePresentableVector[i],
-                         VkImageLayout{ VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL },
-                         &clearColor,
-                         rangeCount, pRanges);
-
-    memoryBarrierCount = 0;
-    pMemoryBarriers = nullptr;
-    bufferMemoryBarrierCount = 0;
-    pBufferMemoryBarriers = nullptr;
-    imageMemoryBarrierCount = 1;
-    pImageMemoryBarriers = &barrierFromClearToPresent;
-
-    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
-                         VkDependencyFlags{ 0 },
-                         memoryBarrierCount, pMemoryBarriers,
-                         bufferMemoryBarrierCount, pBufferMemoryBarriers,
-                         imageMemoryBarrierCount, pImageMemoryBarriers);
-
-    VkResult properlyRecordedCommands{ vkEndCommandBuffer(mVkGraphicsCommandBufferVector[i]) };
-
-    if (properlyRecordedCommands != VK_SUCCESS) {
-      UERROR("Could not record command buffers!");
-      return UFALSE;
-    }
-  }
-
   VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
 
   VkSubmitInfo queueSubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
@@ -281,7 +277,7 @@ b32 FRenderContextVulkan::update() {
   queueSubmitInfo.pWaitSemaphores = &mVkSemaphoreImageAvailable;
   queueSubmitInfo.pWaitDstStageMask = &waitDstStageMask;
   queueSubmitInfo.commandBufferCount = 1;
-  queueSubmitInfo.pCommandBuffers;
+  queueSubmitInfo.pCommandBuffers = &mVkGraphicsCommandBufferVector[imageIndex];
   queueSubmitInfo.signalSemaphoreCount = 1;
   queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinished;
 
@@ -408,6 +404,18 @@ b32 FRenderContextVulkan::validateDependencies() const {
   if (mSwapchainDependencies.usedImageCount < 2) {
     UERROR("Minimal image count for swapchain is 2, back and front buffers! Wrong dependencies!");
     return UFALSE;
+  }
+
+  if (mSwapchainDependencies.imageUsageVector.empty()) {
+    UERROR("There is no info about image usage in vector!");
+    return UFALSE;
+  }
+
+  for (VkImageUsageFlagBits imageUsage: mSwapchainDependencies.imageUsageVector) {
+    if (imageUsage == 0) {
+      UERROR("Image usage is not defined! 0 value in vector, wrong info given!");
+      return UFALSE;
+    }
   }
 
   UDEBUG("Properly defined dependencies for vulkan renderer!");
