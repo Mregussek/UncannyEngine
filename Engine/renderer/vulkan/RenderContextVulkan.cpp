@@ -182,6 +182,9 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
   imageSubresourceRange.layerCount = 1;
 
   for (u32 i = 0; i < mVkImagePresentableVector.size(); i++) {
+    VkCommandBufferResetFlags resetFlags{ 0 };
+    vkResetCommandBuffer(mVkGraphicsCommandBufferVector[i], resetFlags);
+
     VkImageMemoryBarrier barrierFromPresentToClear{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
     barrierFromPresentToClear.pNext = nullptr;
     barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
@@ -279,7 +282,7 @@ b32 FRenderContextVulkan::update() {
   queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinished;
 
   VkFence noFence{ VK_NULL_HANDLE };
-  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mPresentationQueueIndex], 1, &queueSubmitInfo,
+  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &queueSubmitInfo,
                              noFence) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };

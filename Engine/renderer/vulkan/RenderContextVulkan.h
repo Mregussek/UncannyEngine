@@ -51,6 +51,9 @@ private:
   [[nodiscard]] b32 createGraphicsSemaphores();
   b32 closeGraphicsSemaphores();
 
+  [[nodiscard]] b32 createGraphicsFences();
+  b32 closeGraphicsFences();
+
   [[nodiscard]] b32 areSwapchainDependenciesCorrect();
   [[nodiscard]] b32 createSwapchain();
   [[nodiscard]] b32 recreateSwapchain();

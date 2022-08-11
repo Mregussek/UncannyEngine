@@ -86,16 +86,16 @@ VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverit
   const auto verbose = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
 
   if (error) {
-    printf("%s : %s\n", "ERROR", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "ERROR", pCallbackData->pMessage);
   }
   else if (warning) {
-    printf("%s : %s\n", "WARNING", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "WARNING", pCallbackData->pMessage);
   }
   else if (info) {
-    printf("%s : %s\n", "INFO", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "INFO", pCallbackData->pMessage);
   }
   else if (verbose) {
-    printf("%s : %s\n", "VERBOSE", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "VERBOSE", pCallbackData->pMessage);
   }
 
   return VK_FALSE;
