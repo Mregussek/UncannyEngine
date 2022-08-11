@@ -19,6 +19,13 @@ void getRequiredSwapchainExtensions(std::vector<const char*>* pRequiredExtension
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
+  // make sure that surface caps support used image count...
+  if (mSwapchainDependencies.usedImageCount > mVkSurfaceCapabilities.minImageCount) {
+    UERROR("There is required more image count for swapchain that capabilities offer! Cannot "
+           "create swapchain!");
+    return UFALSE;
+  }
+
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;

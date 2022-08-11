@@ -67,6 +67,13 @@ b32 FRenderContextVulkan::createWindowSurface() {
   }
 
   // when window surface is created we can query information about it...
+  // query surface capabilities info...
+  U_VK_ASSERT( vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysicalDevice, mVkWindowSurface,
+                                                         &mVkSurfaceCapabilities) );
+
+  // query image extent info...
+  mVkImageExtent2D = getProperExtent2D(mVkSurfaceCapabilities, mSpecs.pWindow);
+
   // query surface format info...
   u32 formatCount{ 0 };
   U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkWindowSurface,
@@ -88,13 +95,6 @@ b32 FRenderContextVulkan::createWindowSurface() {
                                                          &presentCount, availablePresentModes.data()) );
 
   mVkPresentMode = getProperType(availablePresentModes, isSuitablePresentModeAvailable);
-
-  // query surface capabilities info...
-  U_VK_ASSERT( vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysicalDevice, mVkWindowSurface,
-                                                         &mVkSurfaceCapabilities) );
-
-  // query image extent info...
-  mVkImageExtent2D = getProperExtent2D(mVkSurfaceCapabilities, mSpecs.pWindow);
 
   UDEBUG("Created window surface!");
   return UTRUE;

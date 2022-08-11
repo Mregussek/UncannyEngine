@@ -26,6 +26,8 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.depthFormatDependencies = {
       VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
   };
+
+  mSwapchainDependencies.usedImageCount = 2;
 }
 
 
@@ -149,6 +151,12 @@ b32 FRenderContextVulkan::validateDependencies() const {
   UTRACE("Validating dependencies for vulkan renderer...");
   const auto& physDevDeps{ mPhysicalDeviceDependencies }; // wrapper
 
+  // make sure proper vulkan api version is given
+  if (mInstanceDependencies.vulkanApiVersion == 0) {
+    UERROR("Wrong Vulkan API version given in dependencies!");
+    return UFALSE;
+  }
+
   // make sure there is proper queue family index count
   if (physDevDeps.queueFamilyIndexesCount < 1) {
     UERROR("Queue family indexes count is less than 1, which means no operations on GPU!");
@@ -161,6 +169,20 @@ b32 FRenderContextVulkan::validateDependencies() const {
       physDevDeps.deviceTypeFallback == EPhysicalDeviceType::NONE) {
     UERROR("Defined device types are NONE, which means proper GPU cannot be selected!");
     return UFALSE;
+  }
+
+  // make sure that depth dependencies are correct
+  if (physDevDeps.depthFormatDependencies.empty()) {
+    UERROR("No depth dependencies info!");
+    return UFALSE;
+  }
+
+  // make sure that there is not undefined depth format
+  for (VkFormat depthFormat : physDevDeps.depthFormatDependencies) {
+    if (depthFormat == VK_FORMAT_UNDEFINED) {
+      UERROR("One of depth formats is undefined, check it!");
+      return UFALSE;
+    }
   }
 
   // make sure there is enough queue dependencies for every queue family
@@ -207,6 +229,11 @@ b32 FRenderContextVulkan::validateDependencies() const {
         return UFALSE;
       }
     }
+  }
+
+  if (mSwapchainDependencies.usedImageCount < 2) {
+    UERROR("Minimal image count for swapchain is 2, back and front buffers! Wrong dependencies!");
+    return UFALSE;
   }
 
   UDEBUG("Properly defined dependencies for vulkan renderer!");

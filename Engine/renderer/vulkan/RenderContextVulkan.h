@@ -26,6 +26,12 @@ enum class EPhysicalDeviceType {
 };
 
 
+struct FSwapchainDependencies {
+  // @brief count of images used
+  u32 usedImageCount{ UUNUSED };
+};
+
+
 struct FQueueFamilyDependencies {
   // @brief queues priorities for given count
   std::vector<f32> queuesPriorities{};
@@ -113,6 +119,7 @@ private:
   FRenderContextSpecification mSpecs{};
   FInstanceDependencies mInstanceDependencies{};
   FPhysicalDeviceDependencies mPhysicalDeviceDependencies{};
+  FSwapchainDependencies mSwapchainDependencies{};
   // Instance
   VkInstance mVkInstance{ VK_NULL_HANDLE };
   // Debugger
