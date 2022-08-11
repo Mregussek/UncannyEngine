@@ -198,12 +198,14 @@ template<typename TProperties>
 b32 isRequiredPropertyInVector(const char* requiredProperty,
                                const std::vector<TProperties>& vec) {
   auto it{ std::find_if(vec.begin(), vec.end(), [requiredProperty](TProperties property){
-    return std::strcmp(retrievePropertyName(property), requiredProperty);
+    return std::strcmp(retrievePropertyName(property), requiredProperty) == 0;
   })};
   if (it != vec.end()) {
+    UTRACE("Required property {} is in properties vector!", requiredProperty);
     return UTRUE;
   }
 
+  UTRACE("Required property {} does not exist in properties vector!", requiredProperty);
   return UFALSE;
 }
 

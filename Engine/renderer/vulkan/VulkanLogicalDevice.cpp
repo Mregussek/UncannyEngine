@@ -91,6 +91,7 @@ b32 FRenderContextVulkan::closeLogicalDevice() {
 
   if (mVkDevice != VK_NULL_HANDLE) {
     UTRACE("Destroying vulkan logical device...");
+    vkDeviceWaitIdle(mVkDevice);
     vkDestroyDevice(mVkDevice, nullptr);
   }
   else {
@@ -126,12 +127,14 @@ b32 isRequiredPropertyInVector(const char* requiredExt,
                                const std::vector<VkExtensionProperties>& availableExt) {
   auto it{ std::find_if(availableExt.begin(), availableExt.end(),
                         [requiredExt](const VkExtensionProperties& properties) {
-                          return std::strcmp(properties.extensionName, requiredExt);
+                          return std::strcmp(properties.extensionName, requiredExt) == 0;
                         })};
   if (it != availableExt.end()) {
+    UTRACE("Required extension {} is in available extensions!", requiredExt);
     return UTRUE;
   }
 
+  UTRACE("Required extension {} is not a available extension, cannot find it in vec!", requiredExt);
   return UFALSE;
 }
 
