@@ -30,7 +30,7 @@ b32 FRenderContextVulkan::createSwapchain() {
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
   createInfo.surface = mVkWindowSurface;
-  createInfo.minImageCount = std::max(2u, mVkSurfaceCapabilities.minImageCount);
+  createInfo.minImageCount = mSwapchainDependencies.usedImageCount;
   createInfo.imageFormat = mVkSurfaceFormat.format;
   createInfo.imageColorSpace = mVkSurfaceFormat.colorSpace;
   createInfo.imageExtent = mVkImageExtent2D;
