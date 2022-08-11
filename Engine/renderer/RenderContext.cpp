@@ -13,6 +13,12 @@ b32 FRenderContext::init(FRenderContextSpecification renderContextSpecs) {
 }
 
 
+b32 FRenderContext::update() {
+  UFATAL("should not be used!");
+  return UFALSE;
+}
+
+
 void FRenderContext::terminate() {
   UFATAL("should not be used!");
 }

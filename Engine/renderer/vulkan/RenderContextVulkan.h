@@ -74,6 +74,7 @@ class FRenderContextVulkan : public FRenderContext {
 public:
 
   b32 init(FRenderContextSpecification renderContextSpecs) override;
+  b32 update() override;
   void terminate() override;
 
 private:
@@ -159,7 +160,7 @@ private:
   // Command Pools
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
   // Command Buffers
-  VkCommandBuffer mVkGraphicsCommandBuffer{ VK_NULL_HANDLE };
+  std::vector<VkCommandBuffer> mVkGraphicsCommandBufferVector{};
 
 };
 

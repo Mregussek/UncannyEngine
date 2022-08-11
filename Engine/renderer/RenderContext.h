@@ -25,6 +25,7 @@ class FRenderContext {
 public:
 
   virtual b32 init(FRenderContextSpecification renderContextSpecs);
+  virtual b32 update();
   virtual void terminate();
 
 };

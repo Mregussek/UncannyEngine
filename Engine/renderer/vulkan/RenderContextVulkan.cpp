@@ -152,6 +152,175 @@ void FRenderContextVulkan::terminate() {
 }
 
 
+b32 FRenderContextVulkan::update() {
+  u32 imageAcquireTimeout{ UINT32_MAX };
+  u32 imageIndex{ UUNUSED };
+  VkResult properlyAcquiredNextImage = vkAcquireNextImageKHR(mVkDevice,
+                                                             mVkSwapchainCurrent,
+                                                             imageAcquireTimeout,
+                                                             mVkSemaphoreImageAvailable,
+                                                             VK_NULL_HANDLE,
+                                                             &imageIndex);
+  switch(properlyAcquiredNextImage) {
+    case VK_SUCCESS: break;
+    case VK_SUBOPTIMAL_KHR:
+    case VK_ERROR_OUT_OF_DATE_KHR: {
+      b32 properlyRecreatedSwapchain{ recreateSwapchain() };
+      if (not properlyRecreatedSwapchain) {
+        UERROR("Could not recreate swapchain after acquiring next image!");
+        return UFALSE;
+      }
+      break;
+    }
+    default: {
+      UERROR("Other error than expected during acquiring next image!");
+      return UFALSE;
+    }
+  }
+
+  VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+  commandBufferBeginInfo.pNext = nullptr;
+  commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+  commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+  VkClearColorValue clearColor = {
+      { 1.0f, 0.8f, 0.4f, 0.0f }
+  };
+
+  VkImageSubresourceRange imageSubresourceRange{};
+  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  imageSubresourceRange.baseMipLevel = 0;
+  imageSubresourceRange.levelCount = 1;
+  imageSubresourceRange.baseArrayLayer = 0;
+  imageSubresourceRange.layerCount = 1;
+
+  u32 memoryBarrierCount{ 0 };
+  const VkMemoryBarrier* pMemoryBarriers{ nullptr };
+  u32 bufferMemoryBarrierCount{ 0 };
+  const VkBufferMemoryBarrier* pBufferMemoryBarriers{ nullptr };
+  u32 imageMemoryBarrierCount{ 0 };
+  const VkImageMemoryBarrier* pImageMemoryBarriers{ nullptr };
+
+  for (u32 i = 0; i < mVkImagePresentableVector.size(); i++) {
+    VkImageMemoryBarrier barrierFromPresentToClear{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+    barrierFromPresentToClear.pNext = nullptr;
+    barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrierFromPresentToClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrierFromPresentToClear.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+    barrierFromPresentToClear.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
+    barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
+
+    VkImageMemoryBarrier barrierFromClearToPresent{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+    barrierFromPresentToClear.pNext = nullptr;
+    barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrierFromPresentToClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrierFromPresentToClear.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+    barrierFromPresentToClear.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
+    barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
+
+    vkBeginCommandBuffer(mVkGraphicsCommandBufferVector[i], &commandBufferBeginInfo);
+
+    memoryBarrierCount = 0;
+    pMemoryBarriers = nullptr;
+    bufferMemoryBarrierCount = 0;
+    pBufferMemoryBarriers = nullptr;
+    imageMemoryBarrierCount = 1;
+    pImageMemoryBarriers = &barrierFromPresentToClear;
+
+    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VkDependencyFlags{ 0 },
+                         memoryBarrierCount, pMemoryBarriers,
+                         bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                         imageMemoryBarrierCount, pImageMemoryBarriers);
+
+    u32 rangeCount{1};
+    const VkImageSubresourceRange* pRanges{ &imageSubresourceRange };
+
+    vkCmdClearColorImage(mVkGraphicsCommandBufferVector[i],
+                         mVkImagePresentableVector[i],
+                         VkImageLayout{ VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL },
+                         &clearColor,
+                         rangeCount, pRanges);
+
+    memoryBarrierCount = 0;
+    pMemoryBarriers = nullptr;
+    bufferMemoryBarrierCount = 0;
+    pBufferMemoryBarriers = nullptr;
+    imageMemoryBarrierCount = 1;
+    pImageMemoryBarriers = &barrierFromClearToPresent;
+
+    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VkDependencyFlags{ 0 },
+                         memoryBarrierCount, pMemoryBarriers,
+                         bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                         imageMemoryBarrierCount, pImageMemoryBarriers);
+
+    VkResult properlyRecordedCommands{ vkEndCommandBuffer(mVkGraphicsCommandBufferVector[i]) };
+
+    if (properlyRecordedCommands != VK_SUCCESS) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+  }
+
+  VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
+
+  VkSubmitInfo queueSubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+  queueSubmitInfo.pNext = nullptr;
+  queueSubmitInfo.waitSemaphoreCount = 1;
+  queueSubmitInfo.pWaitSemaphores = &mVkSemaphoreImageAvailable;
+  queueSubmitInfo.pWaitDstStageMask = &waitDstStageMask;
+  queueSubmitInfo.commandBufferCount = 1;
+  queueSubmitInfo.pCommandBuffers;
+  queueSubmitInfo.signalSemaphoreCount = 1;
+  queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinished;
+
+  VkFence noFence{ VK_NULL_HANDLE };
+  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mPresentationQueueIndex], 1, &queueSubmitInfo,
+                             noFence) );
+
+  VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+  queuePresentInfo.pNext = nullptr;
+  queuePresentInfo.waitSemaphoreCount = 1;
+  queuePresentInfo.pWaitSemaphores = &mVkSemaphoreRenderingFinished;
+  queuePresentInfo.swapchainCount = 1;
+  queuePresentInfo.pSwapchains = &mVkSwapchainCurrent;
+  queuePresentInfo.pImageIndices = &imageIndex;
+  queuePresentInfo.pResults = nullptr;
+
+  VkResult properlyPresentedImage{ vkQueuePresentKHR(mVkGraphicsQueueVector[mPresentationQueueIndex],
+                                                     &queuePresentInfo) };
+  switch(properlyPresentedImage) {
+    case VK_SUCCESS: break;
+    case VK_SUBOPTIMAL_KHR:
+    case VK_ERROR_OUT_OF_DATE_KHR: {
+      b32 properlyRecreatedSwapchain{ recreateSwapchain() };
+      if (not properlyRecreatedSwapchain) {
+        UERROR("Could not recreate swapchain after presentation!");
+        return UFALSE;
+      }
+      break;
+    }
+    default: {
+      UERROR("Other error than expected during acquiring next image!");
+      return UFALSE;
+    }
+  }
+
+  return UTRUE;
+}
+
+
 b32 FRenderContextVulkan::validateDependencies() const {
   UTRACE("Validating dependencies for vulkan renderer...");
   const auto& physDevDeps{ mPhysicalDeviceDependencies }; // wrapper
