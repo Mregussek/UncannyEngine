@@ -50,7 +50,20 @@ b32 FRenderContextVulkan::createWindowSurface() {
     createInfo.hwnd = retrieveHandleFromWindow(mSpecs.pWindow);
     auto vkCreateWin32SurfaceKHR =
         (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(mVkInstance, "vkCreateWin32SurfaceKHR");
-    U_VK_ASSERT( vkCreateWin32SurfaceKHR(mVkInstance, &createInfo, nullptr, &mVkWindowSurface) );
+    VkResult result = vkCreateWin32SurfaceKHR(mVkInstance, &createInfo, nullptr, &mVkWindowSurface);
+    if (result != VK_SUCCESS) {
+      UERROR("Could not create win32 window surface! Cannot present anything to the screen!");
+      return UFALSE;
+    }
+  }
+
+  // query if physical device with queue family and created surface supports presentation
+  VkBool32 supportedPresentation{ VK_FALSE };
+  vkGetPhysicalDeviceSurfaceSupportKHR(mVkPhysicalDevice, mGraphicsQueueFamilyIndex,
+                                       mVkWindowSurface, &supportedPresentation);
+  if (not supportedPresentation) {
+    UERROR("Presentation is not supported in newly created window surface!");
+    return UFALSE;
   }
 
   // when window surface is created we can query information about it...
