@@ -102,7 +102,9 @@ private:
   [[nodiscard]] b32 createGraphicsSemaphores();
   b32 closeGraphicsSemaphores();
 
+  [[nodiscard]] b32 areSwapchainDependenciesCorrect();
   [[nodiscard]] b32 createSwapchain();
+  [[nodiscard]] b32 recreateSwapchain();
   b32 closeSwapchain();
 
   [[nodiscard]] b32 createDepthImages();
@@ -140,14 +142,14 @@ private:
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
   VkSurfaceFormatKHR mVkSurfaceFormat{};
   VkPresentModeKHR mVkPresentMode{ VK_PRESENT_MODE_FIFO_KHR }; // FIFO has to exist as spec says
-  VkExtent2D mVkImageExtent2D{};
+  VkExtent2D mVkImageExtent2D{}; // used during swapchain creation, make sure to update it
   // Logical Device
   VkDevice mVkDevice{ VK_NULL_HANDLE };
   // Swapchain
   VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
   std::vector<VkImage> mVkImagePresentableVector{};
-  std::vector<VkImageView> mVkImagePresentableViewVector{};
+  std::vector<VkImageView> mVkImageViewPresentableVector{};
   // Depth info
   VkFormat mVkDepthFormat{ VK_FORMAT_UNDEFINED };
   VkImage mVkDepthImage{ VK_NULL_HANDLE };
