@@ -20,9 +20,12 @@ b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
   // make sure that surface caps support used image count...
-  if (mSwapchainDependencies.usedImageCount > mVkSurfaceCapabilities.minImageCount) {
-    UERROR("There is required more image count for swapchain that capabilities offer! Cannot "
-           "create swapchain!");
+  if (
+      mSwapchainDependencies.usedImageCount > mVkSurfaceCapabilities.minImageCount and
+      mSwapchainDependencies.usedImageCount < mVkSurfaceCapabilities.maxImageCount) {
+    UERROR("There is no required image count for swapchain! Cannot create swapchain! Min: {}, "
+           "Max: {}, Expected: {}", mVkSurfaceCapabilities.minImageCount,
+           mVkSurfaceCapabilities.maxImageCount, mSwapchainDependencies.usedImageCount);
     return UFALSE;
   }
 
