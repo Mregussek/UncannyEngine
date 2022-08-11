@@ -67,6 +67,20 @@ b32 FRenderContextVulkan::createWindowSurface() {
   }
 
   // when window surface is created we can query information about it...
+  b32 collectedCapabilities{ collectWindowSurfaceCapabilities() };
+  if (not collectedCapabilities) {
+    UERROR("Could not collect window surface capabilities!");
+    return UFALSE;
+  }
+
+  UDEBUG("Created window surface!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
+  UTRACE("Collecting window surface capabilities...");
+
   // query surface capabilities info...
   U_VK_ASSERT( vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                          &mVkSurfaceCapabilities) );
@@ -94,7 +108,7 @@ b32 FRenderContextVulkan::createWindowSurface() {
 
   mVkPresentMode = getProperType(availablePresentModes, isSuitablePresentModeAvailable);
 
-  UDEBUG("Created window surface!");
+  UDEBUG("Collected window surface capabilities!");
   return UTRUE;
 }
 

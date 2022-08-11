@@ -148,6 +148,13 @@ b32 FRenderContextVulkan::recreateSwapchain() {
   destroyPresentableImages(&mVkImagePresentableVector);
   destroyPresentableImageViews(&mVkImageViewPresentableVector, mVkDevice);
 
+  // query new information about window surface capabilities
+  b32 collectedCapabilities{ collectWindowSurfaceCapabilities() };
+  if (not collectedCapabilities) {
+    UERROR("Could not update window surface capabilities!");
+    return UFALSE;
+  }
+
   // reassigning variables, where old swapchain will be used to creation new one
   mVkSwapchainOld = mVkSwapchainCurrent;
   mVkSwapchainCurrent = VK_NULL_HANDLE;

@@ -91,6 +91,7 @@ private:
   b32 closePhysicalDevice();
 
   [[nodiscard]] b32 createWindowSurface();
+  [[nodiscard]] b32 collectWindowSurfaceCapabilities();
   b32 closeWindowSurface();
 
   [[nodiscard]] b32 createLogicalDevice();
