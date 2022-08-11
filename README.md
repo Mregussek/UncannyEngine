@@ -50,4 +50,5 @@ Mateusz Rzeczyca
 
 ## History
 
-11.08.2022 Clearing screen is working commit hash 3a75c1a14a187e0e75f51a2a607439b0a95d1a11 [tree](https://github.com/Mregussek/UncannyEngine/tree/3a75c1a14a187e0e75f51a2a607439b0a95d1a11)
+11.08.2022 Clearing screen is working [tree](https://github.com/Mregussek/UncannyEngine/tree/3a75c1a14a187e0e75f51a2a607439b0a95d1a11)
+11.08.2022 Resizing window is working [tree](https://github.com/Mregussek/UncannyEngine/tree/16ac43f74d5b142c6cd3aee21abf35130501a6fe)
