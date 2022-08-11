@@ -193,15 +193,15 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
     barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
 
     VkImageMemoryBarrier barrierFromClearToPresent{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-    barrierFromPresentToClear.pNext = nullptr;
-    barrierFromPresentToClear.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrierFromPresentToClear.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    barrierFromPresentToClear.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrierFromPresentToClear.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
-    barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
+    barrierFromClearToPresent.pNext = nullptr;
+    barrierFromClearToPresent.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrierFromClearToPresent.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrierFromClearToPresent.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrierFromClearToPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrierFromClearToPresent.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromClearToPresent.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromClearToPresent.image = mVkImagePresentableVector[i];
+    barrierFromClearToPresent.subresourceRange = imageSubresourceRange;
 
     VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(mVkGraphicsCommandBufferVector[i],
                                                                &commandBufferBeginInfo) };
@@ -211,21 +211,20 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
     }
 
     vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
                          1, &barrierFromPresentToClear);
     vkCmdClearColorImage(mVkGraphicsCommandBufferVector[i],
                          mVkImagePresentableVector[i],
-                         VkImageLayout{ VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL },
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          &clearColor,
                          1, &imageSubresourceRange);
-    __debugbreak();
     vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_TRANSFER_BIT },
-                         VkPipelineStageFlags{ VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT },
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,
+                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
