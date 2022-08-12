@@ -48,12 +48,6 @@ private:
   [[nodiscard]] b32 createGraphicsQueues();
   b32 closeGraphicsQueues();
 
-  [[nodiscard]] b32 createGraphicsSemaphores();
-  b32 closeGraphicsSemaphores();
-
-  [[nodiscard]] b32 createGraphicsFences();
-  b32 closeGraphicsFences();
-
   [[nodiscard]] b32 areSwapchainDependenciesCorrect();
   [[nodiscard]] b32 createSwapchain();
   [[nodiscard]] b32 recreateSwapchain();
@@ -68,6 +62,12 @@ private:
 
   [[nodiscard]] b32 createCommandBuffers();
   b32 closeCommandBuffers();
+
+  [[nodiscard]] b32 createGraphicsSemaphores();
+  b32 closeGraphicsSemaphores();
+
+  [[nodiscard]] b32 createGraphicsFences();
+  b32 closeGraphicsFences();
 
   [[nodiscard]] b32 recordCommandBuffers();
 
@@ -90,8 +90,8 @@ private:
   u32 mRenderingQueueIndex{ UUNUSED };    // this index is not queue family! It is for mVkGraphicsQueueVector
   u32 mPresentationQueueIndex{ UUNUSED }; // this index is not queue family! It is for mVkGraphicsQueueVector
   // Semaphores - synchronizes GPU to GPU execution of commands
-  VkSemaphore mVkSemaphoreImageAvailable{ VK_NULL_HANDLE };
-  VkSemaphore mVkSemaphoreRenderingFinished{ VK_NULL_HANDLE };
+  std::vector<VkSemaphore> mVkSemaphoreImageAvailableVector{};
+  std::vector<VkSemaphore> mVkSemaphoreRenderingFinishedVector{};
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
@@ -116,6 +116,8 @@ private:
   std::vector<VkCommandBuffer> mVkGraphicsCommandBufferVector{};
   // Fences
   std::vector<VkFence> mVkGraphicsFenceVector{};
+  // Render Loop info
+  u32 mCurrentFrame{ UUNUSED };
 
 };
 

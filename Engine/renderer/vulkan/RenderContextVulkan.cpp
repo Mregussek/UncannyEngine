@@ -93,11 +93,6 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     UFATAL("There is no graphics queues, rendering in not available!");
     return UFALSE;
   }
-  b32 properlyCreatedGraphicsSemaphores{ createGraphicsSemaphores() };
-  if (not properlyCreatedGraphicsSemaphores) {
-    UFATAL("Could not create graphics semaphores, cannot synchronize GPU-GPU operations!");
-    return UFALSE;
-  }
 
   // we can create swapchain for acquiring presentable images
   b32 properSwapchainDependencies{ areSwapchainDependenciesCorrect() };
@@ -129,17 +124,28 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     UFATAL("Could not create command buffers, cannot send commands to GPU!");
     return UFALSE;
   }
+
+  // Create synchronization semaphores and fences
+  b32 properlyCreatedGraphicsSemaphores{ createGraphicsSemaphores() };
+  if (not properlyCreatedGraphicsSemaphores) {
+    UFATAL("Could not create graphics semaphores, cannot synchronize GPU-GPU operations!");
+    return UFALSE;
+  }
   b32 properlyCreatedFencesForCommandBuffers{ createGraphicsFences() };
   if (not properlyCreatedFencesForCommandBuffers) {
     UFATAL("Could not create fences, cannot synchronize CPU-GPU operations!");
     return UFALSE;
   }
 
+  // Finally record commands as startup point
   b32 recordedCommandBuffers{ recordCommandBuffers() };
   if (not recordedCommandBuffers) {
     UFATAL("Could not record command buffers!");
     return UFALSE;
   }
+
+  // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount - 1
+  mCurrentFrame = 0;
 
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
@@ -153,11 +159,11 @@ void FRenderContextVulkan::terminate() {
   }
 
   closeGraphicsFences();
+  closeGraphicsSemaphores();
   closeCommandBuffers();
   closeCommandPool();
   closeDepthImages();
   closeSwapchain();
-  closeGraphicsSemaphores();
   closeGraphicsQueues();
   closeLogicalDevice();
   closeWindowSurface();
@@ -182,7 +188,7 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
 
   VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
   commandBufferBeginInfo.pNext = nullptr;
-  commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+  commandBufferBeginInfo.flags = 0;
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
   VkClearColorValue clearColor = {
@@ -262,15 +268,19 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
 
 
 b32 FRenderContextVulkan::update() {
+  VkBool32 allFencesAreSignaled = VK_TRUE;
+  u64 fencesTimeout{ UINT64_MAX };
+  vkWaitForFences(mVkDevice, 1, &mVkGraphicsFenceVector[mCurrentFrame], allFencesAreSignaled,
+                  fencesTimeout);
+  vkResetFences(mVkDevice, 1, &mVkGraphicsFenceVector[mCurrentFrame]);
+
   b32 isSurfaceOutOfDate{ UFALSE };
-  u32 imageAcquireTimeout{ UINT32_MAX };
+  u64 imageAcquireTimeout{ UINT64_MAX };
   u32 imageIndex{ UUNUSED };
-  VkResult properlyAcquiredNextImage = vkAcquireNextImageKHR(mVkDevice,
-                                                             mVkSwapchainCurrent,
-                                                             imageAcquireTimeout,
-                                                             mVkSemaphoreImageAvailable,
-                                                             VK_NULL_HANDLE,
-                                                             &imageIndex);
+  VkResult properlyAcquiredNextImage =
+      vkAcquireNextImageKHR(mVkDevice, mVkSwapchainCurrent, imageAcquireTimeout,
+                            mVkSemaphoreImageAvailableVector[mCurrentFrame],
+                            VK_NULL_HANDLE, &imageIndex);
   switch(properlyAcquiredNextImage) {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
@@ -289,20 +299,20 @@ b32 FRenderContextVulkan::update() {
   VkSubmitInfo queueSubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   queueSubmitInfo.pNext = nullptr;
   queueSubmitInfo.waitSemaphoreCount = 1;
-  queueSubmitInfo.pWaitSemaphores = &mVkSemaphoreImageAvailable;
+  queueSubmitInfo.pWaitSemaphores = &mVkSemaphoreImageAvailableVector[mCurrentFrame];
   queueSubmitInfo.pWaitDstStageMask = &waitDstStageMask;
   queueSubmitInfo.commandBufferCount = 1;
-  queueSubmitInfo.pCommandBuffers = &mVkGraphicsCommandBufferVector[imageIndex];
+  queueSubmitInfo.pCommandBuffers = &mVkGraphicsCommandBufferVector[mCurrentFrame];
   queueSubmitInfo.signalSemaphoreCount = 1;
-  queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinished;
+  queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
 
   U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &queueSubmitInfo,
-                             VK_NULL_HANDLE) );
+                             mVkGraphicsFenceVector[mCurrentFrame]) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
   queuePresentInfo.pNext = nullptr;
   queuePresentInfo.waitSemaphoreCount = 1;
-  queuePresentInfo.pWaitSemaphores = &mVkSemaphoreRenderingFinished;
+  queuePresentInfo.pWaitSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
   queuePresentInfo.swapchainCount = 1;
   queuePresentInfo.pSwapchains = &mVkSwapchainCurrent;
   queuePresentInfo.pImageIndices = &imageIndex;
@@ -344,6 +354,7 @@ b32 FRenderContextVulkan::update() {
     UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!");
   }
 
+  mCurrentFrame = (mCurrentFrame + 1) % mSwapchainDependencies.usedImageCount;
   return UTRUE;
 }
 

@@ -16,7 +16,7 @@ b32 FRenderContextVulkan::createGraphicsFences() {
 
   VkFenceCreateInfo createInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
   createInfo.pNext = nullptr;
-  createInfo.flags = 0;
+  createInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
   for (u32 i = 0; i < commandBuffersCount; i++) {
     U_VK_ASSERT( vkCreateFence(mVkDevice, &createInfo, nullptr, &mVkGraphicsFenceVector[i]) );
