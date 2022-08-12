@@ -124,7 +124,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     UFATAL("Could not create command pools, cannot send commands to GPU!");
     return UFALSE;
   }
-  b32 properlyCreatedCommandBuffers{ createCommandBuffer() };
+  b32 properlyCreatedCommandBuffers{ createCommandBuffers() };
   if (not properlyCreatedCommandBuffers) {
     UFATAL("Could not create command buffers, cannot send commands to GPU!");
     return UFALSE;
@@ -147,7 +147,7 @@ void FRenderContextVulkan::terminate() {
     vkDeviceWaitIdle(mVkDevice);
   }
 
-  closeCommandBuffer();
+  closeCommandBuffers();
   closeCommandPool();
   closeDepthImages();
   closeSwapchain();
@@ -313,11 +313,19 @@ b32 FRenderContextVulkan::update() {
   }
 
   if (isSurfaceOutOfDate) {
+    UTRACE("As surface is out of date, there is need to recreate swapchain...");
+
     vkDeviceWaitIdle(mVkDevice);
 
     b32 properlyRecreatedSwapchain{ recreateSwapchain() };
     if (not properlyRecreatedSwapchain) {
       UERROR("Could not recreate swapchain after acquiring next image!");
+      return UFALSE;
+    }
+
+    b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool() };
+    if (not properlyResetCommandPoolsAndBuffers) {
+      UERROR("Could not reset command pools (with command buffers), so cannot record commands!");
       return UFALSE;
     }
 
@@ -328,6 +336,7 @@ b32 FRenderContextVulkan::update() {
     }
 
     isSurfaceOutOfDate = UFALSE;
+    UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!");
   }
 
   return UTRUE;

@@ -63,10 +63,11 @@ private:
   b32 closeDepthImages();
 
   [[nodiscard]] b32 createCommandPool();
+  b32 resetCommandPool();
   b32 closeCommandPool();
 
-  [[nodiscard]] b32 createCommandBuffer();
-  b32 closeCommandBuffer();
+  [[nodiscard]] b32 createCommandBuffers();
+  b32 closeCommandBuffers();
 
   [[nodiscard]] b32 recordCommandBuffers();
 

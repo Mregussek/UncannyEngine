@@ -124,20 +124,22 @@ b32 FRenderContextVulkan::closeDepthImages() {
     UWARN("As depth image view is not created, it is not destroyed!");
   }
 
-  if (mVkDepthImageMemory != VK_NULL_HANDLE) {
-    UTRACE("Freeing depth image memory...");
-    vkFreeMemory(mVkDevice, mVkDepthImageMemory, nullptr);
-  }
-  else {
-    UWARN("As depth image memory is not allocated, it won't be freed!");
-  }
-
+  // It is nice to firstly destroy image, then free its memory, as
+  // if image will be used it will be referencing freed memory
   if (mVkDepthImage != VK_NULL_HANDLE) {
     UTRACE("Destroying depth image...");
     vkDestroyImage(mVkDevice, mVkDepthImage, nullptr);
   }
   else {
     UWARN("As depth image is not created, it is not destroyed!");
+  }
+
+  if (mVkDepthImageMemory != VK_NULL_HANDLE) {
+    UTRACE("Freeing depth image memory...");
+    vkFreeMemory(mVkDevice, mVkDepthImageMemory, nullptr);
+  }
+  else {
+    UWARN("As depth image memory is not allocated, it won't be freed!");
   }
 
   UDEBUG("Closed depth images!");

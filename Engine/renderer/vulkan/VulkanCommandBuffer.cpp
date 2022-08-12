@@ -8,7 +8,7 @@ namespace uncanny
 {
 
 
-b32 FRenderContextVulkan::createCommandBuffer() {
+b32 FRenderContextVulkan::createCommandBuffers() {
   UTRACE("Creating command buffers...");
 
   mVkGraphicsCommandBufferVector.resize(mSwapchainDependencies.usedImageCount);
@@ -27,7 +27,7 @@ b32 FRenderContextVulkan::createCommandBuffer() {
 }
 
 
-b32 FRenderContextVulkan::closeCommandBuffer() {
+b32 FRenderContextVulkan::closeCommandBuffers() {
   UTRACE("Closing command buffers...");
 
   for (u32 i = 0; i < mVkGraphicsCommandBufferVector.size(); i++) {

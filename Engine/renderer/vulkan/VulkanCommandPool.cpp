@@ -12,12 +12,27 @@ b32 FRenderContextVulkan::createCommandPool() {
   UTRACE("Creating command pools...");
 
   VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-  createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  createInfo.flags = 0;//VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   createInfo.queueFamilyIndex = mGraphicsQueueFamilyIndex;
 
   U_VK_ASSERT( vkCreateCommandPool(mVkDevice, &createInfo, nullptr, &mVkGraphicsCommandPool) );
 
   UDEBUG("Created command pools!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::resetCommandPool() {
+  UTRACE("Resetting command pools...");
+
+  VkCommandPoolResetFlags flags = 0;
+  VkResult result{ vkResetCommandPool(mVkDevice, mVkGraphicsCommandPool, flags) };
+  if (result != VK_SUCCESS) {
+    UERROR("Could not reset command pools!");
+    return UFALSE;
+  }
+
+  UDEBUG("Reset command pools!");
   return UTRUE;
 }
 

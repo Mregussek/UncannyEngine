@@ -84,6 +84,7 @@ VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverit
   const auto warning = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
   const auto info = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
   const auto verbose = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+  const auto performance = messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
   if (error) {
     UERROR("{} : {}\n", "ERROR", pCallbackData->pMessage);
@@ -96,6 +97,9 @@ VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverit
   }
   else if (verbose) {
     UERROR("{} : {}\n", "VERBOSE", pCallbackData->pMessage);
+  }
+  else if (performance) {
+    UERROR("{} : {}\n", "PERFORMANCE", pCallbackData->pMessage);
   }
 
   return VK_FALSE;
