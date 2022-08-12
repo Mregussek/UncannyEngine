@@ -168,6 +168,12 @@ void FRenderContextVulkan::terminate() {
 b32 FRenderContextVulkan::recordCommandBuffers() {
   UTRACE("Recording command buffers!");
 
+  b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool() };
+  if (not properlyResetCommandPoolsAndBuffers) {
+    UERROR("Could not reset command pools (with command buffers), so cannot record commands!");
+    return UFALSE;
+  }
+
   VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
   commandBufferBeginInfo.pNext = nullptr;
   commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
@@ -320,12 +326,6 @@ b32 FRenderContextVulkan::update() {
     b32 properlyRecreatedSwapchain{ recreateSwapchain() };
     if (not properlyRecreatedSwapchain) {
       UERROR("Could not recreate swapchain after acquiring next image!");
-      return UFALSE;
-    }
-
-    b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool() };
-    if (not properlyResetCommandPoolsAndBuffers) {
-      UERROR("Could not reset command pools (with command buffers), so cannot record commands!");
       return UFALSE;
     }
 

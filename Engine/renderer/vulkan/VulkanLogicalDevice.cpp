@@ -55,6 +55,11 @@ b32 FRenderContextVulkan::createLogicalDevice() {
     return UFALSE;
   }
 
+  if constexpr (not U_VK_DEBUG) {
+    UTRACE("As it is release build, disabling robustBufferAccess!");
+    physicalDeviceFeatures.robustBufferAccess = UFALSE;
+  }
+
   // Create Queue for graphics...
   deviceQueueCreateInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   deviceQueueCreateInfoVector[0].pNext = nullptr;
