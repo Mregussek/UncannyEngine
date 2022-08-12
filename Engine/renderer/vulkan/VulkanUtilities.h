@@ -23,7 +23,6 @@ template<> struct is_vk_layer_properties<VkLayerProperties> : std::true_type { }
 
 
 struct FDriverVersionInfo {
-  u32 variant{ 0 };
   u32 major{ 0 };
   u32 minor{ 0 };
   u32 patch{ 0 };

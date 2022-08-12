@@ -398,9 +398,10 @@ void displayPhysicalDeviceData(VkPhysicalDevice physicalDevice) {
   FDriverVersionInfo driverVersionInfo =
       decodeDriverVersionVulkan(deviceProperties.driverVersion, deviceProperties.vendorID);
 
-  UINFO("PhysicalDevice Info\nPicked: {}\nDriver Version: {}.{}\nVulkan Version Available: {}"
-        ".{}\nType: {}", deviceProperties.deviceName, driverVersionInfo.variant,
-        driverVersionInfo.major, VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
+  UINFO("PhysicalDevice Info\nPicked: {}\nDriver Version: {}.{}.{}\nVulkan Version Available: {}"
+        ".{}\nType: {}", deviceProperties.deviceName, driverVersionInfo.major,
+        driverVersionInfo.minor,  driverVersionInfo.patch,
+        VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
         VK_API_VERSION_MINOR(deviceProperties.apiVersion),
         getGpuTypeName(deviceProperties.deviceType));
 }

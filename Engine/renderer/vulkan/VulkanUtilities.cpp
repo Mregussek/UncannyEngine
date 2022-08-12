@@ -4,10 +4,9 @@
 #include <utilities/Logger.h>
 
 
-#define U_NV_DRIVER_VERSION_VARIANT(version)  (((version) >> 22) & 0x3ff)
-#define U_NV_DRIVER_VERSION_MAJOR(version)  (((version) >> 14) & 0x0ff)
-#define U_NV_DRIVER_VERSION_MINOR(version)  (((version) >> 6) & 0x0ff)
-#define U_NV_DRIVER_VERSION_PATCH(version)  ((version) & 0x0ff)
+#define U_NV_DRIVER_VERSION_MAJOR(version)  (((version) >> 22) & 0x3ff)
+#define U_NV_DRIVER_VERSION_MINOR(version)  (((version) >> 14) & 0x0ff)
+#define U_NV_DRIVER_VERSION_PATCH(version)  (((version) >> 6) & 0x0ff)
 
 
 namespace uncanny
@@ -43,10 +42,16 @@ FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID) {
   UTRACE("Trying to decode driver version for vendorID: {}", vendorID);
   if (vendorID == 4318) { // NVIDIA
     FDriverVersionInfo info{};
-    info.variant = U_NV_DRIVER_VERSION_VARIANT(version);
     info.major = U_NV_DRIVER_VERSION_MAJOR(version);
     info.minor = U_NV_DRIVER_VERSION_MINOR(version);
-    info.patch = U_NV_DRIVER_VERSION_MINOR(version);
+    info.patch = U_NV_DRIVER_VERSION_PATCH(version);
+    return info;
+  }
+  if (vendorID == 4098) { // AMD
+    FDriverVersionInfo info{};
+    info.major = VK_API_VERSION_MAJOR(version);
+    info.minor = VK_API_VERSION_MINOR(version);
+    info.patch = VK_API_VERSION_PATCH(version);
     return info;
   }
   return {};
