@@ -11,6 +11,7 @@ namespace uncanny
 b32 FRenderContextVulkan::createCommandPool() {
   UTRACE("Creating command pools...");
 
+  // even when VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT is set use vkResetCommandPool
   VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
   createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   createInfo.queueFamilyIndex = mGraphicsQueueFamilyIndex;

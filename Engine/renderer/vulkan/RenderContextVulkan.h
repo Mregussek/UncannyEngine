@@ -114,6 +114,8 @@ private:
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
   // Command Buffers
   std::vector<VkCommandBuffer> mVkGraphicsCommandBufferVector{};
+  // Fences
+  std::vector<VkFence> mVkGraphicsFenceVector{};
 
 };
 

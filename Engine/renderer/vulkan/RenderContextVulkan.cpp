@@ -95,7 +95,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   }
   b32 properlyCreatedGraphicsSemaphores{ createGraphicsSemaphores() };
   if (not properlyCreatedGraphicsSemaphores) {
-    UFATAL("Could not create graphics semaphores, cannot synchronize device!");
+    UFATAL("Could not create graphics semaphores, cannot synchronize GPU-GPU operations!");
     return UFALSE;
   }
 
@@ -129,6 +129,11 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     UFATAL("Could not create command buffers, cannot send commands to GPU!");
     return UFALSE;
   }
+  b32 properlyCreatedFencesForCommandBuffers{ createGraphicsFences() };
+  if (not properlyCreatedFencesForCommandBuffers) {
+    UFATAL("Could not create fences, cannot synchronize CPU-GPU operations!");
+    return UFALSE;
+  }
 
   b32 recordedCommandBuffers{ recordCommandBuffers() };
   if (not recordedCommandBuffers) {
@@ -147,6 +152,7 @@ void FRenderContextVulkan::terminate() {
     vkDeviceWaitIdle(mVkDevice);
   }
 
+  closeGraphicsFences();
   closeCommandBuffers();
   closeCommandPool();
   closeDepthImages();
@@ -290,9 +296,8 @@ b32 FRenderContextVulkan::update() {
   queueSubmitInfo.signalSemaphoreCount = 1;
   queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinished;
 
-  VkFence noFence{ VK_NULL_HANDLE };
   U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &queueSubmitInfo,
-                             noFence) );
+                             VK_NULL_HANDLE) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
   queuePresentInfo.pNext = nullptr;

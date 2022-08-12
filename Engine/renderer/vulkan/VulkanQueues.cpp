@@ -15,9 +15,11 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
       getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
                                  mPhysicalDeviceDependencies.queueFamilyDependencies) };
 
-  for (u32 j = 0; j < graphicsFamilyDependencies.queuesCountNeeded; j++) {
-    VkQueue& graphicsQueue{ mVkGraphicsQueueVector.emplace_back(VK_NULL_HANDLE) };
-    vkGetDeviceQueue(mVkDevice, mGraphicsQueueFamilyIndex, j, &graphicsQueue);
+  u32 requiredQueuesCount{ graphicsFamilyDependencies.queuesCountNeeded };
+  mVkGraphicsQueueVector.resize(requiredQueuesCount);
+
+  for (u32 j = 0; j < requiredQueuesCount; j++) {
+    vkGetDeviceQueue(mVkDevice, mGraphicsQueueFamilyIndex, j, &mVkGraphicsQueueVector[j]);
   }
 
   if (mVkGraphicsQueueVector.empty()) {
