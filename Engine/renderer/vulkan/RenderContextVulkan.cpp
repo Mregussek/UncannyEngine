@@ -15,7 +15,8 @@ void FRenderContextVulkan::defineDependencies() {
 
   FQueueFamilyDependencies graphicsQueueFamilyDependencies{};
   graphicsQueueFamilyDependencies.mainUsage = EQueueFamilyMainUsage::GRAPHICS;
-  graphicsQueueFamilyDependencies.queuesCountNeeded = 2;
+  // AMD cards support only one 1 queue at graphics queue family NVIDIA supports 16!
+  graphicsQueueFamilyDependencies.queuesCountNeeded = 1;
   graphicsQueueFamilyDependencies.queuesPriorities = { 1.f, 1.f };
   graphicsQueueFamilyDependencies.graphics = UTRUE;
 
@@ -142,7 +143,9 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
-  vkDeviceWaitIdle(mVkDevice);
+  if (mVkDevice != VK_NULL_HANDLE) {
+    vkDeviceWaitIdle(mVkDevice);
+  }
 
   closeCommandBuffer();
   closeCommandPool();
@@ -399,14 +402,14 @@ b32 FRenderContextVulkan::validateDependencies() const {
       return UFALSE;
     }
 
+    // make sure there is proper queue type
+    if (queueDeps.mainUsage == EQueueFamilyMainUsage::NONE) {
+      UERROR("Queue type for queue family is NONE, wrong info provided!");
+      return UFALSE;
+    }
+
     // make sure every queue has correct info provided
     for (u32 j = 0; j < queueDeps.queuesCountNeeded; j++) {
-      // make sure there is proper queue type
-      if (queueDeps.mainUsage == EQueueFamilyMainUsage::NONE) {
-        UERROR("Queue type for queue family is NONE, wrong info provided!");
-        return UFALSE;
-      }
-
       // make sure priority is between range
       if (not (0.f <= queueDeps.queuesPriorities[j] && queueDeps.queuesPriorities[j] <= 1.f)) {
         UERROR("Queue priority is not between range <0.f, 1.f>, wrong info provided!");

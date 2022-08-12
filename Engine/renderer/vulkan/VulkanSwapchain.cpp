@@ -31,12 +31,12 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
   UTRACE("Validating swapchain dependencies...");
 
   // make sure that surface caps support used image count...
-  if (
-      mSwapchainDependencies.usedImageCount > mVkSurfaceCapabilities.minImageCount and
-      mSwapchainDependencies.usedImageCount < mVkSurfaceCapabilities.maxImageCount) {
+  u32 minCount{ mVkSurfaceCapabilities.minImageCount };
+  u32 maxCount{ mVkSurfaceCapabilities.maxImageCount };
+  u32 usedCount{ mSwapchainDependencies.usedImageCount };
+  if (not (minCount <= usedCount and usedCount <= maxCount)) {
     UERROR("There is no required image count for swapchain! Cannot create swapchain! Min: {}, "
-           "Max: {}, Expected: {}", mVkSurfaceCapabilities.minImageCount,
-           mVkSurfaceCapabilities.maxImageCount, mSwapchainDependencies.usedImageCount);
+           "Max: {}, Expected: {}", minCount, maxCount, usedCount);
     return UFALSE;
   }
 
@@ -194,6 +194,11 @@ void destroySwapchain(VkSwapchainKHR* pSwapchain, VkDevice device, const char* p
 
 
 void destroyPresentableImages(std::vector<VkImage>* pImagePresentableVector) {
+  if (pImagePresentableVector->empty()) {
+    UWARN("Presentable images vector is empty, so nothing will be destroyed!");
+    return;
+  }
+
   for (u32 i = 0; i < pImagePresentableVector->size(); i++) {
     UTRACE("Destroying presentable image {}...", i);
     if (pImagePresentableVector->at(i) != VK_NULL_HANDLE) {
@@ -209,6 +214,11 @@ void destroyPresentableImages(std::vector<VkImage>* pImagePresentableVector) {
 
 void destroyPresentableImageViews(std::vector<VkImageView>* pImageViewPresentableVector,
                                   VkDevice device) {
+  if (pImageViewPresentableVector->empty()) {
+    UWARN("Presentable image views vector is empty, so nothing will be destroyed!");
+    return;
+  }
+
   for (u32 i = 0; i < pImageViewPresentableVector->size(); i++) {
     UTRACE("Destroying presentable image view {}...", i);
     if (pImageViewPresentableVector->at(i) != VK_NULL_HANDLE) {
