@@ -191,16 +191,14 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
   commandBufferBeginInfo.flags = 0;
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
-  VkClearColorValue clearColor = {
-      { 1.0f, 0.8f, 0.4f, 0.0f }
-  };
-
   VkImageSubresourceRange imageSubresourceRange{};
   imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   imageSubresourceRange.baseMipLevel = 0;
   imageSubresourceRange.levelCount = 1;
   imageSubresourceRange.baseArrayLayer = 0;
   imageSubresourceRange.layerCount = 1;
+
+  VkClearColorValue clearColor{{ 1.0f, 0.8f, 0.4f, 0.0f }};
 
   for (u32 i = 0; i < mVkImagePresentableVector.size(); i++) {
     VkCommandBufferResetFlags resetFlags{ 0 };
@@ -242,6 +240,7 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
                          0, nullptr,
                          0, nullptr,
                          1, &barrierFromPresentToClear);
+    // vkCmdClearColorImage -> the least efficient mechanism on tile-based GPU architectures
     vkCmdClearColorImage(mVkGraphicsCommandBufferVector[i],
                          mVkImagePresentableVector[i],
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
