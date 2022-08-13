@@ -201,9 +201,6 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
   VkClearColorValue clearColor{{ 1.0f, 0.8f, 0.4f, 0.0f }};
 
   for (u32 i = 0; i < mVkImagePresentableVector.size(); i++) {
-    VkCommandBufferResetFlags resetFlags{ 0 };
-    vkResetCommandBuffer(mVkGraphicsCommandBufferVector[i], resetFlags);
-
     VkImageMemoryBarrier barrierFromPresentToClear{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
     barrierFromPresentToClear.pNext = nullptr;
     barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
@@ -234,7 +231,7 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
     }
 
     vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
-                         VK_PIPELINE_STAGE_TRANSFER_BIT,
+                         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                          VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VkDependencyFlags{ 0 },
                          0, nullptr,
@@ -248,7 +245,7 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
                          1, &imageSubresourceRange);
     vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
                          VK_PIPELINE_STAGE_TRANSFER_BIT,
-                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
