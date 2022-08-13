@@ -118,6 +118,7 @@ private:
   std::vector<VkFence> mVkGraphicsFenceVector{};
   // Render Loop info
   u32 mCurrentFrame{ UUNUSED };
+  b32 mSurfaceIsOutOfDate { UFALSE };
 
 };
 

@@ -267,13 +267,33 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
 
 
 b32 FRenderContextVulkan::update() {
+  if (mSurfaceIsOutOfDate) {
+    UTRACE("As surface is out of date, there is need to recreate swapchain...");
+
+    vkDeviceWaitIdle(mVkDevice);
+
+    b32 properlyRecreatedSwapchain{ recreateSwapchain() };
+    if (not properlyRecreatedSwapchain) {
+      UERROR("Could not recreate swapchain after acquiring next image!");
+      return UFALSE;
+    }
+
+    b32 recordedCommandBuffers{ recordCommandBuffers() };
+    if (not recordedCommandBuffers) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+
+    mSurfaceIsOutOfDate = UFALSE;
+    UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!");
+  }
+
   VkBool32 allFencesAreSignaled = VK_TRUE;
   u64 fencesTimeout{ UINT64_MAX };
   vkWaitForFences(mVkDevice, 1, &mVkGraphicsFenceVector[mCurrentFrame], allFencesAreSignaled,
                   fencesTimeout);
   vkResetFences(mVkDevice, 1, &mVkGraphicsFenceVector[mCurrentFrame]);
 
-  b32 isSurfaceOutOfDate{ UFALSE };
   u64 imageAcquireTimeout{ UINT64_MAX };
   u32 imageIndex{ UUNUSED };
   VkResult properlyAcquiredNextImage =
@@ -284,7 +304,7 @@ b32 FRenderContextVulkan::update() {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
     case VK_ERROR_OUT_OF_DATE_KHR: {
-      isSurfaceOutOfDate = UTRUE;
+      mSurfaceIsOutOfDate = UTRUE;
       break;
     }
     default: {
@@ -323,34 +343,13 @@ b32 FRenderContextVulkan::update() {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
     case VK_ERROR_OUT_OF_DATE_KHR: {
-      isSurfaceOutOfDate = UTRUE;
+      mSurfaceIsOutOfDate = UTRUE;
       break;
     }
     default: {
       UERROR("Other error than expected during acquiring next image!");
       return UFALSE;
     }
-  }
-
-  if (isSurfaceOutOfDate) {
-    UTRACE("As surface is out of date, there is need to recreate swapchain...");
-
-    vkDeviceWaitIdle(mVkDevice);
-
-    b32 properlyRecreatedSwapchain{ recreateSwapchain() };
-    if (not properlyRecreatedSwapchain) {
-      UERROR("Could not recreate swapchain after acquiring next image!");
-      return UFALSE;
-    }
-
-    b32 recordedCommandBuffers{ recordCommandBuffers() };
-    if (not recordedCommandBuffers) {
-      UERROR("Could not record command buffers!");
-      return UFALSE;
-    }
-
-    isSurfaceOutOfDate = UFALSE;
-    UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!");
   }
 
   mCurrentFrame = (mCurrentFrame + 1) % mSwapchainDependencies.usedImageCount;

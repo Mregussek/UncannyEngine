@@ -8,7 +8,7 @@
 #include <volk.h>
 
 
-#define U_VK_DEBUG 1  // 1 - enable debug vulkan prints in UncannyEngine, 0 - disable
+#define U_VK_DEBUG ENABLE_DEBUGGING_RENDERER
 
 
 namespace uncanny
