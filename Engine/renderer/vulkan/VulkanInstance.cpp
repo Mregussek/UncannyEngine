@@ -59,6 +59,8 @@ b32 FRenderContextVulkan::createInstance() {
     getRequiredDebugInstanceLayers(&requiredLayers);
   }
 
+  // TODO: layers existence is validated during vkCreateInstance and if is no available
+  //  return code is VK_ERROR_LAYER_NOT_PRESENT, make sure if checking it here is proper
   // Validate all required layers
   if (not areRequiredPropertiesAvailable<VkLayerProperties>(requiredLayers)) {
     UERROR("Some required instance layers are not available, cannot start vulkan renderer!");
@@ -73,6 +75,8 @@ b32 FRenderContextVulkan::createInstance() {
   }
   getRequiredWindowSurfaceInstanceExtensions(mSpecs.pWindow, &requiredExtensions);
 
+  // TODO: extensions support is validated during vkCreateInstance and if is no available
+  //  return code is VK_ERROR_EXTENSION_NOT_PRESENT, make sure if checking it here is proper
   // Validate all required extensions
   if (not areRequiredPropertiesAvailable<VkExtensionProperties>(requiredExtensions)) {
     UERROR("Some required instance extensions are not available, cannot start vulkan renderer!");

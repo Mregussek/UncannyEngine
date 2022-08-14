@@ -15,7 +15,7 @@ void FRenderContextVulkan::defineDependencies() {
 
   FQueueFamilyDependencies graphicsQueueFamilyDependencies{};
   graphicsQueueFamilyDependencies.mainUsage = EQueueFamilyMainUsage::GRAPHICS;
-  // AMD cards support only one 1 queue at graphics queue family NVIDIA supports 16!
+  // My AMD card support only one 1 queue at graphics queue family, my NVIDIA supports 16!
   graphicsQueueFamilyDependencies.queuesCountNeeded = 1;
   graphicsQueueFamilyDependencies.queuesPriorities = { 1.f, 1.f };
   graphicsQueueFamilyDependencies.graphics = UTRUE;
