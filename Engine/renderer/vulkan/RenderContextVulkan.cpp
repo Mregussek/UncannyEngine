@@ -209,8 +209,8 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
     barrierFromPresentToClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrierFromPresentToClear.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrierFromPresentToClear.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrierFromPresentToClear.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromPresentToClear.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+    barrierFromPresentToClear.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
     barrierFromPresentToClear.image = mVkImagePresentableVector[i];
     barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
 
@@ -220,8 +220,8 @@ b32 FRenderContextVulkan::recordCommandBuffers() {
     barrierFromClearToPresent.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
     barrierFromClearToPresent.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     barrierFromClearToPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    barrierFromClearToPresent.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrierFromClearToPresent.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrierFromClearToPresent.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+    barrierFromClearToPresent.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
     barrierFromClearToPresent.image = mVkImagePresentableVector[i];
     barrierFromClearToPresent.subresourceRange = imageSubresourceRange;
 
