@@ -146,6 +146,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 
   // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount - 1
   mCurrentFrame = 0;
+  mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
 
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
@@ -287,9 +288,9 @@ b32 FRenderContextVulkan::update() {
 
   VkBool32 allFencesAreSignaled = VK_TRUE;
   u64 fencesTimeout{ UINT64_MAX };
-  vkWaitForFences(mVkDevice, 1, &mVkGraphicsFenceVector[mCurrentFrame], allFencesAreSignaled,
+  vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], allFencesAreSignaled,
                   fencesTimeout);
-  vkResetFences(mVkDevice, 1, &mVkGraphicsFenceVector[mCurrentFrame]);
+  vkResetFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame]);
 
   u64 imageAcquireTimeout{ UINT64_MAX };
   u32 imageIndex{ UUNUSED };
@@ -323,7 +324,7 @@ b32 FRenderContextVulkan::update() {
   queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
 
   U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &queueSubmitInfo,
-                             mVkGraphicsFenceVector[mCurrentFrame]) );
+                             mVkFencesInFlightFrames[mCurrentFrame]) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
   queuePresentInfo.pNext = nullptr;
@@ -349,7 +350,7 @@ b32 FRenderContextVulkan::update() {
     }
   }
 
-  mCurrentFrame = (mCurrentFrame + 1) % mSwapchainDependencies.usedImageCount;
+  mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
   return UTRUE;
 }
 

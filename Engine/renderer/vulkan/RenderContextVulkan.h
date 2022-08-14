@@ -114,11 +114,12 @@ private:
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
   // Command Buffers
   std::vector<VkCommandBuffer> mVkGraphicsCommandBufferVector{};
-  // Fences
-  std::vector<VkFence> mVkGraphicsFenceVector{};
-  // Render Loop info
+  // Frames in flight
+  std::vector<VkFence> mVkFencesInFlightFrames{};
+  u32 mMaxFramesInFlight{ UUNUSED };
   u32 mCurrentFrame{ UUNUSED };
-  b32 mSurfaceIsOutOfDate { UFALSE };
+  // Render Loop info
+  b32 mSurfaceIsOutOfDate{ UFALSE };
 
 };
 
