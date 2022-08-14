@@ -261,9 +261,8 @@ b32 isQueueFamilySuitable(u32 queueFamilyIndex,
       return UFALSE;
     }
 
-    // Queues supporting graphics and/or compute operations must report (1,1,1) in
-    // minImageTransferGranularity, meaning that there are no additional restrictions on
-    // the granularity of image transfer operations for these queues.
+    // graphics family should have no additional restrictions on the granularity of image
+    // transfer operations
     if (not granularityHasProperValuesForGraphics(properties.minImageTransferGranularity)) {
       UTRACE("Device queueFamilyIndex {} has wrong minImageTransferGranularity for graphics. "
              "Should be (1, 1, 1)", queueFamilyIndex);

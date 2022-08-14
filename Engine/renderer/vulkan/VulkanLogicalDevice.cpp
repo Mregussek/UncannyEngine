@@ -32,6 +32,8 @@ b32 FRenderContextVulkan::createLogicalDevice() {
   std::vector<const char*> requiredExtensions{};
   getRequiredSwapchainExtensions(&requiredExtensions);
 
+  // TODO: extensions support is validated during vkCreateDevice and if is no available
+  //  return code is VK_ERROR_EXTENSION_NOT_PRESENT, make sure if checking it here is proper
   // Validate Extensions...
   if (not areRequiredExtensionsAvailable(mVkPhysicalDevice, requiredExtensions)) {
     UERROR("Some required instance layers are not available, cannot start vulkan renderer!");
@@ -44,6 +46,8 @@ b32 FRenderContextVulkan::createLogicalDevice() {
       getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
                                  mPhysicalDeviceDependencies.queueFamilyDependencies) };
 
+  // TODO: make sure if all physical device features are required
+  // Querying physical device features and passing it to create info
   VkPhysicalDeviceFeatures physicalDeviceFeatures{};
   vkGetPhysicalDeviceFeatures(mVkPhysicalDevice, &physicalDeviceFeatures);
 
@@ -60,7 +64,7 @@ b32 FRenderContextVulkan::createLogicalDevice() {
     physicalDeviceFeatures.robustBufferAccess = UFALSE;
   }
 
-  // Create Queue for graphics...
+  // Create Queue Family for graphics...
   deviceQueueCreateInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   deviceQueueCreateInfoVector[0].pNext = nullptr;
   deviceQueueCreateInfoVector[0].flags = VK_FALSE;
