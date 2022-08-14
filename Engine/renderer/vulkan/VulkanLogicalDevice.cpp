@@ -51,6 +51,11 @@ b32 FRenderContextVulkan::createLogicalDevice() {
   VkPhysicalDeviceFeatures physicalDeviceFeatures{};
   vkGetPhysicalDeviceFeatures(mVkPhysicalDevice, &physicalDeviceFeatures);
 
+  if constexpr (not U_VK_DEBUG) {
+    UTRACE("As it is release build, disabling robustBufferAccess!");
+    physicalDeviceFeatures.robustBufferAccess = UFALSE;
+  }
+
   // Create as many create infos as needed...
   std::vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfoVector(
       mPhysicalDeviceDependencies.queueFamilyIndexesCount);
@@ -59,15 +64,10 @@ b32 FRenderContextVulkan::createLogicalDevice() {
     return UFALSE;
   }
 
-  if constexpr (not U_VK_DEBUG) {
-    UTRACE("As it is release build, disabling robustBufferAccess!");
-    physicalDeviceFeatures.robustBufferAccess = UFALSE;
-  }
-
   // Create Queue Family for graphics...
   deviceQueueCreateInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   deviceQueueCreateInfoVector[0].pNext = nullptr;
-  deviceQueueCreateInfoVector[0].flags = VK_FALSE;
+  deviceQueueCreateInfoVector[0].flags = 0;
   deviceQueueCreateInfoVector[0].queueFamilyIndex = mGraphicsQueueFamilyIndex;
   deviceQueueCreateInfoVector[0].queueCount = graphicsFamilyDependencies.queuesCountNeeded;
   deviceQueueCreateInfoVector[0].pQueuePriorities =
