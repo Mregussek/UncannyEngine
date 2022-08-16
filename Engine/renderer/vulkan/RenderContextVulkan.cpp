@@ -52,7 +52,8 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   // Firstly creating instance as it is mandatory for proper Vulkan work...
   b32 properlyCreatedInstance{ createInstance() };
   if (not properlyCreatedInstance) {
-    UFATAL("Could not create Vulkan Instance!");
+    UFATAL("Could not create Vulkan Instance! Check if drivers or Vulkan SDK on"
+           "this host is properly installed!");
     return UFALSE;
   }
 

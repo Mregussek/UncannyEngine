@@ -22,7 +22,7 @@ mat4 mat4::identity() {
 
 mat4 mat4::perspective(f32 fov, f32 aspectRatio, f32 near, f32 far) {
   mat4 result(1.0f);
-  const f32 tanfov2{ tan(fov / 2.f) };
+  const f32 tanfov2{ (f32)tan(fov / 2.f) };
 
   result.elements[0 + 0 * 4] = 1.f / (aspectRatio * tanfov2);
   result.elements[1 + 1 * 4] = 1.f / tanfov2;
@@ -79,8 +79,8 @@ mat4 mat4::translation(vec3 t) {
 mat4 mat4::rotation(f32 angle, vec3 axis) {
   mat4 result(1.f);
 
-  const f32 cosine{ cos(angle) };
-  const f32 sine{ sin(angle) };
+  const f32 cosine{ (f32)cos(angle) };
+  const f32 sine{ (f32)sin(angle) };
   const f32 neg_cosine{ 1.f - cosine };
 
   const vec3 ax{ vec3::normalize(axis) };
