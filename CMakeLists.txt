@@ -20,8 +20,8 @@ add_subdirectory($ENV{VOLK_3RDPARTY_DIR})
 find_package( OpenGL REQUIRED )
 
 # GLFW
-set( GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only" )
-set( GLFW_INSTALL OFF CACHE BOOL  "GLFW lib only" )
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
+set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
 set(ENV{GLFW_3RDPARTY_DIR} ${PROJECT_SOURCE_DIR}/3rdparty/glfw)
 add_subdirectory($ENV{GLFW_3RDPARTY_DIR})
 
