@@ -7,6 +7,7 @@
 #include <string>
 #include <type_traits>
 #include <cmath>
+#include <cfloat>
 #include <array>
 #include <vector>
 #include <typeinfo>
