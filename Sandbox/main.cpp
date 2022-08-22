@@ -44,6 +44,10 @@ auto main() -> i32 {
   // Running loop
   while(pWindow->isNotGoingToClose()) {
     pWindow->pollEvents();
+    if (pWindow->isMinimized()) {
+      continue;
+    }
+
     pRenderContext->update();
   }
 

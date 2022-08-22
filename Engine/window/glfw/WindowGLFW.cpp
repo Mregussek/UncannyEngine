@@ -70,6 +70,15 @@ b32 FWindowGLFW::isNotGoingToClose() const {
 }
 
 
+b32 FWindowGLFW::isMinimized() const {
+  if (mSpecs.width < 1 and mSpecs.height < 1) {
+    return UTRUE;
+  }
+
+  return UFALSE;
+}
+
+
 EWindowLibrary FWindowGLFW::getLibrary() const {
   return EWindowLibrary::GLFW;
 }

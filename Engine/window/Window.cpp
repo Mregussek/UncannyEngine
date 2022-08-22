@@ -38,6 +38,12 @@ b32 FWindow::isNotGoingToClose() const {
 }
 
 
+b32 FWindow::isMinimized() const {
+  UFATAL("should not be used!");
+  return UFALSE;
+}
+
+
 EWindowLibrary FWindow::getLibrary() const {
   UFATAL("should not be used!");
   return EWindowLibrary::NONE;
