@@ -23,11 +23,11 @@ b32 FRenderContextVulkan::createCommandPool() {
 }
 
 
-b32 FRenderContextVulkan::resetCommandPool() {
+b32 FRenderContextVulkan::resetCommandPool(const VkCommandPool& commandPool) {
   UTRACE("Resetting command pools...");
 
   VkCommandPoolResetFlags flags = 0;
-  VkResult result{ vkResetCommandPool(mVkDevice, mVkGraphicsCommandPool, flags) };
+  VkResult result{ vkResetCommandPool(mVkDevice, commandPool, flags) };
   if (result != VK_SUCCESS) {
     UERROR("Could not reset command pools!");
     return UFALSE;

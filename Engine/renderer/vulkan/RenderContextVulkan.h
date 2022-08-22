@@ -57,7 +57,7 @@ private:
   b32 closeDepthImages();
 
   [[nodiscard]] b32 createCommandPool();
-  b32 resetCommandPool();
+  b32 resetCommandPool(const VkCommandPool& commandPool);
   b32 closeCommandPool();
 
   [[nodiscard]] b32 createCommandBuffers();
@@ -69,7 +69,10 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
-  [[nodiscard]] b32 recordCommandBuffersForClearingColorImage();
+  [[nodiscard]] b32 recordCommandBuffersForClearingColorImage(
+      const std::vector<VkImage>& renderImages,
+      const VkCommandPool& commandPool,
+      const std::vector<VkCommandBuffer>& commandBuffers);
 
 
   // Class members

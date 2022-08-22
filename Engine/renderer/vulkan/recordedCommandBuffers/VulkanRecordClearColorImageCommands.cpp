@@ -8,10 +8,13 @@ namespace uncanny
 {
 
 
-b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage() {
+b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage(
+    const std::vector<VkImage>& renderImages,
+    const VkCommandPool& commandPool,
+    const std::vector<VkCommandBuffer>& commandBuffers) {
   UTRACE("Recording command buffers for clearing color image!");
 
-  b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool() };
+  b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool(commandPool) };
   if (not properlyResetCommandPoolsAndBuffers) {
     UERROR("Could not reset command pools (with command buffers), so cannot record commands!");
     return UFALSE;
@@ -31,7 +34,7 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage() {
 
   VkClearColorValue clearColor{{ 1.0f, 0.8f, 0.4f, 0.0f }};
 
-  for (u32 i = 0; i < mVkImagePresentableVector.size(); i++) {
+  for (u32 i = 0; i < renderImages.size(); i++) {
     VkImageMemoryBarrier barrierFromPresentToClear{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
     barrierFromPresentToClear.pNext = nullptr;
     barrierFromPresentToClear.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
@@ -40,7 +43,7 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage() {
     barrierFromPresentToClear.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     barrierFromPresentToClear.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
     barrierFromPresentToClear.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-    barrierFromPresentToClear.image = mVkImagePresentableVector[i];
+    barrierFromPresentToClear.image = renderImages[i];
     barrierFromPresentToClear.subresourceRange = imageSubresourceRange;
 
     VkImageMemoryBarrier barrierFromClearToPresent{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
@@ -51,17 +54,17 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage() {
     barrierFromClearToPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     barrierFromClearToPresent.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
     barrierFromClearToPresent.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-    barrierFromClearToPresent.image = mVkImagePresentableVector[i];
+    barrierFromClearToPresent.image = renderImages[i];
     barrierFromClearToPresent.subresourceRange = imageSubresourceRange;
 
-    VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(mVkGraphicsCommandBufferVector[i],
+    VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
                                                                &commandBufferBeginInfo) };
     if (properlyPreparedForCommands != VK_SUCCESS) {
       UERROR("Cannot record any commands! Wrong output of vkBeginCommandBuffer!");
       return UFALSE;
     }
 
-    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
+    vkCmdPipelineBarrier(commandBuffers[i],
                          VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                          VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VkDependencyFlags{ 0 },
@@ -69,12 +72,12 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage() {
                          0, nullptr,
                          1, &barrierFromPresentToClear);
     // vkCmdClearColorImage -> the least efficient mechanism on tile-based GPU architectures
-    vkCmdClearColorImage(mVkGraphicsCommandBufferVector[i],
-                         mVkImagePresentableVector[i],
+    vkCmdClearColorImage(commandBuffers[i],
+                         renderImages[i],
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          &clearColor,
                          1, &imageSubresourceRange);
-    vkCmdPipelineBarrier(mVkGraphicsCommandBufferVector[i],
+    vkCmdPipelineBarrier(commandBuffers[i],
                          VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                          VkDependencyFlags{ 0 },
@@ -82,7 +85,7 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage() {
                          0, nullptr,
                          1, &barrierFromClearToPresent);
 
-    VkResult properlyRecordedCommands{ vkEndCommandBuffer(mVkGraphicsCommandBufferVector[i]) };
+    VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
     if (properlyRecordedCommands != VK_SUCCESS) {
       UERROR("Could not record command buffers!");
       return UFALSE;

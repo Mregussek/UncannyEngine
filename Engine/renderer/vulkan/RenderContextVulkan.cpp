@@ -145,7 +145,9 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   }
 
   // Finally record commands as startup point
-  b32 recordedCommandBuffers{ recordCommandBuffersForClearingColorImage() };
+  b32 recordedCommandBuffers{
+    recordCommandBuffersForClearingColorImage(mVkImagePresentableVector, mVkGraphicsCommandPool,
+                                              mVkGraphicsCommandBufferVector) };
   if (not recordedCommandBuffers) {
     UFATAL("Could not record command buffers!");
     return UFALSE;
@@ -163,6 +165,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
   if (mVkDevice != VK_NULL_HANDLE) {
+    UTRACE("Waiting for Device Idle state before terminating...");
     vkDeviceWaitIdle(mVkDevice);
   }
 
@@ -197,7 +200,9 @@ b32 FRenderContextVulkan::update() {
       return UFALSE;
     }
 
-    b32 recordedCommandBuffers{ recordCommandBuffersForClearingColorImage() };
+    b32 recordedCommandBuffers{
+        recordCommandBuffersForClearingColorImage(mVkImagePresentableVector, mVkGraphicsCommandPool,
+                                                  mVkGraphicsCommandBufferVector) };
     if (not recordedCommandBuffers) {
       UERROR("Could not record command buffers!");
       return UFALSE;
