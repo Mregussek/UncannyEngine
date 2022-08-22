@@ -69,7 +69,7 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
-  [[nodiscard]] b32 recordCommandBuffers();
+  [[nodiscard]] b32 recordCommandBuffersForClearingColorImage();
 
 
   // Class members
