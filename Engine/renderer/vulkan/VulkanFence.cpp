@@ -11,14 +11,14 @@ namespace uncanny
 b32 FRenderContextVulkan::createGraphicsFences() {
   UTRACE("Creating graphics fences...");
 
-  u32 commandBuffersCount{ (u32)mVkGraphicsCommandBufferVector.size() };
-  mVkFencesInFlightFrames.resize(commandBuffersCount);
+  u32 imageCount{ mSwapchainDependencies.usedImageCount };
+  mVkFencesInFlightFrames.resize(imageCount);
 
   VkFenceCreateInfo createInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
   createInfo.pNext = nullptr;
   createInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-  for (u32 i = 0; i < commandBuffersCount; i++) {
+  for (u32 i = 0; i < imageCount; i++) {
     U_VK_ASSERT( vkCreateFence(mVkDevice, &createInfo, nullptr, &mVkFencesInFlightFrames[i]) );
   }
 

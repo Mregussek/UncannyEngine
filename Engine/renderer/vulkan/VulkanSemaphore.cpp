@@ -8,6 +8,10 @@ namespace uncanny
 {
 
 
+static b32 closeSemaphoresVector(VkDevice device, std::vector<VkSemaphore>* pSemaphoreVector,
+                           const char* logInfo);
+
+
 b32 FRenderContextVulkan::createGraphicsSemaphores() {
   UTRACE("Creating graphics semaphores...");
 
@@ -15,6 +19,7 @@ b32 FRenderContextVulkan::createGraphicsSemaphores() {
 
   mVkSemaphoreImageAvailableVector.resize(imageCount);
   mVkSemaphoreRenderingFinishedVector.resize(imageCount);
+  mVkSemaphoreCopyImageFinishedVector.resize(imageCount);
 
   VkSemaphoreCreateInfo createInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
   createInfo.pNext = nullptr;
@@ -34,6 +39,13 @@ b32 FRenderContextVulkan::createGraphicsSemaphores() {
       UERROR("Could not create render finished semaphore {}!", i);
       return UFALSE;
     }
+
+    VkResult createdCopyImageSemaphore{
+        vkCreateSemaphore(mVkDevice, &createInfo, nullptr, &mVkSemaphoreCopyImageFinishedVector[i]) };
+    if (createdCopyImageSemaphore != VK_SUCCESS) {
+      UERROR("Could not create copy image semaphore {}!", i);
+      return UFALSE;
+    }
   }
 
   UDEBUG("Created graphics semaphores!");
@@ -44,40 +56,33 @@ b32 FRenderContextVulkan::createGraphicsSemaphores() {
 b32 FRenderContextVulkan::closeGraphicsSemaphores() {
   UTRACE("Closing graphics semaphores...");
 
-  if (mVkSemaphoreImageAvailableVector.empty()) {
-    UWARN("Image available semaphores vector is empty! Nothing will be destroyed!");
-  }
-
-  if (mVkSemaphoreRenderingFinishedVector.empty()) {
-    UWARN("Render finish semaphores vector is empty! Nothing will be destroyed!");
-  }
-
-  if (mVkSemaphoreImageAvailableVector.size() != mVkSemaphoreRenderingFinishedVector.size()) {
-    UERROR("Semaphores image available and render finish has different sizes! ImAv {} ReFi {}",
-           mVkSemaphoreImageAvailableVector.size(), mVkSemaphoreRenderingFinishedVector.size());
-  }
-
-  for (u32 i = 0; i < mVkSemaphoreImageAvailableVector.size(); i++) {
-    if (mVkSemaphoreImageAvailableVector[i] != VK_NULL_HANDLE) {
-      UTRACE("Destroying image available semaphore {} ...", i);
-      vkDestroySemaphore(mVkDevice, mVkSemaphoreImageAvailableVector[i], nullptr);
-    }
-    else {
-      UWARN("Not destroying image available semaphore {} as it wasn't been created!", i);
-    }
-  }
-
-  for (u32 i = 0; i < mVkSemaphoreRenderingFinishedVector.size(); i++) {
-    if (mVkSemaphoreRenderingFinishedVector[i] != VK_NULL_HANDLE) {
-      UTRACE("Destroying render finished semaphore {} ...", i);
-      vkDestroySemaphore(mVkDevice, mVkSemaphoreRenderingFinishedVector[i], nullptr);
-    }
-    else {
-      UWARN("Not destroying render finished semaphore {} as it wasn't been created!", i);
-    }
-  }
+  closeSemaphoresVector(mVkDevice, &mVkSemaphoreImageAvailableVector, "image available");
+  closeSemaphoresVector(mVkDevice, &mVkSemaphoreRenderingFinishedVector, "rendering finished");
+  closeSemaphoresVector(mVkDevice, &mVkSemaphoreCopyImageFinishedVector, "copy image finished");
 
   UDEBUG("Closed graphics semaphores!");
+  return UTRUE;
+}
+
+
+b32 closeSemaphoresVector(VkDevice device, std::vector<VkSemaphore>* pSemaphoreVector,
+                          const char* logInfo) {
+  if (pSemaphoreVector->empty()) {
+    UWARN("{} semaphores vector is empty! Nothing will be destroyed!", logInfo);
+    return UTRUE;
+  }
+
+  for (u32 i = 0; i < pSemaphoreVector->size(); i++) {
+    if (pSemaphoreVector->at(i) != VK_NULL_HANDLE) {
+      UTRACE("Destroying {} semaphore {} ...", logInfo, i);
+      vkDestroySemaphore(device, pSemaphoreVector->at(i), nullptr);
+    }
+    else {
+      UWARN("Not destroying {} semaphore {} as it wasn't been created!", logInfo, i);
+    }
+  }
+
+  pSemaphoreVector->clear();
   return UTRUE;
 }
 

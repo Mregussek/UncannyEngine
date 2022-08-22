@@ -30,7 +30,7 @@ void FRenderContextVulkan::defineDependencies() {
   // Don’t use 32-bit floating point depth formats, due to the performance cost, unless
   // improved precision is actually required.
   mPhysicalDeviceDependencies.depthFormatDependencies = {
-      VK_FORMAT_D24_UNORM_S8_UINT
+      VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
   };
 
   mSwapchainDependencies.usedImageCount = 2;
@@ -152,9 +152,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   }
 
   // Finally record commands as startup point
-  b32 recordedCommandBuffers{
-    recordCommandBuffersForClearingColorImage(mVkImagePresentableVector, mVkGraphicsCommandPool,
-                                              mVkGraphicsCommandBufferVector) };
+  b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
   if (not recordedCommandBuffers) {
     UFATAL("Could not record command buffers!");
     return UFALSE;
@@ -260,23 +258,35 @@ b32 FRenderContextVulkan::update() {
 
   VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
 
-  VkSubmitInfo queueSubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-  queueSubmitInfo.pNext = nullptr;
-  queueSubmitInfo.waitSemaphoreCount = 1;
-  queueSubmitInfo.pWaitSemaphores = &mVkSemaphoreImageAvailableVector[mCurrentFrame];
-  queueSubmitInfo.pWaitDstStageMask = &waitDstStageMask;
-  queueSubmitInfo.commandBufferCount = 1;
-  queueSubmitInfo.pCommandBuffers = &mVkGraphicsCommandBufferVector[mCurrentFrame];
-  queueSubmitInfo.signalSemaphoreCount = 1;
-  queueSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
+  VkSubmitInfo queueSubmitInfos[2];
 
-  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &queueSubmitInfo,
+  queueSubmitInfos[0].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  queueSubmitInfos[0].pNext = nullptr;
+  queueSubmitInfos[0].waitSemaphoreCount = 1;
+  queueSubmitInfos[0].pWaitSemaphores = &mVkSemaphoreImageAvailableVector[mCurrentFrame];
+  queueSubmitInfos[0].pWaitDstStageMask = &waitDstStageMask;
+  queueSubmitInfos[0].commandBufferCount = 1;
+  queueSubmitInfos[0].pCommandBuffers = &mVkRenderCommandBufferVector[mCurrentFrame];
+  queueSubmitInfos[0].signalSemaphoreCount = 1;
+  queueSubmitInfos[0].pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
+
+  queueSubmitInfos[1].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  queueSubmitInfos[1].pNext = nullptr;
+  queueSubmitInfos[1].waitSemaphoreCount = 1;
+  queueSubmitInfos[1].pWaitSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
+  queueSubmitInfos[1].pWaitDstStageMask = &waitDstStageMask;
+  queueSubmitInfos[1].commandBufferCount = 1;
+  queueSubmitInfos[1].pCommandBuffers = &mVkCopyCommandBufferVector[mCurrentFrame];
+  queueSubmitInfos[1].signalSemaphoreCount = 1;
+  queueSubmitInfos[1].pSignalSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
+
+  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 2, queueSubmitInfos,
                              mVkFencesInFlightFrames[mCurrentFrame]) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
   queuePresentInfo.pNext = nullptr;
   queuePresentInfo.waitSemaphoreCount = 1;
-  queuePresentInfo.pWaitSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
+  queuePresentInfo.pWaitSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
   queuePresentInfo.swapchainCount = 1;
   queuePresentInfo.pSwapchains = &mVkSwapchainCurrent;
   queuePresentInfo.pImageIndices = &imageIndex;
@@ -311,11 +321,9 @@ b32 FRenderContextVulkan::update() {
       return UFALSE;
     }
 
-    b32 recordedCommandBuffers{
-        recordCommandBuffersForClearingColorImage(mVkImagePresentableVector, mVkGraphicsCommandPool,
-                                                  mVkGraphicsCommandBufferVector) };
+    b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
     if (not recordedCommandBuffers) {
-      UERROR("Could not record command buffers!");
+      UFATAL("Could not record command buffers!");
       return UFALSE;
     }
 

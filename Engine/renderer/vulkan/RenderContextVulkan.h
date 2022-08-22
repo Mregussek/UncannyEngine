@@ -74,8 +74,16 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
+  [[nodiscard]] b32 recordCommandBuffersGeneral();
+
   [[nodiscard]] b32 recordCommandBuffersForClearingColorImage(
-      const std::vector<VkImage>& renderImages,
+      const std::vector<FImageVulkan>& renderTargetImages,
+      const VkCommandPool& commandPool,
+      const std::vector<VkCommandBuffer>& commandBuffers);
+
+  [[nodiscard]] b32 recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
+      const std::vector<FImageVulkan>& renderTargetImages,
+      const std::vector<VkImage>& presentableImages,
       const VkCommandPool& commandPool,
       const std::vector<VkCommandBuffer>& commandBuffers);
 
@@ -103,6 +111,7 @@ private:
   // Semaphores - synchronizes GPU to GPU execution of commands
   std::vector<VkSemaphore> mVkSemaphoreImageAvailableVector{};
   std::vector<VkSemaphore> mVkSemaphoreRenderingFinishedVector{};
+  std::vector<VkSemaphore> mVkSemaphoreCopyImageFinishedVector{};
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
@@ -124,7 +133,8 @@ private:
   // Command Pools
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
   // Command Buffers
-  std::vector<VkCommandBuffer> mVkGraphicsCommandBufferVector{};
+  std::vector<VkCommandBuffer> mVkRenderCommandBufferVector{};
+  std::vector<VkCommandBuffer> mVkCopyCommandBufferVector{};
   // Frames in flight
   std::vector<VkFence> mVkFencesInFlightFrames{};
   u32 mMaxFramesInFlight{ UUNUSED };
