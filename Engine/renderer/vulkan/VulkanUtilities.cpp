@@ -33,6 +33,20 @@ FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID) {
 }
 
 
+u32 findMemoryIndex(VkPhysicalDeviceMemoryProperties memoryProperties, u32 typeFilter,
+                    VkMemoryPropertyFlagBits flags) {
+  for (u32 i = 0; i < memoryProperties.memoryTypeCount; i++) {
+    // Check each memory type to see if its bit is set to 1.
+    if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & flags) == flags) {
+      return i;
+    }
+  }
+
+  UWARN("Unable to find suitable memory type!");
+  return UUNUSED;
+}
+
+
 const char* retrieveInfoAboutVkResult(VkResult result) {
   if (result == VK_NOT_READY) {
     return "VK_NOT_READY A fence or query has not yet completed";

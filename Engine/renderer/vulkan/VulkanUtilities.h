@@ -32,6 +32,10 @@ struct FDriverVersionInfo {
 FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID);
 
 
+u32 findMemoryIndex(VkPhysicalDeviceMemoryProperties memoryProperties, u32 typeFilter,
+                    VkMemoryPropertyFlagBits flags);
+
+
 const char* retrieveInfoAboutVkResult(VkResult result);
 
 

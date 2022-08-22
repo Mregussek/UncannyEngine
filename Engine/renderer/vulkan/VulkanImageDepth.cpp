@@ -9,10 +9,6 @@ namespace uncanny
 {
 
 
-static u32 findMemoryIndex(VkPhysicalDeviceMemoryProperties memoryProperties, u32 typeFilter,
-                           VkMemoryPropertyFlagBits flags);
-
-
 b32 FRenderContextVulkan::createDepthImages() {
   UTRACE("Creating depth images...");
 
@@ -31,17 +27,17 @@ b32 FRenderContextVulkan::createDepthImages() {
   }
 
   // create depth image...
-  VkExtent3D depthImageExtent{};
-  depthImageExtent.width = mVkImageExtent2D.width;
-  depthImageExtent.height = mVkImageExtent2D.height;
-  depthImageExtent.depth = 1;
+  VkExtent3D imageExtent{};
+  imageExtent.width = mVkImageExtent2D.width;
+  imageExtent.height = mVkImageExtent2D.height;
+  imageExtent.depth = 1;
 
   VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
   imageCreateInfo.pNext = nullptr;
   imageCreateInfo.flags = 0;
   imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
   imageCreateInfo.format = mVkDepthFormat;
-  imageCreateInfo.extent = depthImageExtent;
+  imageCreateInfo.extent = imageExtent;
   imageCreateInfo.mipLevels = 4;
   imageCreateInfo.arrayLayers = 1;
   imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -52,11 +48,11 @@ b32 FRenderContextVulkan::createDepthImages() {
   imageCreateInfo.pQueueFamilyIndices = nullptr;
   imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-  U_VK_ASSERT( vkCreateImage(mVkDevice, &imageCreateInfo, nullptr, &mVkDepthImage) );
+  U_VK_ASSERT( vkCreateImage(mVkDevice, &imageCreateInfo, nullptr, &mDepthImage.handle) );
 
   // allocate memory for depth image
   VkMemoryRequirements memoryReqs{};
-  vkGetImageMemoryRequirements(mVkDevice, mVkDepthImage, &memoryReqs);
+  vkGetImageMemoryRequirements(mVkDevice, mDepthImage.handle, &memoryReqs);
 
   VkPhysicalDeviceMemoryProperties memoryProperties{};
   vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &memoryProperties);
@@ -73,10 +69,12 @@ b32 FRenderContextVulkan::createDepthImages() {
   memoryAllocateInfo.allocationSize = memoryReqs.size;
   memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
 
-  U_VK_ASSERT( vkAllocateMemory(mVkDevice, &memoryAllocateInfo, nullptr, &mVkDepthImageMemory) );
+  U_VK_ASSERT( vkAllocateMemory(mVkDevice, &memoryAllocateInfo, nullptr,
+                                &mDepthImage.deviceMemory) );
 
   VkDeviceSize memoryOffset{ 0 };
-  U_VK_ASSERT( vkBindImageMemory(mVkDevice, mVkDepthImage, mVkDepthImageMemory, memoryOffset) );
+  U_VK_ASSERT( vkBindImageMemory(mVkDevice, mDepthImage.handle, mDepthImage.deviceMemory,
+                                 memoryOffset) );
 
   // create depth image view...
   VkComponentMapping componentMapping{};
@@ -95,13 +93,13 @@ b32 FRenderContextVulkan::createDepthImages() {
   VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
   imageViewCreateInfo.pNext = nullptr;
   imageViewCreateInfo.flags = 0;
-  imageViewCreateInfo.image = mVkDepthImage;
+  imageViewCreateInfo.image = mDepthImage.handle;
   imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
   imageViewCreateInfo.format = mVkDepthFormat;
   imageViewCreateInfo.components = componentMapping;
   imageViewCreateInfo.subresourceRange = imageSubresourceRange;
 
-  U_VK_ASSERT( vkCreateImageView(mVkDevice, &imageViewCreateInfo,nullptr, &mVkDepthImageView) );
+  U_VK_ASSERT( vkCreateImageView(mVkDevice, &imageViewCreateInfo,nullptr, &mDepthImage.handleView) );
 
   UDEBUG("Created depth images!");
   return UTRUE;
@@ -116,9 +114,9 @@ b32 FRenderContextVulkan::closeDepthImages() {
     mVkDepthFormat = VK_FORMAT_UNDEFINED;
   }
 
-  if (mVkDepthImageView != VK_NULL_HANDLE) {
+  if (mDepthImage.handleView != VK_NULL_HANDLE) {
     UTRACE("Destroying depth image view...");
-    vkDestroyImageView(mVkDevice, mVkDepthImageView, nullptr);
+    vkDestroyImageView(mVkDevice, mDepthImage.handleView, nullptr);
   }
   else {
     UWARN("As depth image view is not created, it is not destroyed!");
@@ -126,22 +124,23 @@ b32 FRenderContextVulkan::closeDepthImages() {
 
   // It is nice to firstly destroy image, then free its memory, as
   // if image will be used it will be referencing freed memory
-  if (mVkDepthImage != VK_NULL_HANDLE) {
+  if (mDepthImage.handle != VK_NULL_HANDLE) {
     UTRACE("Destroying depth image...");
-    vkDestroyImage(mVkDevice, mVkDepthImage, nullptr);
+    vkDestroyImage(mVkDevice, mDepthImage.handle, nullptr);
   }
   else {
     UWARN("As depth image is not created, it is not destroyed!");
   }
 
-  if (mVkDepthImageMemory != VK_NULL_HANDLE) {
+  if (mDepthImage.deviceMemory != VK_NULL_HANDLE) {
     UTRACE("Freeing depth image memory...");
-    vkFreeMemory(mVkDevice, mVkDepthImageMemory, nullptr);
+    vkFreeMemory(mVkDevice, mDepthImage.deviceMemory, nullptr);
   }
   else {
     UWARN("As depth image memory is not allocated, it won't be freed!");
   }
 
+  mDepthImage = {};
   UDEBUG("Closed depth images!");
   return UTRUE;
 }
@@ -170,20 +169,6 @@ b32 detectSupportedDepthFormat(VkPhysicalDevice physicalDevice,
 
   UERROR("Could not detect depth format from candidates!");
   return UFALSE;
-}
-
-
-u32 findMemoryIndex(VkPhysicalDeviceMemoryProperties memoryProperties, u32 typeFilter,
-                    VkMemoryPropertyFlagBits flags) {
-  for (u32 i = 0; i < memoryProperties.memoryTypeCount; i++) {
-    // Check each memory type to see if its bit is set to 1.
-    if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & flags) == flags) {
-      return i;
-    }
-  }
-
-  UWARN("Unable to find suitable memory type!");
-  return UUNUSED;
 }
 
 
