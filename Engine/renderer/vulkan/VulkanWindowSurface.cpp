@@ -129,6 +129,21 @@ b32 FRenderContextVulkan::closeWindowSurface() {
 }
 
 
+b32 FRenderContextVulkan::isWindowSurfacePresentableImageExtentProper() {
+  U_VK_ASSERT( vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysicalDevice, mVkWindowSurface,
+                                                         &mVkSurfaceCapabilities) );
+
+  const u32 surfaceWidth{ mVkSurfaceCapabilities.currentExtent.width };
+  const u32 surfaceHeight{ mVkSurfaceCapabilities.currentExtent.height };
+
+  if (surfaceWidth <= 1 and surfaceHeight <= 1) {
+    return UFALSE;
+  }
+
+  return UTRUE;
+}
+
+
 b32 windowSurfaceSupportVulkanAPI(const FWindow* pWindow) {
   if (pWindow->getLibrary() == EWindowLibrary::GLFW) {
     i32 isVulkanSupportedByGLFW{ glfwVulkanSupported() };

@@ -71,7 +71,7 @@ b32 FWindowGLFW::isNotGoingToClose() const {
 
 
 b32 FWindowGLFW::isMinimized() const {
-  if (mSpecs.width < 1 and mSpecs.height < 1) {
+  if (mSpecs.width <= 1 and mSpecs.height <= 1) {
     return UTRUE;
   }
 

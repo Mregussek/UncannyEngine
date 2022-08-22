@@ -40,6 +40,7 @@ private:
 
   [[nodiscard]] b32 createWindowSurface();
   [[nodiscard]] b32 collectWindowSurfaceCapabilities();
+  [[nodiscard]] b32 isWindowSurfacePresentableImageExtentProper();
   b32 closeWindowSurface();
 
   [[nodiscard]] b32 createLogicalDevice();
@@ -123,6 +124,8 @@ private:
   u32 mCurrentFrame{ UUNUSED };
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
+  b32 mPrintNotProperExtent{ UFALSE };
+  b32 mPrintProperExtent{ UFALSE };
 
 };
 

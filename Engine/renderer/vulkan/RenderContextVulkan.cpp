@@ -156,6 +156,8 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount
   mCurrentFrame = 0;
   mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
+  mPrintNotProperExtent = UTRUE;
+  mPrintProperExtent = UFALSE;
 
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
@@ -189,6 +191,24 @@ void FRenderContextVulkan::terminate() {
 
 
 b32 FRenderContextVulkan::update() {
+  if (not isWindowSurfacePresentableImageExtentProper()) {
+    // it checks if window is minimized, if so we don't want to schedule
+    // anything and recreate swapchain
+    if (mPrintNotProperExtent) {
+      UDEBUG("Window Surface Extent is not proper, probably minimized, skipping update()!");
+      mPrintNotProperExtent = UFALSE;
+    }
+    mPrintProperExtent = UTRUE;
+    return UTRUE;
+  }
+  else {
+    if (mPrintProperExtent) {
+      UDEBUG("Window Surface Extent is correct, resuming update()!");
+      mPrintProperExtent = UFALSE;
+    }
+    mPrintNotProperExtent = UTRUE;
+  }
+
   vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE, UINT64_MAX);
   vkResetFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame]);
 
@@ -251,8 +271,9 @@ b32 FRenderContextVulkan::update() {
 
   mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
 
-  if (mSurfaceIsOutOfDate) {
-    UTRACE("As surface is out of date, there is need to recreate swapchain...");
+  // Check if surface is out of date and surface is not minimized
+  if (mSurfaceIsOutOfDate and isWindowSurfacePresentableImageExtentProper()) {
+    UTRACE("As surface is out of date and is not minimized, need to recreate swapchain...");
 
     vkDeviceWaitIdle(mVkDevice);
 
@@ -270,10 +291,12 @@ b32 FRenderContextVulkan::update() {
       return UFALSE;
     }
 
-    mSurfaceIsOutOfDate = UFALSE;
     UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
            " imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
+    mSurfaceIsOutOfDate = UFALSE;
     mCurrentFrame = 0;
+    mPrintNotProperExtent = UTRUE;
+    mPrintProperExtent = UFALSE;
   }
   return UTRUE;
 }
