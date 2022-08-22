@@ -181,6 +181,7 @@ b32 FRenderContextVulkan::shouldReturnAfterWindowSurfacePresentableImageStateVal
       mPrintNotProperExtent = UFALSE;
     }
     mPrintCorrectExtent = UTRUE;
+    // if window is minimized we should skip update(), so we should return from it
     return UTRUE;
   }
   else {
@@ -189,6 +190,7 @@ b32 FRenderContextVulkan::shouldReturnAfterWindowSurfacePresentableImageStateVal
       mPrintCorrectExtent = UFALSE;
     }
     mPrintNotProperExtent = UTRUE;
+    // if otherwise, we shall skip returning and continue update() method.
     return UFALSE;
   }
 }
