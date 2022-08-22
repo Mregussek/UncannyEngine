@@ -75,6 +75,9 @@ private:
       const VkCommandPool& commandPool,
       const std::vector<VkCommandBuffer>& commandBuffers);
 
+  [[nodiscard]] b32 shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state);
+  void resetRenderLoopMembers();
+
 
   // Class members
   FRenderContextSpecification mSpecs{};
@@ -125,7 +128,7 @@ private:
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };
-  b32 mPrintProperExtent{ UFALSE };
+  b32 mPrintCorrectExtent{ UFALSE };
 
 };
 

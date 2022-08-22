@@ -153,14 +153,44 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
-  // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount
-  mCurrentFrame = 0;
   mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
-  mPrintNotProperExtent = UTRUE;
-  mPrintProperExtent = UFALSE;
+  resetRenderLoopMembers();
 
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
+}
+
+
+void FRenderContextVulkan::resetRenderLoopMembers() {
+  // surface is always proper after creation
+  mSurfaceIsOutOfDate = UFALSE;
+  // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount
+  mCurrentFrame = 0;
+  // by default, we want to print first occurrence of wrong surface extent
+  mPrintNotProperExtent = UTRUE;
+  // by default, we don't want to print first occurrence of correct surface extent as after
+  // creation it should be always correct
+  mPrintCorrectExtent = UFALSE;
+}
+
+
+b32 FRenderContextVulkan::shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state) {
+  if (not state) {
+    if (mPrintNotProperExtent) {
+      UDEBUG("Window Surface Extent is not proper, probably minimized, skipping update()!");
+      mPrintNotProperExtent = UFALSE;
+    }
+    mPrintCorrectExtent = UTRUE;
+    return UTRUE;
+  }
+  else {
+    if (mPrintCorrectExtent) {
+      UDEBUG("Window Surface Extent is correct, resuming update()!");
+      mPrintCorrectExtent = UFALSE;
+    }
+    mPrintNotProperExtent = UTRUE;
+    return UFALSE;
+  }
 }
 
 
@@ -191,22 +221,10 @@ void FRenderContextVulkan::terminate() {
 
 
 b32 FRenderContextVulkan::update() {
-  if (not isWindowSurfacePresentableImageExtentProper()) {
-    // it checks if window is minimized, if so we don't want to schedule
-    // anything and recreate swapchain
-    if (mPrintNotProperExtent) {
-      UDEBUG("Window Surface Extent is not proper, probably minimized, skipping update()!");
-      mPrintNotProperExtent = UFALSE;
-    }
-    mPrintProperExtent = UTRUE;
+  // if window is minimized, if so we don't want to schedule anything and recreate swapchain
+  b32 surfaceImageState{ isWindowSurfacePresentableImageExtentProper() };
+  if (shouldReturnAfterWindowSurfacePresentableImageStateValidation(surfaceImageState)) {
     return UTRUE;
-  }
-  else {
-    if (mPrintProperExtent) {
-      UDEBUG("Window Surface Extent is correct, resuming update()!");
-      mPrintProperExtent = UFALSE;
-    }
-    mPrintNotProperExtent = UTRUE;
   }
 
   vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE, UINT64_MAX);
@@ -293,10 +311,7 @@ b32 FRenderContextVulkan::update() {
 
     UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
            " imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
-    mSurfaceIsOutOfDate = UFALSE;
-    mCurrentFrame = 0;
-    mPrintNotProperExtent = UTRUE;
-    mPrintProperExtent = UFALSE;
+    resetRenderLoopMembers();
   }
   return UTRUE;
 }
