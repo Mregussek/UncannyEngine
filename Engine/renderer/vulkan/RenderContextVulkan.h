@@ -55,8 +55,8 @@ private:
   [[nodiscard]] b32 recreateSwapchain();
   b32 closeSwapchain();
 
-  [[nodiscard]] b32 createRenderImages();
-  b32 closeRenderImages();
+  [[nodiscard]] b32 createRenderTargetImages();
+  b32 closeRenderTargetImages();
 
   [[nodiscard]] b32 createDepthImages();
   b32 closeDepthImages();

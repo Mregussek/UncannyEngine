@@ -3,6 +3,7 @@
 #include "VulkanImageDepth.h"
 #include "VulkanUtilities.h"
 #include <utilities/Logger.h>
+#include "VulkanImages.h"
 
 
 namespace uncanny
@@ -26,6 +27,8 @@ b32 FRenderContextVulkan::createDepthImages() {
     UTRACE("Found depth format, now can create depth images...");
   }
 
+  mDepthImage.format = mVkDepthFormat;
+
   // create depth image...
   VkExtent3D imageExtent{};
   imageExtent.width = mVkImageExtent2D.width;
@@ -36,7 +39,7 @@ b32 FRenderContextVulkan::createDepthImages() {
   imageCreateInfo.pNext = nullptr;
   imageCreateInfo.flags = 0;
   imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-  imageCreateInfo.format = mVkDepthFormat;
+  imageCreateInfo.format = mDepthImage.format;
   imageCreateInfo.extent = imageExtent;
   imageCreateInfo.mipLevels = 4;
   imageCreateInfo.arrayLayers = 1;
@@ -95,7 +98,7 @@ b32 FRenderContextVulkan::createDepthImages() {
   imageViewCreateInfo.flags = 0;
   imageViewCreateInfo.image = mDepthImage.handle;
   imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-  imageViewCreateInfo.format = mVkDepthFormat;
+  imageViewCreateInfo.format = mDepthImage.format;
   imageViewCreateInfo.components = componentMapping;
   imageViewCreateInfo.subresourceRange = imageSubresourceRange;
 
@@ -109,38 +112,13 @@ b32 FRenderContextVulkan::createDepthImages() {
 b32 FRenderContextVulkan::closeDepthImages() {
   UTRACE("Closing depth images...");
 
-  if (mVkDepthFormat != VK_FORMAT_UNDEFINED) {
-    UTRACE("Clearing depth format variable...");
-    mVkDepthFormat = VK_FORMAT_UNDEFINED;
+  b32 closedProperly{ closeImageVulkan(&mDepthImage, mVkDevice, "depth") };
+  if (not closedProperly) {
+    UERROR("Could not close properly render target image!");
+    return UFALSE;
   }
-
-  if (mDepthImage.handleView != VK_NULL_HANDLE) {
-    UTRACE("Destroying depth image view...");
-    vkDestroyImageView(mVkDevice, mDepthImage.handleView, nullptr);
-  }
-  else {
-    UWARN("As depth image view is not created, it is not destroyed!");
-  }
-
-  // It is nice to firstly destroy image, then free its memory, as
-  // if image will be used it will be referencing freed memory
-  if (mDepthImage.handle != VK_NULL_HANDLE) {
-    UTRACE("Destroying depth image...");
-    vkDestroyImage(mVkDevice, mDepthImage.handle, nullptr);
-  }
-  else {
-    UWARN("As depth image is not created, it is not destroyed!");
-  }
-
-  if (mDepthImage.deviceMemory != VK_NULL_HANDLE) {
-    UTRACE("Freeing depth image memory...");
-    vkFreeMemory(mVkDevice, mDepthImage.deviceMemory, nullptr);
-  }
-  else {
-    UWARN("As depth image memory is not allocated, it won't be freed!");
-  }
-
   mDepthImage = {};
+
   UDEBUG("Closed depth images!");
   return UTRUE;
 }
