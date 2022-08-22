@@ -24,8 +24,13 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
   mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
+  // Prefer using 24-bit depth formats for optimal performance.
+  // Prefer using packed depth/stencil formats. This is a common cause for notable
+  // performance differences between an OpenGL and Vulkan implementation.
+  // Don’t use 32-bit floating point depth formats, due to the performance cost, unless
+  // improved precision is actually required.
   mPhysicalDeviceDependencies.depthFormatDependencies = {
-      VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
+      VK_FORMAT_D24_UNORM_S8_UINT
   };
 
   mSwapchainDependencies.usedImageCount = 2;
@@ -288,7 +293,7 @@ b32 FRenderContextVulkan::update() {
     UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!");
   }
 
-  VkBool32 allFencesAreSignaled = VK_TRUE;
+  VkBool32 allFencesAreSignaled{ VK_TRUE };
   u64 fencesTimeout{ UINT64_MAX };
   vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], allFencesAreSignaled,
                   fencesTimeout);
