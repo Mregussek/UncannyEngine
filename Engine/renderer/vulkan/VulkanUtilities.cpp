@@ -13,31 +13,6 @@ namespace uncanny
 {
 
 
-u32 retrieveVulkanApiVersion() {
-  const std::array<u32, 4> vulkanVersionsArray{
-      VK_API_VERSION_1_3, VK_API_VERSION_1_2, VK_API_VERSION_1_1, VK_API_VERSION_1_0
-  };
-
-  for(u32 version : vulkanVersionsArray) {
-    const u32 variant{ VK_API_VERSION_VARIANT(version) };
-    const u32 major{ VK_API_VERSION_MAJOR(version) };
-    const u32 minor{ VK_API_VERSION_MINOR(version) };
-    const VkResult result{ vkEnumerateInstanceVersion(&version) };
-    UTRACE("Logging VkResult for vkEnumerateInstanceVersion Variant {} Version {}.{} -> {}", variant,
-           major, minor, result);
-    if (result == VK_SUCCESS) {
-      return version;
-    }
-  }
-
-  UFATAL("Any Vulkan API is not supported on this device, check your drivers!");
-  return 0;
-  // TODO: Handle no support for Vulkan API, remember that vkEnumerateInstanceVersion always
-  //  return VK_SUCCESS, even with 0.0.0 version
-  //  Variant.Major.Minor.Patch -> currently patch does not mean nothing!
-}
-
-
 FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID) {
   UTRACE("Trying to decode driver version for vendorID: {}", vendorID);
   if (vendorID == 4318) { // NVIDIA

@@ -29,9 +29,6 @@ struct FDriverVersionInfo {
 };
 
 
-u32 retrieveVulkanApiVersion();
-
-
 FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID);
 
 
