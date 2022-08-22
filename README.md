@@ -50,8 +50,10 @@ Mateusz Rzeczyca
 
 ## History
 
-11.08.2022 Clearing screen is working with vkCmdClearColorImage [tree](https://github.com/Mregussek/UncannyEngine/tree/3a75c1a14a187e0e75f51a2a607439b0a95d1a11)
+22.08.2022 Resolved issue during resizing with frames in flight, clearing is stable! [tree](https://github.com/Mregussek/UncannyEngine/tree/cfa00b9c0c286e6bf4edfb741e64ddce43e30cbd)
+
+22.08.2022 Clearing screen with vkCmdClearColorImage with resizing made pretty stable [tree](https://github.com/Mregussek/UncannyEngine/tree/5fff1785a408d2839e26bc89e78152623433e80d)
 
 11.08.2022 Resizing window is working [tree](https://github.com/Mregussek/UncannyEngine/tree/16ac43f74d5b142c6cd3aee21abf35130501a6fe)
 
-22.08.2022 Clearing screen with vkCmdClearColorImage with resizing made pretty stable [tree](https://github.com/Mregussek/UncannyEngine/tree/5fff1785a408d2839e26bc89e78152623433e80d)
+11.08.2022 Clearing screen is working with vkCmdClearColorImage [tree](https://github.com/Mregussek/UncannyEngine/tree/3a75c1a14a187e0e75f51a2a607439b0a95d1a11)
