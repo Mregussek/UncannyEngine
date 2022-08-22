@@ -153,7 +153,7 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
-  // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount - 1
+  // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount
   mCurrentFrame = 0;
   mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
 
@@ -272,7 +272,7 @@ b32 FRenderContextVulkan::update() {
 
     mSurfaceIsOutOfDate = UFALSE;
     UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
-           "imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
+           " imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
     mCurrentFrame = 0;
   }
   return UTRUE;
