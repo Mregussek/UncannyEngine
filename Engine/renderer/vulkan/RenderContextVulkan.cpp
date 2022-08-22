@@ -189,39 +189,12 @@ void FRenderContextVulkan::terminate() {
 
 
 b32 FRenderContextVulkan::update() {
-  if (mSurfaceIsOutOfDate) {
-    UTRACE("As surface is out of date, there is need to recreate swapchain...");
-
-    vkDeviceWaitIdle(mVkDevice);
-
-    b32 properlyRecreatedSwapchain{ recreateSwapchain() };
-    if (not properlyRecreatedSwapchain) {
-      UERROR("Could not recreate swapchain after acquiring next image!");
-      return UFALSE;
-    }
-
-    b32 recordedCommandBuffers{
-        recordCommandBuffersForClearingColorImage(mVkImagePresentableVector, mVkGraphicsCommandPool,
-                                                  mVkGraphicsCommandBufferVector) };
-    if (not recordedCommandBuffers) {
-      UERROR("Could not record command buffers!");
-      return UFALSE;
-    }
-
-    mSurfaceIsOutOfDate = UFALSE;
-    UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!");
-  }
-
-  VkBool32 allFencesAreSignaled{ VK_TRUE };
-  u64 fencesTimeout{ UINT64_MAX };
-  vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], allFencesAreSignaled,
-                  fencesTimeout);
+  vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE, UINT64_MAX);
   vkResetFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame]);
 
-  u64 imageAcquireTimeout{ UINT64_MAX };
   u32 imageIndex{ UUNUSED };
   VkResult properlyAcquiredNextImage =
-      vkAcquireNextImageKHR(mVkDevice, mVkSwapchainCurrent, imageAcquireTimeout,
+      vkAcquireNextImageKHR(mVkDevice, mVkSwapchainCurrent, UINT64_MAX,
                             mVkSemaphoreImageAvailableVector[mCurrentFrame],
                             VK_NULL_HANDLE, &imageIndex);
   switch(properlyAcquiredNextImage) {
@@ -277,6 +250,31 @@ b32 FRenderContextVulkan::update() {
   }
 
   mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
+
+  if (mSurfaceIsOutOfDate) {
+    UTRACE("As surface is out of date, there is need to recreate swapchain...");
+
+    vkDeviceWaitIdle(mVkDevice);
+
+    b32 properlyRecreatedSwapchain{ recreateSwapchain() };
+    if (not properlyRecreatedSwapchain) {
+      UERROR("Could not recreate swapchain after acquiring next image!");
+      return UFALSE;
+    }
+
+    b32 recordedCommandBuffers{
+        recordCommandBuffersForClearingColorImage(mVkImagePresentableVector, mVkGraphicsCommandPool,
+                                                  mVkGraphicsCommandBufferVector) };
+    if (not recordedCommandBuffers) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+
+    mSurfaceIsOutOfDate = UFALSE;
+    UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
+           "imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
+    mCurrentFrame = 0;
+  }
   return UTRUE;
 }
 
