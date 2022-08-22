@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+22.08.2022 Minimizing window is working properly [tree](https://github.com/Mregussek/UncannyEngine/tree/fa7adc5e0d8fc2c3b31545306a5fbec942b51606)
+
 22.08.2022 Resolved issue during resizing with frames in flight, clearing is stable! [tree](https://github.com/Mregussek/UncannyEngine/tree/cfa00b9c0c286e6bf4edfb741e64ddce43e30cbd)
 
 22.08.2022 Clearing screen with vkCmdClearColorImage with resizing made pretty stable [tree](https://github.com/Mregussek/UncannyEngine/tree/5fff1785a408d2839e26bc89e78152623433e80d)
