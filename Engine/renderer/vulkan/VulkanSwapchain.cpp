@@ -100,6 +100,7 @@ b32 FRenderContextVulkan::createSwapchain() {
   for(u32 i = 0; i < imageCount; i++) {
     mImagePresentableVector[i].handle = imageVector[i];
     mImagePresentableVector[i].type = EImageType::PRESENTABLE;
+    mImagePresentableVector[i].format = mVkSurfaceFormat.format;
   }
   imageVector.clear();
 

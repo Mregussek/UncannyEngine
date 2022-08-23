@@ -79,11 +79,11 @@ private:
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
-  [[nodiscard]] b32 recordCommandBuffersForClearingColorImage(
+  [[nodiscard]] b32 recordClearColorImage(
       const std::vector<FImageVulkan>& renderTargetImages,
       const std::vector<VkCommandBuffer>& commandBuffers) const;
 
-  [[nodiscard]] b32 recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
+  [[nodiscard]] b32 recordCopyRenderTargetIntoPresentableImage(
       const std::vector<FImageVulkan>& renderTargetImages,
       const std::vector<FImageVulkan>& presentableImages,
       const std::vector<VkCommandBuffer>& commandBuffers) const;

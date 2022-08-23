@@ -15,18 +15,16 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
     return UFALSE;
   }
 
-  b32 recordedClearScreen{
-      recordCommandBuffersForClearingColorImage(mImageRenderTargetVector,
+  b32 recordedClearScreen{recordClearColorImage(mImageRenderTargetVector,
                                                 mVkRenderCommandBufferVector) };
   if (not recordedClearScreen) {
     UFATAL("Could not record clear screen command buffers!");
     return UFALSE;
   }
 
-  b32 recordedCopyImage{
-      recordCommandBuffersForCopyRenderTargetIntoPresentableImage(mImageRenderTargetVector,
-                                                                  mImagePresentableVector,
-                                                                  mVkCopyCommandBufferVector) };
+  b32 recordedCopyImage{recordCopyRenderTargetIntoPresentableImage(mImageRenderTargetVector,
+                                                                   mImagePresentableVector,
+                                                                   mVkCopyCommandBufferVector) };
   if (not recordedCopyImage) {
     UFATAL("Could not record copy image command buffers!");
     return UFALSE;
@@ -36,7 +34,7 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
 }
 
 
-b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage(
+b32 FRenderContextVulkan::recordClearColorImage(
     const std::vector<FImageVulkan>& renderTargetImages,
     const std::vector<VkCommandBuffer>& commandBuffers) const {
   UTRACE("Recording command buffers for clearing color image!");
@@ -121,7 +119,7 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage(
 }
 
 
-b32 FRenderContextVulkan::recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
+b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
     const std::vector<FImageVulkan>& renderTargetImages,
     const std::vector<FImageVulkan>& presentableImages,
     const std::vector<VkCommandBuffer>& commandBuffers) const {
@@ -132,6 +130,22 @@ b32 FRenderContextVulkan::recordCommandBuffersForCopyRenderTargetIntoPresentable
     if (renderTargetImages.size() == presentableImages.size() and renderTargetImages.empty()) {
       UERROR("No render target images and no presentable images! Cannot record cmd!");
       return UFALSE;
+    }
+
+    for (u32 i = 0; i < renderTargetImages.size(); i++) {
+      if (renderTargetImages[i].type != EImageType::RENDER_TARGET) {
+        UERROR("Render target image has unsupported type: {}", (i32)renderTargetImages[i].type);
+        return UFALSE;
+      }
+      if (presentableImages[i].type != EImageType::PRESENTABLE) {
+        UERROR("Render target image has unsupported type: {}", (i32)renderTargetImages[i].type);
+        return UFALSE;
+      }
+      if (renderTargetImages[i].format != presentableImages[i].format) {
+        UERROR("Render target image and presentable image have different formats! rt {} pr {}",
+               renderTargetImages[i].format, presentableImages[i].format);
+        return UFALSE;
+      }
     }
   }
 
