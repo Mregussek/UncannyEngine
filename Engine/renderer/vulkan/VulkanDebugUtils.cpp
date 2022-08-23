@@ -1,9 +1,10 @@
 
+#include "VulkanUtilities.h"
+
 #if U_VK_DEBUG
 
 
 #include "RenderContextVulkan.h"
-#include "VulkanUtilities.h"
 #include "VulkanDebugUtils.h"
 #include <utilities/Logger.h>
 
