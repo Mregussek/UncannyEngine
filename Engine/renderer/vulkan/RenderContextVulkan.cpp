@@ -317,7 +317,13 @@ b32 FRenderContextVulkan::update() {
 
     b32 properlyRecreatedSwapchain{ recreateSwapchain() };
     if (not properlyRecreatedSwapchain) {
-      UERROR("Could not recreate swapchain after acquiring next image!");
+      UERROR("Could not recreate swapchain!");
+      return UFALSE;
+    }
+
+    b32 properlyRecreatedRenderTargetImages{ recreateRenderTargetImages() };
+    if (not properlyRecreatedRenderTargetImages) {
+      UERROR("Could not recreate render target!");
       return UFALSE;
     }
 

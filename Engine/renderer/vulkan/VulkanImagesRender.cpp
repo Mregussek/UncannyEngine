@@ -37,6 +37,7 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   return UTRUE;
 }
 
+
 b32 FRenderContextVulkan::closeRenderTargetImages() {
   UTRACE("Closing Render Target Images...");
 
@@ -55,6 +56,26 @@ b32 FRenderContextVulkan::closeRenderTargetImages() {
   mRenderTargetImageVector.clear();
 
   UDEBUG("Closed Render Target Images!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::recreateRenderTargetImages() {
+  UTRACE("Recreating render target images...");
+
+  b32 closed{ closeRenderTargetImages() };
+  if (not closed) {
+    UERROR("Could not close render target images, some issue appeared!");
+    return UFALSE;
+  }
+
+  b32 created{ createRenderTargetImages() };
+  if (not created) {
+    UERROR("Could not create render target images during recreation!");
+    return UFALSE;
+  }
+
+  UDEBUG("Recreated render target images!");
   return UTRUE;
 }
 
