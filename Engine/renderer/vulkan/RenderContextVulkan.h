@@ -78,13 +78,11 @@ private:
 
   [[nodiscard]] b32 recordCommandBuffersForClearingColorImage(
       const std::vector<FImageVulkan>& renderTargetImages,
-      const VkCommandPool& commandPool,
       const std::vector<VkCommandBuffer>& commandBuffers);
 
   [[nodiscard]] b32 recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
       const std::vector<FImageVulkan>& renderTargetImages,
       const std::vector<VkImage>& presentableImages,
-      const VkCommandPool& commandPool,
       const std::vector<VkCommandBuffer>& commandBuffers);
 
   [[nodiscard]] b32 shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state);
