@@ -86,7 +86,7 @@ b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
                                                          &mVkSurfaceCapabilities) );
 
   // query image extent info...
-  mVkImageExtent2D = getProperExtent2D(mVkSurfaceCapabilities, mSpecs.pWindow);
+  mVkSurfaceExtent2D = getProperExtent2D(mVkSurfaceCapabilities, mSpecs.pWindow);
 
   // query surface format info...
   u32 formatCount{ 0 };

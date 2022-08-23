@@ -32,8 +32,8 @@ b32 FRenderContextVulkan::createDepthImage() {
 
   // create depth image...
   VkExtent3D imageExtent{};
-  imageExtent.width = mVkImageExtent2D.width;
-  imageExtent.height = mVkImageExtent2D.height;
+  imageExtent.width = mVkSurfaceExtent2D.width;
+  imageExtent.height = mVkSurfaceExtent2D.height;
   imageExtent.depth = 1;
 
   VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };

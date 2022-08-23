@@ -69,7 +69,7 @@ b32 FRenderContextVulkan::createSwapchain() {
   createInfo.minImageCount = mSwapchainDependencies.usedImageCount;
   createInfo.imageFormat = mVkSurfaceFormat.format;
   createInfo.imageColorSpace = mVkSurfaceFormat.colorSpace;
-  createInfo.imageExtent = mVkImageExtent2D;
+  createInfo.imageExtent = mVkSurfaceExtent2D;
   createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
   createInfo.imageUsage = swapchainImageUsage;
   createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
@@ -97,10 +97,15 @@ b32 FRenderContextVulkan::createSwapchain() {
 
   // Copying retrieved swapchain images into presentable handles...
   mImagePresentableVector.resize(imageCount);
+  VkExtent3D presentableImageExtent{};
+  presentableImageExtent.width = mVkSurfaceExtent2D.width;
+  presentableImageExtent.height = mVkSurfaceExtent2D.height;
+  presentableImageExtent.depth = 1;
   for(u32 i = 0; i < imageCount; i++) {
     mImagePresentableVector[i].handle = imageVector[i];
     mImagePresentableVector[i].type = EImageType::PRESENTABLE;
     mImagePresentableVector[i].format = mVkSurfaceFormat.format;
+    mImagePresentableVector[i].extent = presentableImageExtent;
   }
   imageVector.clear();
 

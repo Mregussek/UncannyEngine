@@ -120,7 +120,7 @@ private:
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
   VkSurfaceFormatKHR mVkSurfaceFormat{};
   VkPresentModeKHR mVkPresentMode{ VK_PRESENT_MODE_FIFO_KHR }; // FIFO has to exist as spec says
-  VkExtent2D mVkImageExtent2D{}; // used during swapchain creation, make sure to update it
+  VkExtent2D mVkSurfaceExtent2D{}; // used during swapchain creation, make sure to update it
   // Logical Device
   VkDevice mVkDevice{ VK_NULL_HANDLE };
   // Swapchain

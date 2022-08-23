@@ -67,7 +67,7 @@ b32 FRenderContextVulkan::recordClearColorImage(
   barrierClearToGeneral.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
   barrierClearToGeneral.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
   barrierClearToGeneral.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  barrierClearToGeneral.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+  barrierClearToGeneral.newLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
   barrierClearToGeneral.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
   barrierClearToGeneral.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
   barrierClearToGeneral.image = VK_NULL_HANDLE; // will be filled later
@@ -144,6 +144,16 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
       if (renderTargetImages[i].format != presentableImages[i].format) {
         UERROR("Render target image and presentable image have different formats! rt {} pr {}",
                renderTargetImages[i].format, presentableImages[i].format);
+        return UFALSE;
+      }
+      if (renderTargetImages[i].extent.height != presentableImages[i].extent.height) {
+        UERROR("Render target image height does not equal to presentable one's height! rt {} pr {}",
+               renderTargetImages[i].extent.height, presentableImages[i].extent.height);
+        return UFALSE;
+      }
+      if (renderTargetImages[i].extent.width != presentableImages[i].extent.width) {
+        UERROR("Render target image width does not equal to presentable one's width! rt {} pr {}",
+               renderTargetImages[i].extent.width, presentableImages[i].extent.width);
         return UFALSE;
       }
     }

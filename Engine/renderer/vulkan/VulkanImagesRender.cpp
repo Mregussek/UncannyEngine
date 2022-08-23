@@ -25,7 +25,7 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   for (u32 i = 0; i < imageCount; i++) {
     UTRACE("Creating render target image {}...", i);
     b32 createdProperly{ createRenderTargetImage(mVkPhysicalDevice, mVkDevice,
-                                                 mVkImageExtent2D, mVkSurfaceFormat.format,
+                                                 mVkSurfaceExtent2D, mVkSurfaceFormat.format,
                                                  &mImageRenderTargetVector[i]) };
     if (not createdProperly) {
       UERROR("Could not create render target image at index {}", i);
