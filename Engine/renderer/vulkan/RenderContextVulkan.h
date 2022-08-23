@@ -10,6 +10,7 @@
   #define VK_USE_PLATFORM_WIN32_KHR 0
 #endif
 #include <volk.h>
+#include "VulkanUtilities.h"
 #include "RenderContextDependencies.h"
 #include "RenderContextStructures.h"
 
@@ -99,7 +100,9 @@ private:
   // Instance
   VkInstance mVkInstance{ VK_NULL_HANDLE };
   // Debugger
+#if U_VK_DEBUG
   VkDebugUtilsMessengerEXT mVkDebugUtilsMsg{ VK_NULL_HANDLE };
+#endif
   // Physical Device
   VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
   // Queue Family

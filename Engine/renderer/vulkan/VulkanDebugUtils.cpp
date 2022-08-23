@@ -1,4 +1,7 @@
 
+#if U_VK_DEBUG
+
+
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
 #include "VulkanDebugUtils.h"
@@ -107,3 +110,6 @@ VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverit
 
 
 }
+
+
+#endif // U_VK_DEBUG
