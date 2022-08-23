@@ -27,14 +27,15 @@ b32 FRenderContextVulkan::createDepthImage() {
     UTRACE("Found depth format, now can create depth image...");
   }
 
-  mDepthImage.format = mVkDepthFormat;
-  mDepthImage.type = EImageType::DEPTH;
-
   // create depth image...
   VkExtent3D imageExtent{};
   imageExtent.width = mVkSurfaceExtent2D.width;
   imageExtent.height = mVkSurfaceExtent2D.height;
   imageExtent.depth = 1;
+
+  mDepthImage.format = mVkDepthFormat;
+  mDepthImage.type = EImageType::DEPTH;
+  mDepthImage.extent = imageExtent;
 
   VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
   imageCreateInfo.pNext = nullptr;

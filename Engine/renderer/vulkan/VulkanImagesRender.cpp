@@ -9,10 +9,43 @@ namespace uncanny
 {
 
 
+static b32 areRenderTargetImageDependenciesCorrect(
+    VkFormat imageFormat, VkImageTiling tiling, VkPhysicalDevice physicalDevice) {
+  UTRACE("Validating render target image dependencies...");
+
+  VkFormatProperties formatProperties{};
+  vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
+
+  if (tiling == VK_IMAGE_TILING_OPTIMAL) {
+    if (not (formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT)) {
+      UERROR("VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT is not supported by format {}!", imageFormat);
+      return UFALSE;
+    }
+    if (not (formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_TRANSFER_SRC_BIT)) {
+      UERROR("VK_FORMAT_FEATURE_TRANSFER_SRC_BIT is not supported by format {}!", imageFormat);
+      return UFALSE;
+    }
+    if (not (formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_TRANSFER_DST_BIT)) {
+      UERROR("VK_FORMAT_FEATURE_TRANSFER_DST_BIT is not supported by format {}!", imageFormat);
+      return UFALSE;
+    }
+  }
+  else {
+    // TODO: Create validation for render target images linear tiling
+    UERROR("Unsupported tiling for render target images!");
+    return UFALSE;
+  }
+
+  UDEBUG("Validated render target image dependencies, it seems correct!");
+  return UTRUE;
+}
+
+
 static b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
                                    VkDevice device,
-                                   VkExtent2D surfaceExtent,
-                                   VkFormat surfaceFormat,
+                                   VkExtent2D imageExtent,
+                                   VkFormat imageFormat,
+                                   VkImageTiling imageTiling,
                                    FImageVulkan* pOutRenderTargetImage);
 
 
@@ -20,12 +53,20 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   u32 imageCount{ static_cast<u32>(mImagePresentableVector.size()) };
   UTRACE("Creating {} Render Target Images...", imageCount);
 
+  VkFormat imageFormat{ mVkSurfaceFormat.format };
+  VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
+
+  if (not areRenderTargetImageDependenciesCorrect(imageFormat, imageTiling, mVkPhysicalDevice)) {
+    UERROR("Dependencies for render target images are not met!");
+    return UFALSE;
+  }
+
   mImageRenderTargetVector.resize(imageCount);
 
   for (u32 i = 0; i < imageCount; i++) {
     UTRACE("Creating render target image {}...", i);
-    b32 createdProperly{ createRenderTargetImage(mVkPhysicalDevice, mVkDevice,
-                                                 mVkSurfaceExtent2D, mVkSurfaceFormat.format,
+    b32 createdProperly{ createRenderTargetImage(mVkPhysicalDevice, mVkDevice, mVkSurfaceExtent2D,
+                                                 imageFormat, imageTiling,
                                                  &mImageRenderTargetVector[i]) };
     if (not createdProperly) {
       UERROR("Could not create render target image at index {}", i);
@@ -83,14 +124,15 @@ b32 FRenderContextVulkan::recreateRenderTargetImages() {
 
 b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
                             VkDevice device,
-                            VkExtent2D surfaceExtent,
-                            VkFormat surfaceFormat,
+                            VkExtent2D imageExtent,
+                            VkFormat imageFormat,
+                            VkImageTiling imageTiling,
                             FImageVulkan* pOutRenderTargetImage) {
-  pOutRenderTargetImage->format = surfaceFormat;
+  pOutRenderTargetImage->format = imageFormat;
   pOutRenderTargetImage->type = EImageType::RENDER_TARGET;
 
-  pOutRenderTargetImage->extent.width = surfaceExtent.width;
-  pOutRenderTargetImage->extent.height = surfaceExtent.height;
+  pOutRenderTargetImage->extent.width = imageExtent.width;
+  pOutRenderTargetImage->extent.height = imageExtent.height;
   pOutRenderTargetImage->extent.depth = 1;
 
   VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
@@ -102,10 +144,8 @@ b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
   imageCreateInfo.mipLevels = 1;
   imageCreateInfo.arrayLayers = 1;
   imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-  imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-  imageCreateInfo.usage =
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-      VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+  imageCreateInfo.tiling = imageTiling;
+  imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
   imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   imageCreateInfo.queueFamilyIndexCount = 0;
   imageCreateInfo.pQueueFamilyIndices = nullptr;

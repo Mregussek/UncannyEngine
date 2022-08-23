@@ -87,6 +87,8 @@ b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
 
   // query image extent info...
   mVkSurfaceExtent2D = getProperExtent2D(mVkSurfaceCapabilities, mSpecs.pWindow);
+  UTRACE("Found surface extent width {} height {}",
+         mVkSurfaceExtent2D.width, mVkSurfaceExtent2D.height);
 
   // query surface format info...
   u32 formatCount{ 0 };
@@ -97,6 +99,8 @@ b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
                                                     &formatCount, availableFormats.data()) );
 
   mVkSurfaceFormat = getProperType(availableFormats, isSuitableSurfaceFormatAvailable);
+  UTRACE("Found surface format {} colorSpace {}",
+         mVkSurfaceFormat.format, mVkSurfaceFormat.colorSpace);
 
   // query present modes info...
   u32 presentCount{ 0 };
@@ -107,6 +111,7 @@ b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
                                                          &presentCount, availablePresentModes.data()) );
 
   mVkPresentMode = getProperType(availablePresentModes, isSuitablePresentModeAvailable);
+  UTRACE("Found surface present mode {}", mVkPresentMode);
 
   UDEBUG("Collected window surface capabilities!");
   return UTRUE;
@@ -201,8 +206,8 @@ b32 windowSurfaceSupportPresentationOnPhysicalDevice(
 
 
 template<typename TType>
-static TType getProperType(const std::vector<TType>& availableTypes,
-                           b32(*isTypeAvailable)(TType type)) {
+TType getProperType(const std::vector<TType>& availableTypes,
+                    b32(*isTypeAvailable)(TType type)) {
   UTRACE("Looking for proper {}...", typeid(TType).name());
 
   if (availableTypes.empty()) {
