@@ -220,9 +220,10 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
     barrierUndefinedToReadRenderTarget.image = renderTargetImages[i].handle;
     barrierReadToGeneralRenderTarget.image = renderTargetImages[i].handle;
 
-    VkImageMemoryBarrier imageMemoryBarrierUndefinedToOperateArray[2]{
+    constexpr u32 imageMemoryBarrierCount{ 2 };
+    VkImageMemoryBarrier imageMemoryBarrierUndefinedToOperateArray[imageMemoryBarrierCount]{
       barrierUndefinedToTransferPresentable, barrierUndefinedToReadRenderTarget };
-    VkImageMemoryBarrier imageMemoryBarrierOperateToPresentArray[2]{
+    VkImageMemoryBarrier imageMemoryBarrierOperateToPresentArray[imageMemoryBarrierCount]{
         barrierTransferToPresentPresentable, barrierReadToGeneralRenderTarget };
 
     VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
@@ -238,7 +239,7 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
-                         2, imageMemoryBarrierUndefinedToOperateArray);
+                         imageMemoryBarrierCount, imageMemoryBarrierUndefinedToOperateArray);
     vkCmdCopyImage(commandBuffers[i],
                    renderTargetImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                    presentableImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -249,7 +250,7 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
-                         2, imageMemoryBarrierOperateToPresentArray);
+                         imageMemoryBarrierCount, imageMemoryBarrierOperateToPresentArray);
 
     VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
     if (properlyRecordedCommands != VK_SUCCESS) {
