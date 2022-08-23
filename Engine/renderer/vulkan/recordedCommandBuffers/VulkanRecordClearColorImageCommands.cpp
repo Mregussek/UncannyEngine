@@ -15,16 +15,16 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
     return UFALSE;
   }
 
-  b32 recordedClearScreen{recordClearColorImage(mImageRenderTargetVector,
-                                                mVkRenderCommandBufferVector) };
+  b32 recordedClearScreen{ recordClearColorImage(mImageRenderTargetVector,
+                                                 mVkRenderCommandBufferVector) };
   if (not recordedClearScreen) {
     UFATAL("Could not record clear screen command buffers!");
     return UFALSE;
   }
 
-  b32 recordedCopyImage{recordCopyRenderTargetIntoPresentableImage(mImageRenderTargetVector,
-                                                                   mImagePresentableVector,
-                                                                   mVkCopyCommandBufferVector) };
+  b32 recordedCopyImage{ recordCopyRenderTargetIntoPresentableImage(mImageRenderTargetVector,
+                                                                    mImagePresentableVector,
+                                                                    mVkCopyCommandBufferVector) };
   if (not recordedCopyImage) {
     UFATAL("Could not record copy image command buffers!");
     return UFALSE;
@@ -180,19 +180,19 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
   defaultBarrier.image = VK_NULL_HANDLE; // will fill later
   defaultBarrier.subresourceRange = imageSubresourceRange;
 
-  VkImageMemoryBarrier barrierUndefinedToTransferRenderTarget{ defaultBarrier };
-  barrierUndefinedToTransferRenderTarget.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierUndefinedToTransferRenderTarget.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-  barrierUndefinedToTransferRenderTarget.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  barrierUndefinedToTransferRenderTarget.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-  barrierUndefinedToTransferRenderTarget.image = VK_NULL_HANDLE; // will fill later
+  VkImageMemoryBarrier barrierUndefinedToReadRenderTarget{ defaultBarrier };
+  barrierUndefinedToReadRenderTarget.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+  barrierUndefinedToReadRenderTarget.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+  barrierUndefinedToReadRenderTarget.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  barrierUndefinedToReadRenderTarget.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+  barrierUndefinedToReadRenderTarget.image = VK_NULL_HANDLE; // will fill later
 
-  VkImageMemoryBarrier barrierTransferToGeneralRenderTarget{ defaultBarrier };
-  barrierTransferToGeneralRenderTarget.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-  barrierTransferToGeneralRenderTarget.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierTransferToGeneralRenderTarget.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-  barrierTransferToGeneralRenderTarget.newLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
-  barrierTransferToGeneralRenderTarget.image = VK_NULL_HANDLE; // will fill later
+  VkImageMemoryBarrier barrierReadToGeneralRenderTarget{ defaultBarrier };
+  barrierReadToGeneralRenderTarget.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+  barrierReadToGeneralRenderTarget.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+  barrierReadToGeneralRenderTarget.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+  barrierReadToGeneralRenderTarget.newLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+  barrierReadToGeneralRenderTarget.image = VK_NULL_HANDLE; // will fill later
 
   VkImageMemoryBarrier barrierUndefinedToTransferPresentable{ defaultBarrier };
   barrierUndefinedToTransferPresentable.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
@@ -217,9 +217,13 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
     barrierUndefinedToTransferPresentable.image = presentableImages[i].handle;
     barrierTransferToPresentPresentable.image = presentableImages[i].handle;
 
-    barrierUndefinedToTransferRenderTarget.image = renderTargetImages[i].handle;
-    barrierTransferToGeneralRenderTarget.image = renderTargetImages[i].handle;
+    barrierUndefinedToReadRenderTarget.image = renderTargetImages[i].handle;
+    barrierReadToGeneralRenderTarget.image = renderTargetImages[i].handle;
 
+    VkImageMemoryBarrier imageMemoryBarrierUndefinedToOperateArray[2]{
+      barrierUndefinedToTransferPresentable, barrierUndefinedToReadRenderTarget };
+    VkImageMemoryBarrier imageMemoryBarrierOperateToPresentArray[2]{
+        barrierTransferToPresentPresentable, barrierReadToGeneralRenderTarget };
 
     VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
                                                                &commandBufferBeginInfo) };
@@ -234,14 +238,7 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
-                         1, &barrierUndefinedToTransferRenderTarget);
-    vkCmdPipelineBarrier(commandBuffers[i],
-                         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                         VK_PIPELINE_STAGE_TRANSFER_BIT,
-                         VkDependencyFlags{ 0 },
-                         0, nullptr,
-                         0, nullptr,
-                         1, &barrierUndefinedToTransferPresentable);
+                         2, imageMemoryBarrierUndefinedToOperateArray);
     vkCmdCopyImage(commandBuffers[i],
                    renderTargetImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                    presentableImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -252,14 +249,7 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
-                         1, &barrierTransferToGeneralRenderTarget);
-    vkCmdPipelineBarrier(commandBuffers[i],
-                         VK_PIPELINE_STAGE_TRANSFER_BIT,
-                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                         VkDependencyFlags{ 0 },
-                         0, nullptr,
-                         0, nullptr,
-                         1, &barrierTransferToPresentPresentable);
+                         2, imageMemoryBarrierOperateToPresentArray);
 
     VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
     if (properlyRecordedCommands != VK_SUCCESS) {
