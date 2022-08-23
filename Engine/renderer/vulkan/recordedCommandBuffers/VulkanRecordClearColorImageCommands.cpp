@@ -38,7 +38,7 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
 
 b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage(
     const std::vector<FImageVulkan>& renderTargetImages,
-    const std::vector<VkCommandBuffer>& commandBuffers) {
+    const std::vector<VkCommandBuffer>& commandBuffers) const {
   UTRACE("Recording command buffers for clearing color image!");
 
   VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -124,7 +124,7 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage(
 b32 FRenderContextVulkan::recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
     const std::vector<FImageVulkan>& renderTargetImages,
     const std::vector<VkImage>& presentableImages,
-    const std::vector<VkCommandBuffer>& commandBuffers) {
+    const std::vector<VkCommandBuffer>& commandBuffers) const {
   UTRACE("Recording command buffers for copying render target images into presentable ones!");
 
   VkImageSubresourceLayers subresourceLayers{};

@@ -121,9 +121,9 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   }
 
   // enable depth buffer with depth images for swapchain
-  b32 properlyCreatedDepthImages{ createDepthImages() };
-  if (not properlyCreatedDepthImages) {
-    UFATAL("Could not create depth images, cannot render 3D!");
+  b32 properlyCreatedDepthImage{ createDepthImage() };
+  if (not properlyCreatedDepthImage) {
+    UFATAL("Could not create depth image, cannot render 3D!");
     return UFALSE;
   }
 
@@ -212,7 +212,7 @@ void FRenderContextVulkan::terminate() {
   closeGraphicsSemaphores();
   closeCommandBuffers();
   closeCommandPool();
-  closeDepthImages();
+  closeDepthImage();
   closeRenderTargetImages();
   closeSwapchain();
   closeGraphicsQueues();
@@ -324,6 +324,12 @@ b32 FRenderContextVulkan::update() {
     b32 properlyRecreatedRenderTargetImages{ recreateRenderTargetImages() };
     if (not properlyRecreatedRenderTargetImages) {
       UERROR("Could not recreate render target!");
+      return UFALSE;
+    }
+
+    b32 properlyRecreatedDepthImage{ recreateDepthImage() };
+    if (not properlyRecreatedDepthImage) {
+      UERROR("Could not recreate depth image!");
       return UFALSE;
     }
 

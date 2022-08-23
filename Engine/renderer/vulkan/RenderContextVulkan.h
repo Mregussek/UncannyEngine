@@ -59,8 +59,9 @@ private:
   [[nodiscard]] b32 recreateRenderTargetImages();
   b32 closeRenderTargetImages();
 
-  [[nodiscard]] b32 createDepthImages();
-  b32 closeDepthImages();
+  [[nodiscard]] b32 createDepthImage();
+  [[nodiscard]] b32 recreateDepthImage();
+  b32 closeDepthImage();
 
   [[nodiscard]] b32 createCommandPool();
   b32 resetCommandPool(const VkCommandPool& commandPool);
@@ -79,12 +80,12 @@ private:
 
   [[nodiscard]] b32 recordCommandBuffersForClearingColorImage(
       const std::vector<FImageVulkan>& renderTargetImages,
-      const std::vector<VkCommandBuffer>& commandBuffers);
+      const std::vector<VkCommandBuffer>& commandBuffers) const;
 
   [[nodiscard]] b32 recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
       const std::vector<FImageVulkan>& renderTargetImages,
       const std::vector<VkImage>& presentableImages,
-      const std::vector<VkCommandBuffer>& commandBuffers);
+      const std::vector<VkCommandBuffer>& commandBuffers) const;
 
   [[nodiscard]] b32 shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state);
   void resetRenderLoopMembers();

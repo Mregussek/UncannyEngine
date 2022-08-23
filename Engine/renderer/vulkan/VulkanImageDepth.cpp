@@ -10,8 +10,8 @@ namespace uncanny
 {
 
 
-b32 FRenderContextVulkan::createDepthImages() {
-  UTRACE("Creating depth images...");
+b32 FRenderContextVulkan::createDepthImage() {
+  UTRACE("Creating depth image...");
 
   if (mVkDepthFormat == VK_FORMAT_UNDEFINED) {
     UTRACE("Depth format is not detected! Searching...");
@@ -24,7 +24,7 @@ b32 FRenderContextVulkan::createDepthImages() {
       return UFALSE;
     }
 
-    UTRACE("Found depth format, now can create depth images...");
+    UTRACE("Found depth format, now can create depth image...");
   }
 
   mDepthImage.format = mVkDepthFormat;
@@ -104,22 +104,42 @@ b32 FRenderContextVulkan::createDepthImages() {
 
   U_VK_ASSERT( vkCreateImageView(mVkDevice, &imageViewCreateInfo,nullptr, &mDepthImage.handleView) );
 
-  UDEBUG("Created depth images!");
+  UDEBUG("Created depth image!");
   return UTRUE;
 }
 
 
-b32 FRenderContextVulkan::closeDepthImages() {
-  UTRACE("Closing depth images...");
+b32 FRenderContextVulkan::closeDepthImage() {
+  UTRACE("Closing depth image...");
 
   b32 closedProperly{ closeImageVulkan(&mDepthImage, mVkDevice, "depth") };
   if (not closedProperly) {
-    UERROR("Could not close properly render target image!");
+    UERROR("Could not close properly depth image!");
     return UFALSE;
   }
   mDepthImage = {};
 
-  UDEBUG("Closed depth images!");
+  UDEBUG("Closed depth image!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::recreateDepthImage() {
+  UTRACE("Recreating depth image...");
+
+  b32 closed{ closeDepthImage() };
+  if (not closed) {
+    UERROR("Could not close depth image, some issue appeared!");
+    return UFALSE;
+  }
+
+  b32 created{ createDepthImage() };
+  if (not created) {
+    UERROR("Could not create depth image during recreation!");
+    return UFALSE;
+  }
+
+  UDEBUG("Recreated depth image!");
   return UTRUE;
 }
 
