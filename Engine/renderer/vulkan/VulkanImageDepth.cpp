@@ -28,6 +28,7 @@ b32 FRenderContextVulkan::createDepthImage() {
   }
 
   mDepthImage.format = mVkDepthFormat;
+  mDepthImage.type = EImageType::DEPTH;
 
   // create depth image...
   VkExtent3D imageExtent{};

@@ -12,12 +12,18 @@ namespace uncanny
 {
 
 
+enum class EImageType {
+  NONE, PRESENTABLE, DEPTH, RENDER_TARGET
+};
+
+
 struct FImageVulkan {
-  VkFormat format{ VK_FORMAT_UNDEFINED };
-  VkExtent3D extent{ 0, 0, 0 };
   VkImage handle{ VK_NULL_HANDLE };
   VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
   VkImageView handleView{ VK_NULL_HANDLE };
+  VkExtent3D extent{ 0, 0, 0 };
+  VkFormat format{ VK_FORMAT_UNDEFINED };
+  EImageType type{ EImageType::NONE };
 };
 
 

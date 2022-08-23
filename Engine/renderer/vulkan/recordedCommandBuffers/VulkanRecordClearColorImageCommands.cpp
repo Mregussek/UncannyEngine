@@ -16,7 +16,7 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
   }
 
   b32 recordedClearScreen{
-      recordCommandBuffersForClearingColorImage(mRenderTargetImageVector,
+      recordCommandBuffersForClearingColorImage(mImageRenderTargetVector,
                                                 mVkRenderCommandBufferVector) };
   if (not recordedClearScreen) {
     UFATAL("Could not record clear screen command buffers!");
@@ -24,8 +24,8 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
   }
 
   b32 recordedCopyImage{
-      recordCommandBuffersForCopyRenderTargetIntoPresentableImage(mRenderTargetImageVector,
-                                                                  mVkImagePresentableVector,
+      recordCommandBuffersForCopyRenderTargetIntoPresentableImage(mImageRenderTargetVector,
+                                                                  mImagePresentableVector,
                                                                   mVkCopyCommandBufferVector) };
   if (not recordedCopyImage) {
     UFATAL("Could not record copy image command buffers!");
@@ -123,9 +123,17 @@ b32 FRenderContextVulkan::recordCommandBuffersForClearingColorImage(
 
 b32 FRenderContextVulkan::recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
     const std::vector<FImageVulkan>& renderTargetImages,
-    const std::vector<VkImage>& presentableImages,
+    const std::vector<FImageVulkan>& presentableImages,
     const std::vector<VkCommandBuffer>& commandBuffers) const {
   UTRACE("Recording command buffers for copying render target images into presentable ones!");
+
+  if constexpr (U_VK_DEBUG) {
+    UTRACE("Making sure that command buffers can be recorded!");
+    if (renderTargetImages.size() == presentableImages.size() and renderTargetImages.empty()) {
+      UERROR("No render target images and no presentable images! Cannot record cmd!");
+      return UFALSE;
+    }
+  }
 
   VkImageSubresourceLayers subresourceLayers{};
   subresourceLayers.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -133,17 +141,12 @@ b32 FRenderContextVulkan::recordCommandBuffersForCopyRenderTargetIntoPresentable
   subresourceLayers.baseArrayLayer = 0;
   subresourceLayers.layerCount = 1;
 
-  VkOffset3D offset{};
-  offset.x = 0;
-  offset.y = 0;
-  offset.z = 0;
-
-  VkImageCopy region{};
-  region.srcSubresource = subresourceLayers;
-  region.srcOffset = offset;
-  region.dstSubresource = subresourceLayers;
-  region.dstOffset = offset;
-  region.extent = renderTargetImages[0].extent;
+  VkImageCopy copyRegion{};
+  copyRegion.srcSubresource = subresourceLayers;
+  copyRegion.srcOffset = { 0, 0, 0 };
+  copyRegion.dstSubresource = subresourceLayers;
+  copyRegion.dstOffset = { 0, 0, 0 };
+  copyRegion.extent = renderTargetImages[0].extent;
 
   VkImageSubresourceRange imageSubresourceRange{};
   imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -197,8 +200,8 @@ b32 FRenderContextVulkan::recordCommandBuffersForCopyRenderTargetIntoPresentable
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
-    barrierUndefinedToTransferPresentable.image = presentableImages[i];
-    barrierTransferToPresentPresentable.image = presentableImages[i];
+    barrierUndefinedToTransferPresentable.image = presentableImages[i].handle;
+    barrierTransferToPresentPresentable.image = presentableImages[i].handle;
 
     barrierUndefinedToTransferRenderTarget.image = renderTargetImages[i].handle;
     barrierTransferToGeneralRenderTarget.image = renderTargetImages[i].handle;
@@ -227,8 +230,8 @@ b32 FRenderContextVulkan::recordCommandBuffersForCopyRenderTargetIntoPresentable
                          1, &barrierUndefinedToTransferPresentable);
     vkCmdCopyImage(commandBuffers[i],
                    renderTargetImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                   presentableImages[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                   1, &region);
+                   presentableImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   1, &copyRegion);
     vkCmdPipelineBarrier(commandBuffers[i],
                          VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,

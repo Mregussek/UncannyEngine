@@ -2,6 +2,7 @@
 #include "VulkanSwapchain.h"
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
+#include "VulkanImages.h"
 #include <utilities/Logger.h>
 #include <window/Window.h>
 
@@ -18,13 +19,6 @@ void getRequiredSwapchainExtensions(std::vector<const char*>* pRequiredExtension
 
 static void destroySwapchain(VkSwapchainKHR* pSwapchain, VkDevice device,
                              const char*pSwapchainLogType);
-
-
-static void destroyPresentableImages(std::vector<VkImage>* pImagePresentableVector);
-
-
-static void destroyPresentableImageViews(std::vector<VkImageView>* pImageViewPresentableVector,
-                                         VkDevice device);
 
 
 b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
@@ -62,6 +56,7 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
+  // OR every image usage from dependencies
   VkImageUsageFlagBits swapchainImageUsage{ (VkImageUsageFlagBits)0 };
   for (VkImageUsageFlagBits imageUsageFlag : mSwapchainDependencies.imageUsageVector) {
     swapchainImageUsage = (VkImageUsageFlagBits)(swapchainImageUsage | imageUsageFlag);
@@ -96,10 +91,17 @@ b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Retrieving presentable images from swapchain...");
   u32 imageCount{ 0 };
   U_VK_ASSERT( vkGetSwapchainImagesKHR(mVkDevice, mVkSwapchainCurrent, &imageCount, nullptr) );
-  mVkImagePresentableVector.resize(imageCount);
-  mVkImageViewPresentableVector.resize(imageCount);
+  std::vector<VkImage> imageVector(imageCount);
   U_VK_ASSERT( vkGetSwapchainImagesKHR(mVkDevice, mVkSwapchainCurrent, &imageCount,
-                                       mVkImagePresentableVector.data()) );
+                                       imageVector.data()) );
+
+  // Copying retrieved swapchain images into presentable handles...
+  mImagePresentableVector.resize(imageCount);
+  for(u32 i = 0; i < imageCount; i++) {
+    mImagePresentableVector[i].handle = imageVector[i];
+    mImagePresentableVector[i].type = EImageType::PRESENTABLE;
+  }
+  imageVector.clear();
 
   UTRACE("Creating {} image views for swapchain presentable images...", imageCount);
   for (u32 i = 0; i < imageCount; ++i) {
@@ -119,14 +121,14 @@ b32 FRenderContextVulkan::createSwapchain() {
     VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
     imageViewCreateInfo.pNext = nullptr;
     imageViewCreateInfo.flags = 0;
-    imageViewCreateInfo.image = mVkImagePresentableVector[i];
+    imageViewCreateInfo.image = mImagePresentableVector[i].handle;
     imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     imageViewCreateInfo.format = mVkSurfaceFormat.format;
     imageViewCreateInfo.components = componentMapping;
     imageViewCreateInfo.subresourceRange = imageSubresourceRange;
 
     U_VK_ASSERT( vkCreateImageView(mVkDevice, &imageViewCreateInfo, nullptr,
-                                   &mVkImageViewPresentableVector[i]) );
+                                   &mImagePresentableVector[i].handleView) );
   }
 
   UDEBUG("Created swapchain!");
@@ -137,8 +139,11 @@ b32 FRenderContextVulkan::createSwapchain() {
 b32 FRenderContextVulkan::closeSwapchain() {
   UTRACE("Closing swapchain...");
 
-  destroyPresentableImages(&mVkImagePresentableVector);
-  destroyPresentableImageViews(&mVkImageViewPresentableVector, mVkDevice);
+  for (FImageVulkan& image : mImagePresentableVector) {
+    closeImageVulkan(&image, mVkDevice, "swapchain presentable");
+  }
+  mImagePresentableVector.clear();
+
   destroySwapchain(&mVkSwapchainCurrent, mVkDevice, "Current");
   destroySwapchain(&mVkSwapchainOld, mVkDevice, "Old");
 
@@ -152,8 +157,10 @@ b32 FRenderContextVulkan::recreateSwapchain() {
 
   // Firstly destroying images and its image views as they are not needed and
   // those variables will be filled during createSwapchain()
-  destroyPresentableImages(&mVkImagePresentableVector);
-  destroyPresentableImageViews(&mVkImageViewPresentableVector, mVkDevice);
+  for (FImageVulkan& image : mImagePresentableVector) {
+    closeImageVulkan(&image, mVkDevice, "swapchain presentable");
+  }
+  mImagePresentableVector.clear();
 
   // query new information about window surface capabilities
   b32 collectedCapabilities{ collectWindowSurfaceCapabilities() };
@@ -190,45 +197,6 @@ void destroySwapchain(VkSwapchainKHR* pSwapchain, VkDevice device, const char* p
   else {
     UWARN("{} swapchain is not created, so it won't be destroyed!", pSwapchainLogType);
   }
-}
-
-
-void destroyPresentableImages(std::vector<VkImage>* pImagePresentableVector) {
-  if (pImagePresentableVector->empty()) {
-    UWARN("Presentable images vector is empty, so nothing will be destroyed!");
-    return;
-  }
-
-  for (u32 i = 0; i < pImagePresentableVector->size(); i++) {
-    UTRACE("Destroying presentable image {}...", i);
-    if (pImagePresentableVector->at(i) != VK_NULL_HANDLE) {
-      // these images are destroyed during vkDestroySwapchainKHR
-      pImagePresentableVector->at(i) = VK_NULL_HANDLE;
-      continue;
-    }
-    UWARN("As presentable image {} is not created, so it is not destroyed!", i);
-  }
-  pImagePresentableVector->clear();
-}
-
-
-void destroyPresentableImageViews(std::vector<VkImageView>* pImageViewPresentableVector,
-                                  VkDevice device) {
-  if (pImageViewPresentableVector->empty()) {
-    UWARN("Presentable image views vector is empty, so nothing will be destroyed!");
-    return;
-  }
-
-  for (u32 i = 0; i < pImageViewPresentableVector->size(); i++) {
-    UTRACE("Destroying presentable image view {}...", i);
-    if (pImageViewPresentableVector->at(i) != VK_NULL_HANDLE) {
-      vkDestroyImageView(device, pImageViewPresentableVector->at(i), nullptr);
-      pImageViewPresentableVector->at(i) = VK_NULL_HANDLE;
-      continue;
-    }
-    UWARN("As presentable image view {} is not created, so it is not destroyed!", i);
-  }
-  pImageViewPresentableVector->clear();
 }
 
 

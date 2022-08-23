@@ -17,15 +17,16 @@ static b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
 
 
 b32 FRenderContextVulkan::createRenderTargetImages() {
-  UTRACE("Creating Render Target Images...");
+  u32 imageCount{ static_cast<u32>(mImagePresentableVector.size()) };
+  UTRACE("Creating {} Render Target Images...", imageCount);
 
-  mRenderTargetImageVector.resize(mSwapchainDependencies.usedImageCount);
+  mImageRenderTargetVector.resize(imageCount);
 
-  for (u32 i = 0; i < mRenderTargetImageVector.size(); i++) {
+  for (u32 i = 0; i < imageCount; i++) {
     UTRACE("Creating render target image {}...", i);
     b32 createdProperly{ createRenderTargetImage(mVkPhysicalDevice, mVkDevice,
                                                  mVkImageExtent2D, mVkSurfaceFormat.format,
-                                                 &mRenderTargetImageVector[i]) };
+                                                 &mImageRenderTargetVector[i]) };
     if (not createdProperly) {
       UERROR("Could not create render target image at index {}", i);
       return UFALSE;
@@ -41,19 +42,19 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
 b32 FRenderContextVulkan::closeRenderTargetImages() {
   UTRACE("Closing Render Target Images...");
 
-  if (mRenderTargetImageVector.empty()) {
+  if (mImageRenderTargetVector.empty()) {
     UWARN("As render target image vector is not initialized (it is empty), not closing anything!");
     return UTRUE;
   }
 
-  for (FImageVulkan& renderTargetImage : mRenderTargetImageVector) {
+  for (FImageVulkan& renderTargetImage : mImageRenderTargetVector) {
     b32 closedProperly{ closeImageVulkan(&renderTargetImage, mVkDevice, "render target") };
     if (not closedProperly) {
       UERROR("Could not close properly render target image!");
       return UFALSE;
     }
   }
-  mRenderTargetImageVector.clear();
+  mImageRenderTargetVector.clear();
 
   UDEBUG("Closed Render Target Images!");
   return UTRUE;
@@ -86,6 +87,7 @@ b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
                             VkFormat surfaceFormat,
                             FImageVulkan* pOutRenderTargetImage) {
   pOutRenderTargetImage->format = surfaceFormat;
+  pOutRenderTargetImage->type = EImageType::RENDER_TARGET;
 
   pOutRenderTargetImage->extent.width = surfaceExtent.width;
   pOutRenderTargetImage->extent.height = surfaceExtent.height;

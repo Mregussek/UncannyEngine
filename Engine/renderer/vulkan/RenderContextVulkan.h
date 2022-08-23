@@ -85,7 +85,7 @@ private:
 
   [[nodiscard]] b32 recordCommandBuffersForCopyRenderTargetIntoPresentableImage(
       const std::vector<FImageVulkan>& renderTargetImages,
-      const std::vector<VkImage>& presentableImages,
+      const std::vector<FImageVulkan>& presentableImages,
       const std::vector<VkCommandBuffer>& commandBuffers) const;
 
   [[nodiscard]] b32 shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state);
@@ -126,10 +126,9 @@ private:
   // Swapchain
   VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
-  std::vector<VkImage> mVkImagePresentableVector{};
-  std::vector<VkImageView> mVkImageViewPresentableVector{};
+  std::vector<FImageVulkan> mImagePresentableVector{};
   // Render Images info
-  std::vector<FImageVulkan> mRenderTargetImageVector{};
+  std::vector<FImageVulkan> mImageRenderTargetVector{};
   // Depth Image info
   VkFormat mVkDepthFormat{ VK_FORMAT_UNDEFINED };
   FImageVulkan mDepthImage{};
