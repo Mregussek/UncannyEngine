@@ -31,6 +31,9 @@ void FRenderContextVulkan::defineDependencies() {
   mWindowSurfaceDependencies.colorSpaceCandidates = {
       VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
   };
+  mWindowSurfaceDependencies.presentModeCandidates = {
+      VK_PRESENT_MODE_MAILBOX_KHR
+  };
 
   mSwapchainDependencies.usedImageCount = 2;
   mSwapchainDependencies.imageUsageVector = {

@@ -168,11 +168,18 @@ b32 validateWindowSurfaceDependencies(const FWindowSurfaceDependencies& surfaceD
       return UFALSE;
     }
   }
+
   if (surfaceDeps.colorSpaceCandidates.empty()) {
     UERROR("No window surface color space candidates info!");
     return UFALSE;
   }
   // There is no need to validate color space, as default one is 0-valued
+
+  if (surfaceDeps.presentModeCandidates.empty()) {
+    UERROR("No window surface present mode candidates info!");
+    return UFALSE;
+  }
+  // There is no need to validate present mode, as default one is 0-valued
 
   UTRACE("Validated window surface deps!");
   return UTRUE;
