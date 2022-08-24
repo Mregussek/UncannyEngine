@@ -231,7 +231,7 @@ b32 validateSpecificImageDependencies(
     }
   }
 
-  UDEBUG("Validated specific {} image deps!", logInfo);
+  UTRACE("Validated specific {} image deps!", logInfo);
   return UTRUE;
 }
 
