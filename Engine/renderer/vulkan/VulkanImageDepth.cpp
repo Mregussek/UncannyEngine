@@ -38,7 +38,7 @@ b32 FRenderContextVulkan::createDepthImage() {
   mDepthImage.type = EImageType::DEPTH;
   mDepthImage.extent = imageExtent;
 
-  b32 featuresAreSupported{areFormatsFeaturesDependenciesMetForImageFormat(
+  b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
       mDepthImage.format, mDepthImage.tiling, mVkPhysicalDevice,
       mImageDependencies.depth.formatsFeatureVector, "depth") };
   if (not featuresAreSupported) {

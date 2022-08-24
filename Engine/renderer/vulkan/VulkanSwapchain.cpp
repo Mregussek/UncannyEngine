@@ -59,6 +59,15 @@ b32 FRenderContextVulkan::createSwapchain() {
   VkFormat imageFormat{ mVkSurfaceFormat.format };
   VkColorSpaceKHR imageColorSpace{ mVkSurfaceFormat.colorSpace };
   VkExtent2D imageExtent2D{ mVkSurfaceExtent2D };
+  VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
+
+  b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
+      imageFormat, imageTiling, mVkPhysicalDevice,
+      mSwapchainDependencies.imageFormatFeatureVector, "swapchain") };
+  if (not featuresAreSupported) {
+    UERROR("Could not create swapchain images, as format features are not supported!");
+    return UFALSE;
+  }
 
   // OR every image usage from dependencies
   VkImageUsageFlags imageUsage{ 0 };
@@ -110,7 +119,7 @@ b32 FRenderContextVulkan::createSwapchain() {
     mImagePresentableVector[i].type = EImageType::PRESENTABLE;
     mImagePresentableVector[i].format = imageFormat;
     mImagePresentableVector[i].extent = presentableImageExtent;
-    mImagePresentableVector[i].tiling = VK_IMAGE_TILING_OPTIMAL;
+    mImagePresentableVector[i].tiling = imageTiling;
   }
   imageVector.clear();
 

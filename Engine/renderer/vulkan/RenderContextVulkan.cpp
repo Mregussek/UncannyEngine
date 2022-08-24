@@ -372,8 +372,8 @@ b32 FRenderContextVulkan::update() {
       return UFALSE;
     }
 
-    UDEBUG("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
-           " imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
+    UINFO("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
+          " imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
     resetRenderLoopMembers();
   }
   return UTRUE;

@@ -25,7 +25,7 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   VkFormat imageFormat{ mVkSurfaceFormat.format };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
-  b32 featuresAreSupported{areFormatsFeaturesDependenciesMetForImageFormat(
+  b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
       imageFormat, imageTiling, mVkPhysicalDevice,
       mImageDependencies.renderTarget.formatsFeatureVector, "render target") };
   if (not featuresAreSupported) {
