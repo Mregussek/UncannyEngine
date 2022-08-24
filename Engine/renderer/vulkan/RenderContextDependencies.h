@@ -43,6 +43,12 @@ struct FSwapchainDependencies {
 };
 
 
+struct FWindowSurfaceDependencies {
+  std::vector<VkFormat> formatCandidates{};
+  std::vector<VkColorSpaceKHR> colorSpaceCandidates{};
+};
+
+
 struct FQueueFamilyDependencies {
   // @brief queues priorities for given count
   std::vector<f32> queuesPriorities{};

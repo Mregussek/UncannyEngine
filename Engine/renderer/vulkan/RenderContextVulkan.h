@@ -96,6 +96,7 @@ private:
   FRenderContextSpecification mSpecs{};
   FInstanceDependencies mInstanceDependencies{};
   FPhysicalDeviceDependencies mPhysicalDeviceDependencies{};
+  FWindowSurfaceDependencies mWindowSurfaceDependencies{};
   FSwapchainDependencies mSwapchainDependencies{};
   FImagesDependencies mImageDependencies{};
   // Instance

@@ -31,6 +31,9 @@ static b32 validateInstanceDependencies(const FInstanceDependencies& instanceDep
 static b32 validatePhysicalDeviceDependencies(const FPhysicalDeviceDependencies& physDevDeps);
 
 
+static b32 validateWindowSurfaceDependencies(const FWindowSurfaceDependencies& surfaceDeps);
+
+
 static b32 validateSwapchainDependencies(const FSwapchainDependencies& swapchainDeps);
 
 
@@ -50,6 +53,10 @@ b32 FRenderContextVulkan::validateDependencies() const {
   }
   if (not validatePhysicalDeviceDependencies(mPhysicalDeviceDependencies)) {
     UERROR("Wrong physical device dependencies!");
+    return UFALSE;
+  }
+  if (not validateWindowSurfaceDependencies(mWindowSurfaceDependencies)) {
+    UERROR("Wrong window surface dependencies!");
     return UFALSE;
   }
   if (not validateSwapchainDependencies(mSwapchainDependencies)) {
@@ -144,6 +151,30 @@ b32 validatePhysicalDeviceDependencies(const FPhysicalDeviceDependencies& physDe
   }
 
   UTRACE("Validated physical device deps!");
+  return UTRUE;
+}
+
+
+b32 validateWindowSurfaceDependencies(const FWindowSurfaceDependencies& surfaceDeps) {
+  UTRACE("Validating window surface deps...");
+
+  if (surfaceDeps.formatCandidates.empty()) {
+    UERROR("No window surface format candidates info!");
+    return UFALSE;
+  }
+  for (VkFormat format : surfaceDeps.formatCandidates) {
+    if (format == VK_FORMAT_UNDEFINED) {
+      UERROR("One of window surface formats is undefined, check it!");
+      return UFALSE;
+    }
+  }
+  if (surfaceDeps.colorSpaceCandidates.empty()) {
+    UERROR("No window surface color space candidates info!");
+    return UFALSE;
+  }
+  // There is no need to validate color space, as default one is 0-valued
+
+  UTRACE("Validated window surface deps!");
   return UTRUE;
 }
 

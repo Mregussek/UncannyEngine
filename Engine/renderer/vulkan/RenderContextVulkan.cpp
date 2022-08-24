@@ -25,6 +25,13 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
 
+  mWindowSurfaceDependencies.formatCandidates = {
+      VK_FORMAT_B8G8R8A8_SRGB
+  };
+  mWindowSurfaceDependencies.colorSpaceCandidates = {
+      VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+  };
+
   mSwapchainDependencies.usedImageCount = 2;
   mSwapchainDependencies.imageUsageVector = {
       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT
