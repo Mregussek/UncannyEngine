@@ -27,6 +27,11 @@ b32 windowSurfaceSupportPresentationOnPhysicalDevice(
     u32 queueFamilyIndex);
 
 
+b32 detectSupportedImageFormatByWindowSurface(
+    VkPhysicalDevice physicalDevice, VkSurfaceKHR windowSurface,
+    const std::vector<VkSurfaceFormatKHR>& formatCandidates, VkSurfaceFormatKHR* pOutFormat);
+
+
 }
 
 

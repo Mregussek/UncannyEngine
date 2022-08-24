@@ -2,7 +2,6 @@
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
 #include "VulkanWindowSurface.h"
-#include "VulkanImageDepth.h"
 #include <utilities/Logger.h>
 
 

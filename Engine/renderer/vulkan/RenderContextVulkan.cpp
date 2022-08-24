@@ -28,31 +28,33 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
 
   // WINDOW SURFACE
-  mWindowSurfaceDependencies.formatCandidates = {
-      { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR }
-  };
   mWindowSurfaceDependencies.presentModeCandidates = {
       VK_PRESENT_MODE_MAILBOX_KHR
   };
 
   // SWAPCHAIN
   mSwapchainDependencies.usedImageCount = 2;
+  mSwapchainDependencies.formatCandidatesVector = {
+      { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR }
+  };
   mSwapchainDependencies.imageUsageVector = {
-      VK_IMAGE_USAGE_TRANSFER_DST_BIT
+      VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
   };
   mSwapchainDependencies.imageFormatFeatureVector = {
-      VK_FORMAT_FEATURE_TRANSFER_DST_BIT
+      VK_FORMAT_FEATURE_TRANSFER_DST_BIT, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
   };
 
   // RENDER TARGET
   mImageDependencies.renderTarget.formatCandidatesVector = {
-      VK_FORMAT_B8G8R8A8_SRGB
+      { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR }
   };
   mImageDependencies.renderTarget.usageVector = {
-      VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT
+      VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
   };
   mImageDependencies.renderTarget.formatsFeatureVector = {
-      VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_FORMAT_FEATURE_TRANSFER_DST_BIT
+      VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_FORMAT_FEATURE_TRANSFER_DST_BIT,
+      VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
   };
 
   // DEPTH
@@ -62,7 +64,7 @@ void FRenderContextVulkan::defineDependencies() {
   // Don’t use 32-bit floating point depth formats, due to the performance cost, unless
   // improved precision is actually required.
   mImageDependencies.depth.formatCandidatesVector = {
-      VK_FORMAT_D32_SFLOAT
+      { VK_FORMAT_D32_SFLOAT, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR }
   };
   mImageDependencies.depth.usageVector = {
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT

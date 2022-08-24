@@ -3,6 +3,7 @@
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
 #include "VulkanImages.h"
+#include "VulkanWindowSurface.h"
 #include <utilities/Logger.h>
 #include <window/Window.h>
 
@@ -56,13 +57,20 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
-  VkFormat imageFormat{ mVkSurfaceFormat.format };
-  VkColorSpaceKHR imageColorSpace{ mVkSurfaceFormat.colorSpace };
+  VkSurfaceFormatKHR imageFormat{ VK_FORMAT_UNDEFINED };
   VkExtent2D imageExtent2D{ mVkSurfaceExtent2D };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
+  b32 detected{ detectSupportedImageFormatByWindowSurface(
+      mVkPhysicalDevice, mVkWindowSurface, mSwapchainDependencies.formatCandidatesVector,
+      &imageFormat) };
+  if (not detected) {
+    UERROR("Could not find suitable swapchain presentable image format from window surface!");
+    return UFALSE;
+  }
+
   b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
-      imageFormat, imageTiling, mVkPhysicalDevice,
+      imageFormat.format, imageTiling, mVkPhysicalDevice,
       mSwapchainDependencies.imageFormatFeatureVector, "swapchain") };
   if (not featuresAreSupported) {
     UERROR("Could not create swapchain images, as format features are not supported!");
@@ -80,8 +88,8 @@ b32 FRenderContextVulkan::createSwapchain() {
   createInfo.flags = 0;
   createInfo.surface = mVkWindowSurface;
   createInfo.minImageCount = mSwapchainDependencies.usedImageCount;
-  createInfo.imageFormat = imageFormat;
-  createInfo.imageColorSpace = imageColorSpace;
+  createInfo.imageFormat = imageFormat.format;
+  createInfo.imageColorSpace = imageFormat.colorSpace;
   createInfo.imageExtent = imageExtent2D;
   createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
   createInfo.imageUsage = imageUsage;
@@ -117,7 +125,7 @@ b32 FRenderContextVulkan::createSwapchain() {
   for(u32 i = 0; i < imageCount; i++) {
     mImagePresentableVector[i].handle = imageVector[i];
     mImagePresentableVector[i].type = EImageType::PRESENTABLE;
-    mImagePresentableVector[i].format = imageFormat;
+    mImagePresentableVector[i].format = imageFormat.format;
     mImagePresentableVector[i].extent = presentableImageExtent;
     mImagePresentableVector[i].tiling = imageTiling;
   }
@@ -143,7 +151,7 @@ b32 FRenderContextVulkan::createSwapchain() {
     imageViewCreateInfo.flags = 0;
     imageViewCreateInfo.image = mImagePresentableVector[i].handle;
     imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    imageViewCreateInfo.format = imageFormat;
+    imageViewCreateInfo.format = imageFormat.format;
     imageViewCreateInfo.components = componentMapping;
     imageViewCreateInfo.subresourceRange = imageSubresourceRange;
 

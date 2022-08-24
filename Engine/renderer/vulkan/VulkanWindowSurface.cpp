@@ -89,26 +89,14 @@ b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
   UTRACE("Found surface extent width {} height {}",
          mVkSurfaceExtent2D.width, mVkSurfaceExtent2D.height);
 
-  // query surface format info...
-  u32 formatCount{ 0 };
-  U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkWindowSurface,
-                                                    &formatCount, nullptr) );
-  std::vector<VkSurfaceFormatKHR> availableFormats(formatCount);
-  U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkWindowSurface,
-                                                    &formatCount, availableFormats.data()) );
-
-  mVkSurfaceFormat = getProperSurfaceFormat(availableFormats,
-                                            mWindowSurfaceDependencies.formatCandidates);
-  UTRACE("Found surface format {} colorSpace {}",
-         mVkSurfaceFormat.format, mVkSurfaceFormat.colorSpace);
-
   // query present modes info...
   u32 presentCount{ 0 };
   U_VK_ASSERT( vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                          &presentCount, nullptr) );
   std::vector<VkPresentModeKHR> availablePresentModes(presentCount);
   U_VK_ASSERT( vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysicalDevice, mVkWindowSurface,
-                                                         &presentCount, availablePresentModes.data()) );
+                                                         &presentCount,
+                                                         availablePresentModes.data()) );
 
   mVkPresentMode = getProperPresentModeKHR(availablePresentModes,
                                            mWindowSurfaceDependencies.presentModeCandidates);
@@ -279,6 +267,43 @@ VkPresentModeKHR getProperPresentModeKHR(
 
   UWARN("As present modes candidates are not available, returning fallback supported!");
   return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+
+b32 detectSupportedImageFormatByWindowSurface(
+    VkPhysicalDevice physicalDevice, VkSurfaceKHR windowSurface,
+    const std::vector<VkSurfaceFormatKHR>& formatCandidates, VkSurfaceFormatKHR* pOutFormat) {
+  UTRACE("Detecting supported image format by window surface from candidates...");
+
+  // query surface format info...
+  u32 formatCount{ 0 };
+  U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, windowSurface,
+                                                    &formatCount, nullptr) );
+  std::vector<VkSurfaceFormatKHR> availableFormats(formatCount);
+  U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, windowSurface,
+                                                    &formatCount, availableFormats.data()) );
+
+  auto it = std::find_if(formatCandidates.cbegin(), formatCandidates.cend(),
+                         [availableFormats = std::as_const(availableFormats)]
+                         (VkSurfaceFormatKHR candidate) -> b32 {
+    for (VkSurfaceFormatKHR af : availableFormats) {
+      if (candidate.format ==  af.format and candidate.colorSpace == af.colorSpace) {
+        return UTRUE;
+      }
+    }
+    return UFALSE;
+  });
+  if (it != formatCandidates.cend()) {
+    pOutFormat->format = it->format;
+    pOutFormat->colorSpace = it->colorSpace;
+    UDEBUG("Found candidate format supported by window surface! f {} cs {}",
+           pOutFormat->format, pOutFormat->colorSpace);
+    return UTRUE;
+  }
+
+  UERROR("Could not find proper format candidate supported by window surface!");
+  *pOutFormat = {};
+  return UFALSE;
 }
 
 

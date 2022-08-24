@@ -120,7 +120,6 @@ private:
   // Window Surface
   VkSurfaceKHR mVkWindowSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR mVkSurfaceCapabilities{};
-  VkSurfaceFormatKHR mVkSurfaceFormat{};
   VkPresentModeKHR mVkPresentMode{ VK_PRESENT_MODE_FIFO_KHR }; // FIFO has to exist as spec says
   VkExtent2D mVkSurfaceExtent2D{}; // used during swapchain creation, make sure to update it
   // Logical Device

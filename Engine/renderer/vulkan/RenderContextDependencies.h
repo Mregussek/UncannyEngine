@@ -23,7 +23,7 @@ enum class EPhysicalDeviceType {
 
 
 struct FSpecificImageDependencies {
-  std::vector<VkFormat> formatCandidatesVector{};
+  std::vector<VkSurfaceFormatKHR> formatCandidatesVector{};
   std::vector<VkFormatFeatureFlags> formatsFeatureVector{};
   std::vector<VkImageUsageFlags> usageVector{};
 };
@@ -38,6 +38,8 @@ struct FImagesDependencies {
 struct FSwapchainDependencies {
   // @brief count of images used
   u32 usedImageCount{ UUNUSED };
+  // @brief image format dependencies
+  std::vector<VkSurfaceFormatKHR> formatCandidatesVector{};
   // @brief image usage dependencies
   std::vector<VkImageUsageFlags> imageUsageVector{};
   // @brief image format features dependencies
@@ -46,7 +48,6 @@ struct FSwapchainDependencies {
 
 
 struct FWindowSurfaceDependencies {
-  std::vector<VkSurfaceFormatKHR> formatCandidates{};
   std::vector<VkPresentModeKHR> presentModeCandidates{};
 };
 

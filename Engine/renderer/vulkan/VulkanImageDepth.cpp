@@ -1,6 +1,6 @@
 
 #include "RenderContextVulkan.h"
-#include "VulkanImageDepth.h"
+#include "VulkanWindowSurface.h"
 #include "VulkanUtilities.h"
 #include <utilities/Logger.h>
 #include "VulkanImages.h"
@@ -13,38 +13,26 @@ namespace uncanny
 b32 FRenderContextVulkan::createDepthImage() {
   UTRACE("Creating depth image...");
 
-  if (mVkDepthFormat == VK_FORMAT_UNDEFINED) {
-    UTRACE("Depth format is not detected! Searching...");
-    b32 detectedDepthFormat{
-      detectSupportedDepthFormat(mVkPhysicalDevice,
-                                 mImageDependencies.depth.formatCandidatesVector,
-                                 &mVkDepthFormat) };
-    if (not detectedDepthFormat) {
-      UERROR("Could not detect depth format!");
-      return UFALSE;
-    }
-
-    UTRACE("Found depth format, now can create depth image...");
-  }
-
-  // create depth image...
-  VkExtent3D imageExtent{};
-  imageExtent.width = mVkSurfaceExtent2D.width;
-  imageExtent.height = mVkSurfaceExtent2D.height;
-  imageExtent.depth = 1;
-
-  mDepthImage.format = mVkDepthFormat;
-  mDepthImage.tiling = VK_IMAGE_TILING_OPTIMAL;
-  mDepthImage.type = EImageType::DEPTH;
-  mDepthImage.extent = imageExtent;
+  // TODO: Make sure no other format be used
+  UTRACE("Using 0-indexed depth format from dependencies!");
+  VkFormat imageFormat{ mImageDependencies.depth.formatCandidatesVector[0].format };
+  VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
+  VkExtent3D imageExtent{ mVkSurfaceExtent2D.width, mVkSurfaceExtent2D.height, 1 };
 
   b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
-      mDepthImage.format, mDepthImage.tiling, mVkPhysicalDevice,
+      imageFormat, imageTiling, mVkPhysicalDevice,
       mImageDependencies.depth.formatsFeatureVector, "depth") };
   if (not featuresAreSupported) {
     UERROR("Could not create depth images, as format features are not supported!");
     return UFALSE;
   }
+
+  // create depth image...
+  mVkDepthFormat = imageFormat;
+  mDepthImage.format = mVkDepthFormat;
+  mDepthImage.tiling = imageTiling;
+  mDepthImage.type = EImageType::DEPTH;
+  mDepthImage.extent = imageExtent;
 
   VkImageUsageFlags imageUsage{ 0 };
   for (VkImageUsageFlags imageUsageFlag : mImageDependencies.depth.usageVector) {
@@ -56,7 +44,7 @@ b32 FRenderContextVulkan::createDepthImage() {
   imageCreateInfo.flags = 0;
   imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
   imageCreateInfo.format = mDepthImage.format;
-  imageCreateInfo.extent = imageExtent;
+  imageCreateInfo.extent = mDepthImage.extent;
   imageCreateInfo.mipLevels = 4;
   imageCreateInfo.arrayLayers = 1;
   imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -157,32 +145,6 @@ b32 FRenderContextVulkan::recreateDepthImage() {
 
   UDEBUG("Recreated depth image!");
   return UTRUE;
-}
-
-
-b32 detectSupportedDepthFormat(VkPhysicalDevice physicalDevice,
-                               const std::vector<VkFormat>& depthFormatCandidates,
-                               VkFormat* pOutDepthFormat) {
-  VkFormatFeatureFlagBits flags{ VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT };
-  for (u32 i = 0; i < depthFormatCandidates.size(); i++) {
-    VkFormatProperties formatProperties{};
-    vkGetPhysicalDeviceFormatProperties(physicalDevice, depthFormatCandidates[i],
-                                        &formatProperties);
-
-    if ((formatProperties.linearTilingFeatures & flags) == flags) {
-      *pOutDepthFormat = depthFormatCandidates[i];
-      UTRACE("Detected depth format {} at index {}!", *pOutDepthFormat, i);
-      return UTRUE;
-    }
-    else if ((formatProperties.optimalTilingFeatures & flags) == flags) {
-      *pOutDepthFormat = depthFormatCandidates[i];
-      UTRACE("Detected depth format {} at index {}!", *pOutDepthFormat, i);
-      return UTRUE;
-    }
-  }
-
-  UERROR("Could not detect depth format from candidates!");
-  return UFALSE;
 }
 
 

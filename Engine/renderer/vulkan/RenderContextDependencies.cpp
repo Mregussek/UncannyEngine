@@ -158,17 +158,6 @@ b32 validatePhysicalDeviceDependencies(const FPhysicalDeviceDependencies& physDe
 b32 validateWindowSurfaceDependencies(const FWindowSurfaceDependencies& surfaceDeps) {
   UTRACE("Validating window surface deps...");
 
-  if (surfaceDeps.formatCandidates.empty()) {
-    UERROR("No window surface format candidates info!");
-    return UFALSE;
-  }
-  for (VkSurfaceFormatKHR sf : surfaceDeps.formatCandidates) {
-    if (sf.format == VK_FORMAT_UNDEFINED) {
-      UERROR("One of window surface formats is undefined, check it!");
-      return UFALSE;
-    }
-  }
-
   if (surfaceDeps.presentModeCandidates.empty()) {
     UERROR("No window surface present mode candidates info!");
     return UFALSE;
@@ -186,6 +175,17 @@ b32 validateSwapchainDependencies(const FSwapchainDependencies& swapchainDeps) {
   if (swapchainDeps.usedImageCount < 2) {
     UERROR("Minimal image count for swapchain is 2, back and front buffers! Wrong dependencies!");
     return UFALSE;
+  }
+
+  if (swapchainDeps.formatCandidatesVector.empty()) {
+    UERROR("There is no info about format in vector!");
+    return UFALSE;
+  }
+  for (VkSurfaceFormatKHR format : swapchainDeps.formatCandidatesVector) {
+    if (format.format == VK_FORMAT_UNDEFINED) {
+      UERROR("Swapchain image format is not defined! Undefined value in vector, wrong info given!");
+      return UFALSE;
+    }
   }
 
   if (swapchainDeps.imageUsageVector.empty()) {
@@ -252,8 +252,8 @@ b32 validateSpecificImageDependencies(
   }
 
   // make sure that there is not undefined format
-  for (VkFormat format : specificImageDeps.formatCandidatesVector) {
-    if (format == VK_FORMAT_UNDEFINED) {
+  for (VkSurfaceFormatKHR format : specificImageDeps.formatCandidatesVector) {
+    if (format.format == VK_FORMAT_UNDEFINED) {
       UERROR("One of {} image formats is undefined, check it!", logInfo);
       return UFALSE;
     }

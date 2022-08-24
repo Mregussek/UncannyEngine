@@ -1,6 +1,7 @@
 
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
+#include "VulkanWindowSurface.h"
 #include <utilities/Logger.h>
 #include "VulkanImages.h"
 
@@ -22,11 +23,19 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   u32 imageCount{ static_cast<u32>(mImagePresentableVector.size()) };
   UTRACE("Creating {} Render Target Images...", imageCount);
 
-  VkFormat imageFormat{ mVkSurfaceFormat.format };
+  VkSurfaceFormatKHR imageFormat{ VK_FORMAT_UNDEFINED };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
+  b32 detected{ detectSupportedImageFormatByWindowSurface(
+      mVkPhysicalDevice, mVkWindowSurface, mImageDependencies.renderTarget.formatCandidatesVector,
+      &imageFormat) };
+  if (not detected) {
+    UERROR("Could not find suitable swapchain presentable image format from window surface!");
+    return UFALSE;
+  }
+
   b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
-      imageFormat, imageTiling, mVkPhysicalDevice,
+      imageFormat.format, imageTiling, mVkPhysicalDevice,
       mImageDependencies.renderTarget.formatsFeatureVector, "render target") };
   if (not featuresAreSupported) {
     UERROR("Could not create render target images, as format features are not supported!");
@@ -43,7 +52,7 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   for (u32 i = 0; i < imageCount; i++) {
     UTRACE("Creating render target image {}...", i);
     b32 createdProperly{ createRenderTargetImage(mVkPhysicalDevice, mVkDevice, mVkSurfaceExtent2D,
-                                                 imageFormat, imageTiling, imageUsage,
+                                                 imageFormat.format, imageTiling, imageUsage,
                                                  &mImageRenderTargetVector[i]) };
     if (not createdProperly) {
       UERROR("Could not create render target image at index {}", i);
