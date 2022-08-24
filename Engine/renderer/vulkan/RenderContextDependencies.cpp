@@ -25,15 +25,63 @@ FQueueFamilyDependencies getQueueFamilyDependencies(
 }
 
 
+static b32 validateInstanceDependencies(const FInstanceDependencies& instanceDeps);
+
+
+static b32 validatePhysicalDeviceDependencies(const FPhysicalDeviceDependencies& physDevDeps);
+
+
+static b32 validateSwapchainDependencies(const FSwapchainDependencies& swapchainDeps);
+
+
+static b32 validateImageDependencies(const FImagesDependencies& imageDeps);
+
+
+static b32 validateSpecificImageDependencies(
+    const FSpecificImageDependencies& specificImageDeps, const char* logInfo);
+
+
 b32 FRenderContextVulkan::validateDependencies() const {
   UTRACE("Validating dependencies for vulkan renderer...");
-  const auto& physDevDeps{ mPhysicalDeviceDependencies }; // wrapper
+
+  if (not validateInstanceDependencies(mInstanceDependencies)) {
+    UERROR("Wrong instance dependencies!");
+    return UFALSE;
+  }
+  if (not validatePhysicalDeviceDependencies(mPhysicalDeviceDependencies)) {
+    UERROR("Wrong physical device dependencies!");
+    return UFALSE;
+  }
+  if (not validateSwapchainDependencies(mSwapchainDependencies)) {
+    UERROR("Wrong swapchain dependencies!");
+    return UFALSE;
+  }
+  if (not validateImageDependencies(mImageDependencies)) {
+    UERROR("Wrong image dependencies!");
+    return UFALSE;
+  }
+
+  UDEBUG("Properly defined dependencies for vulkan renderer!");
+  return UTRUE;
+}
+
+
+b32 validateInstanceDependencies(const FInstanceDependencies& instanceDeps) {
+  UTRACE("Validating instance deps...");
 
   // make sure proper vulkan api version is given
-  if (mInstanceDependencies.vulkanApiVersion == 0) {
+  if (instanceDeps.vulkanApiVersion == 0) {
     UERROR("Wrong Vulkan API version given in dependencies!");
     return UFALSE;
   }
+
+  UTRACE("Validated instance deps!");
+  return UTRUE;
+}
+
+
+b32 validatePhysicalDeviceDependencies(const FPhysicalDeviceDependencies& physDevDeps) {
+  UTRACE("Validating physical device deps...");
 
   // make sure there is proper queue family index count
   if (physDevDeps.queueFamilyIndexesCount < 1) {
@@ -47,20 +95,6 @@ b32 FRenderContextVulkan::validateDependencies() const {
       physDevDeps.deviceTypeFallback == EPhysicalDeviceType::NONE) {
     UERROR("Defined device types are NONE, which means proper GPU cannot be selected!");
     return UFALSE;
-  }
-
-  // make sure that depth dependencies are correct
-  if (physDevDeps.depthFormatDependencies.empty()) {
-    UERROR("No depth dependencies info!");
-    return UFALSE;
-  }
-
-  // make sure that there is not undefined depth format
-  for (VkFormat depthFormat : physDevDeps.depthFormatDependencies) {
-    if (depthFormat == VK_FORMAT_UNDEFINED) {
-      UERROR("One of depth formats is undefined, check it!");
-      return UFALSE;
-    }
   }
 
   // make sure there is enough queue dependencies for every queue family
@@ -109,24 +143,95 @@ b32 FRenderContextVulkan::validateDependencies() const {
     }
   }
 
-  if (mSwapchainDependencies.usedImageCount < 2) {
+  UTRACE("Validated physical device deps!");
+  return UTRUE;
+}
+
+
+b32 validateSwapchainDependencies(const FSwapchainDependencies& swapchainDeps) {
+  UTRACE("Validating swapchain dependencies...");
+
+  if (swapchainDeps.usedImageCount < 2) {
     UERROR("Minimal image count for swapchain is 2, back and front buffers! Wrong dependencies!");
     return UFALSE;
   }
 
-  if (mSwapchainDependencies.imageUsageVector.empty()) {
+  if (swapchainDeps.imageUsageVector.empty()) {
     UERROR("There is no info about image usage in vector!");
     return UFALSE;
   }
 
-  for (VkImageUsageFlags imageUsage: mSwapchainDependencies.imageUsageVector) {
+  for (VkImageUsageFlags imageUsage: swapchainDeps.imageUsageVector) {
     if (imageUsage == 0) {
       UERROR("Image usage is not defined! 0 value in vector, wrong info given!");
       return UFALSE;
     }
   }
 
-  UDEBUG("Properly defined dependencies for vulkan renderer!");
+  UTRACE("Validated swapchain dependencies!");
+  return UTRUE;
+}
+
+
+b32 validateImageDependencies(const FImagesDependencies& imageDeps) {
+  UTRACE("Validating image dependencies...");
+
+  if (not validateSpecificImageDependencies(imageDeps.renderTarget, "render target")) {
+    UERROR("Wrong render target image dependencies!");
+    return UFALSE;
+  }
+  if (not validateSpecificImageDependencies(imageDeps.depth, "depth")) {
+    UERROR("Wrong depth image dependencies!");
+    return UFALSE;
+  }
+
+  UTRACE("Correct image dependencies!");
+  return UTRUE;
+}
+
+
+b32 validateSpecificImageDependencies(
+    const FSpecificImageDependencies& specificImageDeps, const char* logInfo) {
+  UTRACE("Validating specific {} image deps...", logInfo);
+
+  if (specificImageDeps.formatCandidatesVector.empty()) {
+    UERROR("No {} format candidates info!", logInfo);
+    return UFALSE;
+  }
+  if (specificImageDeps.formatsFeatureVector.empty()) {
+    UERROR("No {} format features info!", logInfo);
+    return UFALSE;
+  }
+  if (specificImageDeps.usageVector.empty()) {
+    UERROR("No {} image usage info!", logInfo);
+    return UFALSE;
+  }
+
+  // make sure that there is not undefined format
+  for (VkFormat format : specificImageDeps.formatCandidatesVector) {
+    if (format == VK_FORMAT_UNDEFINED) {
+      UERROR("One of {} image formats is undefined, check it!", logInfo);
+      return UFALSE;
+    }
+  }
+
+  // make sure that there is not undefined format feature
+  for (VkFormatFeatureFlags formatFeature : specificImageDeps.formatsFeatureVector) {
+    if (formatFeature == 0) {
+      UERROR("One of {} format features is undefined, check it!", logInfo);
+      return UFALSE;
+    }
+  }
+
+  // make sure that there is not undefined image usage feature
+  for (VkImageUsageFlags imageUsage : specificImageDeps.usageVector) {
+    if (imageUsage == 0) {
+      UERROR("One of {} image usage is undefined, check it!", logInfo);
+      return UFALSE;
+    }
+  }
+
+  UDEBUG("Validated specific {} image deps!", logInfo);
   return UTRUE;
 }
 

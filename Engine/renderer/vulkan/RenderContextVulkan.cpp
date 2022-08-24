@@ -24,30 +24,33 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
   mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
-  // Prefer using 24-bit depth formats for optimal performance.
-  // Prefer using packed depth/stencil formats. This is a common cause for notable
-  // performance differences between an OpenGL and Vulkan implementation.
-  // Don’t use 32-bit floating point depth formats, due to the performance cost, unless
-  // improved precision is actually required.
-  mPhysicalDeviceDependencies.depthFormatDependencies = {
-      VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
-  };
 
   mSwapchainDependencies.usedImageCount = 2;
   mSwapchainDependencies.imageUsageVector = {
       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT
   };
 
-  mImageDependencies.renderTargetImageUsageVector = {
+  mImageDependencies.renderTarget.formatCandidatesVector = {
+      VK_FORMAT_B8G8R8A8_SRGB
+  };
+  mImageDependencies.renderTarget.usageVector = {
       VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT
   };
-  mImageDependencies.renderTargetFormatsFeatureVector = {
+  mImageDependencies.renderTarget.formatsFeatureVector = {
       VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_FORMAT_FEATURE_TRANSFER_DST_BIT
   };
-  mImageDependencies.depthImageUsageVector = {
+  // Prefer using 24-bit depth formats for optimal performance.
+  // Prefer using packed depth/stencil formats. This is a common cause for notable
+  // performance differences between an OpenGL and Vulkan implementation.
+  // Don’t use 32-bit floating point depth formats, due to the performance cost, unless
+  // improved precision is actually required.
+  mImageDependencies.depth.formatCandidatesVector = {
+      VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
+  };
+  mImageDependencies.depth.usageVector = {
       VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT
   };
-  mImageDependencies.depthFormatsFeatureVector = {
+  mImageDependencies.depth.formatsFeatureVector = {
       VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_FORMAT_FEATURE_TRANSFER_DST_BIT
   };
 }

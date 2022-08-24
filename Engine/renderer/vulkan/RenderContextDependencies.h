@@ -22,11 +22,16 @@ enum class EPhysicalDeviceType {
 };
 
 
+struct FSpecificImageDependencies {
+  std::vector<VkFormat> formatCandidatesVector{};
+  std::vector<VkFormatFeatureFlags> formatsFeatureVector{};
+  std::vector<VkImageUsageFlags> usageVector{};
+};
+
+
 struct FImagesDependencies {
-  std::vector<VkImageUsageFlags> renderTargetImageUsageVector{};
-  std::vector<VkFormatFeatureFlags> renderTargetFormatsFeatureVector{};
-  std::vector<VkImageUsageFlags> depthImageUsageVector{};
-  std::vector<VkFormatFeatureFlags> depthFormatsFeatureVector{};
+  FSpecificImageDependencies renderTarget{};
+  FSpecificImageDependencies depth{};
 };
 
 
@@ -65,8 +70,6 @@ struct FPhysicalDeviceDependencies {
   u32 queueFamilyIndexesCount{ 0 };
   // @brief dependencies for queue families. Count should be equal to queueFamilyIndexesCount
   std::vector<FQueueFamilyDependencies> queueFamilyDependencies{};
-  // @brief dependencies for depth format
-  std::vector<VkFormat> depthFormatDependencies{};
 };
 
 

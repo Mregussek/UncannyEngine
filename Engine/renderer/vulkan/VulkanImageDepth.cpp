@@ -17,7 +17,7 @@ b32 FRenderContextVulkan::createDepthImage() {
     UTRACE("Depth format is not detected! Searching...");
     b32 detectedDepthFormat{
       detectSupportedDepthFormat(mVkPhysicalDevice,
-                                 mPhysicalDeviceDependencies.depthFormatDependencies,
+                                 mImageDependencies.depth.formatCandidatesVector,
                                  &mVkDepthFormat) };
     if (not detectedDepthFormat) {
       UERROR("Could not detect depth format!");

@@ -186,14 +186,6 @@ b32 isPhysicalDeviceSuitable(VkPhysicalDevice physicalDevice,
     return UFALSE;
   }
 
-  UTRACE("Make sure that device has depth format support");
-  VkFormat depthFormat{ VK_FORMAT_UNDEFINED };
-  if (not detectSupportedDepthFormat(physicalDevice, dependencies.depthFormatDependencies,
-                                     &depthFormat)) {
-    UTRACE("Device {} doesn't support depth format candidates", deviceProperties.deviceName);
-    return UFALSE;
-  }
-
   UTRACE("Make sure that device has proper count of queues family indexes");
   if (dependencies.queueFamilyIndexesCount > queuesCount) {
     UTRACE("Device {} doesn't have enough count of QueueFamilyIndexes", deviceProperties.deviceName);

@@ -26,7 +26,7 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
   VkImageUsageFlags imageUsage{ 0 };
-  for (VkImageUsageFlags imageUsageFlag : mImageDependencies.renderTargetImageUsageVector) {
+  for (VkImageUsageFlags imageUsageFlag : mImageDependencies.renderTarget.usageVector) {
     imageUsage = imageUsage | imageUsageFlag;
   }
 
