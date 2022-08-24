@@ -59,4 +59,56 @@ b32 closeImageVulkan(FImageVulkan* pImage, VkDevice device, const char* logInfo)
 }
 
 
+static b32 areTilingFeaturesMetForImageFormat(
+    VkFormatFeatureFlags deviceFormatFeatureFlags,
+    const std::vector<VkFormatFeatureFlags>& formatFeatureDependenciesVector);
+
+
+b32 areFormatsFeaturesDependenciesMetForImageFormat(
+    VkFormat imageFormat, VkImageTiling tiling, VkPhysicalDevice physicalDevice,
+    const std::vector<VkFormatFeatureFlags>& formatFeatureVector, const char* logInfo) {
+  UTRACE("Validating {} image format features dependencies...", logInfo);
+
+  VkFormatProperties formatProperties{};
+  vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
+
+  if (tiling == VK_IMAGE_TILING_OPTIMAL) {
+    b32 tilingFeaturesSupported{ areTilingFeaturesMetForImageFormat(
+        formatProperties.optimalTilingFeatures, formatFeatureVector) };
+    if (not tilingFeaturesSupported) {
+      UERROR("Some Optimal Format Feature Flag is not supported by format {} for {} image!",
+             imageFormat, logInfo);
+      return UFALSE;
+    }
+  }
+  else {
+    b32 tilingFeaturesSupported{ areTilingFeaturesMetForImageFormat(
+        formatProperties.linearTilingFeatures, formatFeatureVector) };
+    if (not tilingFeaturesSupported) {
+      UERROR("Some Linear Format Feature Flag is not supported by format {} for {} image!",
+             imageFormat, logInfo);
+      return UFALSE;
+    }
+  }
+
+  UDEBUG("Validated {} image format features dependencies, it seems correct!", logInfo);
+  return UTRUE;
+}
+
+
+b32 areTilingFeaturesMetForImageFormat(
+    VkFormatFeatureFlags deviceFormatFeatureFlags,
+    const std::vector<VkFormatFeatureFlags>& formatFeatureDependenciesVector) {
+  for (VkFormatFeatureFlags featureFlag : formatFeatureDependenciesVector) {
+    if (not (deviceFormatFeatureFlags & featureFlag)) {
+      UERROR("Format Feature flag {} is not supported!", featureFlag);
+      return UFALSE;
+    }
+  }
+
+  UTRACE("Found every format feature flag supported!");
+  return UTRUE;
+}
+
+
 }

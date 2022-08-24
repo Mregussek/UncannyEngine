@@ -119,7 +119,7 @@ b32 FRenderContextVulkan::validateDependencies() const {
     return UFALSE;
   }
 
-  for (VkImageUsageFlagBits imageUsage: mSwapchainDependencies.imageUsageVector) {
+  for (VkImageUsageFlags imageUsage: mSwapchainDependencies.imageUsageVector) {
     if (imageUsage == 0) {
       UERROR("Image usage is not defined! 0 value in vector, wrong info given!");
       return UFALSE;

@@ -18,6 +18,11 @@ struct FImageVulkan;
 b32 closeImageVulkan(FImageVulkan* pImage, VkDevice device, const char* logInfo);
 
 
+b32 areFormatsFeaturesDependenciesMetForImageFormat(
+    VkFormat imageFormat, VkImageTiling tiling, VkPhysicalDevice physicalDevice,
+    const std::vector<VkFormatFeatureFlags>& formatFeatureVector, const char* logInfo);
+
+
 }
 
 

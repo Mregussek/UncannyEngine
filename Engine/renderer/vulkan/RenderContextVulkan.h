@@ -97,6 +97,7 @@ private:
   FInstanceDependencies mInstanceDependencies{};
   FPhysicalDeviceDependencies mPhysicalDeviceDependencies{};
   FSwapchainDependencies mSwapchainDependencies{};
+  FImagesDependencies mImageDependencies{};
   // Instance
   VkInstance mVkInstance{ VK_NULL_HANDLE };
   // Debugger

@@ -22,11 +22,19 @@ enum class EPhysicalDeviceType {
 };
 
 
+struct FImagesDependencies {
+  std::vector<VkImageUsageFlags> renderTargetImageUsageVector{};
+  std::vector<VkFormatFeatureFlags> renderTargetFormatsFeatureVector{};
+  std::vector<VkImageUsageFlags> depthImageUsageVector{};
+  std::vector<VkFormatFeatureFlags> depthFormatsFeatureVector{};
+};
+
+
 struct FSwapchainDependencies {
   // @brief count of images used
   u32 usedImageCount{ UUNUSED };
   // @brief image usage dependencies
-  std::vector<VkImageUsageFlagBits> imageUsageVector{};
+  std::vector<VkImageUsageFlags> imageUsageVector{};
 };
 
 

@@ -35,7 +35,7 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
   }
 
   // validate image usage
-  for (VkImageUsageFlagBits dependencyImageUsage : mSwapchainDependencies.imageUsageVector) {
+  for (VkImageUsageFlags dependencyImageUsage : mSwapchainDependencies.imageUsageVector) {
     if (not (mVkSurfaceCapabilities.supportedUsageFlags & dependencyImageUsage)) {
       UERROR("{} image usage is not supported!", dependencyImageUsage);
       return UFALSE;
@@ -57,9 +57,9 @@ b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
   // OR every image usage from dependencies
-  VkImageUsageFlagBits swapchainImageUsage{ (VkImageUsageFlagBits)0 };
-  for (VkImageUsageFlagBits imageUsageFlag : mSwapchainDependencies.imageUsageVector) {
-    swapchainImageUsage = (VkImageUsageFlagBits)(swapchainImageUsage | imageUsageFlag);
+  VkImageUsageFlags swapchainImageUsage{ 0 };
+  for (VkImageUsageFlags imageUsageFlag : mSwapchainDependencies.imageUsageVector) {
+    swapchainImageUsage = swapchainImageUsage | imageUsageFlag;
   }
 
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
@@ -95,7 +95,7 @@ b32 FRenderContextVulkan::createSwapchain() {
   U_VK_ASSERT( vkGetSwapchainImagesKHR(mVkDevice, mVkSwapchainCurrent, &imageCount,
                                        imageVector.data()) );
 
-  // Copying retrieved swapchain images into presentable handles...
+  // Copying retrieved swapchain images into presentable member handles...
   mImagePresentableVector.resize(imageCount);
   VkExtent3D presentableImageExtent{};
   presentableImageExtent.width = mVkSurfaceExtent2D.width;
