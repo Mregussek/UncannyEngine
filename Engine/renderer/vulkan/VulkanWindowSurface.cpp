@@ -19,10 +19,14 @@ static VkExtent2D getProperExtent2D(const VkSurfaceCapabilitiesKHR& capabilities
                                     const FWindow* pWindow);
 
 
-static b32 isSuitableSurfaceFormatAvailable(VkSurfaceFormatKHR surfaceFormat);
+static VkSurfaceFormatKHR getProperSurfaceFormat(
+    const std::vector<VkSurfaceFormatKHR>& availableFormats,
+    const std::vector<VkSurfaceFormatKHR>& formatCandidates);
 
 
-static b32 isSuitablePresentModeAvailable(VkPresentModeKHR presentMode);
+static VkPresentModeKHR getProperPresentModeKHR(
+    const std::vector<VkPresentModeKHR>& availableModes,
+    const std::vector<VkPresentModeKHR>& modeCandidates);
 
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
@@ -98,7 +102,8 @@ b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
   U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                     &formatCount, availableFormats.data()) );
 
-  mVkSurfaceFormat = getProperType(availableFormats, isSuitableSurfaceFormatAvailable);
+  mVkSurfaceFormat = getProperSurfaceFormat(availableFormats,
+                                            mWindowSurfaceDependencies.formatCandidates);
   UTRACE("Found surface format {} colorSpace {}",
          mVkSurfaceFormat.format, mVkSurfaceFormat.colorSpace);
 
@@ -110,7 +115,8 @@ b32 FRenderContextVulkan::collectWindowSurfaceCapabilities() {
   U_VK_ASSERT( vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                          &presentCount, availablePresentModes.data()) );
 
-  mVkPresentMode = getProperType(availablePresentModes, isSuitablePresentModeAvailable);
+  mVkPresentMode = getProperPresentModeKHR(availablePresentModes,
+                                           mWindowSurfaceDependencies.presentModeCandidates);
   UTRACE("Found surface present mode {}", mVkPresentMode);
 
   UDEBUG("Collected window surface capabilities!");
@@ -205,39 +211,6 @@ b32 windowSurfaceSupportPresentationOnPhysicalDevice(
 }
 
 
-template<typename TType>
-TType getProperType(const std::vector<TType>& availableTypes,
-                    b32(*isTypeAvailable)(TType type)) {
-  UTRACE("Looking for proper {}...", typeid(TType).name());
-
-  if (availableTypes.empty()) {
-    UWARN("Returning none as {} vector is empty!", typeid(TType).name());
-    return {};
-  }
-
-  auto it = std::find_if(availableTypes.cbegin(), availableTypes.cend(), isTypeAvailable);
-  if (it != availableTypes.cend()) {
-    UTRACE("Returning proper {} which is available!", typeid(TType).name());
-    return *it;
-  }
-
-  UWARN("Returning fallback {}, as expected one is not available!", typeid(TType).name());
-  return availableTypes[0];
-}
-
-
-b32 isSuitableSurfaceFormatAvailable(VkSurfaceFormatKHR surfaceFormat) {
-  b32 properFormat{ surfaceFormat.format == VK_FORMAT_B8G8R8A8_SRGB };
-  b32 properColorSpace{ surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
-  return properFormat && properColorSpace;
-}
-
-
-b32 isSuitablePresentModeAvailable(VkPresentModeKHR presentMode) {
-  return presentMode == VK_PRESENT_MODE_MAILBOX_KHR;
-}
-
-
 VkExtent2D getProperExtent2D(const VkSurfaceCapabilitiesKHR& capabilities, const FWindow* pWindow) {
   UTRACE("Looking for proper extent 2D...");
 
@@ -259,6 +232,58 @@ VkExtent2D getProperExtent2D(const VkSurfaceCapabilitiesKHR& capabilities, const
 
   UTRACE("Retrieved actual extent from window and clamped it to min/max values!");
   return actualExtent;
+}
+
+
+VkSurfaceFormatKHR getProperSurfaceFormat(
+    const std::vector<VkSurfaceFormatKHR>& availableFormats,
+    const std::vector<VkSurfaceFormatKHR>& formatCandidates) {
+  UTRACE("Looking for supported window surface format...");
+
+  auto it = std::find_if(formatCandidates.cbegin(), formatCandidates.cend(),
+                         [availableFormats = std::as_const(availableFormats)]
+                         (VkSurfaceFormatKHR candidate) -> b32 {
+    for (VkSurfaceFormatKHR af : availableFormats) {
+      if (candidate.format ==  af.format and candidate.colorSpace == af.colorSpace) {
+        return UTRUE;
+      }
+    }
+
+    return UFALSE;
+  });
+  if (it != formatCandidates.cend()) {
+    UTRACE("Found format proper candidate!");
+    return *it;
+  }
+
+  UERROR("As format candidates are not available, returning undefined format!");
+  return { VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+}
+
+
+VkPresentModeKHR getProperPresentModeKHR(
+    const std::vector<VkPresentModeKHR>& availableModes,
+    const std::vector<VkPresentModeKHR>& modeCandidates) {
+  UTRACE("Looking for supported present modes for window surface...");
+
+  auto it = std::find_if(modeCandidates.cbegin(), modeCandidates.cend(),
+                         [availableModes = std::as_const(availableModes)]
+                         (VkPresentModeKHR candidate) -> b32 {
+    for (VkPresentModeKHR am : availableModes) {
+      if (candidate == am) {
+        return UTRUE;
+      }
+    }
+
+    return UFALSE;
+  });
+  if (it != modeCandidates.cend()) {
+    UTRACE("Found present mode proper candidate!");
+    return *it;
+  }
+
+  UWARN("As present modes candidates are not available, returning fallback supported!");
+  return VK_PRESENT_MODE_FIFO_KHR;
 }
 
 

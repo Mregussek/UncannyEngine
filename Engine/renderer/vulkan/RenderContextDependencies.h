@@ -44,8 +44,7 @@ struct FSwapchainDependencies {
 
 
 struct FWindowSurfaceDependencies {
-  std::vector<VkFormat> formatCandidates{};
-  std::vector<VkColorSpaceKHR> colorSpaceCandidates{};
+  std::vector<VkSurfaceFormatKHR> formatCandidates{};
   std::vector<VkPresentModeKHR> presentModeCandidates{};
 };
 

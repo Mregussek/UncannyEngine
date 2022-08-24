@@ -162,18 +162,12 @@ b32 validateWindowSurfaceDependencies(const FWindowSurfaceDependencies& surfaceD
     UERROR("No window surface format candidates info!");
     return UFALSE;
   }
-  for (VkFormat format : surfaceDeps.formatCandidates) {
-    if (format == VK_FORMAT_UNDEFINED) {
+  for (VkSurfaceFormatKHR sf : surfaceDeps.formatCandidates) {
+    if (sf.format == VK_FORMAT_UNDEFINED) {
       UERROR("One of window surface formats is undefined, check it!");
       return UFALSE;
     }
   }
-
-  if (surfaceDeps.colorSpaceCandidates.empty()) {
-    UERROR("No window surface color space candidates info!");
-    return UFALSE;
-  }
-  // There is no need to validate color space, as default one is 0-valued
 
   if (surfaceDeps.presentModeCandidates.empty()) {
     UERROR("No window surface present mode candidates info!");
