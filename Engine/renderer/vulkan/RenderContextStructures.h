@@ -23,6 +23,7 @@ struct FImageVulkan {
   VkImageView handleView{ VK_NULL_HANDLE };
   VkExtent3D extent{ 0, 0, 0 };
   VkFormat format{ VK_FORMAT_UNDEFINED };
+  VkImageTiling tiling{ VK_IMAGE_TILING_OPTIMAL };
   EImageType type{ EImageType::NONE };
 };
 

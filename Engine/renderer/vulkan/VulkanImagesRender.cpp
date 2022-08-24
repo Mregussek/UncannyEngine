@@ -25,6 +25,14 @@ b32 FRenderContextVulkan::createRenderTargetImages() {
   VkFormat imageFormat{ mVkSurfaceFormat.format };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
+  b32 featuresAreSupported{areFormatsFeaturesDependenciesMetForImageFormat(
+      imageFormat, imageTiling, mVkPhysicalDevice,
+      mImageDependencies.renderTarget.formatsFeatureVector, "render target") };
+  if (not featuresAreSupported) {
+    UERROR("Could not create render target images, as format features are not supported!");
+    return UFALSE;
+  }
+
   VkImageUsageFlags imageUsage{ 0 };
   for (VkImageUsageFlags imageUsageFlag : mImageDependencies.renderTarget.usageVector) {
     imageUsage = imageUsage | imageUsageFlag;
@@ -99,6 +107,7 @@ b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
                             VkImageUsageFlags imageUsage,
                             FImageVulkan* pOutRenderTargetImage) {
   pOutRenderTargetImage->format = imageFormat;
+  pOutRenderTargetImage->tiling = imageTiling;
   pOutRenderTargetImage->type = EImageType::RENDER_TARGET;
 
   pOutRenderTargetImage->extent.width = imageExtent.width;

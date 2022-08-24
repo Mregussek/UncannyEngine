@@ -56,10 +56,14 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
+  VkFormat imageFormat{ mVkSurfaceFormat.format };
+  VkColorSpaceKHR imageColorSpace{ mVkSurfaceFormat.colorSpace };
+  VkExtent2D imageExtent2D{ mVkSurfaceExtent2D };
+
   // OR every image usage from dependencies
-  VkImageUsageFlags swapchainImageUsage{ 0 };
+  VkImageUsageFlags imageUsage{ 0 };
   for (VkImageUsageFlags imageUsageFlag : mSwapchainDependencies.imageUsageVector) {
-    swapchainImageUsage = swapchainImageUsage | imageUsageFlag;
+    imageUsage = imageUsage | imageUsageFlag;
   }
 
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
@@ -67,11 +71,11 @@ b32 FRenderContextVulkan::createSwapchain() {
   createInfo.flags = 0;
   createInfo.surface = mVkWindowSurface;
   createInfo.minImageCount = mSwapchainDependencies.usedImageCount;
-  createInfo.imageFormat = mVkSurfaceFormat.format;
-  createInfo.imageColorSpace = mVkSurfaceFormat.colorSpace;
-  createInfo.imageExtent = mVkSurfaceExtent2D;
+  createInfo.imageFormat = imageFormat;
+  createInfo.imageColorSpace = imageColorSpace;
+  createInfo.imageExtent = imageExtent2D;
   createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
-  createInfo.imageUsage = swapchainImageUsage;
+  createInfo.imageUsage = imageUsage;
   createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
   createInfo.queueFamilyIndexCount = 0;      // for exclusive sharing mode, param is ignored
   createInfo.pQueueFamilyIndices = nullptr; // for exclusive sharing mode, param is ignored
@@ -98,14 +102,15 @@ b32 FRenderContextVulkan::createSwapchain() {
   // Copying retrieved swapchain images into presentable member handles...
   mImagePresentableVector.resize(imageCount);
   VkExtent3D presentableImageExtent{};
-  presentableImageExtent.width = mVkSurfaceExtent2D.width;
-  presentableImageExtent.height = mVkSurfaceExtent2D.height;
+  presentableImageExtent.width = imageExtent2D.width;
+  presentableImageExtent.height = imageExtent2D.height;
   presentableImageExtent.depth = 1;
   for(u32 i = 0; i < imageCount; i++) {
     mImagePresentableVector[i].handle = imageVector[i];
     mImagePresentableVector[i].type = EImageType::PRESENTABLE;
-    mImagePresentableVector[i].format = mVkSurfaceFormat.format;
+    mImagePresentableVector[i].format = imageFormat;
     mImagePresentableVector[i].extent = presentableImageExtent;
+    mImagePresentableVector[i].tiling = VK_IMAGE_TILING_OPTIMAL;
   }
   imageVector.clear();
 
@@ -129,7 +134,7 @@ b32 FRenderContextVulkan::createSwapchain() {
     imageViewCreateInfo.flags = 0;
     imageViewCreateInfo.image = mImagePresentableVector[i].handle;
     imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    imageViewCreateInfo.format = mVkSurfaceFormat.format;
+    imageViewCreateInfo.format = imageFormat;
     imageViewCreateInfo.components = componentMapping;
     imageViewCreateInfo.subresourceRange = imageSubresourceRange;
 

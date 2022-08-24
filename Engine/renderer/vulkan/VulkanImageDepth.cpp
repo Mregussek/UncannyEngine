@@ -34,8 +34,22 @@ b32 FRenderContextVulkan::createDepthImage() {
   imageExtent.depth = 1;
 
   mDepthImage.format = mVkDepthFormat;
+  mDepthImage.tiling = VK_IMAGE_TILING_OPTIMAL;
   mDepthImage.type = EImageType::DEPTH;
   mDepthImage.extent = imageExtent;
+
+  b32 featuresAreSupported{areFormatsFeaturesDependenciesMetForImageFormat(
+      mDepthImage.format, mDepthImage.tiling, mVkPhysicalDevice,
+      mImageDependencies.depth.formatsFeatureVector, "depth") };
+  if (not featuresAreSupported) {
+    UERROR("Could not create depth images, as format features are not supported!");
+    return UFALSE;
+  }
+
+  VkImageUsageFlags imageUsage{ 0 };
+  for (VkImageUsageFlags imageUsageFlag : mImageDependencies.depth.usageVector) {
+    imageUsage = imageUsage | imageUsageFlag;
+  }
 
   VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
   imageCreateInfo.pNext = nullptr;
@@ -46,8 +60,8 @@ b32 FRenderContextVulkan::createDepthImage() {
   imageCreateInfo.mipLevels = 4;
   imageCreateInfo.arrayLayers = 1;
   imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-  imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-  imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+  imageCreateInfo.tiling = mDepthImage.tiling;
+  imageCreateInfo.usage = imageUsage;
   imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   imageCreateInfo.queueFamilyIndexCount = 0;
   imageCreateInfo.pQueueFamilyIndices = nullptr;
