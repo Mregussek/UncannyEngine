@@ -10,11 +10,6 @@ namespace uncanny
 {
 
 
-template<typename TType>
-static TType getProperType(const std::vector<TType>& availableTypes,
-                           b32(*isTypeAvailable)(TType type));
-
-
 static VkExtent2D getProperExtent2D(const VkSurfaceCapabilitiesKHR& capabilities,
                                     const FWindow* pWindow);
 
