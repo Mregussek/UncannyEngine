@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+24.08.2022 Added copying render target image into presentable one along with refactoring, format validation [tree](https://github.com/Mregussek/UncannyEngine/tree/295f5cf22c8870677da0d7065e2d3e8d880a3e1c)
+
 22.08.2022 Minimizing window is working properly [tree](https://github.com/Mregussek/UncannyEngine/tree/fa7adc5e0d8fc2c3b31545306a5fbec942b51606)
 
 22.08.2022 Resolved issue during resizing with frames in flight, clearing is stable! [tree](https://github.com/Mregussek/UncannyEngine/tree/cfa00b9c0c286e6bf4edfb741e64ddce43e30cbd)
