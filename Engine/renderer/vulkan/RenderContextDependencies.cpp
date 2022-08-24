@@ -200,6 +200,18 @@ b32 validateSwapchainDependencies(const FSwapchainDependencies& swapchainDeps) {
     }
   }
 
+  if (swapchainDeps.imageFormatFeatureVector.empty()) {
+    UERROR("No swapchain image format features info!");
+    return UFALSE;
+  }
+  // make sure that there is not undefined format feature
+  for (VkFormatFeatureFlags formatFeature : swapchainDeps.imageFormatFeatureVector) {
+    if (formatFeature == 0) {
+      UERROR("One of swapchain image format features is undefined, check it!");
+      return UFALSE;
+    }
+  }
+
   UTRACE("Validated swapchain dependencies!");
   return UTRUE;
 }

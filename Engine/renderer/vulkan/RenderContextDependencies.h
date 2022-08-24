@@ -40,6 +40,8 @@ struct FSwapchainDependencies {
   u32 usedImageCount{ UUNUSED };
   // @brief image usage dependencies
   std::vector<VkImageUsageFlags> imageUsageVector{};
+  // @brief image format features dependencies
+  std::vector<VkFormatFeatureFlags> imageFormatFeatureVector{};
 };
 
 

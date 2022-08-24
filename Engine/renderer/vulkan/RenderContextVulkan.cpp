@@ -11,8 +11,10 @@ namespace uncanny
 void FRenderContextVulkan::defineDependencies() {
   UTRACE("Defining dependencies...");
 
+  // INSTANCE
   mInstanceDependencies.vulkanApiVersion = VK_API_VERSION_1_3;
 
+  // PHYSICAL DEVICE
   FQueueFamilyDependencies graphicsQueueFamilyDependencies{};
   graphicsQueueFamilyDependencies.mainUsage = EQueueFamilyMainUsage::GRAPHICS;
   // My AMD card support only one 1 queue at graphics queue family, my NVIDIA supports 16!
@@ -25,6 +27,7 @@ void FRenderContextVulkan::defineDependencies() {
   mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
   mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
 
+  // WINDOW SURFACE
   mWindowSurfaceDependencies.formatCandidates = {
       { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR }
   };
@@ -32,11 +35,16 @@ void FRenderContextVulkan::defineDependencies() {
       VK_PRESENT_MODE_MAILBOX_KHR
   };
 
+  // SWAPCHAIN
   mSwapchainDependencies.usedImageCount = 2;
   mSwapchainDependencies.imageUsageVector = {
       VK_IMAGE_USAGE_TRANSFER_DST_BIT
   };
+  mSwapchainDependencies.imageFormatFeatureVector = {
+      VK_FORMAT_FEATURE_TRANSFER_DST_BIT
+  };
 
+  // RENDER TARGET
   mImageDependencies.renderTarget.formatCandidatesVector = {
       VK_FORMAT_B8G8R8A8_SRGB
   };
@@ -46,6 +54,8 @@ void FRenderContextVulkan::defineDependencies() {
   mImageDependencies.renderTarget.formatsFeatureVector = {
       VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_FORMAT_FEATURE_TRANSFER_DST_BIT
   };
+
+  // DEPTH
   // Prefer using 24-bit depth formats for optimal performance.
   // Prefer using packed depth/stencil formats. This is a common cause for notable
   // performance differences between an OpenGL and Vulkan implementation.
