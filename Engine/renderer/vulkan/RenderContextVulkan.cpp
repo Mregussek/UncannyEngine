@@ -62,7 +62,7 @@ void FRenderContextVulkan::defineDependencies() {
   // Don’t use 32-bit floating point depth formats, due to the performance cost, unless
   // improved precision is actually required.
   mImageDependencies.depth.formatCandidatesVector = {
-      VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT
+      VK_FORMAT_D32_SFLOAT
   };
   mImageDependencies.depth.usageVector = {
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
