@@ -257,7 +257,7 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   renderArea.extent = {}; // will be filled later
   renderArea.offset = { 0, 0 };
 
-  VkClearValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
+  VkClearValue clearColorValue{ 1.0f, 0.3f, 0.8f, 0.0f };
 
   VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
   renderPassBeginInfo.pNext = nullptr;

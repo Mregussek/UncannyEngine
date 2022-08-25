@@ -315,6 +315,20 @@ b32 FRenderContextVulkan::update() {
   vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE, UINT64_MAX);
   vkResetFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame]);
 
+  VkPipelineStageFlags renderWaitStageMask{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+  VkSubmitInfo renderSubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+  renderSubmitInfo.pNext = nullptr;
+  renderSubmitInfo.waitSemaphoreCount = 0;
+  renderSubmitInfo.pWaitSemaphores = nullptr;
+  renderSubmitInfo.pWaitDstStageMask = &renderWaitStageMask;
+  renderSubmitInfo.commandBufferCount = 1;
+  renderSubmitInfo.pCommandBuffers = &mVkRenderCommandBufferVector[mCurrentFrame];
+  renderSubmitInfo.signalSemaphoreCount = 1;
+  renderSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
+
+  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &renderSubmitInfo,
+                             VK_NULL_HANDLE) );
+
   u32 imageIndex{ UUNUSED };
   VkResult properlyAcquiredNextImage =
       vkAcquireNextImageKHR(mVkDevice, mVkSwapchainCurrent, UINT64_MAX,
@@ -333,31 +347,21 @@ b32 FRenderContextVulkan::update() {
     }
   }
 
+  VkSemaphore waitCopySemaphores[]{ mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
+                                    mVkSemaphoreImageAvailableVector[mCurrentFrame] };
+
   VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
+  VkSubmitInfo copySubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+  copySubmitInfo.pNext = nullptr;
+  copySubmitInfo.waitSemaphoreCount = 2;
+  copySubmitInfo.pWaitSemaphores = waitCopySemaphores;
+  copySubmitInfo.pWaitDstStageMask = &waitDstStageMask;
+  copySubmitInfo.commandBufferCount = 1;
+  copySubmitInfo.pCommandBuffers = &mVkCopyCommandBufferVector[mCurrentFrame];
+  copySubmitInfo.signalSemaphoreCount = 1;
+  copySubmitInfo.pSignalSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
 
-  VkSubmitInfo queueSubmitInfos[2];
-
-  queueSubmitInfos[0].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  queueSubmitInfos[0].pNext = nullptr;
-  queueSubmitInfos[0].waitSemaphoreCount = 1;
-  queueSubmitInfos[0].pWaitSemaphores = &mVkSemaphoreImageAvailableVector[mCurrentFrame];
-  queueSubmitInfos[0].pWaitDstStageMask = &waitDstStageMask;
-  queueSubmitInfos[0].commandBufferCount = 1;
-  queueSubmitInfos[0].pCommandBuffers = &mVkRenderCommandBufferVector[mCurrentFrame];
-  queueSubmitInfos[0].signalSemaphoreCount = 1;
-  queueSubmitInfos[0].pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
-
-  queueSubmitInfos[1].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  queueSubmitInfos[1].pNext = nullptr;
-  queueSubmitInfos[1].waitSemaphoreCount = 1;
-  queueSubmitInfos[1].pWaitSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
-  queueSubmitInfos[1].pWaitDstStageMask = &waitDstStageMask;
-  queueSubmitInfos[1].commandBufferCount = 1;
-  queueSubmitInfos[1].pCommandBuffers = &mVkCopyCommandBufferVector[mCurrentFrame];
-  queueSubmitInfos[1].signalSemaphoreCount = 1;
-  queueSubmitInfos[1].pSignalSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
-
-  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 2, queueSubmitInfos,
+  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &copySubmitInfo,
                              mVkFencesInFlightFrames[mCurrentFrame]) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
@@ -369,8 +373,8 @@ b32 FRenderContextVulkan::update() {
   queuePresentInfo.pImageIndices = &imageIndex;
   queuePresentInfo.pResults = nullptr;
 
-  VkResult properlyPresentedImage{ vkQueuePresentKHR(mVkGraphicsQueueVector[mPresentationQueueIndex],
-                                                     &queuePresentInfo) };
+  VkResult properlyPresentedImage{
+    vkQueuePresentKHR(mVkGraphicsQueueVector[mPresentationQueueIndex], &queuePresentInfo) };
   switch(properlyPresentedImage) {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
