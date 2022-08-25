@@ -23,6 +23,10 @@ b32 areFormatsFeaturesDependenciesMetForImageFormat(
     const std::vector<VkFormatFeatureFlags>& formatFeatureVector, const char* logInfo);
 
 
+b32 allocateAndBindImageMemory(VkPhysicalDevice physicalDevice, VkDevice device,
+                               FImageVulkan* pImage, const char* logInfo);
+
+
 }
 
 

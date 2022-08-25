@@ -1,5 +1,6 @@
 
 #include "VulkanImages.h"
+#include "VulkanUtilities.h"
 #include <utilities/Logger.h>
 #include "RenderContextStructures.h"
 
@@ -9,6 +10,14 @@ namespace uncanny
 
 
 b32 closeImageVulkan(FImageVulkan* pImage, VkDevice device, const char* logInfo) {
+  if (pImage->handleFramebuffer != VK_NULL_HANDLE) {
+    UTRACE("Destroying {} framebuffer...", logInfo);
+    vkDestroyFramebuffer(device, pImage->handleFramebuffer, nullptr);
+  }
+  else {
+    UWARN("As {} framebuffer is not created, it is not destroyed!", logInfo);
+  }
+
   if (pImage->handleView != VK_NULL_HANDLE) {
     UTRACE("Destroying {} image view...", logInfo);
     vkDestroyImageView(device, pImage->handleView, nullptr);
@@ -107,6 +116,49 @@ b32 areTilingFeaturesMetForImageFormat(
   }
 
   UTRACE("Found every format feature flag supported!");
+  return UTRUE;
+}
+
+
+b32 allocateAndBindImageMemory(VkPhysicalDevice physicalDevice, VkDevice device,
+                               FImageVulkan* pImage, const char* logInfo) {
+  UTRACE("Allocating and binding {} image memory...", logInfo);
+
+  VkMemoryRequirements memoryReqs{};
+  vkGetImageMemoryRequirements(device, pImage->handle, &memoryReqs);
+
+  VkPhysicalDeviceMemoryProperties memoryProperties{};
+  vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+  u32 memoryTypeIndex{ findMemoryIndex(memoryProperties, memoryReqs.memoryTypeBits,
+                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) };
+
+  if (memoryTypeIndex == UUNUSED) {
+    UERROR("Required memory type index not found, {} image is not valid!", logInfo);
+    return UFALSE;
+  }
+
+  VkMemoryAllocateInfo memoryAllocateInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+  memoryAllocateInfo.pNext = nullptr;
+  memoryAllocateInfo.allocationSize = memoryReqs.size;
+  memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+
+  VkResult allocated{ vkAllocateMemory(device, &memoryAllocateInfo, nullptr,
+                                       &pImage->deviceMemory) };
+  if (allocated != VK_SUCCESS) {
+    UERROR("Could not allocate device memory for {} image!", logInfo);
+    return UFALSE;
+  }
+
+  VkDeviceSize memoryOffset{ 0 };
+  VkResult bound{ vkBindImageMemory(device, pImage->handle,
+                                    pImage->deviceMemory, memoryOffset) };
+  if (bound != VK_SUCCESS) {
+    UERROR("Could not bind device memory for {} image!", logInfo);
+    return UFALSE;
+  }
+
+  UTRACE("Allocated and bound {} image memory!", logInfo);
   return UTRUE;
 }
 
