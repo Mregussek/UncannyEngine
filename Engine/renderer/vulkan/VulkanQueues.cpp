@@ -11,11 +11,17 @@ namespace uncanny
 b32 FRenderContextVulkan::createGraphicsQueues() {
   UTRACE("Creating graphics queues for rendering...");
 
-  FQueueFamilyDependencies graphicsFamilyDependencies{
+  FQueueFamilyDependencies graphicsFamilyDeps{};
+  b32 foundGraphicsDeps{
       getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
-                                 mPhysicalDeviceDependencies.queueFamilyDependencies) };
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies,
+                                 &graphicsFamilyDeps) };
+  if (not foundGraphicsDeps) {
+    UERROR("Could not find graphics queue family dependencies!");
+    return UFALSE;
+  }
 
-  u32 requiredQueuesCount{ graphicsFamilyDependencies.queuesCountNeeded };
+  u32 requiredQueuesCount{ graphicsFamilyDeps.queuesCountNeeded };
   mVkGraphicsQueueVector.resize(requiredQueuesCount);
 
   for (u32 j = 0; j < requiredQueuesCount; j++) {

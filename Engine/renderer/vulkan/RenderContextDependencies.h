@@ -88,10 +88,10 @@ struct FInstanceDependencies {
 };
 
 
-// @brief Implementation at VulkanPhysicalDevice.cpp
-FQueueFamilyDependencies getQueueFamilyDependencies(
+b32 getQueueFamilyDependencies(
     EQueueFamilyMainUsage mainUsage,
-    const std::vector<FQueueFamilyDependencies>& queueFamilyDependenciesVector);
+    const std::vector<FQueueFamilyDependencies>& queueFamilyDependenciesVector,
+    FQueueFamilyDependencies* pOutput);
 
 
 }

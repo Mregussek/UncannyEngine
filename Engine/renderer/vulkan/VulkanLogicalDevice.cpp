@@ -42,9 +42,24 @@ b32 FRenderContextVulkan::createLogicalDevice() {
   iterateOverAndLog(requiredExtensions, "Enable Logical Device Extensions");
 
   // Retrieve all needed info...
-  FQueueFamilyDependencies graphicsFamilyDependencies{
+  FQueueFamilyDependencies graphicsFamilyDeps{};
+  b32 foundGraphicsDeps{
       getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
-                                 mPhysicalDeviceDependencies.queueFamilyDependencies) };
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies,
+                                 &graphicsFamilyDeps) };
+  if (not foundGraphicsDeps) {
+    UERROR("Could not find graphics queue family dependencies!");
+    return UFALSE;
+  }
+  FQueueFamilyDependencies transferFamilyDeps{};
+  b32 foundTransferDeps{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::TRANSFER,
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies,
+                                 &transferFamilyDeps) };
+  if (not foundTransferDeps) {
+    UERROR("Could not find transfer queue family dependencies!");
+    return UFALSE;
+  }
 
   // TODO: make sure if all physical device features are required
   // Querying physical device features and passing it to create info
@@ -56,22 +71,34 @@ b32 FRenderContextVulkan::createLogicalDevice() {
     physicalDeviceFeatures.robustBufferAccess = UFALSE;
   }
 
-  // Create as many create infos as needed...
-  std::vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfoVector(
-      mPhysicalDeviceDependencies.queueFamilyIndexesCount);
-  if (deviceQueueCreateInfoVector.size() != 1) {
-    UERROR("Too many device queue create infos! Make sure to implement other!");
+  u32 neededQueueFamiliesCount{ mPhysicalDeviceDependencies.queueFamilyIndexesCount };
+  if (neededQueueFamiliesCount <= 1 and mGraphicsQueueFamilyIndex == mTransferQueueFamilyIndex) {
+    UERROR("As graphics queue family index match transfer's index, cannot create several queues!");
     return UFALSE;
   }
 
+  // Create as many create infos as needed...
+  std::vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfoVector(neededQueueFamiliesCount);
+
   // Create Queue Family for graphics...
-  deviceQueueCreateInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-  deviceQueueCreateInfoVector[0].pNext = nullptr;
-  deviceQueueCreateInfoVector[0].flags = 0;
-  deviceQueueCreateInfoVector[0].queueFamilyIndex = mGraphicsQueueFamilyIndex;
-  deviceQueueCreateInfoVector[0].queueCount = graphicsFamilyDependencies.queuesCountNeeded;
-  deviceQueueCreateInfoVector[0].pQueuePriorities =
-      graphicsFamilyDependencies.queuesPriorities.data();
+  if (not deviceQueueCreateInfoVector.empty()) {
+    deviceQueueCreateInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueCreateInfoVector[0].pNext = nullptr;
+    deviceQueueCreateInfoVector[0].flags = 0;
+    deviceQueueCreateInfoVector[0].queueFamilyIndex = mGraphicsQueueFamilyIndex;
+    deviceQueueCreateInfoVector[0].queueCount = graphicsFamilyDeps.queuesCountNeeded;
+    deviceQueueCreateInfoVector[0].pQueuePriorities = graphicsFamilyDeps.queuesPriorities.data();
+  }
+
+  // Create Queue Family for transfer...
+  if (deviceQueueCreateInfoVector.size() >= 2) {
+    deviceQueueCreateInfoVector[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueCreateInfoVector[1].pNext = nullptr;
+    deviceQueueCreateInfoVector[1].flags = 0;
+    deviceQueueCreateInfoVector[1].queueFamilyIndex = mTransferQueueFamilyIndex;
+    deviceQueueCreateInfoVector[1].queueCount = transferFamilyDeps.queuesCountNeeded;
+    deviceQueueCreateInfoVector[1].pQueuePriorities = transferFamilyDeps.queuesPriorities.data();
+  }
 
   VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
   createInfo.pNext = nullptr;

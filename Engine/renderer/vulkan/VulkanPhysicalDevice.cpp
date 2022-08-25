@@ -30,6 +30,7 @@ static b32 pickSuitableQueueFamily(
     const FWindow* pWindow,
     VkInstance instance,
     VkPhysicalDevice physicalDevice,
+    u32 ignoredQueueFamilyIndex,
     u32* pOutQueueFamilyIndex);
 
 
@@ -53,6 +54,11 @@ static b32 isQueueFamilyCapableOfGraphicsOperations(
     const FWindow* pWindow,
     VkInstance instance,
     VkPhysicalDevice device);
+
+
+static b32 isQueueFamilyCapableOfTransferOperations(
+    u32 queueFamilyIndex,
+    VkQueueFlags queueFlags);
 
 
 static b32 supportsPlatformPresentation(
@@ -100,18 +106,48 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
   vkGetPhysicalDeviceQueueFamilyProperties(mVkPhysicalDevice, &queuesCount,
                                            mVkQueueFamilyProperties.data());
 
-  FQueueFamilyDependencies graphicsFamilyDependencies{
+  // Retrieve graphics queue family...
+  FQueueFamilyDependencies graphicsFamilyDependencies{};
+  b32 foundGraphicsDeps{
     getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
-                               mPhysicalDeviceDependencies.queueFamilyDependencies) };
-  b32 foundQueueFamily = pickSuitableQueueFamily(mVkQueueFamilyProperties,
-                                                 graphicsFamilyDependencies, mSpecs.pWindow,
-                                                 mVkInstance, mVkPhysicalDevice,
-                                                 &mGraphicsQueueFamilyIndex);
-  if (not foundQueueFamily) {
-    UFATAL("Could not pick suitable queue family index!");
+                               mPhysicalDeviceDependencies.queueFamilyDependencies,
+                               &graphicsFamilyDependencies) };
+  if (not foundGraphicsDeps) {
+    UERROR("Could not find graphics queue family dependencies!");
+    return UFALSE;
+  }
+  b32 foundGraphicsQueueFamily{ pickSuitableQueueFamily(mVkQueueFamilyProperties,
+                                                        graphicsFamilyDependencies, mSpecs.pWindow,
+                                                        mVkInstance, mVkPhysicalDevice,
+                                                        UIGNORE_ARGUMENT,
+                                                        &mGraphicsQueueFamilyIndex) };
+  if (not foundGraphicsQueueFamily and mGraphicsQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED) {
+    UFATAL("Could not pick suitable graphics queue family index!");
     return UFALSE;
   }
   displayQueueFamilyData(mGraphicsQueueFamilyIndex, mVkQueueFamilyProperties);
+
+  // Retrieve transfer queue family
+  FQueueFamilyDependencies transferQueueFamilyDependencies{};
+  b32 foundTransferDeps{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::TRANSFER,
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies,
+                                 &transferQueueFamilyDependencies) };
+  if (not foundTransferDeps) {
+    UERROR("Could not find transfer queue family dependencies!");
+    return UFALSE;
+  }
+  b32 foundTransferQueueFamily{ pickSuitableQueueFamily(mVkQueueFamilyProperties,
+                                                        transferQueueFamilyDependencies,
+                                                        mSpecs.pWindow, mVkInstance,
+                                                        mVkPhysicalDevice,
+                                                        mGraphicsQueueFamilyIndex,
+                                                        &mTransferQueueFamilyIndex) };
+  if (not foundTransferQueueFamily and mTransferQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED) {
+    UFATAL("Could not pick suitable transfer queue family index!");
+    return UFALSE;
+  }
+  displayQueueFamilyData(mTransferQueueFamilyIndex, mVkQueueFamilyProperties);
 
   UDEBUG("Created Physical Device!");
   return UTRUE;
@@ -191,16 +227,41 @@ b32 isPhysicalDeviceSuitable(VkPhysicalDevice physicalDevice,
     return UFALSE;
   }
 
-  UTRACE("Make sure that proper queue family supports required operations");
-  for (u32 i = 0; i < dependencies.queueFamilyIndexesCount; i++) {
-    u32 queueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
-    b32 foundProperQueueFamily =
-        pickSuitableQueueFamily(queuePropertiesVector, dependencies.queueFamilyDependencies[i],
-                                pWindow, instance, physicalDevice, &queueFamilyIndex);
-    if (not foundProperQueueFamily) {
-      UTRACE("Device {} doesn't support expected queue family!", deviceProperties.deviceName);
-      return UFALSE;
-    }
+  UTRACE("Make sure that graphics queue family supports required operations");
+  u32 graphicsIndex{ VK_QUEUE_FAMILY_IGNORED };
+  FQueueFamilyDependencies graphicsIndexDeps{};
+  b32 foundGraphicsDeps{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
+                                 dependencies.queueFamilyDependencies,
+                                 &graphicsIndexDeps) };
+  if (not foundGraphicsDeps) {
+    UERROR("Could not find graphics queue family dependencies!");
+    return UFALSE;
+  }
+  b32 foundGraphics{ pickSuitableQueueFamily(queuePropertiesVector, graphicsIndexDeps, pWindow,
+                                             instance, physicalDevice, UIGNORE_ARGUMENT,
+                                             &graphicsIndex) };
+  if (not foundGraphics and graphicsIndex == VK_QUEUE_FAMILY_IGNORED) {
+    UTRACE("Device {} doesn't support graphics queue family!", deviceProperties.deviceName);
+    return UFALSE;
+  }
+
+  u32 transferIndex{ VK_QUEUE_FAMILY_IGNORED };
+  FQueueFamilyDependencies transferIndexDeps{};
+  b32 foundTransferDeps{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::TRANSFER,
+                                 dependencies.queueFamilyDependencies,
+                                 &transferIndexDeps) };
+  if (not foundTransferDeps) {
+    UERROR("Could not find transfer queue family dependencies!");
+    return UFALSE;
+  }
+  b32 foundTransfer{ pickSuitableQueueFamily(queuePropertiesVector, transferIndexDeps, pWindow,
+                                             instance, physicalDevice, graphicsIndex,
+                                             &transferIndex) };
+  if (not foundTransfer and transferIndex == VK_QUEUE_FAMILY_IGNORED) {
+    UTRACE("Device {} doesn't support transfer queue family!", deviceProperties.deviceName);
+    return UFALSE;
   }
 
   // If everything is fine assign return values...
@@ -214,8 +275,14 @@ b32 pickSuitableQueueFamily(const std::vector<VkQueueFamilyProperties>& queueFam
                             const FWindow* pWindow,
                             VkInstance instance,
                             VkPhysicalDevice physicalDevice,
+                            u32 ignoredQueueFamilyIndex,
                             u32* pOutQueueFamilyIndex) {
   for (u32 i = 0; i < queueFamilyPropertiesVector.size(); i++) {
+    if (ignoredQueueFamilyIndex == i) {
+      UTRACE("Cannot assign queue family index, as it must be ignored! Index: {}", i);
+      continue;
+    }
+
     if (isQueueFamilySuitable(i, queueFamilyPropertiesVector[i], dependencies, pWindow, instance,
                               physicalDevice)) {
       UTRACE("Assigning output queue family index {}!", i);
@@ -267,10 +334,11 @@ b32 isQueueFamilySuitable(u32 queueFamilyIndex,
     return UFALSE;
   }
   if (dependencies.transfer) {
-    // TODO: implement transfer capabilities check for queue family index
-    UERROR("UncannyEngine TODO: implement transfer capabilities check for queue family index");
-    UTRACE("Device queueFamilyIndex {} doesn't support transfer", queueFamilyIndex);
-    return UFALSE;
+    // check if there is transfer support
+    if (not isQueueFamilyCapableOfTransferOperations(queueFamilyIndex, queueFlags)) {
+      UTRACE("Device queueFamilyIndex {} doesn't support transfer", queueFamilyIndex);
+      return UFALSE;
+    }
   }
   if (dependencies.sparseBinding) {
     // TODO: implement sparseBinding capabilities check for queue family index
@@ -303,6 +371,17 @@ b32 isPhysicalDeviceProperDeviceType(EPhysicalDeviceType deviceType,
 
   UWARN("Device is unknown type! UExpected: {} Vulkan Result: {}", (i32)deviceType, vkDeviceType);
   return UFALSE;
+}
+
+
+b32 isQueueFamilyCapableOfTransferOperations(u32 queueFamilyIndex, VkQueueFlags queueFlags) {
+  u32 transferSupport{ queueFlags & VK_QUEUE_TRANSFER_BIT };
+  if (not transferSupport) {
+    UTRACE("Ignoring queue family index {} as it does not support transfer!", queueFamilyIndex);
+    return UFALSE;
+  }
+
+  return UTRUE;
 }
 
 

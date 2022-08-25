@@ -8,20 +8,20 @@ namespace uncanny
 {
 
 
-FQueueFamilyDependencies getQueueFamilyDependencies(
+b32 getQueueFamilyDependencies(
     EQueueFamilyMainUsage mainUsage,
-    const std::vector<FQueueFamilyDependencies>& queueFamilyDependenciesVector) {
-  auto it = std::find_if(queueFamilyDependenciesVector.begin(), queueFamilyDependenciesVector.end(),
-                         [mainUsage](const FQueueFamilyDependencies& dependencies) -> b32 {
-                           return dependencies.mainUsage == mainUsage;
-                         });
-  if (it != queueFamilyDependenciesVector.end()) {
-    UTRACE("Found queue family dependencies with main usage {}", (i32)mainUsage);
-    return *it;
+    const std::vector<FQueueFamilyDependencies>& queueFamilyDependenciesVector,
+    FQueueFamilyDependencies* pOutput) {
+  for (const FQueueFamilyDependencies& deps : queueFamilyDependenciesVector) {
+    if (deps.mainUsage == mainUsage) {
+      UTRACE("Found queue family dependencies with main usage {}", (i32)mainUsage);
+      *pOutput = deps;
+      return UTRUE;
+    }
   }
 
   UTRACE("Could not find queue family dependencies with main usage {}", (i32)mainUsage);
-  return {};
+  return UFALSE;
 }
 
 

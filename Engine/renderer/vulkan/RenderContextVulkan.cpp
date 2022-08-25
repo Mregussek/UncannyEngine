@@ -358,12 +358,12 @@ b32 FRenderContextVulkan::update() {
   VkSemaphore waitCopySemaphores[]{ mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
                                     mVkSemaphoreImageAvailableVector[mCurrentFrame] };
 
-  VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
+  VkPipelineStageFlags waitDstStageMask[]{ renderWaitStageMask, VK_PIPELINE_STAGE_TRANSFER_BIT };
   VkSubmitInfo copySubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   copySubmitInfo.pNext = nullptr;
   copySubmitInfo.waitSemaphoreCount = 2;
   copySubmitInfo.pWaitSemaphores = waitCopySemaphores;
-  copySubmitInfo.pWaitDstStageMask = &waitDstStageMask;
+  copySubmitInfo.pWaitDstStageMask = waitDstStageMask;
   copySubmitInfo.commandBufferCount = 1;
   copySubmitInfo.pCommandBuffers = &mVkCopyCommandBufferVector[mCurrentFrame];
   copySubmitInfo.signalSemaphoreCount = 1;

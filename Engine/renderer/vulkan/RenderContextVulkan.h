@@ -103,6 +103,7 @@ private:
   VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
   // Queue Family
   u32 mGraphicsQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
+  u32 mTransferQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED }; // TODO: implement actual usage
   std::vector<VkQueueFamilyProperties> mVkQueueFamilyProperties{};
   std::vector<VkQueue> mVkGraphicsQueueVector{};
   u32 mRenderingQueueIndex{ UUNUSED }; // Index for mVkGraphicsQueueVector, not queue family
@@ -131,6 +132,7 @@ private:
   FImageVulkan mDepthImage{};
   // Command Pools
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
+  VkCommandPool mVkTransferCommandPool{ VK_NULL_HANDLE };
   // Command Buffers
   std::vector<VkCommandBuffer> mVkRenderCommandBufferVector{};
   std::vector<VkCommandBuffer> mVkCopyCommandBufferVector{};
