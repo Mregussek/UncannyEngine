@@ -13,7 +13,7 @@ namespace uncanny
 
 
 enum class EQueueFamilyMainUsage {
-  NONE, GRAPHICS
+  NONE, GRAPHICS, TRANSFER
 };
 
 

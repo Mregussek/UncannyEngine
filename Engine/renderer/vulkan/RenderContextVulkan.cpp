@@ -16,17 +16,25 @@ void FRenderContextVulkan::defineDependencies() {
   mInstanceDependencies.vulkanApiVersion = VK_API_VERSION_1_3;
 
   // PHYSICAL DEVICE
+  // My AMD card support only one 1 queue at graphics queue family, my NVIDIA supports 16!
   FQueueFamilyDependencies graphicsQueueFamilyDependencies{};
   graphicsQueueFamilyDependencies.mainUsage = EQueueFamilyMainUsage::GRAPHICS;
-  // My AMD card support only one 1 queue at graphics queue family, my NVIDIA supports 16!
   graphicsQueueFamilyDependencies.queuesCountNeeded = 1;
   graphicsQueueFamilyDependencies.queuesPriorities = { 1.f, 1.f };
   graphicsQueueFamilyDependencies.graphics = UTRUE;
 
+  FQueueFamilyDependencies transferQueueFamilyDependencies{};
+  transferQueueFamilyDependencies.mainUsage = EQueueFamilyMainUsage::TRANSFER;
+  transferQueueFamilyDependencies.queuesCountNeeded = 1;
+  transferQueueFamilyDependencies.queuesPriorities = { 1.f, 1.f };
+  transferQueueFamilyDependencies.transfer = UTRUE;
+
   mPhysicalDeviceDependencies.deviceType = EPhysicalDeviceType::DISCRETE;
   mPhysicalDeviceDependencies.deviceTypeFallback = EPhysicalDeviceType::INTEGRATED;
-  mPhysicalDeviceDependencies.queueFamilyIndexesCount = 1;
-  mPhysicalDeviceDependencies.queueFamilyDependencies = { graphicsQueueFamilyDependencies };
+  mPhysicalDeviceDependencies.queueFamilyIndexesCount = 2;
+  mPhysicalDeviceDependencies.queueFamilyDependencies = {
+      graphicsQueueFamilyDependencies, transferQueueFamilyDependencies
+  };
 
   // WINDOW SURFACE
   mWindowSurfaceDependencies.presentModeCandidates = {
