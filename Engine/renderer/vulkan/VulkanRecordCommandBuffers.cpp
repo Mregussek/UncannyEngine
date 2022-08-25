@@ -254,7 +254,7 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
   VkRect2D renderArea{};
-  renderArea.extent = { renderTargetImages[0].extent.width, renderTargetImages[0].extent.height };
+  renderArea.extent = {}; // will be filled later
   renderArea.offset = { 0, 0 };
 
   VkClearValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
@@ -262,12 +262,16 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
   renderPassBeginInfo.pNext = nullptr;
   renderPassBeginInfo.renderPass = renderPass;
-  renderPassBeginInfo.framebuffer = VK_NULL_HANDLE;
-  renderPassBeginInfo.renderArea = renderArea;
+  renderPassBeginInfo.framebuffer = VK_NULL_HANDLE; // will be filled later
+  renderPassBeginInfo.renderArea = {}; // will be filled later
   renderPassBeginInfo.clearValueCount = 1;
   renderPassBeginInfo.pClearValues = &clearColorValue;
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
+    renderArea.extent = { renderTargetImages[i].extent.width, renderTargetImages[i].extent.height };
+    renderPassBeginInfo.renderArea = renderArea;
+    renderPassBeginInfo.framebuffer = renderTargetImages[i].handleFramebuffer;
+
     VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
                                                                &commandBufferBeginInfo) };
     if (properlyPreparedForCommands != VK_SUCCESS) {

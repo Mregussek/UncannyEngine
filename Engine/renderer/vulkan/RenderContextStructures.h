@@ -21,6 +21,7 @@ struct FImageVulkan {
   VkImage handle{ VK_NULL_HANDLE };
   VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
   VkImageView handleView{ VK_NULL_HANDLE };
+  VkFramebuffer handleFramebuffer{ VK_NULL_HANDLE };
   VkExtent3D extent{ 0, 0, 0 };
   VkFormat format{ VK_FORMAT_UNDEFINED };
   VkImageTiling tiling{ VK_IMAGE_TILING_OPTIMAL };
