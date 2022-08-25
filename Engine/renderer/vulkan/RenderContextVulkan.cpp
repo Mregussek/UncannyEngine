@@ -279,10 +279,17 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
     return UFALSE;
   }
 
-  b32 recordedClearScreen{ recordClearColorImage(
-      mImageRenderTargetVector, mVkRenderCommandBufferVector, mGraphicsQueueFamilyIndex) };
-  if (not recordedClearScreen) {
-    UFATAL("Could not record clear screen command buffers!");
+  //b32 recordedClearScreen{ recordClearColorImage(
+  //    mImageRenderTargetVector, mVkRenderCommandBufferVector, mGraphicsQueueFamilyIndex) };
+  //if (not recordedClearScreen) {
+  //  UFATAL("Could not record clear screen command buffers!");
+  //  return UFALSE;
+  //}
+
+  b32 recordRenderPass{ recordRenderPassForRenderTarget(
+      mImageRenderTargetVector, mVkRenderPass, mVkRenderCommandBufferVector) };
+  if (not recordRenderPass) {
+    UFATAL("Could not record render pass for render target command buffers!");
     return UFALSE;
   }
 
