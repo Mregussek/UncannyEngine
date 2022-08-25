@@ -1,6 +1,7 @@
 
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
+#include "VulkanRecordCommandBuffers.h"
 #include <utilities/Logger.h>
 
 
@@ -260,6 +261,32 @@ void FRenderContextVulkan::terminate() {
   closeInstance();
 
   UINFO("Terminated Vulkan Render Context!");
+}
+
+
+b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
+  b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool(mVkGraphicsCommandPool) };
+  if (not properlyResetCommandPoolsAndBuffers) {
+    UERROR("Could not reset command pools (with command buffers), so cannot record commands!");
+    return UFALSE;
+  }
+
+  b32 recordedClearScreen{ recordClearColorImage(
+      mImageRenderTargetVector, mVkRenderCommandBufferVector, mGraphicsQueueFamilyIndex) };
+  if (not recordedClearScreen) {
+    UFATAL("Could not record clear screen command buffers!");
+    return UFALSE;
+  }
+
+  b32 recordedCopyImage{ recordCopyRenderTargetIntoPresentableImage(
+      mImageRenderTargetVector, mImagePresentableVector, mVkCopyCommandBufferVector,
+      mGraphicsQueueFamilyIndex) };
+  if (not recordedCopyImage) {
+    UFATAL("Could not record copy image command buffers!");
+    return UFALSE;
+  }
+
+  return UTRUE;
 }
 
 

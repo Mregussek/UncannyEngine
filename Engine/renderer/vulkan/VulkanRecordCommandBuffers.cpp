@@ -1,6 +1,6 @@
 
-#include "../RenderContextVulkan.h"
-#include "../VulkanUtilities.h"
+#include "RenderContextVulkan.h"
+#include "VulkanUtilities.h"
 #include <utilities/Logger.h>
 
 
@@ -8,35 +8,9 @@ namespace uncanny
 {
 
 
-b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
-  b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool(mVkGraphicsCommandPool) };
-  if (not properlyResetCommandPoolsAndBuffers) {
-    UERROR("Could not reset command pools (with command buffers), so cannot record commands!");
-    return UFALSE;
-  }
-
-  b32 recordedClearScreen{ recordClearColorImage(mImageRenderTargetVector,
-                                                 mVkRenderCommandBufferVector) };
-  if (not recordedClearScreen) {
-    UFATAL("Could not record clear screen command buffers!");
-    return UFALSE;
-  }
-
-  b32 recordedCopyImage{ recordCopyRenderTargetIntoPresentableImage(mImageRenderTargetVector,
-                                                                    mImagePresentableVector,
-                                                                    mVkCopyCommandBufferVector) };
-  if (not recordedCopyImage) {
-    UFATAL("Could not record copy image command buffers!");
-    return UFALSE;
-  }
-
-  return UTRUE;
-}
-
-
-b32 FRenderContextVulkan::recordClearColorImage(
-    const std::vector<FImageVulkan>& renderTargetImages,
-    const std::vector<VkCommandBuffer>& commandBuffers) const {
+b32 recordClearColorImage(const std::vector<FImageVulkan>& renderTargetImages,
+                          const std::vector<VkCommandBuffer>& commandBuffers,
+                          u32 queueFamilyIndex) {
   UTRACE("Recording command buffers for clearing color image!");
 
   VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -57,8 +31,8 @@ b32 FRenderContextVulkan::recordClearColorImage(
   barrierUnknownToClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
   barrierUnknownToClear.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
   barrierUnknownToClear.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  barrierUnknownToClear.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-  barrierUnknownToClear.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+  barrierUnknownToClear.srcQueueFamilyIndex = queueFamilyIndex;
+  barrierUnknownToClear.dstQueueFamilyIndex = queueFamilyIndex;
   barrierUnknownToClear.image = VK_NULL_HANDLE; // will be filled later
   barrierUnknownToClear.subresourceRange = imageSubresourceRange;
 
@@ -68,8 +42,8 @@ b32 FRenderContextVulkan::recordClearColorImage(
   barrierClearToGeneral.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
   barrierClearToGeneral.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
   barrierClearToGeneral.newLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
-  barrierClearToGeneral.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-  barrierClearToGeneral.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
+  barrierClearToGeneral.srcQueueFamilyIndex = queueFamilyIndex;
+  barrierClearToGeneral.dstQueueFamilyIndex = queueFamilyIndex;
   barrierClearToGeneral.image = VK_NULL_HANDLE; // will be filled later
   barrierClearToGeneral.subresourceRange = imageSubresourceRange;
 
@@ -119,10 +93,10 @@ b32 FRenderContextVulkan::recordClearColorImage(
 }
 
 
-b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
-    const std::vector<FImageVulkan>& renderTargetImages,
-    const std::vector<FImageVulkan>& presentableImages,
-    const std::vector<VkCommandBuffer>& commandBuffers) const {
+b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& renderTargetImages,
+                                               const std::vector<FImageVulkan>& presentableImages,
+                                               const std::vector<VkCommandBuffer>& commandBuffers,
+                                               u32 queueFamilyIndex) {
   UTRACE("Recording command buffers for copying render target images into presentable ones!");
 
   if constexpr (U_VK_DEBUG) {
@@ -181,13 +155,8 @@ b32 FRenderContextVulkan::recordCopyRenderTargetIntoPresentableImage(
 
   VkImageMemoryBarrier defaultBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
   defaultBarrier.pNext = nullptr;
-  defaultBarrier.srcAccessMask = VK_ACCESS_NONE; // will be filled later
-  defaultBarrier.dstAccessMask = VK_ACCESS_NONE; // will be filled later
-  defaultBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED; // will be filled later
-  defaultBarrier.newLayout = VK_IMAGE_LAYOUT_UNDEFINED; // will be filled later
-  defaultBarrier.srcQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-  defaultBarrier.dstQueueFamilyIndex = mGraphicsQueueFamilyIndex;
-  defaultBarrier.image = VK_NULL_HANDLE; // will fill later
+  defaultBarrier.srcQueueFamilyIndex = queueFamilyIndex;
+  defaultBarrier.dstQueueFamilyIndex = queueFamilyIndex;
   defaultBarrier.subresourceRange = imageSubresourceRange;
 
   VkImageMemoryBarrier barrierUndefinedToReadRenderTarget{ defaultBarrier };
