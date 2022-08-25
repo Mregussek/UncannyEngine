@@ -122,6 +122,8 @@ private:
   VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
   std::vector<FImageVulkan> mImagePresentableVector{};
+  // Render Passes
+  VkRenderPass mVkRenderPass{ VK_NULL_HANDLE };
   // Render Images info
   std::vector<FImageVulkan> mImageRenderTargetVector{};
   // Depth Image info
@@ -132,8 +134,6 @@ private:
   // Command Buffers
   std::vector<VkCommandBuffer> mVkRenderCommandBufferVector{};
   std::vector<VkCommandBuffer> mVkCopyCommandBufferVector{};
-  // Render Passes
-  VkRenderPass mVkRenderPass{ VK_NULL_HANDLE };
   // Frames in flight
   std::vector<VkFence> mVkFencesInFlightFrames{};
   u32 mMaxFramesInFlight{ UUNUSED };

@@ -149,6 +149,13 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // Create render passes
+  b32 properlyCreatedRenderPasses{ createRenderPasses() };
+  if (not properlyCreatedRenderPasses) {
+    UFATAL("Could not create render passes!");
+    return UFALSE;
+  }
+
   // create render target images
   b32 properlyCreatedRenderTargetImages{ createRenderTargetImages() };
   if (not properlyCreatedRenderTargetImages) {
@@ -184,13 +191,6 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
   b32 properlyCreatedFencesForCommandBuffers{ createGraphicsFences() };
   if (not properlyCreatedFencesForCommandBuffers) {
     UFATAL("Could not create fences, cannot synchronize CPU-GPU operations!");
-    return UFALSE;
-  }
-
-  // Create render passes
-  b32 properlyCreatedRenderPasses{ createRenderPasses() };
-  if (not properlyCreatedRenderPasses) {
-    UFATAL("Could not create render passes!");
     return UFALSE;
   }
 
@@ -251,13 +251,13 @@ void FRenderContextVulkan::terminate() {
     vkDeviceWaitIdle(mVkDevice);
   }
 
-  closeRenderPasses();
   closeGraphicsFences();
   closeGraphicsSemaphores();
   closeCommandBuffers();
   closeCommandPool();
   closeDepthImage();
   closeRenderTargetImages();
+  closeRenderPasses();
   closeSwapchain();
   closeGraphicsQueues();
   closeLogicalDevice();

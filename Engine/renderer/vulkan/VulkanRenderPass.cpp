@@ -11,15 +11,13 @@ namespace uncanny
 b32 FRenderContextVulkan::createRenderPasses() {
   UTRACE("Creating render passes...");
 
-  // Check if you can create render pass for render target images...
-  if (mImageRenderTargetVector.empty() or mImageRenderTargetVector[0].format ==VK_FORMAT_UNDEFINED) {
-    UERROR("Cannot create render pass for render target images!");
-    return UFALSE;
-  }
+  // TODO: Find better way for automating format retrieval for render pass
+  UWARN("During render pass creation using 0-indexed render target format from dependencies!");
+  VkFormat renderPassFormat{ mImageDependencies.renderTarget.formatCandidatesVector[0].format };
 
   VkAttachmentDescription colorAttachDesc{};
   colorAttachDesc.flags = 0;
-  colorAttachDesc.format = mImageRenderTargetVector[0].format;
+  colorAttachDesc.format = renderPassFormat;
   colorAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
   colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
   colorAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
