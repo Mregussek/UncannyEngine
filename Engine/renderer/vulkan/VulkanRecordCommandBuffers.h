@@ -19,6 +19,11 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
                                                u32 queueFamilyIndex);
 
 
+b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTargetImages,
+                                    VkRenderPass renderPass,
+                                    const std::vector<VkCommandBuffer>& commandBuffers);
+
+
 }
 
 

@@ -132,6 +132,8 @@ private:
   // Command Buffers
   std::vector<VkCommandBuffer> mVkRenderCommandBufferVector{};
   std::vector<VkCommandBuffer> mVkCopyCommandBufferVector{};
+  // Render Passes
+  VkRenderPass mVkRenderPass{ VK_NULL_HANDLE };
   // Frames in flight
   std::vector<VkFence> mVkFencesInFlightFrames{};
   u32 mMaxFramesInFlight{ UUNUSED };

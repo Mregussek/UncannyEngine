@@ -47,7 +47,7 @@ b32 recordClearColorImage(const std::vector<FImageVulkan>& renderTargetImages,
   barrierClearToGeneral.image = VK_NULL_HANDLE; // will be filled later
   barrierClearToGeneral.subresourceRange = imageSubresourceRange;
 
-  VkClearColorValue clearColor{{ 1.0f, 0.8f, 0.4f, 0.0f }};
+  VkClearColorValue clearColor{ 1.0f, 0.8f, 0.4f, 0.0f };
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
     barrierUnknownToClear.image = renderTargetImages[i].handle;
@@ -239,6 +239,53 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
   }
 
   UDEBUG("Properly recorded command buffers for copying render targets into presentable images!");
+  return UTRUE;
+}
+
+
+b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTargetImages,
+                                    VkRenderPass renderPass,
+                                    const std::vector<VkCommandBuffer>& commandBuffers) {
+  UTRACE("Recording command buffers with render pass usage for render target images...");
+
+  VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+  commandBufferBeginInfo.pNext = nullptr;
+  commandBufferBeginInfo.flags = 0;
+  commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+  VkRect2D renderArea{};
+  renderArea.extent = { renderTargetImages[0].extent.width, renderTargetImages[0].extent.height };
+  renderArea.offset = { 0, 0 };
+
+  VkClearValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
+
+  VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+  renderPassBeginInfo.pNext = nullptr;
+  renderPassBeginInfo.renderPass = renderPass;
+  renderPassBeginInfo.framebuffer = VK_NULL_HANDLE;
+  renderPassBeginInfo.renderArea = renderArea;
+  renderPassBeginInfo.clearValueCount = 1;
+  renderPassBeginInfo.pClearValues = &clearColorValue;
+
+  for (u32 i = 0; i < renderTargetImages.size(); i++) {
+    VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
+                                                               &commandBufferBeginInfo) };
+    if (properlyPreparedForCommands != VK_SUCCESS) {
+      UERROR("Cannot record any commands! Wrong output of vkBeginCommandBuffer!");
+      return UFALSE;
+    }
+
+    vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdEndRenderPass(commandBuffers[i]);
+
+    VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
+    if (properlyRecordedCommands != VK_SUCCESS) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+  }
+
+  UDEBUG("Recorded command buffers with render pass usage for render target images!");
   return UTRUE;
 }
 
