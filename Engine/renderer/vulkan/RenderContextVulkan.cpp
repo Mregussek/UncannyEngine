@@ -187,6 +187,13 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // Create render passes
+  b32 properlyCreatedRenderPasses{ createRenderPasses() };
+  if (not properlyCreatedRenderPasses) {
+    UFATAL("Could not create render passes!");
+    return UFALSE;
+  }
+
   // Finally record commands as startup point
   b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
   if (not recordedCommandBuffers) {
@@ -244,6 +251,7 @@ void FRenderContextVulkan::terminate() {
     vkDeviceWaitIdle(mVkDevice);
   }
 
+  closeRenderPasses();
   closeGraphicsFences();
   closeGraphicsSemaphores();
   closeCommandBuffers();

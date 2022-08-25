@@ -77,6 +77,9 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
+  [[nodiscard]] b32 createRenderPasses();
+  b32 closeRenderPasses();
+
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
   [[nodiscard]] b32 shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state);
