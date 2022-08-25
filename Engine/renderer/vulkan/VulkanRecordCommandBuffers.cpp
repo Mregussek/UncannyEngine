@@ -268,7 +268,8 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   renderPassBeginInfo.pClearValues = &clearColorValue;
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
-    renderArea.extent = { renderTargetImages[i].extent.width, renderTargetImages[i].extent.height };
+    renderArea.extent.width = renderTargetImages[i].extent.width;
+    renderArea.extent.height = renderTargetImages[i].extent.height;
     renderPassBeginInfo.renderArea = renderArea;
     renderPassBeginInfo.framebuffer = renderTargetImages[i].handleFramebuffer;
 

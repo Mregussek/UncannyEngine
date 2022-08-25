@@ -323,12 +323,11 @@ b32 FRenderContextVulkan::update() {
   vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE, UINT64_MAX);
   vkResetFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame]);
 
-  VkPipelineStageFlags renderWaitStageMask{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
   VkSubmitInfo renderSubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   renderSubmitInfo.pNext = nullptr;
   renderSubmitInfo.waitSemaphoreCount = 0;
   renderSubmitInfo.pWaitSemaphores = nullptr;
-  renderSubmitInfo.pWaitDstStageMask = &renderWaitStageMask;
+  renderSubmitInfo.pWaitDstStageMask = nullptr;
   renderSubmitInfo.commandBufferCount = 1;
   renderSubmitInfo.pCommandBuffers = &mVkRenderCommandBufferVector[mCurrentFrame];
   renderSubmitInfo.signalSemaphoreCount = 1;
@@ -355,15 +354,17 @@ b32 FRenderContextVulkan::update() {
     }
   }
 
-  VkSemaphore waitCopySemaphores[]{ mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
-                                    mVkSemaphoreImageAvailableVector[mCurrentFrame] };
+  VkSemaphore waitCopySemaphores[]{
+    mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
+    mVkSemaphoreImageAvailableVector[mCurrentFrame] };
+  VkPipelineStageFlags copyStageMasks[]{
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT };
 
-  VkPipelineStageFlags waitDstStageMask[]{ renderWaitStageMask, VK_PIPELINE_STAGE_TRANSFER_BIT };
   VkSubmitInfo copySubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   copySubmitInfo.pNext = nullptr;
   copySubmitInfo.waitSemaphoreCount = 2;
   copySubmitInfo.pWaitSemaphores = waitCopySemaphores;
-  copySubmitInfo.pWaitDstStageMask = waitDstStageMask;
+  copySubmitInfo.pWaitDstStageMask = copyStageMasks;
   copySubmitInfo.commandBufferCount = 1;
   copySubmitInfo.pCommandBuffers = &mVkCopyCommandBufferVector[mCurrentFrame];
   copySubmitInfo.signalSemaphoreCount = 1;
