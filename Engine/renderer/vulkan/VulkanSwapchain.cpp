@@ -57,6 +57,12 @@ b32 FRenderContextVulkan::areSwapchainDependenciesCorrect() {
 b32 FRenderContextVulkan::createSwapchain() {
   UTRACE("Creating swapchain...");
 
+  b32 properSwapchainDependencies{ areSwapchainDependenciesCorrect() };
+  if (not properSwapchainDependencies) {
+    UERROR("Wrong swapchain dependencies passed for creation, cannot acquire images nor present!");
+    return UFALSE;
+  }
+
   VkSurfaceFormatKHR imageFormat{ VK_FORMAT_UNDEFINED };
   VkExtent2D imageExtent2D{ mVkSurfaceExtent2D };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };

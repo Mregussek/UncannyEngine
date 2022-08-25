@@ -100,7 +100,7 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
   UTRACE("Recording command buffers for copying render target images into presentable ones!");
 
   if constexpr (U_VK_DEBUG) {
-    UTRACE("Making sure that command buffers can be recorded!");
+    UTRACE("Making sure that copy render target into presentable command buffers can be recorded!");
     if (renderTargetImages.size() == presentableImages.size() and renderTargetImages.empty()) {
       UERROR("No render target images and no presentable images! Cannot record cmd!");
       return UFALSE;
@@ -128,6 +128,15 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
       if (renderTargetImages[i].extent.width != presentableImages[i].extent.width) {
         UERROR("Render target image width does not equal to presentable one's width! rt {} pr {}",
                renderTargetImages[i].extent.width, presentableImages[i].extent.width);
+        return UFALSE;
+      }
+      if (renderTargetImages[i].extent.depth != presentableImages[i].extent.depth) {
+        UERROR("Render target image width does not equal to presentable one's depth! rt {} pr {}",
+               renderTargetImages[i].extent.depth, presentableImages[i].extent.depth);
+        return UFALSE;
+      }
+      if (renderTargetImages[i].extent.depth != 1) {
+        UERROR("Render target and presentable image have depth other than 1!");
         return UFALSE;
       }
     }
