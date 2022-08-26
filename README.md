@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+26.08.2022 Copying render target into presentable is working! Added render pass and clearing screen with framebuffers [tree](https://github.com/Mregussek/UncannyEngine/tree/0147d1343fceb27527e046734fd5ee41fc94988e)
+
 24.08.2022 Added copying render target image into presentable one along with refactoring, format validation [tree](https://github.com/Mregussek/UncannyEngine/tree/295f5cf22c8870677da0d7065e2d3e8d880a3e1c)
 
 22.08.2022 Minimizing window is working properly [tree](https://github.com/Mregussek/UncannyEngine/tree/fa7adc5e0d8fc2c3b31545306a5fbec942b51606)
