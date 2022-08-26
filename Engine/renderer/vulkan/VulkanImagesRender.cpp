@@ -141,7 +141,7 @@ b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
   imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   imageCreateInfo.queueFamilyIndexCount = 0;
   imageCreateInfo.pQueueFamilyIndices = nullptr;
-  imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 
   VkResult createdImage{ vkCreateImage(device, &imageCreateInfo, nullptr,
                                        &pOutRenderTargetImage->handle) };

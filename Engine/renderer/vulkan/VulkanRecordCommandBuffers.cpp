@@ -41,7 +41,7 @@ b32 recordClearColorImage(const std::vector<FImageVulkan>& renderTargetImages,
   barrierClearToGeneral.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
   barrierClearToGeneral.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
   barrierClearToGeneral.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  barrierClearToGeneral.newLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+  barrierClearToGeneral.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
   barrierClearToGeneral.srcQueueFamilyIndex = queueFamilyIndex;
   barrierClearToGeneral.dstQueueFamilyIndex = queueFamilyIndex;
   barrierClearToGeneral.image = VK_NULL_HANDLE; // will be filled later
@@ -164,37 +164,23 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
 
   VkImageMemoryBarrier defaultBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
   defaultBarrier.pNext = nullptr;
-  defaultBarrier.srcQueueFamilyIndex = queueFamilyIndex;
-  defaultBarrier.dstQueueFamilyIndex = queueFamilyIndex;
+  defaultBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  defaultBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   defaultBarrier.subresourceRange = imageSubresourceRange;
 
-  VkImageMemoryBarrier barrierUndefinedToReadRenderTarget{ defaultBarrier };
-  barrierUndefinedToReadRenderTarget.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierUndefinedToReadRenderTarget.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierUndefinedToReadRenderTarget.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  barrierUndefinedToReadRenderTarget.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-  barrierUndefinedToReadRenderTarget.image = VK_NULL_HANDLE; // will fill later
+  VkImageMemoryBarrier barrierPresentableUndefinedToTransfer{ defaultBarrier };
+  barrierPresentableUndefinedToTransfer.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+  barrierPresentableUndefinedToTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+  barrierPresentableUndefinedToTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  barrierPresentableUndefinedToTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+  barrierPresentableUndefinedToTransfer.image = VK_NULL_HANDLE; // will fill later
 
-  VkImageMemoryBarrier barrierReadToGeneralRenderTarget{ defaultBarrier };
-  barrierReadToGeneralRenderTarget.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierReadToGeneralRenderTarget.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierReadToGeneralRenderTarget.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-  barrierReadToGeneralRenderTarget.newLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
-  barrierReadToGeneralRenderTarget.image = VK_NULL_HANDLE; // will fill later
-
-  VkImageMemoryBarrier barrierUndefinedToTransferPresentable{ defaultBarrier };
-  barrierUndefinedToTransferPresentable.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierUndefinedToTransferPresentable.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-  barrierUndefinedToTransferPresentable.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  barrierUndefinedToTransferPresentable.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  barrierUndefinedToTransferPresentable.image = VK_NULL_HANDLE; // will fill later
-
-  VkImageMemoryBarrier barrierTransferToPresentPresentable{ defaultBarrier };
-  barrierTransferToPresentPresentable.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-  barrierTransferToPresentPresentable.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierTransferToPresentPresentable.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  barrierTransferToPresentPresentable.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-  barrierTransferToPresentPresentable.image = VK_NULL_HANDLE; // will fill later
+  VkImageMemoryBarrier barrierPresentableTransferToPresent{ defaultBarrier };
+  barrierPresentableTransferToPresent.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+  barrierPresentableTransferToPresent.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+  barrierPresentableTransferToPresent.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+  barrierPresentableTransferToPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+  barrierPresentableTransferToPresent.image = VK_NULL_HANDLE; // will fill later
 
   VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
   commandBufferBeginInfo.pNext = nullptr;
@@ -202,17 +188,8 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
-    barrierUndefinedToTransferPresentable.image = presentableImages[i].handle;
-    barrierTransferToPresentPresentable.image = presentableImages[i].handle;
-
-    barrierUndefinedToReadRenderTarget.image = renderTargetImages[i].handle;
-    barrierReadToGeneralRenderTarget.image = renderTargetImages[i].handle;
-
-    constexpr u32 imageMemoryBarrierCount{ 2 };
-    VkImageMemoryBarrier imageMemoryBarrierUndefinedToOperateArray[imageMemoryBarrierCount]{
-      barrierUndefinedToTransferPresentable, barrierUndefinedToReadRenderTarget };
-    VkImageMemoryBarrier imageMemoryBarrierOperateToPresentArray[imageMemoryBarrierCount]{
-        barrierTransferToPresentPresentable, barrierReadToGeneralRenderTarget };
+    barrierPresentableUndefinedToTransfer.image = presentableImages[i].handle;
+    barrierPresentableTransferToPresent.image = presentableImages[i].handle;
 
     VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
                                                                &commandBufferBeginInfo) };
@@ -227,7 +204,7 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
-                         imageMemoryBarrierCount, imageMemoryBarrierUndefinedToOperateArray);
+                         1, &barrierPresentableUndefinedToTransfer);
     vkCmdCopyImage(commandBuffers[i],
                    renderTargetImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                    presentableImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -238,7 +215,7 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
                          VkDependencyFlags{ 0 },
                          0, nullptr,
                          0, nullptr,
-                         imageMemoryBarrierCount, imageMemoryBarrierOperateToPresentArray);
+                         1, &barrierPresentableTransferToPresent);
 
     VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
     if (properlyRecordedCommands != VK_SUCCESS) {
@@ -262,6 +239,24 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   commandBufferBeginInfo.flags = 0;
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
+  VkImageSubresourceRange imageSubresourceRange{};
+  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  imageSubresourceRange.baseMipLevel = 0;
+  imageSubresourceRange.levelCount = 1;
+  imageSubresourceRange.baseArrayLayer = 0;
+  imageSubresourceRange.layerCount = 1;
+
+  VkImageMemoryBarrier barrierReadToTransferSrc{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+  barrierReadToTransferSrc.pNext = nullptr;
+  barrierReadToTransferSrc.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  barrierReadToTransferSrc.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+  barrierReadToTransferSrc.oldLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+  barrierReadToTransferSrc.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+  barrierReadToTransferSrc.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barrierReadToTransferSrc.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barrierReadToTransferSrc.image = VK_NULL_HANDLE; // will be filled later
+  barrierReadToTransferSrc.subresourceRange = imageSubresourceRange;
+
   VkRect2D renderArea{};
   renderArea.extent = {}; // will be filled later
   renderArea.offset = { 0, 0 };
@@ -277,6 +272,8 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   renderPassBeginInfo.pClearValues = &clearColorValue;
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
+    barrierReadToTransferSrc.image = renderTargetImages[i].handle;
+
     renderArea.extent.width = renderTargetImages[i].extent.width;
     renderArea.extent.height = renderTargetImages[i].extent.height;
     renderPassBeginInfo.renderArea = renderArea;
@@ -291,6 +288,14 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
 
     vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdEndRenderPass(commandBuffers[i]);
+
+    vkCmdPipelineBarrier(commandBuffers[i],
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         VkDependencyFlags{ 0 },
+                         0, nullptr,
+                         0, nullptr,
+                         1, &barrierReadToTransferSrc);
 
     VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
     if (properlyRecordedCommands != VK_SUCCESS) {
