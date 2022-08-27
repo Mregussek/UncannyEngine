@@ -239,24 +239,6 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   commandBufferBeginInfo.flags = 0;
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
-  VkImageSubresourceRange imageSubresourceRange{};
-  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  imageSubresourceRange.baseMipLevel = 0;
-  imageSubresourceRange.levelCount = 1;
-  imageSubresourceRange.baseArrayLayer = 0;
-  imageSubresourceRange.layerCount = 1;
-
-  VkImageMemoryBarrier barrierReadToTransferSrc{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-  barrierReadToTransferSrc.pNext = nullptr;
-  barrierReadToTransferSrc.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-  barrierReadToTransferSrc.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrierReadToTransferSrc.oldLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
-  barrierReadToTransferSrc.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-  barrierReadToTransferSrc.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrierReadToTransferSrc.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrierReadToTransferSrc.image = VK_NULL_HANDLE; // will be filled later
-  barrierReadToTransferSrc.subresourceRange = imageSubresourceRange;
-
   VkRect2D renderArea{};
   renderArea.extent = {}; // will be filled later
   renderArea.offset = { 0, 0 };
@@ -272,8 +254,6 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
   renderPassBeginInfo.pClearValues = &clearColorValue;
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
-    barrierReadToTransferSrc.image = renderTargetImages[i].handle;
-
     renderArea.extent.width = renderTargetImages[i].extent.width;
     renderArea.extent.height = renderTargetImages[i].extent.height;
     renderPassBeginInfo.renderArea = renderArea;
@@ -288,14 +268,6 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
 
     vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdEndRenderPass(commandBuffers[i]);
-
-    vkCmdPipelineBarrier(commandBuffers[i],
-                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                         VkDependencyFlags{ 0 },
-                         0, nullptr,
-                         0, nullptr,
-                         1, &barrierReadToTransferSrc);
 
     VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
     if (properlyRecordedCommands != VK_SUCCESS) {

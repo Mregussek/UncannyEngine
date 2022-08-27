@@ -24,7 +24,7 @@ b32 FRenderContextVulkan::createRenderPasses() {
   colorAttachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   colorAttachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
   colorAttachDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  colorAttachDesc.finalLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+  colorAttachDesc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
   VkAttachmentReference colorAttachRef{};
   colorAttachRef.attachment = 0;
