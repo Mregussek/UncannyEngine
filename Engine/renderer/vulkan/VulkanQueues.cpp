@@ -8,9 +8,15 @@ namespace uncanny
 {
 
 
+static b32 validateQueuesVectorIsProper(const std::vector<VkQueue>& queueVector,
+                                        const char* logInfo);
+
+
+
 b32 FRenderContextVulkan::createGraphicsQueues() {
   UTRACE("Creating graphics queues for rendering...");
 
+  // Graphics queues...
   FQueueFamilyDependencies graphicsFamilyDeps{};
   b32 foundGraphicsDeps{
       getQueueFamilyDependencies(EQueueFamilyMainUsage::GRAPHICS,
@@ -21,25 +27,17 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
     return UFALSE;
   }
 
-  u32 requiredQueuesCount{ graphicsFamilyDeps.queuesCountNeeded };
-  mVkGraphicsQueueVector.resize(requiredQueuesCount);
+  u32 requiredGraphicsQueuesCount{ graphicsFamilyDeps.queuesCountNeeded };
+  mVkGraphicsQueueVector.resize(requiredGraphicsQueuesCount);
 
-  for (u32 j = 0; j < requiredQueuesCount; j++) {
+  for (u32 j = 0; j < requiredGraphicsQueuesCount; j++) {
     vkGetDeviceQueue(mVkDevice, mGraphicsQueueFamilyIndex, j, &mVkGraphicsQueueVector[j]);
   }
 
-  if (mVkGraphicsQueueVector.empty()) {
-    UERROR("There is no graphics queues, cannot render anything!");
+  if (not validateQueuesVectorIsProper(mVkGraphicsQueueVector, "graphics")) {
+    UERROR("Graphics queues were not retrieved correctly!");
     return UFALSE;
   }
-
-  for (VkQueue& graphicsQueue : mVkGraphicsQueueVector) {
-    if (graphicsQueue == VK_NULL_HANDLE) {
-      UERROR("There is graphics queue, that is null handle, cannot render anything!");
-      return UFALSE;
-    }
-  }
-
   if (mVkGraphicsQueueVector.size() >= 2) {
     UTRACE("Assigning rendering and present queue indexes to 0 and 1 as there is at least 2 queues");
     mRenderingQueueIndex = 0;
@@ -50,6 +48,32 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
     mRenderingQueueIndex = 0;
     mPresentationQueueIndex = 0;
   }
+
+  // Transfer queues...
+  FQueueFamilyDependencies transferFamilyDeps{};
+  b32 foundTransferDeps{
+      getQueueFamilyDependencies(EQueueFamilyMainUsage::TRANSFER,
+                                 mPhysicalDeviceDependencies.queueFamilyDependencies,
+                                 &transferFamilyDeps) };
+  if (not foundTransferDeps) {
+    UERROR("Could not find transfer queue family dependencies!");
+    return UFALSE;
+  }
+
+  u32 requiredTransferQueuesCount{ transferFamilyDeps.queuesCountNeeded };
+  mVkTransferQueueVector.resize(requiredTransferQueuesCount);
+
+  for (u32 j = 0; j < requiredGraphicsQueuesCount; j++) {
+    vkGetDeviceQueue(mVkDevice, mTransferQueueFamilyIndex, j, &mVkTransferQueueVector[j]);
+  }
+
+  if (not validateQueuesVectorIsProper(mVkTransferQueueVector, "transfer")) {
+    UERROR("Graphics queues were not retrieved correctly!");
+    return UFALSE;
+  }
+
+  UTRACE("Assigning copy queue index to 0");
+  mCopyQueueIndex = 0;
 
   UDEBUG("Created graphics queues!");
   return UTRUE;
@@ -63,6 +87,24 @@ b32 FRenderContextVulkan::closeGraphicsQueues() {
   mVkGraphicsQueueVector.clear();
 
   UDEBUG("Closed graphics queues!");
+  return UTRUE;
+}
+
+
+b32 validateQueuesVectorIsProper(const std::vector<VkQueue>& queueVector, const char* logInfo) {
+  if (queueVector.empty()) {
+    UERROR("There is no {} queues, vector is empty!", logInfo);
+    return UFALSE;
+  }
+
+  for (const VkQueue& queue : queueVector) {
+    if (queue == VK_NULL_HANDLE) {
+      UERROR("There is {} queue, that is null handle!", logInfo);
+      return UFALSE;
+    }
+  }
+
+  UTRACE("{} queue vector is correct!", logInfo);
   return UTRUE;
 }
 

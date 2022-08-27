@@ -18,6 +18,10 @@ b32 FRenderContextVulkan::createCommandPool() {
 
   U_VK_ASSERT( vkCreateCommandPool(mVkDevice, &createInfo, nullptr, &mVkGraphicsCommandPool) );
 
+  createInfo.queueFamilyIndex = mTransferQueueFamilyIndex;
+
+  U_VK_ASSERT( vkCreateCommandPool(mVkDevice, &createInfo, nullptr, &mVkTransferCommandPool) );
+
   UDEBUG("Created command pools!");
   return UTRUE;
 }
@@ -47,6 +51,14 @@ b32 FRenderContextVulkan::closeCommandPool() {
   }
   else {
     UWARN("As graphics command pool was not created, it won't be closed!");
+  }
+
+  if (mVkTransferCommandPool != VK_NULL_HANDLE) {
+    UTRACE("Destroying transfer command pool...");
+    vkDestroyCommandPool(mVkDevice, mVkTransferCommandPool, nullptr);
+  }
+  else {
+    UWARN("As transfer command pool was not created, it won't be closed!");
   }
 
   UDEBUG("Closed command pools!");

@@ -103,11 +103,13 @@ private:
   VkPhysicalDevice mVkPhysicalDevice{ VK_NULL_HANDLE };
   // Queue Family
   u32 mGraphicsQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
-  u32 mTransferQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED }; // TODO: implement actual usage
+  u32 mTransferQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
   std::vector<VkQueueFamilyProperties> mVkQueueFamilyProperties{};
   std::vector<VkQueue> mVkGraphicsQueueVector{};
   u32 mRenderingQueueIndex{ UUNUSED }; // Index for mVkGraphicsQueueVector, not queue family
   u32 mPresentationQueueIndex{ UUNUSED }; // Index for mVkGraphicsQueueVector, not queue family
+  std::vector<VkQueue> mVkTransferQueueVector{};
+  u32 mCopyQueueIndex{ UUNUSED }; // Index for mVkTransferQueueVector, not queue family
   // Semaphores - synchronizes GPU to GPU execution of commands
   std::vector<VkSemaphore> mVkSemaphoreImageAvailableVector{};
   std::vector<VkSemaphore> mVkSemaphoreRenderingFinishedVector{};
@@ -130,11 +132,11 @@ private:
   // Depth Image info
   VkFormat mVkDepthFormat{ VK_FORMAT_UNDEFINED };
   FImageVulkan mDepthImage{};
-  // Command Pools
+  // Graphics Command Pools
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
-  VkCommandPool mVkTransferCommandPool{ VK_NULL_HANDLE };
-  // Command Buffers
   std::vector<VkCommandBuffer> mVkRenderCommandBufferVector{};
+  // Transfer Command Pools
+  VkCommandPool mVkTransferCommandPool{ VK_NULL_HANDLE };
   std::vector<VkCommandBuffer> mVkCopyCommandBufferVector{};
   // Frames in flight
   std::vector<VkFence> mVkFencesInFlightFrames{};

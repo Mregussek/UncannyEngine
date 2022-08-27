@@ -353,7 +353,7 @@ b32 FRenderContextVulkan::update() {
     mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
     mVkSemaphoreImageAvailableVector[mCurrentFrame] };
   VkPipelineStageFlags copyStageMasks[]{
-    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT };
+    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT };
 
   VkSubmitInfo copySubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   copySubmitInfo.pNext = nullptr;
@@ -365,7 +365,7 @@ b32 FRenderContextVulkan::update() {
   copySubmitInfo.signalSemaphoreCount = 1;
   copySubmitInfo.pSignalSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
 
-  U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &copySubmitInfo,
+  U_VK_ASSERT( vkQueueSubmit(mVkTransferQueueVector[mCopyQueueIndex], 1, &copySubmitInfo,
                              mVkFencesInFlightFrames[mCurrentFrame]) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };

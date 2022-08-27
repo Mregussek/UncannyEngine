@@ -28,6 +28,8 @@ b32 FRenderContextVulkan::createCommandBuffers() {
   U_VK_ASSERT( vkAllocateCommandBuffers(mVkDevice, &allocateInfo,
                                         mVkRenderCommandBufferVector.data()) );
 
+  allocateInfo.commandPool = mVkTransferCommandPool;
+
   U_VK_ASSERT( vkAllocateCommandBuffers(mVkDevice, &allocateInfo,
                                         mVkCopyCommandBufferVector.data()) );
 
@@ -40,7 +42,7 @@ b32 FRenderContextVulkan::closeCommandBuffers() {
   UTRACE("Closing command buffers...");
 
   freeCommandBufferVector(mVkDevice, mVkGraphicsCommandPool, &mVkRenderCommandBufferVector, "render");
-  freeCommandBufferVector(mVkDevice, mVkGraphicsCommandPool, &mVkCopyCommandBufferVector, "copy");
+  freeCommandBufferVector(mVkDevice, mVkTransferCommandPool, &mVkCopyCommandBufferVector, "copy");
 
   UDEBUG("Closed command buffers!");
   return UTRUE;
