@@ -145,6 +145,9 @@ private:
   std::vector<VkFence> mVkFencesInFlightFrames{};
   u32 mMaxFramesInFlight{ UUNUSED };
   u32 mCurrentFrame{ UUNUSED };
+  // Pipelines
+  VkPipelineLayout mVkPipelineLayoutTriangle{ VK_NULL_HANDLE };
+  VkPipeline mVkPipelineTriangle{ VK_NULL_HANDLE };
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };
