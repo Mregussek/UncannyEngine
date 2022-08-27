@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+27.08.2022 Added usage of transfer queue family, using transfer queues, cmd pools and buffers for copy image [tree](https://github.com/Mregussek/UncannyEngine/tree/eb39e1468d790c4c91a257300b7737f51db69f98)
+
 26.08.2022 Copying render target into presentable is working! Added render pass and clearing screen with framebuffers [tree](https://github.com/Mregussek/UncannyEngine/tree/0147d1343fceb27527e046734fd5ee41fc94988e)
 
 24.08.2022 Added copying render target image into presentable one along with refactoring, format validation [tree](https://github.com/Mregussek/UncannyEngine/tree/295f5cf22c8870677da0d7065e2d3e8d880a3e1c)
