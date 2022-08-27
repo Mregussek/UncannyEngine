@@ -56,6 +56,9 @@ private:
   [[nodiscard]] b32 recreateSwapchain();
   b32 closeSwapchain();
 
+  [[nodiscard]] b32 createRenderPasses();
+  b32 closeRenderPasses();
+
   [[nodiscard]] b32 createRenderTargetImages();
   [[nodiscard]] b32 recreateRenderTargetImages();
   b32 closeRenderTargetImages();
@@ -77,8 +80,8 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
-  [[nodiscard]] b32 createRenderPasses();
-  b32 closeRenderPasses();
+  [[nodiscard]] b32 createGraphicsPipelinesGeneral();
+  b32 closeGraphicsPipelinesGeneral();
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 

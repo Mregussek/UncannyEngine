@@ -197,6 +197,13 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // Create graphics pipelines
+  b32 properlyCreatedGraphicsPipelines{ createGraphicsPipelinesGeneral() };
+  if (not properlyCreatedGraphicsPipelines) {
+    UFATAL("Could not create graphics pipelines!");
+    return UFALSE;
+  }
+
   // Finally record commands as startup point
   b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
   if (not recordedCommandBuffers) {
@@ -254,6 +261,7 @@ void FRenderContextVulkan::terminate() {
     vkDeviceWaitIdle(mVkDevice);
   }
 
+  closeGraphicsPipelinesGeneral();
   closeGraphicsFences();
   closeGraphicsSemaphores();
   closeCommandBuffers();
