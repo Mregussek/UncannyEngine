@@ -26,7 +26,8 @@ b32 recordClearScreenWithRenderPassForRenderTarget(
 
 b32 recordGraphicsPipelineForRenderTarget(
     const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
-    VkPipeline graphicsPipeline, const std::vector<VkCommandBuffer>& commandBuffers);
+    VkPipeline graphicsPipeline, VkViewport viewport, VkRect2D scissor,
+    const std::vector<VkCommandBuffer>& commandBuffers);
 
 
 }

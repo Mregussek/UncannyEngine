@@ -283,6 +283,7 @@ b32 recordClearScreenWithRenderPassForRenderTarget(
 
 b32 recordGraphicsPipelineForRenderTarget(const std::vector<FImageVulkan>& renderTargetImages,
                                           VkRenderPass renderPass, VkPipeline graphicsPipeline,
+                                          VkViewport viewport, VkRect2D scissor,
                                           const std::vector<VkCommandBuffer>& commandBuffers) {
   UTRACE("Recording command buffers with graphics pipeline usage for render target images...");
 
@@ -321,6 +322,8 @@ b32 recordGraphicsPipelineForRenderTarget(const std::vector<FImageVulkan>& rende
     vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdSetViewport(commandBuffers[i], 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffers[i], 0, 1, &scissor);
     vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffers[i]);

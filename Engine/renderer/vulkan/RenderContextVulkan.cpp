@@ -297,20 +297,20 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
   //  return UFALSE;
   //}
 
-  b32 recordRenderPass{ recordClearScreenWithRenderPassForRenderTarget(
-      mImageRenderTargetVector, mVkRenderPass, mVkRenderCommandBufferVector) };
-  if (not recordRenderPass) {
-    UFATAL("Could not record render pass for render target command buffers!");
-    return UFALSE;
-  }
-
-  //b32 recordPipelineTriangle{ recordGraphicsPipelineForRenderTarget(
-  //    mImageRenderTargetVector, mVkRenderPass, mVkPipelineTriangle,
-  //    mVkRenderCommandBufferVector) };
-  //if (not recordPipelineTriangle) {
-  //  UFATAL("Could not record graphics pipeline for render target command buffers!");
+  //b32 recordRenderPass{ recordClearScreenWithRenderPassForRenderTarget(
+  //    mImageRenderTargetVector, mVkRenderPass, mVkRenderCommandBufferVector) };
+  //if (not recordRenderPass) {
+  //  UFATAL("Could not record render pass for render target command buffers!");
   //  return UFALSE;
   //}
+
+  b32 recordPipelineTriangle{ recordGraphicsPipelineForRenderTarget(
+      mImageRenderTargetVector, mVkRenderPass, mVkPipelineTriangle, mVkViewportTriangle,
+      mVkScissorTriangle, mVkRenderCommandBufferVector) };
+  if (not recordPipelineTriangle) {
+    UFATAL("Could not record graphics pipeline for render target command buffers!");
+    return UFALSE;
+  }
 
   b32 recordedCopyImage{ recordCopyRenderTargetIntoPresentableImage(
       mImageRenderTargetVector, mImagePresentableVector, mVkCopyCommandBufferVector,
@@ -434,6 +434,7 @@ b32 FRenderContextVulkan::update() {
       return UFALSE;
     }
 
+    collectViewportScissorInfo();
     b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
     if (not recordedCommandBuffers) {
       UFATAL("Could not record command buffers!");

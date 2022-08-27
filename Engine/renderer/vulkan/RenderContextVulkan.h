@@ -80,6 +80,7 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
+  b32 collectViewportScissorInfo();
   [[nodiscard]] b32 createGraphicsPipelinesGeneral();
   b32 closeGraphicsPipelinesGeneral();
 
@@ -148,6 +149,8 @@ private:
   // Pipelines
   VkPipelineLayout mVkPipelineLayoutTriangle{ VK_NULL_HANDLE };
   VkPipeline mVkPipelineTriangle{ VK_NULL_HANDLE };
+  VkViewport mVkViewportTriangle{};
+  VkRect2D mVkScissorTriangle{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };

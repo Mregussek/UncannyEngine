@@ -28,8 +28,37 @@ static b32 createShaderModule(const char* path, VkDevice device, VkShaderModule*
 static b32 closeShaderModule(VkDevice device, VkShaderModule* pShaderModule, const char* logInfo);
 
 
+b32 FRenderContextVulkan::collectViewportScissorInfo() {
+  UTRACE("Collecting viewport and scissor info...");
+
+  // TODO: handle taking proper extent properly for viewport and scissors!
+  UWARN("During collection data for viewport and scissor using 0-indexes render target extent!");
+  VkExtent3D imageExtent{ mImageRenderTargetVector[0].extent };
+
+  VkViewport viewport{};
+  viewport.x = 0.f;
+  viewport.y = 0.f;
+  viewport.width = (f32)imageExtent.width;
+  viewport.height = (f32)imageExtent.height;
+  viewport.minDepth = 0.f;
+  viewport.maxDepth = 1.f;
+
+  VkRect2D scissor{};
+  scissor.extent = { imageExtent.width, imageExtent.height };
+  scissor.offset = { 0, 0 };
+
+  mVkViewportTriangle = viewport;
+  mVkScissorTriangle = scissor;
+
+  UTRACE("Collected viewport and scissor info!");
+  return UTRUE;
+}
+
+
 b32 FRenderContextVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
+
+  collectViewportScissorInfo();
 
   FShaderModulesVulkan shaderModules{};
 
@@ -46,8 +75,7 @@ b32 FRenderContextVulkan::createGraphicsPipelinesGeneral() {
     return UFALSE;
   }
 
-  // TODO: handle taking proper extent properly for viewport and scissors!
-  UWARN("During graphics pipeline creation using 0-indexes render target extent!");
+
 
   b32 createdTrianglePipeline{ createTriangleGraphicsPipeline(mVkDevice,
                                                               mImageRenderTargetVector[0].extent,
@@ -136,26 +164,14 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   inputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
 
-  VkViewport viewport{};
-  viewport.x = 0.f;
-  viewport.y = 0.f;
-  viewport.width = (f32)renderTargetExtent.width;
-  viewport.height = (f32)renderTargetExtent.height;
-  viewport.minDepth = 0.f;
-  viewport.maxDepth = 1.f;
-
-  VkRect2D scissor{};
-  scissor.extent = { renderTargetExtent.width, renderTargetExtent.height };
-  scissor.offset = { 0, 0 };
-
   VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
   viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
   viewportStateCreateInfo.pNext = nullptr;
   viewportStateCreateInfo.flags = 0;
   viewportStateCreateInfo.viewportCount = 1;
-  viewportStateCreateInfo.pViewports = &viewport;
+  // viewportStateCreateInfo.pViewports = &viewport; // will be handled via vkCmdSetViewport
   viewportStateCreateInfo.scissorCount = 1;
-  viewportStateCreateInfo.pScissors = &scissor;
+  // viewportStateCreateInfo.pScissors = &scissor; // will be handled via vkCmdSetScissor
 
   VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{};
   rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
