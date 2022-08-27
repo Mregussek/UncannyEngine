@@ -85,10 +85,10 @@ b32 FRenderContextVulkan::createDepthImage() {
 
   // create depth image view...
   VkComponentMapping componentMapping{};
-  componentMapping.r = VK_COMPONENT_SWIZZLE_R;
-  componentMapping.g = VK_COMPONENT_SWIZZLE_G;
-  componentMapping.b = VK_COMPONENT_SWIZZLE_B;
-  componentMapping.a = VK_COMPONENT_SWIZZLE_A;
+  componentMapping.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+  componentMapping.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+  componentMapping.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+  componentMapping.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
   VkImageSubresourceRange imageSubresourceRange{};
   imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
