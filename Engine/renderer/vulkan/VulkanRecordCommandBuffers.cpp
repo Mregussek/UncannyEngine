@@ -229,10 +229,10 @@ b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& 
 }
 
 
-b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTargetImages,
-                                    VkRenderPass renderPass,
-                                    const std::vector<VkCommandBuffer>& commandBuffers) {
-  UTRACE("Recording command buffers with render pass usage for render target images...");
+b32 recordClearScreenWithRenderPassForRenderTarget(
+    const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
+    const std::vector<VkCommandBuffer>& commandBuffers) {
+  UTRACE("Recording command buffers with clearing screen with render pass for render target...");
 
   VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
   commandBufferBeginInfo.pNext = nullptr;
@@ -276,7 +276,63 @@ b32 recordRenderPassForRenderTarget(const std::vector<FImageVulkan>& renderTarge
     }
   }
 
-  UDEBUG("Recorded command buffers with render pass usage for render target images!");
+  UDEBUG("Recorded command buffers with clearing screen with render pass for render target!");
+  return UTRUE;
+}
+
+
+b32 recordGraphicsPipelineForRenderTarget(const std::vector<FImageVulkan>& renderTargetImages,
+                                          VkRenderPass renderPass, VkPipeline graphicsPipeline,
+                                          const std::vector<VkCommandBuffer>& commandBuffers) {
+  UTRACE("Recording command buffers with graphics pipeline usage for render target images...");
+
+  VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+  commandBufferBeginInfo.pNext = nullptr;
+  commandBufferBeginInfo.flags = 0;
+  commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+  VkRect2D renderArea{};
+  renderArea.extent = {}; // will be filled later
+  renderArea.offset = { 0, 0 };
+
+  VkClearValue clearColorValue{ 0.5f, 0.9f, 0.3f, 0.0f };
+
+  VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+  renderPassBeginInfo.pNext = nullptr;
+  renderPassBeginInfo.renderPass = renderPass;
+  renderPassBeginInfo.framebuffer = VK_NULL_HANDLE; // will be filled later
+  renderPassBeginInfo.renderArea = {}; // will be filled later
+  renderPassBeginInfo.clearValueCount = 1;
+  renderPassBeginInfo.pClearValues = &clearColorValue;
+
+  for (u32 i = 0; i < renderTargetImages.size(); i++) {
+    renderArea.extent.width = renderTargetImages[i].extent.width;
+    renderArea.extent.height = renderTargetImages[i].extent.height;
+    renderPassBeginInfo.renderArea = renderArea;
+    renderPassBeginInfo.framebuffer = renderTargetImages[i].handleFramebuffer;
+
+    VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
+                                                               &commandBufferBeginInfo) };
+    if (properlyPreparedForCommands != VK_SUCCESS) {
+      UERROR("Cannot record any commands! Wrong output of vkBeginCommandBuffer!");
+      return UFALSE;
+    }
+
+    vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+
+    vkCmdEndRenderPass(commandBuffers[i]);
+
+    VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
+    if (properlyRecordedCommands != VK_SUCCESS) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+  }
+
+  UDEBUG("Recorded command buffers with graphics pipeline usage for render target images!");
   return UTRUE;
 }
 
