@@ -16,6 +16,8 @@ public:
 
   static b32 loadFile(const char* path, std::vector<char>* pOutBuffer);
 
+  static b32 getExecutablePath(char* pOutBuffer, u32 sizeofBuffer);
+
 };
 
 

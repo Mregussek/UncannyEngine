@@ -2,6 +2,7 @@
 #include "RenderContextVulkan.h"
 #include "VulkanUtilities.h"
 #include <utilities/Logger.h>
+#include <filesystem/FileManager.h>
 
 
 namespace uncanny
@@ -35,6 +36,22 @@ b32 FRenderContextVulkan::closeGraphicsPipelinesGeneral() {
 
 b32 createTriangleGraphicsPipeline() {
   UTRACE("Creating triangle graphics pipeline...");
+
+  const char* vertex{ "shaders/triangle.vert.spv" };
+  std::vector<char> vertexCode{};
+  b32 loadedVertex{ FFileManager::loadFile(vertex, &vertexCode) };
+  if (not loadedVertex) {
+    UERROR("Could not load vertex shader!");
+    return UFALSE;
+  }
+
+  const char* fragment{ "shaders/triangle.frag.spv" };
+  std::vector<char> fragCode{};
+  b32 loadedFragment{ FFileManager::loadFile(fragment, &fragCode) };
+  if (not loadedFragment) {
+    UERROR("Could not load fragment shader!");
+    return UFALSE;
+  }
 
   UDEBUG("Created triangle graphics pipeline!");
   return UTRUE;
