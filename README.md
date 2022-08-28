@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+28.08.2022 Added staging buffer for vertex data! [tree](https://github.com/Mregussek/UncannyEngine/tree/754b43268619131bc14fab726278598f2e3005a9)
+
 28.08.2022 Rendering triangle with vertex buffer! [tree](https://github.com/Mregussek/UncannyEngine/tree/bf62523a37b0a4af7c6580fe2d45fb063d35fb23)
 
 27.08.2022 Rendering first triangle! [tree](https://github.com/Mregussek/UncannyEngine/tree/25fbcd56292f56d41262c9bc9cd02a4450a88483)
