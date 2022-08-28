@@ -34,7 +34,7 @@ FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID) {
 
 
 u32 findMemoryIndex(VkPhysicalDevice physicalDevice, u32 typeFilter,
-                    VkMemoryPropertyFlagBits flags) {
+                    VkMemoryPropertyFlags flags) {
   VkPhysicalDeviceMemoryProperties memoryProperties{};
   vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
 
