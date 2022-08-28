@@ -30,6 +30,12 @@ b32 recordTriangleGraphicsPipelineForRenderTarget(
     const std::vector<VkCommandBuffer>& commandBuffers);
 
 
+b32 recordVertexBufferGraphicsPipelineForRenderTarget(
+    const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
+    VkPipeline graphicsPipeline, VkViewport viewport, VkRect2D scissor,
+    FVertexBufferVulkan* pVertexBuffer, const std::vector<VkCommandBuffer>& commandBuffers);
+
+
 }
 
 

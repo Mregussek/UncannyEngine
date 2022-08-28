@@ -30,9 +30,9 @@ struct FMesh {
 struct FMeshTriangle : public FMesh {
   FMeshTriangle() {
     vertices = {
-        FVertex{ { 0.0f, -0.5f, 0.f }, { 1.0f, 0.0f, 0.0f } },
-        FVertex{ { 0.5f, 0.5f, 0.f }, { 1.0f, 1.0f, 0.0f } },
-        FVertex{ { -0.5f, 0.5f, 0.f }, { 1.0f, 0.0f, 1.0f } }
+        FVertex{ { 0.0f, -0.5f, 0.f }, { 0.0f, 0.0f, 1.0f } },
+        FVertex{ { 0.5f, 0.5f, 0.f }, { 0.0f, 1.0f, 1.0f } },
+        FVertex{ { -0.5f, 0.5f, 0.f }, { 0.0f, 0.0f, 1.0f } }
     };
     type = EMeshType::TRIANGLE;
   }

@@ -340,4 +340,68 @@ b32 recordTriangleGraphicsPipelineForRenderTarget(
 }
 
 
+b32 recordVertexBufferGraphicsPipelineForRenderTarget(
+    const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
+    VkPipeline graphicsPipeline, VkViewport viewport, VkRect2D scissor,
+    FVertexBufferVulkan* pVertexBuffer, const std::vector<VkCommandBuffer>& commandBuffers) {
+  UTRACE("Recording command buffers with vertex buffer binding in graphics pipeline for"
+         "render target images...");
+
+  VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+  commandBufferBeginInfo.pNext = nullptr;
+  commandBufferBeginInfo.flags = 0;
+  commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+  VkRect2D renderArea{};
+  renderArea.extent = {}; // will be filled later
+  renderArea.offset = { 0, 0 };
+
+  VkClearValue clearColorValue{ 0.2f, 0.5f, 0.8f, 0.0f };
+
+  VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+  renderPassBeginInfo.pNext = nullptr;
+  renderPassBeginInfo.renderPass = renderPass;
+  renderPassBeginInfo.framebuffer = VK_NULL_HANDLE; // will be filled later
+  renderPassBeginInfo.renderArea = {}; // will be filled later
+  renderPassBeginInfo.clearValueCount = 1;
+  renderPassBeginInfo.pClearValues = &clearColorValue;
+
+  VkDeviceSize vertexBufferOffsets[]{ 0 };
+
+  for (u32 i = 0; i < renderTargetImages.size(); i++) {
+    renderArea.extent.width = renderTargetImages[i].extent.width;
+    renderArea.extent.height = renderTargetImages[i].extent.height;
+    renderPassBeginInfo.renderArea = renderArea;
+    renderPassBeginInfo.framebuffer = renderTargetImages[i].handleFramebuffer;
+
+    VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
+                                                               &commandBufferBeginInfo) };
+    if (properlyPreparedForCommands != VK_SUCCESS) {
+      UERROR("Cannot record any commands! Wrong output of vkBeginCommandBuffer!");
+      return UFALSE;
+    }
+
+    vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &pVertexBuffer->handle, vertexBufferOffsets);
+    vkCmdSetViewport(commandBuffers[i], 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffers[i], 0, 1, &scissor);
+    vkCmdDraw(commandBuffers[i], pVertexBuffer->vertexCount, 1, 0, 0);
+
+    vkCmdEndRenderPass(commandBuffers[i]);
+
+    VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
+    if (properlyRecordedCommands != VK_SUCCESS) {
+      UERROR("Could not record command buffers!");
+      return UFALSE;
+    }
+  }
+
+  UDEBUG("Recorded command buffers with vertex buffer binding in graphics pipeline for "
+         "render target images!");
+  return UTRUE;
+}
+
+
 }

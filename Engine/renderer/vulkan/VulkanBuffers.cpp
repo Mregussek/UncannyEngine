@@ -11,6 +11,8 @@ namespace uncanny
 b32 FRenderContextVulkan::createVertexBuffer(FMesh* pMesh) {
   UTRACE("Creating vertex buffer...");
 
+  mVertexBufferTriangle.vertexCount = pMesh->vertices.size();
+
   VkBufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
@@ -74,6 +76,7 @@ b32 FRenderContextVulkan::closeVertexBuffer() {
   if (mVertexBufferTriangle.handle != VK_NULL_HANDLE) {
     UTRACE("Destroying vertex buffer...");
     vkDestroyBuffer(mVkDevice, mVertexBufferTriangle.handle, nullptr);
+    mVertexBufferTriangle.handle = VK_NULL_HANDLE;
   }
   else {
     UWARN("As vertex buffer is not created, it is not destroyed!");
@@ -82,10 +85,13 @@ b32 FRenderContextVulkan::closeVertexBuffer() {
   if (mVertexBufferTriangle.deviceMemory != VK_NULL_HANDLE) {
     UTRACE("Freeing vertex buffer memory...");
     vkFreeMemory(mVkDevice, mVertexBufferTriangle.deviceMemory, nullptr);
+    mVertexBufferTriangle.deviceMemory = VK_NULL_HANDLE;
   }
   else {
     UWARN("As vertex buffer is not allocated, it won't be freed!");
   }
+
+  mVertexBufferTriangle.vertexCount = 0;
 
   UDEBUG("Closed vertex buffer!");
   return UTRUE;
