@@ -41,6 +41,11 @@ auto main() -> i32 {
     pWindow->close();
   }
 
+  b32 rendererPrepared{ pRenderContext->prepareStateForRendering() };
+  if (not rendererPrepared) {
+    pWindow->close();
+  }
+
   // Running loop
   while(pWindow->isNotGoingToClose()) {
     pWindow->pollEvents();
@@ -48,7 +53,15 @@ auto main() -> i32 {
       continue;
     }
 
-    pRenderContext->update();
+    ERenderContextState renderState{ pRenderContext->prepareFrame() };
+    if (renderState == ERenderContextState::SURFACE_MINIMIZED) {
+      continue;
+    }
+
+    if (renderState == ERenderContextState::RENDERING) {
+      pRenderContext->submitFrame();
+      pRenderContext->endFrame();
+    }
   }
 
   // Terminating everything

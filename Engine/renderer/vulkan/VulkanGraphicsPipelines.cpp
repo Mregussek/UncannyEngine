@@ -86,7 +86,6 @@ b32 FRenderContextVulkan::collectViewportScissorInfo() {
 b32 FRenderContextVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 
-  collectViewportScissorInfo();
   FShaderModulesVulkan shaderModules{};
   FGraphicsPipelineDefaultConfiguration pipelineDefaultConfig{};
   fillGraphicsPipelineDefaultConfig(&pipelineDefaultConfig);

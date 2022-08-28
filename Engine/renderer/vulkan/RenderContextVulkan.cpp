@@ -98,6 +98,9 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
+  // assign members
+  mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
+
   // Firstly creating instance as it is mandatory for proper Vulkan work...
   b32 properlyCreatedInstance{ createInstance() };
   if (not properlyCreatedInstance) {
@@ -204,53 +207,8 @@ b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
     return UFALSE;
   }
 
-  // Finally record commands as startup point
-  b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
-  if (not recordedCommandBuffers) {
-    UFATAL("Could not record command buffers!");
-    return UFALSE;
-  }
-
-  mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
-  resetRenderLoopMembers();
-
   UINFO("Initialized Vulkan Render Context!");
   return UTRUE;
-}
-
-
-void FRenderContextVulkan::resetRenderLoopMembers() {
-  // surface is always proper after creation
-  mSurfaceIsOutOfDate = UFALSE;
-  // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount
-  mCurrentFrame = 0;
-  // by default, we want to print first occurrence of wrong surface extent
-  mPrintNotProperExtent = UTRUE;
-  // by default, we don't want to print first occurrence of correct surface extent as after
-  // creation it should be always correct
-  mPrintCorrectExtent = UFALSE;
-}
-
-
-b32 FRenderContextVulkan::shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state) {
-  if (not state) {
-    if (mPrintNotProperExtent) {
-      UDEBUG("Window Surface Extent is not proper, probably minimized, skipping update()!");
-      mPrintNotProperExtent = UFALSE;
-    }
-    mPrintCorrectExtent = UTRUE;
-    // if window is minimized we should skip update(), so we should return from it
-    return UTRUE;
-  }
-  else {
-    if (mPrintCorrectExtent) {
-      UDEBUG("Window Surface Extent is correct, resuming update()!");
-      mPrintCorrectExtent = UFALSE;
-    }
-    mPrintNotProperExtent = UTRUE;
-    // if otherwise, we shall skip returning and continue update() method.
-    return UFALSE;
-  }
 }
 
 
@@ -280,6 +238,37 @@ void FRenderContextVulkan::terminate() {
   closeInstance();
 
   UINFO("Terminated Vulkan Render Context!");
+}
+
+
+b32 FRenderContextVulkan::prepareStateForRendering() {
+  UTRACE("Preparing state for rendering...");
+
+  // Collect info about viewport and scissor
+  collectViewportScissorInfo();
+  // Record commands as startup point
+  b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
+  if (not recordedCommandBuffers) {
+    UFATAL("Could not record command buffers!");
+    return UFALSE;
+  }
+  resetRenderLoopMembers();
+
+  UINFO("Prepared state for rendering!");
+  return UTRUE;
+}
+
+
+void FRenderContextVulkan::resetRenderLoopMembers() {
+  // surface is always proper after creation
+  mSurfaceIsOutOfDate = UFALSE;
+  // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount
+  mCurrentFrame = 0;
+  // by default, we want to print first occurrence of wrong surface extent
+  mPrintNotProperExtent = UTRUE;
+  // by default, we don't want to print first occurrence of correct surface extent as after
+  // creation it should be always correct
+  mPrintCorrectExtent = UFALSE;
 }
 
 
@@ -324,13 +313,18 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
 }
 
 
-b32 FRenderContextVulkan::update() {
+ERenderContextState FRenderContextVulkan::prepareFrame() {
   // if window is minimized, if so we don't want to schedule anything and recreate swapchain
   b32 surfaceImageState{ isWindowSurfacePresentableImageExtentProper() };
   if (shouldReturnAfterWindowSurfacePresentableImageStateValidation(surfaceImageState)) {
-    return UTRUE;
+    return ERenderContextState::SURFACE_MINIMIZED;
   }
 
+  return ERenderContextState::RENDERING;
+}
+
+
+b32 FRenderContextVulkan::submitFrame() {
   vkWaitForFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE, UINT64_MAX);
   vkResetFences(mVkDevice, 1, &mVkFencesInFlightFrames[mCurrentFrame]);
 
@@ -347,11 +341,10 @@ b32 FRenderContextVulkan::update() {
   U_VK_ASSERT( vkQueueSubmit(mVkGraphicsQueueVector[mRenderingQueueIndex], 1, &renderSubmitInfo,
                              VK_NULL_HANDLE) );
 
-  u32 imageIndex{ UUNUSED };
   VkResult properlyAcquiredNextImage =
       vkAcquireNextImageKHR(mVkDevice, mVkSwapchainCurrent, UINT64_MAX,
                             mVkSemaphoreImageAvailableVector[mCurrentFrame],
-                            VK_NULL_HANDLE, &imageIndex);
+                            VK_NULL_HANDLE, &mImagePresentableIndex);
   switch(properlyAcquiredNextImage) {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
@@ -366,10 +359,10 @@ b32 FRenderContextVulkan::update() {
   }
 
   VkSemaphore waitCopySemaphores[]{
-    mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
-    mVkSemaphoreImageAvailableVector[mCurrentFrame] };
+      mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
+      mVkSemaphoreImageAvailableVector[mCurrentFrame] };
   VkPipelineStageFlags copyStageMasks[]{
-    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT };
+      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT };
 
   VkSubmitInfo copySubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   copySubmitInfo.pNext = nullptr;
@@ -390,11 +383,11 @@ b32 FRenderContextVulkan::update() {
   queuePresentInfo.pWaitSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
   queuePresentInfo.swapchainCount = 1;
   queuePresentInfo.pSwapchains = &mVkSwapchainCurrent;
-  queuePresentInfo.pImageIndices = &imageIndex;
+  queuePresentInfo.pImageIndices = &mImagePresentableIndex;
   queuePresentInfo.pResults = nullptr;
 
   VkResult properlyPresentedImage{
-    vkQueuePresentKHR(mVkGraphicsQueueVector[mPresentationQueueIndex], &queuePresentInfo) };
+      vkQueuePresentKHR(mVkGraphicsQueueVector[mPresentationQueueIndex], &queuePresentInfo) };
   switch(properlyPresentedImage) {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
@@ -409,7 +402,11 @@ b32 FRenderContextVulkan::update() {
   }
 
   mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
+  return UTRUE;
+}
 
+
+b32 FRenderContextVulkan::endFrame() {
   // Check if surface is out of date and surface is not minimized
   if (mSurfaceIsOutOfDate and isWindowSurfacePresentableImageExtentProper()) {
     UTRACE("As surface is out of date and is not minimized, need to recreate swapchain...");
@@ -434,18 +431,39 @@ b32 FRenderContextVulkan::update() {
       return UFALSE;
     }
 
-    collectViewportScissorInfo();
-    b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
-    if (not recordedCommandBuffers) {
-      UFATAL("Could not record command buffers!");
+    u32 saveImageIndex{ mImagePresentableIndex };
+    b32 preparedUpdatedFrame{ prepareStateForRendering() };
+    if (not preparedUpdatedFrame) {
+      UERROR("Could not prepare new frame with recreated swapchain!");
       return UFALSE;
     }
 
     UINFO("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
-          " imageIndex: {}, currentFrame: {}", imageIndex, mCurrentFrame);
-    resetRenderLoopMembers();
+          " imageIndex: {}, currentFrame: {}", saveImageIndex, mCurrentFrame);
   }
   return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state) {
+  if (not state) {
+    if (mPrintNotProperExtent) {
+      UDEBUG("Window Surface Extent is not proper, probably minimized, skipping update()!");
+      mPrintNotProperExtent = UFALSE;
+    }
+    mPrintCorrectExtent = UTRUE;
+    // if window is minimized we should skip update(), so we should return from it
+    return UTRUE;
+  }
+  else {
+    if (mPrintCorrectExtent) {
+      UDEBUG("Window Surface Extent is correct, resuming update()!");
+      mPrintCorrectExtent = UFALSE;
+    }
+    mPrintNotProperExtent = UTRUE;
+    // if otherwise, we shall skip returning and continue update() method.
+    return UFALSE;
+  }
 }
 
 

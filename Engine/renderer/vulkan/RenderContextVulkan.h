@@ -23,8 +23,12 @@ class FRenderContextVulkan : public FRenderContext {
 public:
 
   b32 init(FRenderContextSpecification renderContextSpecs) override;
-  b32 update() override;
   void terminate() override;
+
+  [[nodiscard]] b32 prepareStateForRendering() override;
+  [[nodiscard]] ERenderContextState prepareFrame() override;
+  b32 submitFrame() override;
+  b32 endFrame() override;
 
 private:
 
@@ -157,6 +161,7 @@ private:
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };
   b32 mPrintCorrectExtent{ UFALSE };
+  u32 mImagePresentableIndex{ UUNUSED };
 
 };
 
