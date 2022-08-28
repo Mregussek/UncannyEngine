@@ -149,8 +149,10 @@ private:
   // Pipelines
   VkPipelineLayout mVkPipelineLayoutTriangle{ VK_NULL_HANDLE };
   VkPipeline mVkPipelineTriangle{ VK_NULL_HANDLE };
-  VkViewport mVkViewportTriangle{};
-  VkRect2D mVkScissorTriangle{};
+  VkPipelineLayout mVkPipelineLayoutMeshColor{ VK_NULL_HANDLE };
+  VkPipeline mVkPipelineMeshColor{ VK_NULL_HANDLE };
+  VkViewport mVkViewport{};
+  VkRect2D mVkScissor{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };

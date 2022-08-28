@@ -17,9 +17,20 @@ struct FShaderModulesVulkan {
 
 static b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
                                           VkRenderPass renderPass,
-                                          const FShaderModulesVulkan& shaderModules,
+                                          FShaderModulesVulkan& shaderModules,
                                           VkPipelineLayout* pOutPipelineLayout,
                                           VkPipeline* pOutPipeline);
+
+
+static b32 createMeshColorGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
+                                           VkRenderPass renderPass,
+                                           FShaderModulesVulkan& shaderModules,
+                                           VkPipelineLayout* pOutPipelineLayout,
+                                           VkPipeline* pOutPipeline);
+
+
+static b32 closeGraphicsPipeline(VkDevice device, VkPipelineLayout* pPipelineLayout,
+                                 VkPipeline* pPipeline, const char* logInfo);
 
 
 static b32 createShaderModule(const char* path, VkDevice device, VkShaderModule* pOutShaderModule);
@@ -47,8 +58,8 @@ b32 FRenderContextVulkan::collectViewportScissorInfo() {
   scissor.extent = { imageExtent.width, imageExtent.height };
   scissor.offset = { 0, 0 };
 
-  mVkViewportTriangle = viewport;
-  mVkScissorTriangle = scissor;
+  mVkViewport = viewport;
+  mVkScissor = scissor;
 
   UTRACE("Collected viewport and scissor info!");
   return UTRUE;
@@ -59,35 +70,29 @@ b32 FRenderContextVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 
   collectViewportScissorInfo();
-
   FShaderModulesVulkan shaderModules{};
 
-  const char* vertexPath{ "shaders/triangle.vert.spv" };
-  b32 createdVertexModule{ createShaderModule(vertexPath, mVkDevice, &shaderModules.vertex) };
-  if (not createdVertexModule) {
-    UERROR("Could not create vertex shader module from path {}!", vertexPath);
-    return UFALSE;
-  }
-  const char* fragmentPath{ "shaders/triangle.frag.spv" };
-  b32 createdFragmentModule{ createShaderModule(fragmentPath, mVkDevice, &shaderModules.fragment) };
-  if (not createdFragmentModule) {
-    UERROR("Could not create fragment shader module from path {}!", fragmentPath);
-    return UFALSE;
-  }
-
-
-
-  b32 createdTrianglePipeline{ createTriangleGraphicsPipeline(mVkDevice,
-                                                              mImageRenderTargetVector[0].extent,
-                                                              mVkRenderPass, shaderModules,
-                                                              &mVkPipelineLayoutTriangle,
-                                                              &mVkPipelineTriangle) };
+  b32 createdTrianglePipeline{
+    createTriangleGraphicsPipeline(mVkDevice, mImageRenderTargetVector[0].extent,
+                                   mVkRenderPass, shaderModules, &mVkPipelineLayoutTriangle,
+                                   &mVkPipelineTriangle) };
   // We want to clean shader modules independently of result
   closeShaderModule(mVkDevice, &shaderModules.vertex, "vertex");
   closeShaderModule(mVkDevice, &shaderModules.fragment, "fragment");
-
   if (not createdTrianglePipeline) {
     UERROR("Could not create triangle graphics pipeline!");
+    return UFALSE;
+  }
+
+  b32 createdMeshColorPipeline{
+    createMeshColorGraphicsPipeline(mVkDevice, mImageRenderTargetVector[0].extent,
+                                    mVkRenderPass, shaderModules, &mVkPipelineLayoutMeshColor,
+                                    &mVkPipelineMeshColor) };
+  // We want to clean shader modules independently of result
+  closeShaderModule(mVkDevice, &shaderModules.vertex, "vertex");
+  closeShaderModule(mVkDevice, &shaderModules.fragment, "fragment");
+  if (not createdMeshColorPipeline) {
+    UERROR("Could not create mesh color graphics pipeline!");
     return UFALSE;
   }
 
@@ -99,21 +104,9 @@ b32 FRenderContextVulkan::createGraphicsPipelinesGeneral() {
 b32 FRenderContextVulkan::closeGraphicsPipelinesGeneral() {
   UTRACE("Closing graphics pipelines general...");
 
-  if (mVkPipelineTriangle != VK_NULL_HANDLE) {
-    UTRACE("Destroying triangle graphics pipeline...");
-    vkDestroyPipeline(mVkDevice, mVkPipelineTriangle, nullptr);
-  }
-  else {
-    UWARN("As triangle graphics pipeline was not created, it won't be destroyed!");
-  }
-
-  if (mVkPipelineLayoutTriangle != VK_NULL_HANDLE) {
-    UTRACE("Destroying triangle graphics pipeline layout...");
-    vkDestroyPipelineLayout(mVkDevice, mVkPipelineLayoutTriangle, nullptr);
-  }
-  else {
-    UWARN("As triangle graphics pipeline layout was not created, it won't be destroyed!");
-  }
+  closeGraphicsPipeline(mVkDevice, &mVkPipelineLayoutTriangle, &mVkPipelineTriangle, "triangle");
+  closeGraphicsPipeline(mVkDevice, &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor,
+                        "mesh_color");
 
   UDEBUG("Closed graphics pipelines general!");
   return UTRUE;
@@ -122,9 +115,22 @@ b32 FRenderContextVulkan::closeGraphicsPipelinesGeneral() {
 
 b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
                                    VkRenderPass renderPass,
-                                   const FShaderModulesVulkan& shaderModules,
+                                   FShaderModulesVulkan& shaderModules,
                                    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline) {
   UTRACE("Creating triangle graphics pipeline...");
+
+  const char* vertexPath{ "shaders/triangle.vert.spv" };
+  b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
+  if (not createdVertexModule) {
+    UERROR("Could not create vertex shader module from path {}!", vertexPath);
+    return UFALSE;
+  }
+  const char* fragmentPath{ "shaders/triangle.frag.spv" };
+  b32 createdFragmentModule{ createShaderModule(fragmentPath, device, &shaderModules.fragment) };
+  if (not createdFragmentModule) {
+    UERROR("Could not create fragment shader module from path {}!", fragmentPath);
+    return UFALSE;
+  }
 
   VkPipelineShaderStageCreateInfo vertexStageCreateInfo{};
   vertexStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -281,6 +287,37 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   }
 
   UDEBUG("Created triangle graphics pipeline!");
+  return UTRUE;
+}
+
+
+b32 createMeshColorGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
+                                    VkRenderPass renderPass,
+                                    FShaderModulesVulkan& shaderModules,
+                                    VkPipelineLayout* pOutPipelineLayout,
+                                    VkPipeline* pOutPipeline) {
+  return UTRUE;
+}
+
+
+b32 closeGraphicsPipeline(VkDevice device, VkPipelineLayout* pPipelineLayout,
+                          VkPipeline* pPipeline, const char* logInfo) {
+  if (*pPipeline != VK_NULL_HANDLE) {
+    UTRACE("Destroying {} graphics pipeline...", logInfo);
+    vkDestroyPipeline(device, *pPipeline, nullptr);
+  }
+  else {
+    UWARN("As {} graphics pipeline was not created, it won't be destroyed!", logInfo);
+  }
+
+  if (*pPipelineLayout != VK_NULL_HANDLE) {
+    UTRACE("Destroying {} graphics pipeline layout...", logInfo);
+    vkDestroyPipelineLayout(device, *pPipelineLayout, nullptr);
+  }
+  else {
+    UWARN("As {} graphics pipeline layout was not created, it won't be destroyed!", logInfo);
+  }
+
   return UTRUE;
 }
 

@@ -304,9 +304,9 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
   //  return UFALSE;
   //}
 
-  b32 recordPipelineTriangle{ recordGraphicsPipelineForRenderTarget(
-      mImageRenderTargetVector, mVkRenderPass, mVkPipelineTriangle, mVkViewportTriangle,
-      mVkScissorTriangle, mVkRenderCommandBufferVector) };
+  b32 recordPipelineTriangle{ recordTriangleGraphicsPipelineForRenderTarget(
+      mImageRenderTargetVector, mVkRenderPass, mVkPipelineTriangle, mVkViewport, mVkScissor,
+      mVkRenderCommandBufferVector) };
   if (not recordPipelineTriangle) {
     UFATAL("Could not record graphics pipeline for render target command buffers!");
     return UFALSE;
