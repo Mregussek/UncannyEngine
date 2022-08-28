@@ -34,51 +34,63 @@ template<typename T>
 static b32 closeBuffer(VkDevice device, T pBuffer, const char* logInfo);
 
 
-b32 FRenderContextVulkan::createVertexBuffer(FMesh* pMesh) {
-  UTRACE("Creating vertex buffer...");
-
-  mVertexBufferTriangle.vertexCount = pMesh->vertices.size();
-  VkDeviceSize bufferSize{ sizeof(pMesh->vertices[0]) * pMesh->vertices.size() };
-
+template<VkBufferUsageFlags TUsage, typename TBuffer>
+static b32 createAllocateAndCopyMeshDataToVertexBuffer(
+    VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool transferCommandPool,
+    VkQueue transferQueue, VkDeviceSize bufferSize, FMesh* pMesh, TBuffer pOutVertex,
+    const char* logInfo) {
   FVertexBufferVulkan stagingVertexBuffer{};
   VkMemoryPropertyFlags stagingPropertyFlags{
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-  createBuffer(mVkDevice, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, bufferSize,
-               &stagingVertexBuffer.handle, "staging vertex");
-  allocateAndBindBufferMemory(mVkPhysicalDevice, mVkDevice, stagingVertexBuffer.handle,
+  createBuffer(device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, bufferSize,
+               &stagingVertexBuffer.handle, "staging");
+  allocateAndBindBufferMemory(physicalDevice, device, stagingVertexBuffer.handle,
                               stagingPropertyFlags, &stagingVertexBuffer.deviceMemory,
-                              "staging vertex");
-  copyDataFromHostToBuffer(mVkDevice, stagingVertexBuffer.deviceMemory, bufferSize,
-                           pMesh->vertices.data(), "staging vertex");
+                              "staging");
+  copyDataFromHostToBuffer(device, stagingVertexBuffer.deviceMemory, bufferSize,
+                           pMesh->vertices.data(), "staging");
 
-  VkBufferUsageFlags actualVertexBufferUsage{
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT };
-  VkMemoryPropertyFlags actualVertexMemoryPropertyFlags{
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
-  createBuffer(mVkDevice, actualVertexBufferUsage, bufferSize,
-               &mVertexBufferTriangle.handle, "actual vertex");
-  allocateAndBindBufferMemory(mVkPhysicalDevice, mVkDevice, mVertexBufferTriangle.handle,
-                              actualVertexMemoryPropertyFlags, &mVertexBufferTriangle.deviceMemory,
-                              "actual vertex");
-  copyDataFromDeviceBufferToBuffer(mVkDevice, mVkTransferCommandPool,
-                                   mVkTransferQueueVector[mCopyQueueIndex], bufferSize,
-                                   stagingVertexBuffer.handle, mVertexBufferTriangle.handle,
-                                   "host visible staging", "actual vertex");
+  VkBufferUsageFlags actualVertexBufferUsage{ VK_BUFFER_USAGE_TRANSFER_DST_BIT | TUsage };
+  VkMemoryPropertyFlags actualVertexMemoryPropertyFlags{ VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
+  createBuffer(device, actualVertexBufferUsage, bufferSize, &pOutVertex->handle, logInfo);
+  allocateAndBindBufferMemory(physicalDevice, device, pOutVertex->handle,
+                              actualVertexMemoryPropertyFlags, &pOutVertex->deviceMemory,
+                              logInfo);
+  copyDataFromDeviceBufferToBuffer(device, transferCommandPool,
+                                   transferQueue, bufferSize,
+                                   stagingVertexBuffer.handle, pOutVertex->handle,
+                                   "host visible staging", logInfo);
 
-  closeBuffer(mVkDevice, &stagingVertexBuffer, "staging vertex");
+  closeBuffer(device, &stagingVertexBuffer, "staging");
 
-  UDEBUG("Created vertex buffer!");
   return UTRUE;
 }
 
 
-b32 FRenderContextVulkan::closeVertexBuffer() {
-  UTRACE("Closing vertex buffer...");
+b32 FRenderContextVulkan::createBuffersForMesh(FMesh* pMesh, FVertexBufferVulkan* pOutVertex,
+                                               FIndexBufferVulkan* pOutIndex) {
+  UTRACE("Creating buffers for mesh...");
 
-  closeBuffer(mVkDevice, &mVertexBufferTriangle, "vertex");
-  mVertexBufferTriangle.vertexCount = 0;
+  pOutVertex->vertexCount = pMesh->vertices.size();
+  VkDeviceSize vertexBufferSize{ sizeof(pMesh->vertices[0]) * pMesh->vertices.size() };
 
-  UDEBUG("Closed vertex buffer!");
+  createAllocateAndCopyMeshDataToVertexBuffer<VK_BUFFER_USAGE_VERTEX_BUFFER_BIT>(
+      mVkPhysicalDevice, mVkDevice, mVkTransferCommandPool,
+      mVkTransferQueueVector[mCopyQueueIndex], vertexBufferSize, pMesh, pOutVertex,
+      "vertex");
+
+  UDEBUG("Created buffers for mesh!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::closeBuffersForMesh(FVertexBufferVulkan* pVertex, FIndexBufferVulkan* pIndex) {
+  UTRACE("Closing buffers for mesh...");
+
+  closeBuffer(mVkDevice, pVertex, "vertex");
+  pVertex->vertexCount = 0;
+
+  UDEBUG("Closed buffers for mesh!");
   return UTRUE;
 }
 
@@ -103,6 +115,7 @@ b32 createBuffer(VkDevice device, VkBufferUsageFlags  usage, VkDeviceSize size,
   }
 
   UTRACE("Created {} buffer!", logInfo);
+  return UTRUE;
 }
 
 

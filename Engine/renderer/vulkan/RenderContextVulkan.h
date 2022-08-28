@@ -91,8 +91,9 @@ private:
   [[nodiscard]] b32 createGraphicsPipelinesGeneral();
   b32 closeGraphicsPipelinesGeneral();
 
-  [[nodiscard]] b32 createVertexBuffer(FMesh* pMesh);
-  b32 closeVertexBuffer();
+  [[nodiscard]] b32 createBuffersForMesh(FMesh* pMesh, FVertexBufferVulkan* pOutVertex,
+                                         FIndexBufferVulkan* pOutIndex);
+  b32 closeBuffersForMesh(FVertexBufferVulkan* pVertex, FIndexBufferVulkan* pIndex);
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
@@ -166,6 +167,7 @@ private:
   VkRect2D mVkScissor{};
   // Buffers
   FVertexBufferVulkan mVertexBufferTriangle{};
+  FIndexBufferVulkan mIndexBufferTriangle{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };

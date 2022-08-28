@@ -36,6 +36,13 @@ struct FVertexBufferVulkan {
 };
 
 
+struct FIndexBufferVulkan {
+  VkBuffer handle{ VK_NULL_HANDLE };
+  VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
+  u32 indicesCount{ 0 };
+};
+
+
 }
 
 

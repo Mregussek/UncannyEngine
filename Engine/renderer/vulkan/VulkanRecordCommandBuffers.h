@@ -36,6 +36,13 @@ b32 recordVertexBufferGraphicsPipelineForRenderTarget(
     FVertexBufferVulkan* pVertexBuffer, const std::vector<VkCommandBuffer>& commandBuffers);
 
 
+b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
+    const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
+    VkPipeline graphicsPipeline, VkViewport viewport, VkRect2D scissor,
+    FVertexBufferVulkan* pVertexBuffer, FIndexBufferVulkan* pIndexBuffer,
+    const std::vector<VkCommandBuffer>& commandBuffers);
+
+
 }
 
 
