@@ -19,6 +19,12 @@ b32 FRenderContext::parseSceneForRendering(const FRenderSceneConfiguration& scen
 }
 
 
+b32 FRenderContext::closeScene() {
+  UFATAL("should not be used!");
+  return UFALSE;
+}
+
+
 b32 FRenderContext::prepareStateForRendering() {
   UFATAL("should not be used!");
   return UFALSE;

@@ -39,6 +39,7 @@ public:
   virtual void terminate();
 
   virtual b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration);
+  virtual b32 closeScene();
 
   virtual b32 prepareStateForRendering();
   virtual ERenderContextState prepareFrame();

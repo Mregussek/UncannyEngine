@@ -25,7 +25,8 @@ public:
   b32 init(const FRenderContextSpecification& renderContextSpecs) override;
   void terminate() override;
 
-  b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration);
+  b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration) override;
+  b32 closeScene() override;
 
   [[nodiscard]] b32 prepareStateForRendering() override;
   [[nodiscard]] ERenderContextState prepareFrame() override;
@@ -101,6 +102,7 @@ private:
 
   // Class members
   FRenderContextSpecification mSpecs{};
+  FRenderSceneConfiguration mSceneConfig{};
   FInstanceDependencies mInstanceDependencies{};
   FPhysicalDeviceDependencies mPhysicalDeviceDependencies{};
   FWindowSurfaceDependencies mWindowSurfaceDependencies{};

@@ -57,6 +57,7 @@ auto main() -> i32 {
   b32 rendererPrepared{ pRenderContext->prepareStateForRendering() };
   if (not rendererPrepared) {
     pWindow->close();
+    pRenderContext->closeScene();
     pRenderContext->terminate();
     pWindow->terminate();
     return -1;
@@ -81,6 +82,7 @@ auto main() -> i32 {
   }
 
   // Terminating everything
+  pRenderContext->closeScene();
   pRenderContext->terminate();
   pWindow->terminate();
 

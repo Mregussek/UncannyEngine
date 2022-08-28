@@ -245,7 +245,25 @@ b32 FRenderContextVulkan::parseSceneForRendering(
     const FRenderSceneConfiguration& sceneConfiguration) {
   UTRACE("Parsing scene for rendering...");
 
+  mSceneConfig = sceneConfiguration;
+
+  b32 createdVertexBuffer{ createVertexBuffer(mSceneConfig.pMesh) };
+  if (not createdVertexBuffer) {
+    UERROR("Could not create vertex buffer for scene object!");
+    return UFALSE;
+  }
+
   UINFO("Parsed scene for rendering!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::closeScene() {
+  UTRACE("Closing render scene...");
+
+  closeVertexBuffer();
+
+  UINFO("Closed render scene!");
   return UTRUE;
 }
 
