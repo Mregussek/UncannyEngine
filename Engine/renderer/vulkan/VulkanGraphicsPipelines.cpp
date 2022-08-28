@@ -3,6 +3,7 @@
 #include "VulkanUtilities.h"
 #include <utilities/Logger.h>
 #include <filesystem/FileManager.h>
+#include <renderer/Mesh.h>
 
 
 namespace uncanny
@@ -39,11 +40,10 @@ static b32 createTriangleGraphicsPipeline(
     VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline);
 
 
-static b32 createMeshColorGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
-                                           VkRenderPass renderPass,
-                                           FShaderModulesVulkan& shaderModules,
-                                           VkPipelineLayout* pOutPipelineLayout,
-                                           VkPipeline* pOutPipeline);
+static b32 createMeshColorGraphicsPipeline(
+    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig,
+    VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
+    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline);
 
 
 static b32 closeGraphicsPipeline(VkDevice device, VkPipelineLayout* pPipelineLayout,
@@ -104,9 +104,8 @@ b32 FRenderContextVulkan::createGraphicsPipelinesGeneral() {
   }
 
   b32 createdMeshColorPipeline{
-    createMeshColorGraphicsPipeline(mVkDevice, mImageRenderTargetVector[0].extent,
-                                    mVkRenderPass, shaderModules, &mVkPipelineLayoutMeshColor,
-                                    &mVkPipelineMeshColor) };
+    createMeshColorGraphicsPipeline(mVkDevice, pipelineDefaultConfig, mVkRenderPass, shaderModules,
+                                    &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor) };
   // We want to clean shader modules independently of result
   closeShaderModule(mVkDevice, &shaderModules.vertex, "vertex");
   closeShaderModule(mVkDevice, &shaderModules.fragment, "fragment");
@@ -335,11 +334,96 @@ b32 createTriangleGraphicsPipeline(
 }
 
 
-b32 createMeshColorGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
-                                    VkRenderPass renderPass,
-                                    FShaderModulesVulkan& shaderModules,
-                                    VkPipelineLayout* pOutPipelineLayout,
-                                    VkPipeline* pOutPipeline) {
+b32 createMeshColorGraphicsPipeline(
+    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig, VkRenderPass renderPass,
+    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
+    VkPipeline* pOutPipeline) {
+  UTRACE("Creating triangle graphics pipeline...");
+
+  const char* vertexPath{ "shaders/mesh_vertex_color.vert.spv" };
+  b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
+  if (not createdVertexModule) {
+    UERROR("Could not create vertex shader module from path {}!", vertexPath);
+    return UFALSE;
+  }
+  const char* fragmentPath{ "shaders/mesh_vertex_color.frag.spv" };
+  b32 createdFragmentModule{ createShaderModule(fragmentPath, device, &shaderModules.fragment) };
+  if (not createdFragmentModule) {
+    UERROR("Could not create fragment shader module from path {}!", fragmentPath);
+    return UFALSE;
+  }
+
+  defaultConfig.shaderStages[0].module = shaderModules.vertex;
+  defaultConfig.shaderStages[1].module = shaderModules.fragment;
+
+  VkVertexInputBindingDescription vertexInputBindingDescription{};
+  vertexInputBindingDescription.binding = 0;
+  vertexInputBindingDescription.stride = sizeof(FVertex);
+  vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+  std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptionVector(2);
+
+  vertexInputAttributeDescriptionVector[0].location = 0;
+  vertexInputAttributeDescriptionVector[0].binding = 0;
+  vertexInputAttributeDescriptionVector[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+  vertexInputAttributeDescriptionVector[0].offset = offsetof(FVertex, position);
+
+  vertexInputAttributeDescriptionVector[1].location = 1;
+  vertexInputAttributeDescriptionVector[1].binding = 0;
+  vertexInputAttributeDescriptionVector[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+  vertexInputAttributeDescriptionVector[1].offset = offsetof(FVertex, color);
+
+  VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
+  vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+  vertexInputStateCreateInfo.pNext = nullptr;
+  vertexInputStateCreateInfo.flags = 0;
+  vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+  vertexInputStateCreateInfo.pVertexBindingDescriptions = &vertexInputBindingDescription;
+  vertexInputStateCreateInfo.vertexAttributeDescriptionCount =
+      vertexInputAttributeDescriptionVector.size();
+  vertexInputStateCreateInfo.pVertexAttributeDescriptions =
+      vertexInputAttributeDescriptionVector.data();
+
+  VkResult createdPipelineLayout{
+      vkCreatePipelineLayout(device, &defaultConfig.pipelineLayoutCreateInfo, nullptr,
+                             pOutPipelineLayout) };
+  if (createdPipelineLayout != VK_SUCCESS) {
+    UERROR("Could not create pipeline layout!");
+    return UFALSE;
+  }
+
+  VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{};
+  graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+  graphicsPipelineCreateInfo.pNext = nullptr;
+  graphicsPipelineCreateInfo.flags = 0;
+  graphicsPipelineCreateInfo.stageCount = defaultConfig.shaderStages.size();
+  graphicsPipelineCreateInfo.pStages = defaultConfig.shaderStages.data();
+  graphicsPipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+  graphicsPipelineCreateInfo.pInputAssemblyState = &defaultConfig.inputAssemblyStateCreateInfo;
+  graphicsPipelineCreateInfo.pTessellationState = nullptr;
+  graphicsPipelineCreateInfo.pViewportState = &defaultConfig.viewportStateCreateInfo;
+  graphicsPipelineCreateInfo.pRasterizationState = &defaultConfig.rasterizationStateCreateInfo;
+  graphicsPipelineCreateInfo.pMultisampleState = &defaultConfig.multisampleStateCreateInfo;
+  graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
+  graphicsPipelineCreateInfo.pColorBlendState = &defaultConfig.colorBlendStateCreateInfo;
+  graphicsPipelineCreateInfo.pDynamicState = &defaultConfig.dynamicStateCreateInfo;
+  graphicsPipelineCreateInfo.layout = *pOutPipelineLayout;
+  graphicsPipelineCreateInfo.renderPass = renderPass;
+  graphicsPipelineCreateInfo.subpass = 0;
+  graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+  graphicsPipelineCreateInfo.basePipelineIndex = 0;
+
+  VkResult createdPipeline{ vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
+                                                      &graphicsPipelineCreateInfo, nullptr,
+                                                      pOutPipeline) };
+  if (createdPipeline != VK_SUCCESS) {
+    UERROR("Could not create triangle pipeline via vkCreateGraphicsPipelines, result: {}",
+           createdPipeline);
+    return UFALSE;
+  }
+
+  UDEBUG("Created triangle graphics pipeline!");
+  return UTRUE;
   return UTRUE;
 }
 
