@@ -34,37 +34,11 @@ template<typename T>
 static b32 closeBuffer(VkDevice device, T pBuffer, const char* logInfo);
 
 
-template<VkBufferUsageFlags TUsage, typename TBuffer>
+template<VkBufferUsageFlags TUsage, typename TData, typename TBuffer>
 static b32 createAllocateAndCopyMeshDataToVertexBuffer(
     VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool transferCommandPool,
-    VkQueue transferQueue, VkDeviceSize bufferSize, FMesh* pMesh, TBuffer pOutVertex,
-    const char* logInfo) {
-  FVertexBufferVulkan stagingVertexBuffer{};
-  VkMemoryPropertyFlags stagingPropertyFlags{
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
-  createBuffer(device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, bufferSize,
-               &stagingVertexBuffer.handle, "staging");
-  allocateAndBindBufferMemory(physicalDevice, device, stagingVertexBuffer.handle,
-                              stagingPropertyFlags, &stagingVertexBuffer.deviceMemory,
-                              "staging");
-  copyDataFromHostToBuffer(device, stagingVertexBuffer.deviceMemory, bufferSize,
-                           pMesh->vertices.data(), "staging");
-
-  VkBufferUsageFlags actualVertexBufferUsage{ VK_BUFFER_USAGE_TRANSFER_DST_BIT | TUsage };
-  VkMemoryPropertyFlags actualVertexMemoryPropertyFlags{ VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
-  createBuffer(device, actualVertexBufferUsage, bufferSize, &pOutVertex->handle, logInfo);
-  allocateAndBindBufferMemory(physicalDevice, device, pOutVertex->handle,
-                              actualVertexMemoryPropertyFlags, &pOutVertex->deviceMemory,
-                              logInfo);
-  copyDataFromDeviceBufferToBuffer(device, transferCommandPool,
-                                   transferQueue, bufferSize,
-                                   stagingVertexBuffer.handle, pOutVertex->handle,
-                                   "host visible staging", logInfo);
-
-  closeBuffer(device, &stagingVertexBuffer, "staging");
-
-  return UTRUE;
-}
+    VkQueue transferQueue, VkDeviceSize bufferSize, TData pData, TBuffer pOutBuffer,
+    const char* logInfo);
 
 
 b32 FRenderContextVulkan::createBuffersForMesh(FMesh* pMesh, FVertexBufferVulkan* pOutVertex,
@@ -76,19 +50,31 @@ b32 FRenderContextVulkan::createBuffersForMesh(FMesh* pMesh, FVertexBufferVulkan
 
   createAllocateAndCopyMeshDataToVertexBuffer<VK_BUFFER_USAGE_VERTEX_BUFFER_BIT>(
       mVkPhysicalDevice, mVkDevice, mVkTransferCommandPool,
-      mVkTransferQueueVector[mCopyQueueIndex], vertexBufferSize, pMesh, pOutVertex,
-      "vertex");
+      mVkTransferQueueVector[mCopyQueueIndex], vertexBufferSize, pMesh->vertices.data(),
+      pOutVertex, "vertex");
+  UDEBUG("Created vertex buffer for mesh!");
 
-  UDEBUG("Created buffers for mesh!");
+  pOutIndex->indicesCount = pMesh->indices.size();
+  VkDeviceSize indicesSize{ sizeof(pMesh->indices[0]) * pMesh->indices.size() };
+
+  createAllocateAndCopyMeshDataToVertexBuffer<VK_BUFFER_USAGE_INDEX_BUFFER_BIT>(
+      mVkPhysicalDevice, mVkDevice, mVkTransferCommandPool,
+      mVkTransferQueueVector[mCopyQueueIndex], indicesSize, pMesh->indices.data(),
+      pOutIndex, "index");
+  UDEBUG("Created index buffer for mesh!");
   return UTRUE;
 }
 
 
-b32 FRenderContextVulkan::closeBuffersForMesh(FVertexBufferVulkan* pVertex, FIndexBufferVulkan* pIndex) {
+b32 FRenderContextVulkan::closeBuffersForMesh(FVertexBufferVulkan* pVertex,
+                                              FIndexBufferVulkan* pIndex) {
   UTRACE("Closing buffers for mesh...");
 
   closeBuffer(mVkDevice, pVertex, "vertex");
   pVertex->vertexCount = 0;
+
+  closeBuffer(mVkDevice, pIndex, "index");
+  pIndex->indicesCount = 0;
 
   UDEBUG("Closed buffers for mesh!");
   return UTRUE;
@@ -221,8 +207,38 @@ b32 copyDataFromDeviceBufferToBuffer(VkDevice device, VkCommandPool transferComm
 }
 
 
+template<VkBufferUsageFlags TUsage, typename TData, typename TBuffer>
+b32 createAllocateAndCopyMeshDataToVertexBuffer(
+    VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool transferCommandPool,
+    VkQueue transferQueue, VkDeviceSize bufferSize, TData pData, TBuffer pOutBuffer,
+    const char* logInfo) {
+  FVertexBufferVulkan stagingBuffer{};
+  VkMemoryPropertyFlags stagingPropertyFlags{
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+  createBuffer(device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, bufferSize, &stagingBuffer.handle,
+               "staging");
+  allocateAndBindBufferMemory(physicalDevice, device, stagingBuffer.handle, stagingPropertyFlags,
+                              &stagingBuffer.deviceMemory, "staging");
+  copyDataFromHostToBuffer(device, stagingBuffer.deviceMemory, bufferSize, pData, "staging");
+
+  VkBufferUsageFlags actualBufferUsage{ VK_BUFFER_USAGE_TRANSFER_DST_BIT | TUsage };
+  VkMemoryPropertyFlags actualMemoryPropertyFlags{ VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
+  createBuffer(device, actualBufferUsage, bufferSize, &pOutBuffer->handle, logInfo);
+  allocateAndBindBufferMemory(physicalDevice, device, pOutBuffer->handle,
+                              actualMemoryPropertyFlags, &pOutBuffer->deviceMemory,
+                              logInfo);
+  copyDataFromDeviceBufferToBuffer(device, transferCommandPool, transferQueue, bufferSize,
+                                   stagingBuffer.handle, pOutBuffer->handle,
+                                   "host visible staging", logInfo);
+
+  closeBuffer(device, &stagingBuffer, "staging");
+
+  return UTRUE;
+}
+
+
 template<typename T>
-static b32 closeBuffer(VkDevice device, T pBuffer, const char* logInfo) {
+b32 closeBuffer(VkDevice device, T pBuffer, const char* logInfo) {
   if (pBuffer->handle != VK_NULL_HANDLE) {
     UTRACE("Destroying {} buffer...", logInfo);
     vkDestroyBuffer(device, pBuffer->handle, nullptr);

@@ -23,6 +23,7 @@ enum class EMeshType {
 
 struct FMesh {
   std::vector<FVertex> vertices{};
+  std::vector<u32> indices{};
   EMeshType type{ EMeshType::NONE };
 };
 
@@ -30,9 +31,14 @@ struct FMesh {
 struct FMeshTriangle : public FMesh {
   FMeshTriangle() {
     vertices = {
-        FVertex{ { 0.0f, -0.5f, 0.f }, { 0.0f, 0.0f, 1.0f } },
-        FVertex{ { 0.5f, 0.5f, 0.f }, { 0.0f, 1.0f, 1.0f } },
+        FVertex{ { -0.5f, -0.5f, 0.f }, { 0.0f, 1.0f, 1.0f } },
+        FVertex{ { 0.5f, -0.5f, 0.f }, { 0.0f, 1.0f, 1.0f } },
+        FVertex{ { 0.5f, 0.5f, 0.f }, { 0.0f, 0.0f, 1.0f } },
         FVertex{ { -0.5f, 0.5f, 0.f }, { 0.0f, 0.0f, 1.0f } }
+    };
+    indices = {
+        0, 1, 2,
+        2, 3, 0
     };
     type = EMeshType::TRIANGLE;
   }

@@ -333,9 +333,9 @@ b32 FRenderContextVulkan::recordCommandBuffersGeneral() {
   //  return UFALSE;
   //}
 
-  b32 recordPipelineVertex{ recordVertexBufferGraphicsPipelineForRenderTarget(
+  b32 recordPipelineVertex{ recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
       mImageRenderTargetVector, mVkRenderPass, mVkPipelineMeshColor, mVkViewport, mVkScissor,
-      &mVertexBufferTriangle, mVkRenderCommandBufferVector) };
+      &mVertexBufferTriangle, &mIndexBufferTriangle, mVkRenderCommandBufferVector) };
   if (not recordPipelineVertex) {
     UFATAL("Could not record graphics pipeline with vertex buffer for render target cmd buffers!");
     return UFALSE;

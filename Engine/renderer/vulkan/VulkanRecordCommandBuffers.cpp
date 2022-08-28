@@ -340,11 +340,12 @@ b32 recordTriangleGraphicsPipelineForRenderTarget(
 }
 
 
-b32 recordVertexBufferGraphicsPipelineForRenderTarget(
+b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
     const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
     VkPipeline graphicsPipeline, VkViewport viewport, VkRect2D scissor,
-    FVertexBufferVulkan* pVertexBuffer, const std::vector<VkCommandBuffer>& commandBuffers) {
-  UTRACE("Recording command buffers with vertex buffer binding in graphics pipeline for"
+    FVertexBufferVulkan* pVertexBuffer, FIndexBufferVulkan* pIndexBuffer,
+    const std::vector<VkCommandBuffer>& commandBuffers) {
+  UTRACE("Recording command buffers with indexed vertex buffer binding in graphics pipeline for"
          "render target images...");
 
   VkCommandBufferBeginInfo commandBufferBeginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
@@ -385,9 +386,10 @@ b32 recordVertexBufferGraphicsPipelineForRenderTarget(
 
     vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
     vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &pVertexBuffer->handle, vertexBufferOffsets);
+    vkCmdBindIndexBuffer(commandBuffers[i], pIndexBuffer->handle, 0, VK_INDEX_TYPE_UINT32);
     vkCmdSetViewport(commandBuffers[i], 0, 1, &viewport);
     vkCmdSetScissor(commandBuffers[i], 0, 1, &scissor);
-    vkCmdDraw(commandBuffers[i], pVertexBuffer->vertexCount, 1, 0, 0);
+    vkCmdDrawIndexed(commandBuffers[i], pIndexBuffer->indicesCount, 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffers[i]);
 
@@ -398,7 +400,7 @@ b32 recordVertexBufferGraphicsPipelineForRenderTarget(
     }
   }
 
-  UDEBUG("Recorded command buffers with vertex buffer binding in graphics pipeline for "
+  UDEBUG("Recorded command buffers with indexed vertex buffer binding in graphics pipeline for "
          "render target images!");
   return UTRUE;
 }
