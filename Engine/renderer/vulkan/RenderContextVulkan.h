@@ -22,8 +22,10 @@ namespace uncanny
 class FRenderContextVulkan : public FRenderContext {
 public:
 
-  b32 init(FRenderContextSpecification renderContextSpecs) override;
+  b32 init(const FRenderContextSpecification& renderContextSpecs) override;
   void terminate() override;
+
+  b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration);
 
   [[nodiscard]] b32 prepareStateForRendering() override;
   [[nodiscard]] ERenderContextState prepareFrame() override;
@@ -87,6 +89,9 @@ private:
   b32 collectViewportScissorInfo();
   [[nodiscard]] b32 createGraphicsPipelinesGeneral();
   b32 closeGraphicsPipelinesGeneral();
+
+  [[nodiscard]] b32 createVertexBuffer(FMesh* pMesh);
+  b32 closeVertexBuffer();
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
@@ -157,6 +162,8 @@ private:
   VkPipeline mVkPipelineMeshColor{ VK_NULL_HANDLE };
   VkViewport mVkViewport{};
   VkRect2D mVkScissor{};
+  // Buffers
+  FVertexBufferVulkan mVertexBufferTriangle{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };

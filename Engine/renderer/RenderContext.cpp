@@ -7,7 +7,13 @@ namespace uncanny
 {
 
 
-b32 FRenderContext::init(FRenderContextSpecification renderContextSpecs) {
+b32 FRenderContext::init(const FRenderContextSpecification& renderContextSpecs) {
+  UFATAL("should not be used!");
+  return UFALSE;
+}
+
+
+b32 FRenderContext::parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration) {
   UFATAL("should not be used!");
   return UFALSE;
 }

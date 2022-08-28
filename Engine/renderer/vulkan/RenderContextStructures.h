@@ -29,6 +29,12 @@ struct FImageVulkan {
 };
 
 
+struct FVertexBufferVulkan {
+  VkBuffer handle{ VK_NULL_HANDLE };
+  VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
+};
+
+
 }
 
 

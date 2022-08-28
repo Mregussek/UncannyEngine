@@ -4,6 +4,7 @@
 
 
 #include <utilities/Includes.h>
+#include "Mesh.h"
 
 
 namespace uncanny
@@ -26,11 +27,18 @@ struct FRenderContextSpecification {
 };
 
 
+struct FRenderSceneConfiguration {
+  FMesh* pMesh{};
+};
+
+
 class FRenderContext {
 public:
 
-  virtual b32 init(FRenderContextSpecification renderContextSpecs);
+  virtual b32 init(const FRenderContextSpecification& renderContextSpecs);
   virtual void terminate();
+
+  virtual b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration);
 
   virtual b32 prepareStateForRendering();
   virtual ERenderContextState prepareFrame();

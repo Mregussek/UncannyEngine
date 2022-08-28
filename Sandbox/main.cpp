@@ -1,6 +1,7 @@
 
 #include <window/Window.h>
 #include <window/WindowFactory.h>
+#include <renderer/Mesh.h>
 #include <renderer/RenderContext.h>
 #include <renderer/RenderContextFactory.h>
 #include <utilities/Logger.h>
@@ -41,9 +42,24 @@ auto main() -> i32 {
     pWindow->close();
   }
 
+  FMeshTriangle meshTriangle{};
+  FRenderSceneConfiguration renderSceneConfig{};
+  renderSceneConfig.pMesh = &meshTriangle;
+
+  b32 rendererParsedScene{ pRenderContext->parseSceneForRendering(renderSceneConfig) };
+  if (not rendererParsedScene) {
+    pWindow->close();
+    pRenderContext->terminate();
+    pWindow->terminate();
+    return -1;
+  }
+
   b32 rendererPrepared{ pRenderContext->prepareStateForRendering() };
   if (not rendererPrepared) {
     pWindow->close();
+    pRenderContext->terminate();
+    pWindow->terminate();
+    return -1;
   }
 
   // Running loop

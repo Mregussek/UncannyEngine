@@ -84,7 +84,7 @@ void FRenderContextVulkan::defineDependencies() {
 }
 
 
-b32 FRenderContextVulkan::init(FRenderContextSpecification renderContextSpecs) {
+b32 FRenderContextVulkan::init(const FRenderContextSpecification& renderContextSpecs) {
   UTRACE("Initializing Vulkan Render Context...");
 
   // assign specs
@@ -238,6 +238,15 @@ void FRenderContextVulkan::terminate() {
   closeInstance();
 
   UINFO("Terminated Vulkan Render Context!");
+}
+
+
+b32 FRenderContextVulkan::parseSceneForRendering(
+    const FRenderSceneConfiguration& sceneConfiguration) {
+  UTRACE("Parsing scene for rendering...");
+
+  UINFO("Parsed scene for rendering!");
+  return UTRUE;
 }
 
 
@@ -441,6 +450,7 @@ b32 FRenderContextVulkan::endFrame() {
     UINFO("Swapchain is recreated, command buffers again recorded, surface should be optimal!"
           " imageIndex: {}, currentFrame: {}", saveImageIndex, mCurrentFrame);
   }
+
   return UTRUE;
 }
 

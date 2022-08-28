@@ -16,12 +16,26 @@ struct FVertex {
 };
 
 
-struct FMeshTriangle {
-  const std::array<FVertex, 3> vertices{
-    FVertex{ { 0.0f, -0.5f, 0.f }, { 1.0f, 0.0f, 0.0f } },
-    FVertex{ { 0.5f, 0.5f, 0.f }, { 1.0f, 1.0f, 0.0f } },
-    FVertex{ { -0.5f, 0.5f, 0.f }, { 1.0f, 0.0f, 1.0f } }
-  };
+enum class EMeshType {
+  NONE, TRIANGLE
+};
+
+
+struct FMesh {
+  std::vector<FVertex> vertices{};
+  EMeshType type{ EMeshType::NONE };
+};
+
+
+struct FMeshTriangle : public FMesh {
+  FMeshTriangle() {
+    vertices = {
+        FVertex{ { 0.0f, -0.5f, 0.f }, { 1.0f, 0.0f, 0.0f } },
+        FVertex{ { 0.5f, 0.5f, 0.f }, { 1.0f, 1.0f, 0.0f } },
+        FVertex{ { -0.5f, 0.5f, 0.f }, { 1.0f, 0.0f, 1.0f } }
+    };
+    type = EMeshType::TRIANGLE;
+  }
 };
 
 
