@@ -15,11 +15,28 @@ struct FShaderModulesVulkan {
 };
 
 
-static b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
-                                          VkRenderPass renderPass,
-                                          FShaderModulesVulkan& shaderModules,
-                                          VkPipelineLayout* pOutPipelineLayout,
-                                          VkPipeline* pOutPipeline);
+struct FGraphicsPipelineDefaultConfiguration {
+  std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
+  VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
+  VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo{};
+  VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
+  VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{};
+  VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{};
+  VkPipelineColorBlendAttachmentState colorBlendAttachmentState{};
+  VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo{};
+  std::vector<VkDynamicState> dynamicStates{};
+  VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
+  VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+};
+
+
+static void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineDefaultConfiguration* pConfig);
+
+
+static b32 createTriangleGraphicsPipeline(
+    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig,
+    VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
+    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline);
 
 
 static b32 createMeshColorGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
@@ -71,9 +88,11 @@ b32 FRenderContextVulkan::createGraphicsPipelinesGeneral() {
 
   collectViewportScissorInfo();
   FShaderModulesVulkan shaderModules{};
+  FGraphicsPipelineDefaultConfiguration pipelineDefaultConfig{};
+  fillGraphicsPipelineDefaultConfig(&pipelineDefaultConfig);
 
   b32 createdTrianglePipeline{
-    createTriangleGraphicsPipeline(mVkDevice, mImageRenderTargetVector[0].extent,
+    createTriangleGraphicsPipeline(mVkDevice, pipelineDefaultConfig,
                                    mVkRenderPass, shaderModules, &mVkPipelineLayoutTriangle,
                                    &mVkPipelineTriangle) };
   // We want to clean shader modules independently of result
@@ -113,31 +132,13 @@ b32 FRenderContextVulkan::closeGraphicsPipelinesGeneral() {
 }
 
 
-b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExtent,
-                                   VkRenderPass renderPass,
-                                   FShaderModulesVulkan& shaderModules,
-                                   VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline) {
-  UTRACE("Creating triangle graphics pipeline...");
-
-  const char* vertexPath{ "shaders/triangle.vert.spv" };
-  b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
-  if (not createdVertexModule) {
-    UERROR("Could not create vertex shader module from path {}!", vertexPath);
-    return UFALSE;
-  }
-  const char* fragmentPath{ "shaders/triangle.frag.spv" };
-  b32 createdFragmentModule{ createShaderModule(fragmentPath, device, &shaderModules.fragment) };
-  if (not createdFragmentModule) {
-    UERROR("Could not create fragment shader module from path {}!", fragmentPath);
-    return UFALSE;
-  }
-
+void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineDefaultConfiguration* pConfig) {
   VkPipelineShaderStageCreateInfo vertexStageCreateInfo{};
   vertexStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   vertexStageCreateInfo.pNext = nullptr;
   vertexStageCreateInfo.flags = 0;
   vertexStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-  vertexStageCreateInfo.module = shaderModules.vertex;
+  vertexStageCreateInfo.module = VK_NULL_HANDLE; // will be filled during creation
   vertexStageCreateInfo.pName = "main";
   vertexStageCreateInfo.pSpecializationInfo = nullptr;
 
@@ -146,13 +147,14 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   fragmentStageCreateInfo.pNext = nullptr;
   fragmentStageCreateInfo.flags = 0;
   fragmentStageCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-  fragmentStageCreateInfo.module = shaderModules.fragment;
+  fragmentStageCreateInfo.module = VK_NULL_HANDLE; // will be filled during creation;
   fragmentStageCreateInfo.pName = "main";
   fragmentStageCreateInfo.pSpecializationInfo = nullptr;
 
-  constexpr u32 shaderStagesCount{ 2 };
-  VkPipelineShaderStageCreateInfo shaderStagesCreateInfo[shaderStagesCount]{
-    vertexStageCreateInfo, fragmentStageCreateInfo };
+  std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo{vertexStageCreateInfo,
+                                                                      fragmentStageCreateInfo };
+
+  pConfig->shaderStages = shaderStagesCreateInfo;
 
   VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
   vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -163,6 +165,8 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
   vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;
 
+  pConfig->vertexInputStateCreateInfo = vertexInputStateCreateInfo;
+
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo{};
   inputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   inputAssemblyStateCreateInfo.pNext = nullptr;
@@ -170,14 +174,18 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   inputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
 
+  pConfig->inputAssemblyStateCreateInfo = inputAssemblyStateCreateInfo;
+
   VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
   viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
   viewportStateCreateInfo.pNext = nullptr;
   viewportStateCreateInfo.flags = 0;
   viewportStateCreateInfo.viewportCount = 1;
-  // viewportStateCreateInfo.pViewports = &viewport; // will be handled via vkCmdSetViewport
+  viewportStateCreateInfo.pViewports = nullptr; // will be handled via vkCmdSetViewport
   viewportStateCreateInfo.scissorCount = 1;
-  // viewportStateCreateInfo.pScissors = &scissor; // will be handled via vkCmdSetScissor
+  viewportStateCreateInfo.pScissors = nullptr; // will be handled via vkCmdSetScissor
+
+  pConfig->viewportStateCreateInfo = viewportStateCreateInfo;
 
   VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{};
   rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -194,6 +202,8 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   rasterizationStateCreateInfo.depthBiasSlopeFactor = 0.f;
   rasterizationStateCreateInfo.lineWidth = 1.0f;
 
+  pConfig->rasterizationStateCreateInfo = rasterizationStateCreateInfo;
+
   VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{};
   multisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
   multisampleStateCreateInfo.pNext = nullptr;
@@ -204,6 +214,8 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   multisampleStateCreateInfo.pSampleMask = nullptr;
   multisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;
   multisampleStateCreateInfo.alphaToOneEnable = VK_FALSE;
+
+  pConfig->multisampleStateCreateInfo = multisampleStateCreateInfo;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachmentState{};
   colorBlendAttachmentState.blendEnable = VK_FALSE;
@@ -216,6 +228,8 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
+  pConfig->colorBlendAttachmentState = colorBlendAttachmentState;
+
   VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo{};
   colorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
   colorBlendStateCreateInfo.pNext = nullptr;
@@ -223,22 +237,25 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   colorBlendStateCreateInfo.logicOpEnable = VK_FALSE;
   colorBlendStateCreateInfo.logicOp = VK_LOGIC_OP_COPY;
   colorBlendStateCreateInfo.attachmentCount = 1;
-  colorBlendStateCreateInfo.pAttachments = &colorBlendAttachmentState;
+  colorBlendStateCreateInfo.pAttachments = &(pConfig->colorBlendAttachmentState);
   colorBlendStateCreateInfo.blendConstants[0] = 0.f;
   colorBlendStateCreateInfo.blendConstants[1] = 0.f;
   colorBlendStateCreateInfo.blendConstants[2] = 0.f;
   colorBlendStateCreateInfo.blendConstants[3] = 0.f;
 
-  constexpr u32 dynamicStatesCount{ 2 };
-  VkDynamicState dynamicStates[dynamicStatesCount]{ VK_DYNAMIC_STATE_VIEWPORT,
-                                                    VK_DYNAMIC_STATE_SCISSOR };
+  pConfig->colorBlendStateCreateInfo = colorBlendStateCreateInfo;
+
+  std::vector<VkDynamicState> dynamicStates{ VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+  pConfig->dynamicStates = dynamicStates;
 
   VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
   dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
   dynamicStateCreateInfo.pNext = nullptr;
   dynamicStateCreateInfo.flags = 0;
-  dynamicStateCreateInfo.dynamicStateCount = dynamicStatesCount;
-  dynamicStateCreateInfo.pDynamicStates = dynamicStates;
+  dynamicStateCreateInfo.dynamicStateCount = pConfig->dynamicStates.size();
+  dynamicStateCreateInfo.pDynamicStates = pConfig->dynamicStates.data();
+
+  pConfig->dynamicStateCreateInfo = dynamicStateCreateInfo;
 
   VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
   pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -249,8 +266,35 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
   pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
-  VkResult createdPipelineLayout{ vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo,
-                                                         nullptr, pOutPipelineLayout) };
+  pConfig->pipelineLayoutCreateInfo = pipelineLayoutCreateInfo;
+}
+
+
+b32 createTriangleGraphicsPipeline(
+    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig,
+    VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
+    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline) {
+  UTRACE("Creating triangle graphics pipeline...");
+
+  const char* vertexPath{ "shaders/triangle.vert.spv" };
+  b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
+  if (not createdVertexModule) {
+    UERROR("Could not create vertex shader module from path {}!", vertexPath);
+    return UFALSE;
+  }
+  const char* fragmentPath{ "shaders/triangle.frag.spv" };
+  b32 createdFragmentModule{ createShaderModule(fragmentPath, device, &shaderModules.fragment) };
+  if (not createdFragmentModule) {
+    UERROR("Could not create fragment shader module from path {}!", fragmentPath);
+    return UFALSE;
+  }
+
+  defaultConfig.shaderStages[0].module = shaderModules.vertex;
+  defaultConfig.shaderStages[1].module = shaderModules.fragment;
+
+  VkResult createdPipelineLayout{
+    vkCreatePipelineLayout(device, &defaultConfig.pipelineLayoutCreateInfo, nullptr,
+                           pOutPipelineLayout) };
   if (createdPipelineLayout != VK_SUCCESS) {
     UERROR("Could not create pipeline layout!");
     return UFALSE;
@@ -260,17 +304,17 @@ b32 createTriangleGraphicsPipeline(VkDevice device, VkExtent3D renderTargetExten
   graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   graphicsPipelineCreateInfo.pNext = nullptr;
   graphicsPipelineCreateInfo.flags = 0;
-  graphicsPipelineCreateInfo.stageCount = shaderStagesCount;
-  graphicsPipelineCreateInfo.pStages = shaderStagesCreateInfo;
-  graphicsPipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
-  graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
+  graphicsPipelineCreateInfo.stageCount = defaultConfig.shaderStages.size();
+  graphicsPipelineCreateInfo.pStages = defaultConfig.shaderStages.data();
+  graphicsPipelineCreateInfo.pVertexInputState = &defaultConfig.vertexInputStateCreateInfo;
+  graphicsPipelineCreateInfo.pInputAssemblyState = &defaultConfig.inputAssemblyStateCreateInfo;
   graphicsPipelineCreateInfo.pTessellationState = nullptr;
-  graphicsPipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
-  graphicsPipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
-  graphicsPipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
+  graphicsPipelineCreateInfo.pViewportState = &defaultConfig.viewportStateCreateInfo;
+  graphicsPipelineCreateInfo.pRasterizationState = &defaultConfig.rasterizationStateCreateInfo;
+  graphicsPipelineCreateInfo.pMultisampleState = &defaultConfig.multisampleStateCreateInfo;
   graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
-  graphicsPipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
-  graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
+  graphicsPipelineCreateInfo.pColorBlendState = &defaultConfig.colorBlendStateCreateInfo;
+  graphicsPipelineCreateInfo.pDynamicState = &defaultConfig.dynamicStateCreateInfo;
   graphicsPipelineCreateInfo.layout = *pOutPipelineLayout;
   graphicsPipelineCreateInfo.renderPass = renderPass;
   graphicsPipelineCreateInfo.subpass = 0;
