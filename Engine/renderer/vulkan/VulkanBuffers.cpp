@@ -8,6 +8,11 @@ namespace uncanny
 {
 
 
+static b32 createStagingBuffer() {
+
+}
+
+
 b32 FRenderContextVulkan::createVertexBuffer(FMesh* pMesh) {
   UTRACE("Creating vertex buffer...");
 
@@ -31,12 +36,9 @@ b32 FRenderContextVulkan::createVertexBuffer(FMesh* pMesh) {
   VkMemoryRequirements memoryReqs;
   vkGetBufferMemoryRequirements(mVkDevice, mVertexBufferTriangle.handle, &memoryReqs);
 
-  VkPhysicalDeviceMemoryProperties memoryProperties{};
-  vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &memoryProperties);
-
   VkMemoryPropertyFlagBits propertyFlags{ (VkMemoryPropertyFlagBits)
     (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) };
-  u32 memoryTypeIndex{ findMemoryIndex(memoryProperties, memoryReqs.memoryTypeBits,
+  u32 memoryTypeIndex{ findMemoryIndex(mVkPhysicalDevice, memoryReqs.memoryTypeBits,
                                        propertyFlags) };
 
   if (memoryTypeIndex == UUNUSED) {

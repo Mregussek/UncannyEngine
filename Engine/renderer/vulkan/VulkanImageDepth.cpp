@@ -58,30 +58,11 @@ b32 FRenderContextVulkan::createDepthImage() {
   U_VK_ASSERT( vkCreateImage(mVkDevice, &imageCreateInfo, nullptr, &mDepthImage.handle) );
 
   // allocate memory for depth image
-  VkMemoryRequirements memoryReqs{};
-  vkGetImageMemoryRequirements(mVkDevice, mDepthImage.handle, &memoryReqs);
-
-  VkPhysicalDeviceMemoryProperties memoryProperties{};
-  vkGetPhysicalDeviceMemoryProperties(mVkPhysicalDevice, &memoryProperties);
-
-  u32 memoryTypeIndex{ findMemoryIndex(memoryProperties, memoryReqs.memoryTypeBits,
-                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) };
-  if (memoryTypeIndex == UUNUSED) {
-    UERROR("Required memory type index not found, depth image is not valid!");
+  b32 allocated{ allocateAndBindImageMemory(mVkPhysicalDevice, mVkDevice, &mDepthImage, "depth") };
+  if (not allocated) {
+    UERROR("Could not allocate render target image memory!");
     return UFALSE;
   }
-
-  VkMemoryAllocateInfo memoryAllocateInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-  memoryAllocateInfo.pNext = nullptr;
-  memoryAllocateInfo.allocationSize = memoryReqs.size;
-  memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
-
-  U_VK_ASSERT( vkAllocateMemory(mVkDevice, &memoryAllocateInfo, nullptr,
-                                &mDepthImage.deviceMemory) );
-
-  VkDeviceSize memoryOffset{ 0 };
-  U_VK_ASSERT( vkBindImageMemory(mVkDevice, mDepthImage.handle, mDepthImage.deviceMemory,
-                                 memoryOffset) );
 
   // create depth image view...
   VkComponentMapping componentMapping{};

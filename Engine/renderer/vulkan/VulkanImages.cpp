@@ -127,12 +127,8 @@ b32 allocateAndBindImageMemory(VkPhysicalDevice physicalDevice, VkDevice device,
   VkMemoryRequirements memoryReqs{};
   vkGetImageMemoryRequirements(device, pImage->handle, &memoryReqs);
 
-  VkPhysicalDeviceMemoryProperties memoryProperties{};
-  vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
-
-  u32 memoryTypeIndex{ findMemoryIndex(memoryProperties, memoryReqs.memoryTypeBits,
+  u32 memoryTypeIndex{ findMemoryIndex(physicalDevice, memoryReqs.memoryTypeBits,
                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) };
-
   if (memoryTypeIndex == UUNUSED) {
     UERROR("Required memory type index not found, {} image is not valid!", logInfo);
     return UFALSE;

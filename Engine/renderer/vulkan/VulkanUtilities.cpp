@@ -33,8 +33,11 @@ FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID) {
 }
 
 
-u32 findMemoryIndex(VkPhysicalDeviceMemoryProperties memoryProperties, u32 typeFilter,
+u32 findMemoryIndex(VkPhysicalDevice physicalDevice, u32 typeFilter,
                     VkMemoryPropertyFlagBits flags) {
+  VkPhysicalDeviceMemoryProperties memoryProperties{};
+  vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
   for (u32 i = 0; i < memoryProperties.memoryTypeCount; i++) {
     // Check each memory type to see if its bit is set to 1.
     if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & flags) == flags) {

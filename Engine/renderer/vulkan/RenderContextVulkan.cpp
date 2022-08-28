@@ -260,6 +260,10 @@ b32 FRenderContextVulkan::parseSceneForRendering(
 
 b32 FRenderContextVulkan::closeScene() {
   UTRACE("Closing render scene...");
+  if (mVkDevice != VK_NULL_HANDLE) {
+    UTRACE("Waiting for Device Idle state before terminating...");
+    vkDeviceWaitIdle(mVkDevice);
+  }
 
   closeVertexBuffer();
 
