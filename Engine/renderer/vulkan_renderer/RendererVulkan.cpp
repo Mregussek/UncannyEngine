@@ -268,8 +268,7 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
   }
 
   b32 recordedCopyImage{ recordCopyRenderTargetIntoPresentableImage(
-      mImageRenderTargetVector, mImagePresentableVector, mVkCopyCommandBufferVector,
-      mContextPtr->QueueFamilyIndexGraphics()) };
+      mImageRenderTargetVector, mImagePresentableVector, mVkCopyCommandBufferVector) };
   if (not recordedCopyImage) {
     UFATAL("Could not record copy image command buffers!");
     return UFALSE;

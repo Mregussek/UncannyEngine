@@ -21,8 +21,7 @@ b32 recordClearColorImage(
 
 b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& renderTargetImages,
                                                const std::vector<FImageVulkan>& presentableImages,
-                                               const std::vector<VkCommandBuffer>& commandBuffers,
-                                               u32 queueFamilyIndex);
+                                               const std::vector<VkCommandBuffer>& commandBuffers);
 
 
 b32 recordClearScreenWithRenderPassForRenderTarget(

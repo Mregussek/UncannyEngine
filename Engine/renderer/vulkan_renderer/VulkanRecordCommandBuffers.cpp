@@ -93,10 +93,10 @@ b32 recordClearColorImage(const std::vector<FImageVulkan>& renderTargetImages,
 }
 
 
-b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& renderTargetImages,
-                                               const std::vector<FImageVulkan>& presentableImages,
-                                               const std::vector<VkCommandBuffer>& commandBuffers,
-                                               u32 queueFamilyIndex) {
+b32 recordCopyRenderTargetIntoPresentableImage(
+    const std::vector<FImageVulkan>& renderTargetImages,
+    const std::vector<FImageVulkan>& presentableImages,
+    const std::vector<VkCommandBuffer>& commandBuffers) {
   UTRACE("Recording command buffers for copying render target images into presentable ones!");
 
   if constexpr (U_VK_DEBUG) {
