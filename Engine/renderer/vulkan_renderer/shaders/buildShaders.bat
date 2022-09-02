@@ -2,7 +2,7 @@
 glslc.exe -fshader-stage=vertex triangle.vert.glsl -o triangle.vert.spv
 glslc.exe -fshader-stage=fragment triangle.frag.glsl -o triangle.frag.spv
 
-glslc.exe -fshader-stage=vertex mesh_vertex_color.vert.glsl -o mesh_vertex_color.vert.spv
-glslc.exe -fshader-stage=fragment mesh_vertex_color.frag.glsl -o mesh_vertex_color.frag.spv
+glslc.exe -fshader-stage=vertex colored_mesh.vert.glsl -o colored_mesh.vert.spv
+glslc.exe -fshader-stage=fragment colored_mesh.frag.glsl -o colored_mesh.frag.spv
 
 pause

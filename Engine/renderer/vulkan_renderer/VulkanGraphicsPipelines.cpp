@@ -41,7 +41,7 @@ static b32 createTriangleGraphicsPipeline(
     VkPipeline* pOutPipeline);
 
 
-static b32 createMeshColorGraphicsPipeline(
+static b32 createColoredMeshGraphicsPipeline(
     VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
     FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
     VkPipeline* pOutPipeline);
@@ -91,10 +91,9 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   FGraphicsPipelineConfiguration pipelineDefaultConfig{};
   fillGraphicsPipelineDefaultConfig(&pipelineDefaultConfig);
 
-  b32 createdTrianglePipeline{
-    createTriangleGraphicsPipeline(mContextPtr->Device(), pipelineDefaultConfig,
-                                   mVkRenderPass, shaderModules, &mVkPipelineLayoutTriangle,
-                                   &mVkPipelineTriangle) };
+  b32 createdTrianglePipeline{ createTriangleGraphicsPipeline(
+      mContextPtr->Device(), pipelineDefaultConfig, mVkRenderPass, shaderModules,
+      &mVkPipelineLayoutTriangle, &mVkPipelineTriangle) };
   // We want to clean shader modules independently of result
   closeShaderModule(mContextPtr->Device(), &shaderModules.vertex, "vertex");
   closeShaderModule(mContextPtr->Device(), &shaderModules.fragment, "fragment");
@@ -103,10 +102,9 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
     return UFALSE;
   }
 
-  b32 createdMeshColorPipeline{
-    createMeshColorGraphicsPipeline(mContextPtr->Device(), pipelineDefaultConfig, mVkRenderPass,
-                                    shaderModules, &mVkPipelineLayoutMeshColor,
-                                    &mVkPipelineMeshColor) };
+  b32 createdMeshColorPipeline{ createColoredMeshGraphicsPipeline(
+      mContextPtr->Device(), pipelineDefaultConfig, mVkRenderPass, shaderModules,
+      &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor) };
   // We want to clean shader modules independently of result
   closeShaderModule(mContextPtr->Device(), &shaderModules.vertex, "vertex");
   closeShaderModule(mContextPtr->Device(), &shaderModules.fragment, "fragment");
@@ -336,19 +334,19 @@ b32 createTriangleGraphicsPipeline(
 }
 
 
-b32 createMeshColorGraphicsPipeline(
+b32 createColoredMeshGraphicsPipeline(
     VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
     FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
     VkPipeline* pOutPipeline) {
   UTRACE("Creating triangle graphics pipeline...");
 
-  const char* vertexPath{ "shaders/mesh_vertex_color.vert.spv" };
+  const char* vertexPath{ "shaders/colored_mesh.vert.spv" };
   b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
   if (not createdVertexModule) {
     UERROR("Could not create vertex shader module from path {}!", vertexPath);
     return UFALSE;
   }
-  const char* fragmentPath{ "shaders/mesh_vertex_color.frag.spv" };
+  const char* fragmentPath{ "shaders/colored_mesh.frag.spv" };
   b32 createdFragmentModule{ createShaderModule(fragmentPath, device, &shaderModules.fragment) };
   if (not createdFragmentModule) {
     UERROR("Could not create fragment shader module from path {}!", fragmentPath);

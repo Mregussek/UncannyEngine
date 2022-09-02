@@ -5,6 +5,7 @@
 
 #include <utilities/Variables.h>
 #include <volk.h>
+#include <math/mat4.h>
 
 
 namespace uncanny
@@ -39,6 +40,11 @@ struct FIndexBufferVulkan {
   VkBuffer handle{ VK_NULL_HANDLE };
   VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
   u32 indicesCount{ 0 };
+};
+
+
+struct FCameraUBO {
+  mat4 matrixModelViewProjection{};
 };
 
 
