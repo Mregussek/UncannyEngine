@@ -173,10 +173,22 @@ b32 FRendererVulkan::parseSceneForRendering(
 
   mSceneConfig = sceneConfiguration;
 
-  b32 createdVertexBuffer{ createVertexIndexBuffersForMesh(
+  b32 createdVertexIndexBuffer{ createVertexIndexBuffersForMesh(
       mSceneConfig.pMesh, &mVertexBufferTriangle, &mIndexBufferTriangle) };
-  if (not createdVertexBuffer) {
-    UERROR("Could not create vertex buffer for scene object!");
+  if (not createdVertexIndexBuffer) {
+    UERROR("Could not create vertex index buffers for mesh object!");
+    return UFALSE;
+  }
+
+  b32 createdUniformBuffers{ createUniformBuffers(mSceneConfig) };
+  if (not createdUniformBuffers) {
+    UERROR("Could not create uniform buffers!");
+    return UFALSE;
+  }
+
+  b32 createdDescriptors{ createDescriptors() };
+  if (not createdDescriptors) {
+    UERROR("Could not create descriptors!");
     return UFALSE;
   }
 
@@ -192,6 +204,8 @@ b32 FRendererVulkan::closeScene() {
     vkDeviceWaitIdle(mContextPtr->Device());
   }
 
+  closeDescriptors();
+  closeUniformBuffers();
   closeVertexIndexBuffersForMesh(&mVertexBufferTriangle, &mIndexBufferTriangle);
 
   UINFO("Closed render scene!");
@@ -260,8 +274,9 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
   //}
 
   b32 recordPipelineVertex{ recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
-      mImageRenderTargetVector, mVkRenderPass, mVkPipelineMeshColor, mVkViewport, mVkScissor,
-      &mVertexBufferTriangle, &mIndexBufferTriangle, mVkRenderCommandBufferVector) };
+      mImageRenderTargetVector, mVkRenderPass, mVkPipelineMeshColor, mVkPipelineLayoutMeshColor,
+      mVkDescriptorSets, mVkViewport, mVkScissor, &mVertexBufferTriangle, &mIndexBufferTriangle,
+      mVkRenderCommandBufferVector) };
   if (not recordPipelineVertex) {
     UFATAL("Could not record graphics pipeline with vertex buffer for render target cmd buffers!");
     return UFALSE;

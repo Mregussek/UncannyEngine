@@ -78,6 +78,9 @@ private:
   [[nodiscard]] b32 createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration);
   b32 closeUniformBuffers();
 
+  [[nodiscard]] b32 createDescriptors();
+  b32 closeDescriptors();
+
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
   [[nodiscard]] b32 shouldReturnAfterWindowSurfacePresentableImageStateValidation(b32 state);
@@ -126,6 +129,9 @@ private:
   FBufferVulkan mVertexBufferTriangle{};
   FBufferVulkan mIndexBufferTriangle{};
   std::vector<FBufferVulkan> mUniformBufferCameraVector{};
+  // Descriptors
+  VkDescriptorPool mVkDescriptorPool{ VK_NULL_HANDLE };
+  std::vector<VkDescriptorSet> mVkDescriptorSets{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };
