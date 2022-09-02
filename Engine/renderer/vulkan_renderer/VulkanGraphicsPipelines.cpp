@@ -36,19 +36,19 @@ static void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineConfiguration* pC
 
 
 static b32 createTriangleGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
-    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
-    VkPipeline* pOutPipeline);
+    VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
+    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline);
 
 
 static b32 createColoredMeshGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
-    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
+    VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
+    VkDescriptorSetLayout* pOutDescriptorSetLayout, VkPipelineLayout* pOutPipelineLayout,
     VkPipeline* pOutPipeline);
 
 
-static b32 closeGraphicsPipeline(VkDevice device, VkPipelineLayout* pPipelineLayout,
-                                 VkPipeline* pPipeline, const char* logInfo);
+static b32 closeGraphicsPipeline(VkDevice device, VkDescriptorSetLayout* pDescriptor,
+                                 VkPipelineLayout* pPipelineLayout, VkPipeline* pPipeline,
+                                 const char* logInfo);
 
 
 static b32 createShaderModule(const char* path, VkDevice device, VkShaderModule* pOutShaderModule);
@@ -88,11 +88,9 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 
   FShaderModulesVulkan shaderModules{};
-  FGraphicsPipelineConfiguration pipelineDefaultConfig{};
-  fillGraphicsPipelineDefaultConfig(&pipelineDefaultConfig);
 
   b32 createdTrianglePipeline{ createTriangleGraphicsPipeline(
-      mContextPtr->Device(), pipelineDefaultConfig, mVkRenderPass, shaderModules,
+      mContextPtr->Device(), mVkRenderPass, shaderModules,
       &mVkPipelineLayoutTriangle, &mVkPipelineTriangle) };
   // We want to clean shader modules independently of result
   closeShaderModule(mContextPtr->Device(), &shaderModules.vertex, "vertex");
@@ -103,8 +101,8 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   }
 
   b32 createdMeshColorPipeline{ createColoredMeshGraphicsPipeline(
-      mContextPtr->Device(), pipelineDefaultConfig, mVkRenderPass, shaderModules,
-      &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor) };
+      mContextPtr->Device(), mVkRenderPass, shaderModules,
+      &mVkDescriptorSetLayoutMeshColor, &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor) };
   // We want to clean shader modules independently of result
   closeShaderModule(mContextPtr->Device(), &shaderModules.vertex, "vertex");
   closeShaderModule(mContextPtr->Device(), &shaderModules.fragment, "fragment");
@@ -121,10 +119,10 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
 b32 FRendererVulkan::closeGraphicsPipelinesGeneral() {
   UTRACE("Closing graphics pipelines general...");
 
-  closeGraphicsPipeline(mContextPtr->Device(), &mVkPipelineLayoutTriangle, &mVkPipelineTriangle,
-                        "triangle");
-  closeGraphicsPipeline(mContextPtr->Device(), &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor,
-                        "mesh_color");
+  closeGraphicsPipeline(mContextPtr->Device(), nullptr, &mVkPipelineLayoutTriangle,
+                        &mVkPipelineTriangle, "triangle");
+  closeGraphicsPipeline(mContextPtr->Device(), &mVkDescriptorSetLayoutMeshColor,
+                        &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor, "mesh_color");
 
   UDEBUG("Closed graphics pipelines general!");
   return UTRUE;
@@ -270,10 +268,12 @@ void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineConfiguration* pConfig) 
 
 
 b32 createTriangleGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
-    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
-    VkPipeline* pOutPipeline) {
+    VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
+    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline) {
   UTRACE("Creating triangle graphics pipeline...");
+
+  FGraphicsPipelineConfiguration defaultConfig{};
+  fillGraphicsPipelineDefaultConfig(&defaultConfig);
 
   const char* vertexPath{ "shaders/triangle.vert.spv" };
   b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
@@ -335,10 +335,13 @@ b32 createTriangleGraphicsPipeline(
 
 
 b32 createColoredMeshGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
-    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
+    VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
+    VkDescriptorSetLayout* pOutDescriptorSetLayout, VkPipelineLayout* pOutPipelineLayout,
     VkPipeline* pOutPipeline) {
   UTRACE("Creating triangle graphics pipeline...");
+
+  FGraphicsPipelineConfiguration defaultConfig{};
+  fillGraphicsPipelineDefaultConfig(&defaultConfig);
 
   const char* vertexPath{ "shaders/colored_mesh.vert.spv" };
   b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
@@ -353,25 +356,29 @@ b32 createColoredMeshGraphicsPipeline(
     return UFALSE;
   }
 
+  // Define shader stages...
   defaultConfig.shaderStages[0].module = shaderModules.vertex;
   defaultConfig.shaderStages[1].module = shaderModules.fragment;
 
+  // Define input for vertex shader from the vertex buffers...
   VkVertexInputBindingDescription vertexInputBindingDescription{};
   vertexInputBindingDescription.binding = 0;
   vertexInputBindingDescription.stride = sizeof(FVertex);
   vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-  std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptionVector(2);
-
-  vertexInputAttributeDescriptionVector[0].location = 0;
-  vertexInputAttributeDescriptionVector[0].binding = 0;
-  vertexInputAttributeDescriptionVector[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-  vertexInputAttributeDescriptionVector[0].offset = offsetof(FVertex, position);
-
-  vertexInputAttributeDescriptionVector[1].location = 1;
-  vertexInputAttributeDescriptionVector[1].binding = 0;
-  vertexInputAttributeDescriptionVector[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-  vertexInputAttributeDescriptionVector[1].offset = offsetof(FVertex, color);
+  std::vector<VkVertexInputAttributeDescription> vertexInputAttrDescVector(2);
+  {
+    vertexInputAttrDescVector[0].location = 0;
+    vertexInputAttrDescVector[0].binding = 0;
+    vertexInputAttrDescVector[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttrDescVector[0].offset = offsetof(FVertex, position);
+  }
+  {
+    vertexInputAttrDescVector[1].location = 1;
+    vertexInputAttrDescVector[1].binding = 0;
+    vertexInputAttrDescVector[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttrDescVector[1].offset = offsetof(FVertex, color);
+  }
 
   VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
   vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -379,13 +386,43 @@ b32 createColoredMeshGraphicsPipeline(
   vertexInputStateCreateInfo.flags = 0;
   vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
   vertexInputStateCreateInfo.pVertexBindingDescriptions = &vertexInputBindingDescription;
-  vertexInputStateCreateInfo.vertexAttributeDescriptionCount =
-      vertexInputAttributeDescriptionVector.size();
-  vertexInputStateCreateInfo.pVertexAttributeDescriptions =
-      vertexInputAttributeDescriptionVector.data();
+  vertexInputStateCreateInfo.vertexAttributeDescriptionCount = vertexInputAttrDescVector.size();
+  vertexInputStateCreateInfo.pVertexAttributeDescriptions = vertexInputAttrDescVector.data();
+
+  // Create pipeline layout
+  VkDescriptorSetLayoutBinding cameraLayoutBinding{};
+  cameraLayoutBinding.binding = 0;
+  cameraLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  cameraLayoutBinding.descriptorCount = 1;
+  cameraLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  cameraLayoutBinding.pImmutableSamplers = nullptr;
+
+  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+  descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  descriptorSetLayoutCreateInfo.pNext = nullptr;
+  descriptorSetLayoutCreateInfo.flags = 0;
+  descriptorSetLayoutCreateInfo.bindingCount = 1;
+  descriptorSetLayoutCreateInfo.pBindings = &cameraLayoutBinding;
+
+  VkResult createdDescriptorSetLayout{
+    vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr,
+                                pOutDescriptorSetLayout) };
+  if (createdDescriptorSetLayout != VK_SUCCESS) {
+    UERROR("Could not create descriptor set layout!");
+    return UFALSE;
+  }
+
+  VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+  pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipelineLayoutCreateInfo.pNext = nullptr;
+  pipelineLayoutCreateInfo.flags = 0;
+  pipelineLayoutCreateInfo.setLayoutCount = 1;
+  pipelineLayoutCreateInfo.pSetLayouts = pOutDescriptorSetLayout;
+  pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+  pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
   VkResult createdPipelineLayout{
-      vkCreatePipelineLayout(device, &defaultConfig.pipelineLayoutCreateInfo, nullptr,
+      vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr,
                              pOutPipelineLayout) };
   if (createdPipelineLayout != VK_SUCCESS) {
     UERROR("Could not create pipeline layout!");
@@ -424,13 +461,13 @@ b32 createColoredMeshGraphicsPipeline(
 
   UDEBUG("Created triangle graphics pipeline!");
   return UTRUE;
-  return UTRUE;
 }
 
 
-b32 closeGraphicsPipeline(VkDevice device, VkPipelineLayout* pPipelineLayout,
-                          VkPipeline* pPipeline, const char* logInfo) {
-  if (*pPipeline != VK_NULL_HANDLE) {
+b32 closeGraphicsPipeline(VkDevice device, VkDescriptorSetLayout* pDescriptor,
+                          VkPipelineLayout* pPipelineLayout, VkPipeline* pPipeline,
+                          const char* logInfo) {
+  if (pPipeline and *pPipeline != VK_NULL_HANDLE) {
     UTRACE("Destroying {} graphics pipeline...", logInfo);
     vkDestroyPipeline(device, *pPipeline, nullptr);
   }
@@ -438,12 +475,20 @@ b32 closeGraphicsPipeline(VkDevice device, VkPipelineLayout* pPipelineLayout,
     UWARN("As {} graphics pipeline was not created, it won't be destroyed!", logInfo);
   }
 
-  if (*pPipelineLayout != VK_NULL_HANDLE) {
+  if (pPipelineLayout and *pPipelineLayout != VK_NULL_HANDLE) {
     UTRACE("Destroying {} graphics pipeline layout...", logInfo);
     vkDestroyPipelineLayout(device, *pPipelineLayout, nullptr);
   }
   else {
     UWARN("As {} graphics pipeline layout was not created, it won't be destroyed!", logInfo);
+  }
+
+  if (pDescriptor and *pDescriptor != VK_NULL_HANDLE) {
+    UTRACE("Destroying {} descriptor set layout...", logInfo);
+    vkDestroyDescriptorSetLayout(device, *pDescriptor, nullptr);
+  }
+  else {
+    UWARN("As {} descriptor set layout was not created, it won't be destroyed!", logInfo);
   }
 
   return UTRUE;

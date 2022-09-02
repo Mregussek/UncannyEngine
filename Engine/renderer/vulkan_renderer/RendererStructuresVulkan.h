@@ -29,17 +29,10 @@ struct FImageVulkan {
 };
 
 
-struct FVertexBufferVulkan {
+struct FBufferVulkan {
   VkBuffer handle{ VK_NULL_HANDLE };
   VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
-  u32 vertexCount{ 0 };
-};
-
-
-struct FIndexBufferVulkan {
-  VkBuffer handle{ VK_NULL_HANDLE };
-  VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
-  u32 indicesCount{ 0 };
+  u32 elemCount{ 0 };
 };
 
 

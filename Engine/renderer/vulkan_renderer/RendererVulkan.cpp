@@ -173,8 +173,8 @@ b32 FRendererVulkan::parseSceneForRendering(
 
   mSceneConfig = sceneConfiguration;
 
-  b32 createdVertexBuffer{ createBuffersForMesh(mSceneConfig.pMesh, &mVertexBufferTriangle,
-                                                &mIndexBufferTriangle) };
+  b32 createdVertexBuffer{ createVertexIndexBuffersForMesh(
+      mSceneConfig.pMesh, &mVertexBufferTriangle, &mIndexBufferTriangle) };
   if (not createdVertexBuffer) {
     UERROR("Could not create vertex buffer for scene object!");
     return UFALSE;
@@ -192,7 +192,7 @@ b32 FRendererVulkan::closeScene() {
     vkDeviceWaitIdle(mContextPtr->Device());
   }
 
-  closeBuffersForMesh(&mVertexBufferTriangle, &mIndexBufferTriangle);
+  closeVertexIndexBuffersForMesh(&mVertexBufferTriangle, &mIndexBufferTriangle);
 
   UINFO("Closed render scene!");
   return UTRUE;

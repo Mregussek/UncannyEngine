@@ -6,8 +6,11 @@ layout(location = 1) in vec3 inColor;
 
 layout(location = 0) out vec3 fragColor;
 
+layout(binding = 0) uniform UCamera {
+    mat4 matrixMVP;
+} camera;
 
 void main() {
-    gl_Position = vec4(inPosition, 1.f);
+    gl_Position = camera.matrixMVP * vec4(inPosition, 1.f);
     fragColor = inColor;
 }

@@ -343,7 +343,7 @@ b32 recordTriangleGraphicsPipelineForRenderTarget(
 b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
     const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
     VkPipeline graphicsPipeline, VkViewport viewport, VkRect2D scissor,
-    FVertexBufferVulkan* pVertexBuffer, FIndexBufferVulkan* pIndexBuffer,
+    FBufferVulkan* pVertexBuffer, FBufferVulkan* pIndexBuffer,
     const std::vector<VkCommandBuffer>& commandBuffers) {
   UTRACE("Recording command buffers with indexed vertex buffer binding in graphics pipeline for"
          "render target images...");
@@ -389,7 +389,7 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
     vkCmdBindIndexBuffer(commandBuffers[i], pIndexBuffer->handle, 0, VK_INDEX_TYPE_UINT32);
     vkCmdSetViewport(commandBuffers[i], 0, 1, &viewport);
     vkCmdSetScissor(commandBuffers[i], 0, 1, &scissor);
-    vkCmdDrawIndexed(commandBuffers[i], pIndexBuffer->indicesCount, 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffers[i], pIndexBuffer->elemCount, 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffers[i]);
 
