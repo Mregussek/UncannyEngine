@@ -1,9 +1,13 @@
 
 #include <window/Window.h>
 #include <window/WindowFactory.h>
+#include <math/mat4.h>
+#include <math/vec3.h>
+#include <math/vec4.h>
 #include <renderer/Mesh.h>
 #include <renderer/Context.h>
 #include <renderer/Factory.h>
+#include <renderer/Camera.h>
 #include <utilities/Logger.h>
 
 
@@ -52,9 +56,23 @@ auto main() -> i32 {
     return -1;
   }
 
+  f32 fieldOfView{ 45.f };
+  f32 aspectRatio{ (f32)windowSpecification.width / (f32)windowSpecification.height };
+
+  vec3 eye{ 2.f, 2.f, 2.f };
+  vec3 center{ 0.f, 0.f, 0.f };
+  vec3 up{ 0.f, 0.f, 1.f };
+
+  FCamera camera{};
+  camera.mMatrixMVP =
+      mat4::perspective(fieldOfView, aspectRatio, 0.1f, 10.0f) *
+      mat4::lookAt(eye, center, up) *
+      mat4::rotation(45.f, { 0.f, 0.f, 1.f });
   FMeshTriangle meshTriangle{};
+
   FRenderSceneConfiguration renderSceneConfig{};
   renderSceneConfig.pMesh = &meshTriangle;
+  renderSceneConfig.pCamera = &camera;
 
   b32 rendererParsedScene{ pRenderer->parseSceneForRendering(renderSceneConfig) };
   if (not rendererParsedScene) {

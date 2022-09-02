@@ -75,7 +75,7 @@ private:
                                          FBufferVulkan* pOutIndex);
   b32 closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex, FBufferVulkan* pIndex);
 
-  [[nodiscard]] b32 createUniformBuffers();
+  [[nodiscard]] b32 createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration);
   b32 closeUniformBuffers();
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();

@@ -11,13 +11,17 @@ namespace uncanny
 {
 
 
+class FCamera;
+
+
 enum class ERendererState {
   NONE, SURFACE_MINIMIZED, RENDERING
 };
 
 
 struct FRenderSceneConfiguration {
-  FMesh* pMesh{};
+  FMesh* pMesh{ nullptr };
+  FCamera* pCamera{ nullptr };
 };
 
 
