@@ -96,10 +96,17 @@ b32 FRenderContextVulkan::init(const FRenderContextSpecification& renderContextS
     return UFALSE;
   }
 
-  // Assigning all graphics command queues for rendering operations
+  // Graphic queues will be used for rendering
   b32 properlyCreatedGraphicsQueues{ createGraphicsQueues() };
   if (not properlyCreatedGraphicsQueues) {
     UFATAL("There is no graphics queues, rendering in not available!");
+    return UFALSE;
+  }
+
+  // Transfer queues will be used for copying image
+  b32 properlyCreatedTransferQueues{ createTransferQueues() };
+  if (not properlyCreatedTransferQueues) {
+    UFATAL("There is no transfer queues, transfer in not available!");
     return UFALSE;
   }
 
@@ -111,6 +118,7 @@ b32 FRenderContextVulkan::init(const FRenderContextSpecification& renderContextS
 void FRenderContextVulkan::terminate() {
   UTRACE("Terminating Vulkan Render Context...");
 
+  closeTransferQueues();
   closeGraphicsQueues();
   closeLogicalDevice();
   closeWindowSurface();

@@ -139,7 +139,7 @@ b32 FRenderContextVulkan::isWindowSurfacePresentableImageExtentProper() {
 
 
 b32 FRenderContextVulkan::detectSupportedImageFormatByWindowSurface(
-    const std::vector<VkSurfaceFormatKHR>& formatCandidates, VkSurfaceFormatKHR* pOutFormat) {
+    const std::vector<VkSurfaceFormatKHR>& candidates, VkSurfaceFormatKHR* pOutFormat) {
   UTRACE("Detecting supported image format by window surface from candidates...");
 
   // query surface format info...
@@ -150,7 +150,7 @@ b32 FRenderContextVulkan::detectSupportedImageFormatByWindowSurface(
   U_VK_ASSERT( vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysicalDevice, mVkWindowSurface,
                                                     &formatCount, availableFormats.data()) );
 
-  auto it = std::find_if(formatCandidates.cbegin(), formatCandidates.cend(),
+  auto it = std::find_if(candidates.cbegin(), candidates.cend(),
                          [availableFormats = std::as_const(availableFormats)]
                              (VkSurfaceFormatKHR candidate) -> b32 {
                            for (VkSurfaceFormatKHR af : availableFormats) {
@@ -160,7 +160,7 @@ b32 FRenderContextVulkan::detectSupportedImageFormatByWindowSurface(
                            }
                            return UFALSE;
                          });
-  if (it != formatCandidates.cend()) {
+  if (it != candidates.cend()) {
     pOutFormat->format = it->format;
     pOutFormat->colorSpace = it->colorSpace;
     UDEBUG("Found candidate format supported by window surface! f {} cs {}",

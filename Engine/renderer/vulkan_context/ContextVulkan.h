@@ -24,12 +24,12 @@ public:
   b32 init(const FRenderContextSpecification& renderContextSpecs) override;
   void terminate() override;
 
-  ERenderLibrary getLibrary() const override;
+  [[nodiscard]] ERenderLibrary getLibrary() const override;
 
   [[nodiscard]] b32 collectWindowSurfaceCapabilities();
   [[nodiscard]] b32 isWindowSurfacePresentableImageExtentProper();
-  b32 detectSupportedImageFormatByWindowSurface(
-      const std::vector<VkSurfaceFormatKHR>& formatCandidates, VkSurfaceFormatKHR* pOutFormat);
+  b32 detectSupportedImageFormatByWindowSurface(const std::vector<VkSurfaceFormatKHR>& candidates,
+                                                VkSurfaceFormatKHR* pOutFormat);
 
   [[nodiscard]] VkPhysicalDevice PhysicalDevice() const { return mVkPhysicalDevice; }
   [[nodiscard]] VkDevice Device() const { return mVkDevice; }
@@ -40,10 +40,8 @@ public:
   [[nodiscard]] u32 QueueFamilyIndexGraphics() const { return mGraphicsQueueFamilyIndex; }
   [[nodiscard]] u32 QueueFamilyIndexTransfer() const { return mTransferQueueFamilyIndex; }
   [[nodiscard]] VkQueue QueueCopy() const { return mVkTransferQueueVector[mCopyQueueIndex]; }
-  [[nodiscard]] VkQueue QueueRendering() const {
-    return mVkGraphicsQueueVector[mRenderingQueueIndex]; }
-  [[nodiscard]] VkQueue QueuePresentation() const {
-    return mVkGraphicsQueueVector[mPresentationQueueIndex]; }
+  [[nodiscard]] VkQueue QueueRendering() const { return mVkGraphicsQueueVector[mRenderingQueueIndex]; }
+  [[nodiscard]] VkQueue QueuePresentation() const { return mVkGraphicsQueueVector[mPresentationQueueIndex]; }
 
 private:
 
@@ -68,6 +66,8 @@ private:
   [[nodiscard]] b32 createGraphicsQueues();
   b32 closeGraphicsQueues();
 
+  [[nodiscard]] b32 createTransferQueues();
+  b32 closeTransferQueues();
 
   // Class members
   FRenderContextSpecification mSpecs{};

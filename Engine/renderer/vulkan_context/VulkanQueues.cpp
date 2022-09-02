@@ -48,6 +48,14 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
     mPresentationQueueIndex = 0;
   }
 
+  UDEBUG("Created graphics queues!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::createTransferQueues() {
+  UTRACE("Creating transfer queues for transfer operations...");
+
   // Transfer queues...
   FQueueFamilyDependencies transferFamilyDeps{};
   b32 foundTransferDeps{
@@ -62,7 +70,7 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
   u32 requiredTransferQueuesCount{ transferFamilyDeps.queuesCountNeeded };
   mVkTransferQueueVector.resize(requiredTransferQueuesCount);
 
-  for (u32 j = 0; j < requiredGraphicsQueuesCount; j++) {
+  for (u32 j = 0; j < requiredTransferQueuesCount; j++) {
     vkGetDeviceQueue(mVkDevice, mTransferQueueFamilyIndex, j, &mVkTransferQueueVector[j]);
   }
 
@@ -74,7 +82,7 @@ b32 FRenderContextVulkan::createGraphicsQueues() {
   UTRACE("Assigning copy queue index to 0");
   mCopyQueueIndex = 0;
 
-  UDEBUG("Created graphics queues!");
+  UDEBUG("Created transfer queues!");
   return UTRUE;
 }
 
@@ -86,6 +94,17 @@ b32 FRenderContextVulkan::closeGraphicsQueues() {
   mVkGraphicsQueueVector.clear();
 
   UDEBUG("Closed graphics queues!");
+  return UTRUE;
+}
+
+
+b32 FRenderContextVulkan::closeTransferQueues() {
+  UTRACE("Closing transfer queues...");
+
+  // Queues are created with logical device, so there is not destroy function
+  mVkTransferQueueVector.clear();
+
+  UDEBUG("Closed transfer queues!");
   return UTRUE;
 }
 

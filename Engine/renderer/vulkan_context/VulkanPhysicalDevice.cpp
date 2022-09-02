@@ -97,7 +97,6 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
            "there is no GPU supporting graphics nor platform presentation");
     return UFALSE;
   }
-  displayPhysicalDeviceData(mVkPhysicalDevice);
 
   UTRACE("Retrieving count and data about queue families...");
   u32 queuesCount{ 0 };
@@ -125,7 +124,6 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
     UFATAL("Could not pick suitable graphics queue family index!");
     return UFALSE;
   }
-  displayQueueFamilyData(mGraphicsQueueFamilyIndex, mVkQueueFamilyProperties);
 
   // Retrieve transfer queue family
   FQueueFamilyDependencies transferQueueFamilyDependencies{};
@@ -147,6 +145,10 @@ b32 FRenderContextVulkan::createPhysicalDevice() {
     UFATAL("Could not pick suitable transfer queue family index!");
     return UFALSE;
   }
+
+  // display data about everything...
+  displayPhysicalDeviceData(mVkPhysicalDevice);
+  displayQueueFamilyData(mGraphicsQueueFamilyIndex, mVkQueueFamilyProperties);
   displayQueueFamilyData(mTransferQueueFamilyIndex, mVkQueueFamilyProperties);
 
   UDEBUG("Created Physical Device!");
