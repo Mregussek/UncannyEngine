@@ -17,7 +17,7 @@ struct FShaderModulesVulkan {
 };
 
 
-struct FGraphicsPipelineDefaultConfiguration {
+struct FGraphicsPipelineConfiguration {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
   VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo{};
@@ -32,19 +32,19 @@ struct FGraphicsPipelineDefaultConfiguration {
 };
 
 
-static void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineDefaultConfiguration* pConfig);
+static void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineConfiguration* pConfig);
 
 
 static b32 createTriangleGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig,
-    VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
-    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline);
+    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
+    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
+    VkPipeline* pOutPipeline);
 
 
 static b32 createMeshColorGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig,
-    VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
-    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline);
+    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
+    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
+    VkPipeline* pOutPipeline);
 
 
 static b32 closeGraphicsPipeline(VkDevice device, VkPipelineLayout* pPipelineLayout,
@@ -88,7 +88,7 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 
   FShaderModulesVulkan shaderModules{};
-  FGraphicsPipelineDefaultConfiguration pipelineDefaultConfig{};
+  FGraphicsPipelineConfiguration pipelineDefaultConfig{};
   fillGraphicsPipelineDefaultConfig(&pipelineDefaultConfig);
 
   b32 createdTrianglePipeline{
@@ -133,7 +133,7 @@ b32 FRendererVulkan::closeGraphicsPipelinesGeneral() {
 }
 
 
-void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineDefaultConfiguration* pConfig) {
+void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineConfiguration* pConfig) {
   VkPipelineShaderStageCreateInfo vertexStageCreateInfo{};
   vertexStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   vertexStageCreateInfo.pNext = nullptr;
@@ -272,9 +272,9 @@ void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineDefaultConfiguration* pC
 
 
 b32 createTriangleGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig,
-    VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
-    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline) {
+    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
+    FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
+    VkPipeline* pOutPipeline) {
   UTRACE("Creating triangle graphics pipeline...");
 
   const char* vertexPath{ "shaders/triangle.vert.spv" };
@@ -337,7 +337,7 @@ b32 createTriangleGraphicsPipeline(
 
 
 b32 createMeshColorGraphicsPipeline(
-    VkDevice device, FGraphicsPipelineDefaultConfiguration& defaultConfig, VkRenderPass renderPass,
+    VkDevice device, FGraphicsPipelineConfiguration& defaultConfig, VkRenderPass renderPass,
     FShaderModulesVulkan& shaderModules, VkPipelineLayout* pOutPipelineLayout,
     VkPipeline* pOutPipeline) {
   UTRACE("Creating triangle graphics pipeline...");
