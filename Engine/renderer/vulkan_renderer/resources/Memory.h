@@ -1,0 +1,12 @@
+
+#ifndef UNCANNYENGINE_ALLOCATIONS_H
+#define UNCANNYENGINE_ALLOCATIONS_H
+
+
+namespace uncanny
+{
+
+}
+
+
+#endif //UNCANNYENGINE_ALLOCATIONS_H
