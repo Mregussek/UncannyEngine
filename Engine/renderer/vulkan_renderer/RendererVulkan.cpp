@@ -174,7 +174,7 @@ b32 FRendererVulkan::parseSceneForRendering(
   mSceneConfig = sceneConfiguration;
 
   b32 createdVertexIndexBuffer{ createVertexIndexBuffersForMesh(
-      mSceneConfig.pMesh, &mVertexBufferTriangle, &mIndexBufferTriangle) };
+      mSceneConfig.pMesh, &mVertexBuffer, &mIndexBuffer) };
   if (not createdVertexIndexBuffer) {
     UERROR("Could not create vertex index buffers for mesh object!");
     return UFALSE;
@@ -186,7 +186,7 @@ b32 FRendererVulkan::parseSceneForRendering(
     return UFALSE;
   }
 
-  b32 createdDescriptors{ createDescriptors() };
+  b32 createdDescriptors{ createDescriptors(&mGraphicsPipeline) };
   if (not createdDescriptors) {
     UERROR("Could not create descriptors!");
     return UFALSE;
@@ -204,9 +204,9 @@ b32 FRendererVulkan::closeScene() {
     vkDeviceWaitIdle(mContextPtr->Device());
   }
 
-  closeDescriptors();
+  closeDescriptors(&mGraphicsPipeline);
   closeUniformBuffers();
-  closeVertexIndexBuffersForMesh(&mVertexBufferTriangle, &mIndexBufferTriangle);
+  closeVertexIndexBuffersForMesh(&mVertexBuffer, &mIndexBuffer);
 
   UINFO("Closed render scene!");
   return UTRUE;
@@ -217,7 +217,7 @@ b32 FRendererVulkan::prepareStateForRendering() {
   UTRACE("Preparing state for rendering...");
 
   // Collect info about viewport and scissor
-  collectViewportScissorInfo();
+  collectViewportScissorInfo(&mGraphicsPipeline);
   // Record commands as startup point
   b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
   if (not recordedCommandBuffers) {
@@ -251,32 +251,9 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
     return UFALSE;
   }
 
-  //b32 recordedClearScreen{ recordClearColorImage(
-  //    mImageRenderTargetVector, mVkRenderCommandBufferVector, mGraphicsQueueFamilyIndex) };
-  //if (not recordedClearScreen) {
-  //  UFATAL("Could not record clear screen command buffers!");
-  //  return UFALSE;
-  //}
-
-  //b32 recordRenderPass{ recordClearScreenWithRenderPassForRenderTarget(
-  //    mImageRenderTargetVector, mVkRenderPass, mVkRenderCommandBufferVector) };
-  //if (not recordRenderPass) {
-  //  UFATAL("Could not record render pass for render target command buffers!");
-  //  return UFALSE;
-  //}
-
-  //b32 recordPipelineTriangle{ recordTriangleGraphicsPipelineForRenderTarget(
-  //    mImageRenderTargetVector, mVkRenderPass, mVkPipelineTriangle, mVkViewport, mVkScissor,
-  //    mVkRenderCommandBufferVector) };
-  //if (not recordPipelineTriangle) {
-  //  UFATAL("Could not record graphics pipeline for render target command buffers!");
-  //  return UFALSE;
-  //}
-
   b32 recordPipelineVertex{ recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
-      mImageRenderTargetVector, mVkRenderPass, mVkPipelineMeshColor, mVkPipelineLayoutMeshColor,
-      mVkDescriptorSets, mVkViewport, mVkScissor, &mVertexBufferTriangle, &mIndexBufferTriangle,
-      mVkRenderCommandBufferVector) };
+      mImageRenderTargetVector, mVkRenderPass, mGraphicsPipeline, mVertexBuffer,
+      mIndexBuffer, mVkRenderCommandBufferVector) };
   if (not recordPipelineVertex) {
     UFATAL("Could not record graphics pipeline with vertex buffer for render target cmd buffers!");
     return UFALSE;

@@ -35,19 +35,12 @@ struct FGraphicsPipelineConfiguration {
 static void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineConfiguration* pConfig);
 
 
-static b32 createTriangleGraphicsPipeline(
-    VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
-    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline);
-
-
 static b32 createColoredMeshGraphicsPipeline(
     VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
-    VkDescriptorSetLayout* pOutDescriptorSetLayout, VkPipelineLayout* pOutPipelineLayout,
-    VkPipeline* pOutPipeline);
+    FGraphicsPipelineVulkan* pOutPipeline);
 
 
-static b32 closeGraphicsPipeline(VkDevice device, VkDescriptorSetLayout* pDescriptor,
-                                 VkPipelineLayout* pPipelineLayout, VkPipeline* pPipeline,
+static b32 closeGraphicsPipeline(VkDevice device, FGraphicsPipelineVulkan* pOutPipeline,
                                  const char* logInfo);
 
 
@@ -57,8 +50,8 @@ static b32 createShaderModule(const char* path, VkDevice device, VkShaderModule*
 static b32 closeShaderModule(VkDevice device, VkShaderModule* pShaderModule, const char* logInfo);
 
 
-b32 FRendererVulkan::collectViewportScissorInfo() {
-  UTRACE("Collecting viewport and scissor info...");
+b32 FRendererVulkan::collectViewportScissorInfo(FGraphicsPipelineVulkan* pPipeline) const {
+  UTRACE("Collecting viewport and scissor info for graphics pipeline...");
 
   // TODO: handle taking proper extent properly for viewport and scissors!
   UWARN("During collection data for viewport and scissor using 0-indexes render target extent!");
@@ -76,10 +69,10 @@ b32 FRendererVulkan::collectViewportScissorInfo() {
   scissor.extent = { imageExtent.width, imageExtent.height };
   scissor.offset = { 0, 0 };
 
-  mVkViewport = viewport;
-  mVkScissor = scissor;
+  pPipeline->viewport = viewport;
+  pPipeline->scissor = scissor;
 
-  UTRACE("Collected viewport and scissor info!");
+  UTRACE("Collected viewport and scissor info for graphics pipeline!");
   return UTRUE;
 }
 
@@ -89,20 +82,8 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
 
   FShaderModulesVulkan shaderModules{};
 
-  b32 createdTrianglePipeline{ createTriangleGraphicsPipeline(
-      mContextPtr->Device(), mVkRenderPass, shaderModules,
-      &mVkPipelineLayoutTriangle, &mVkPipelineTriangle) };
-  // We want to clean shader modules independently of result
-  closeShaderModule(mContextPtr->Device(), &shaderModules.vertex, "vertex");
-  closeShaderModule(mContextPtr->Device(), &shaderModules.fragment, "fragment");
-  if (not createdTrianglePipeline) {
-    UERROR("Could not create triangle graphics pipeline!");
-    return UFALSE;
-  }
-
   b32 createdMeshColorPipeline{ createColoredMeshGraphicsPipeline(
-      mContextPtr->Device(), mVkRenderPass, shaderModules,
-      &mVkDescriptorSetLayoutMeshColor, &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor) };
+      mContextPtr->Device(), mVkRenderPass, shaderModules, &mGraphicsPipeline) };
   // We want to clean shader modules independently of result
   closeShaderModule(mContextPtr->Device(), &shaderModules.vertex, "vertex");
   closeShaderModule(mContextPtr->Device(), &shaderModules.fragment, "fragment");
@@ -119,10 +100,7 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
 b32 FRendererVulkan::closeGraphicsPipelinesGeneral() {
   UTRACE("Closing graphics pipelines general...");
 
-  closeGraphicsPipeline(mContextPtr->Device(), nullptr, &mVkPipelineLayoutTriangle,
-                        &mVkPipelineTriangle, "triangle");
-  closeGraphicsPipeline(mContextPtr->Device(), &mVkDescriptorSetLayoutMeshColor,
-                        &mVkPipelineLayoutMeshColor, &mVkPipelineMeshColor, "mesh_color");
+  closeGraphicsPipeline(mContextPtr->Device(), &mGraphicsPipeline, "mesh_color");
 
   UDEBUG("Closed graphics pipelines general!");
   return UTRUE;
@@ -267,77 +245,9 @@ void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineConfiguration* pConfig) 
 }
 
 
-b32 createTriangleGraphicsPipeline(
-    VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
-    VkPipelineLayout* pOutPipelineLayout, VkPipeline* pOutPipeline) {
-  UTRACE("Creating triangle graphics pipeline...");
-
-  FGraphicsPipelineConfiguration defaultConfig{};
-  fillGraphicsPipelineDefaultConfig(&defaultConfig);
-
-  const char* vertexPath{ "shaders/triangle.vert.spv" };
-  b32 createdVertexModule{ createShaderModule(vertexPath, device, &shaderModules.vertex) };
-  if (not createdVertexModule) {
-    UERROR("Could not create vertex shader module from path {}!", vertexPath);
-    return UFALSE;
-  }
-  const char* fragmentPath{ "shaders/triangle.frag.spv" };
-  b32 createdFragmentModule{ createShaderModule(fragmentPath, device, &shaderModules.fragment) };
-  if (not createdFragmentModule) {
-    UERROR("Could not create fragment shader module from path {}!", fragmentPath);
-    return UFALSE;
-  }
-
-  defaultConfig.shaderStages[0].module = shaderModules.vertex;
-  defaultConfig.shaderStages[1].module = shaderModules.fragment;
-
-  VkResult createdPipelineLayout{
-    vkCreatePipelineLayout(device, &defaultConfig.pipelineLayoutCreateInfo, nullptr,
-                           pOutPipelineLayout) };
-  if (createdPipelineLayout != VK_SUCCESS) {
-    UERROR("Could not create pipeline layout!");
-    return UFALSE;
-  }
-
-  VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{};
-  graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-  graphicsPipelineCreateInfo.pNext = nullptr;
-  graphicsPipelineCreateInfo.flags = 0;
-  graphicsPipelineCreateInfo.stageCount = defaultConfig.shaderStages.size();
-  graphicsPipelineCreateInfo.pStages = defaultConfig.shaderStages.data();
-  graphicsPipelineCreateInfo.pVertexInputState = &defaultConfig.vertexInputStateCreateInfo;
-  graphicsPipelineCreateInfo.pInputAssemblyState = &defaultConfig.inputAssemblyStateCreateInfo;
-  graphicsPipelineCreateInfo.pTessellationState = nullptr;
-  graphicsPipelineCreateInfo.pViewportState = &defaultConfig.viewportStateCreateInfo;
-  graphicsPipelineCreateInfo.pRasterizationState = &defaultConfig.rasterizationStateCreateInfo;
-  graphicsPipelineCreateInfo.pMultisampleState = &defaultConfig.multisampleStateCreateInfo;
-  graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
-  graphicsPipelineCreateInfo.pColorBlendState = &defaultConfig.colorBlendStateCreateInfo;
-  graphicsPipelineCreateInfo.pDynamicState = &defaultConfig.dynamicStateCreateInfo;
-  graphicsPipelineCreateInfo.layout = *pOutPipelineLayout;
-  graphicsPipelineCreateInfo.renderPass = renderPass;
-  graphicsPipelineCreateInfo.subpass = 0;
-  graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
-  graphicsPipelineCreateInfo.basePipelineIndex = 0;
-
-  VkResult createdPipeline{ vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
-                                                      &graphicsPipelineCreateInfo, nullptr,
-                                                      pOutPipeline) };
-  if (createdPipeline != VK_SUCCESS) {
-    UERROR("Could not create triangle pipeline via vkCreateGraphicsPipelines, result: {}",
-           createdPipeline);
-    return UFALSE;
-  }
-
-  UDEBUG("Created triangle graphics pipeline!");
-  return UTRUE;
-}
-
-
 b32 createColoredMeshGraphicsPipeline(
     VkDevice device, VkRenderPass renderPass, FShaderModulesVulkan& shaderModules,
-    VkDescriptorSetLayout* pOutDescriptorSetLayout, VkPipelineLayout* pOutPipelineLayout,
-    VkPipeline* pOutPipeline) {
+    FGraphicsPipelineVulkan* pOutPipeline) {
   UTRACE("Creating triangle graphics pipeline...");
 
   FGraphicsPipelineConfiguration defaultConfig{};
@@ -406,7 +316,7 @@ b32 createColoredMeshGraphicsPipeline(
 
   VkResult createdDescriptorSetLayout{
     vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr,
-                                pOutDescriptorSetLayout) };
+                                &(pOutPipeline->descriptorSetLayout)) };
   if (createdDescriptorSetLayout != VK_SUCCESS) {
     UERROR("Could not create descriptor set layout!");
     return UFALSE;
@@ -417,13 +327,13 @@ b32 createColoredMeshGraphicsPipeline(
   pipelineLayoutCreateInfo.pNext = nullptr;
   pipelineLayoutCreateInfo.flags = 0;
   pipelineLayoutCreateInfo.setLayoutCount = 1;
-  pipelineLayoutCreateInfo.pSetLayouts = pOutDescriptorSetLayout;
+  pipelineLayoutCreateInfo.pSetLayouts = &(pOutPipeline->descriptorSetLayout);
   pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
   pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
   VkResult createdPipelineLayout{
       vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr,
-                             pOutPipelineLayout) };
+                             &(pOutPipeline->pipelineLayout)) };
   if (createdPipelineLayout != VK_SUCCESS) {
     UERROR("Could not create pipeline layout!");
     return UFALSE;
@@ -444,7 +354,7 @@ b32 createColoredMeshGraphicsPipeline(
   graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
   graphicsPipelineCreateInfo.pColorBlendState = &defaultConfig.colorBlendStateCreateInfo;
   graphicsPipelineCreateInfo.pDynamicState = &defaultConfig.dynamicStateCreateInfo;
-  graphicsPipelineCreateInfo.layout = *pOutPipelineLayout;
+  graphicsPipelineCreateInfo.layout = pOutPipeline->pipelineLayout;
   graphicsPipelineCreateInfo.renderPass = renderPass;
   graphicsPipelineCreateInfo.subpass = 0;
   graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -452,7 +362,7 @@ b32 createColoredMeshGraphicsPipeline(
 
   VkResult createdPipeline{ vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
                                                       &graphicsPipelineCreateInfo, nullptr,
-                                                      pOutPipeline) };
+                                                      &(pOutPipeline->pipeline)) };
   if (createdPipeline != VK_SUCCESS) {
     UERROR("Could not create triangle pipeline via vkCreateGraphicsPipelines, result: {}",
            createdPipeline);
@@ -464,28 +374,27 @@ b32 createColoredMeshGraphicsPipeline(
 }
 
 
-b32 closeGraphicsPipeline(VkDevice device, VkDescriptorSetLayout* pDescriptor,
-                          VkPipelineLayout* pPipelineLayout, VkPipeline* pPipeline,
+b32 closeGraphicsPipeline(VkDevice device, FGraphicsPipelineVulkan* pOutPipeline,
                           const char* logInfo) {
-  if (pPipeline and *pPipeline != VK_NULL_HANDLE) {
+  if (pOutPipeline and pOutPipeline->pipeline != VK_NULL_HANDLE) {
     UTRACE("Destroying {} graphics pipeline...", logInfo);
-    vkDestroyPipeline(device, *pPipeline, nullptr);
+    vkDestroyPipeline(device, pOutPipeline->pipeline, nullptr);
   }
   else {
     UWARN("As {} graphics pipeline was not created, it won't be destroyed!", logInfo);
   }
 
-  if (pPipelineLayout and *pPipelineLayout != VK_NULL_HANDLE) {
+  if (pOutPipeline and pOutPipeline->pipelineLayout != VK_NULL_HANDLE) {
     UTRACE("Destroying {} graphics pipeline layout...", logInfo);
-    vkDestroyPipelineLayout(device, *pPipelineLayout, nullptr);
+    vkDestroyPipelineLayout(device, pOutPipeline->pipelineLayout, nullptr);
   }
   else {
     UWARN("As {} graphics pipeline layout was not created, it won't be destroyed!", logInfo);
   }
 
-  if (pDescriptor and *pDescriptor != VK_NULL_HANDLE) {
+  if (pOutPipeline and pOutPipeline->descriptorSetLayout != VK_NULL_HANDLE) {
     UTRACE("Destroying {} descriptor set layout...", logInfo);
-    vkDestroyDescriptorSetLayout(device, *pDescriptor, nullptr);
+    vkDestroyDescriptorSetLayout(device, pOutPipeline->descriptorSetLayout, nullptr);
   }
   else {
     UWARN("As {} descriptor set layout was not created, it won't be destroyed!", logInfo);

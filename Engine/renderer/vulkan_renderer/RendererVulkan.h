@@ -67,7 +67,7 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
-  b32 collectViewportScissorInfo();
+  b32 collectViewportScissorInfo(FGraphicsPipelineVulkan* pPipeline) const;
   [[nodiscard]] b32 createGraphicsPipelinesGeneral();
   b32 closeGraphicsPipelinesGeneral();
 
@@ -78,8 +78,8 @@ private:
   [[nodiscard]] b32 createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration);
   b32 closeUniformBuffers();
 
-  [[nodiscard]] b32 createDescriptors();
-  b32 closeDescriptors();
+  [[nodiscard]] b32 createDescriptors(FGraphicsPipelineVulkan* pPipeline);
+  b32 closeDescriptors(FGraphicsPipelineVulkan* pPipeline);
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
@@ -118,20 +118,11 @@ private:
   u32 mMaxFramesInFlight{ UUNUSED };
   u32 mCurrentFrame{ UUNUSED };
   // Pipelines
-  VkPipelineLayout mVkPipelineLayoutTriangle{ VK_NULL_HANDLE };
-  VkPipeline mVkPipelineTriangle{ VK_NULL_HANDLE };
-  VkDescriptorSetLayout mVkDescriptorSetLayoutMeshColor{ VK_NULL_HANDLE };
-  VkPipelineLayout mVkPipelineLayoutMeshColor{ VK_NULL_HANDLE };
-  VkPipeline mVkPipelineMeshColor{ VK_NULL_HANDLE };
-  VkViewport mVkViewport{};
-  VkRect2D mVkScissor{};
+  FGraphicsPipelineVulkan mGraphicsPipeline{};
   // Buffers
-  FBufferVulkan mVertexBufferTriangle{};
-  FBufferVulkan mIndexBufferTriangle{};
-  std::vector<FBufferVulkan> mUniformBufferCameraVector{};
-  // Descriptors
-  VkDescriptorPool mVkDescriptorPool{ VK_NULL_HANDLE };
-  std::vector<VkDescriptorSet> mVkDescriptorSets{};
+  FBufferVulkan mVertexBuffer{};
+  FBufferVulkan mIndexBuffer{};
+  FBufferUniformVulkan mUniformBufferCamera{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };

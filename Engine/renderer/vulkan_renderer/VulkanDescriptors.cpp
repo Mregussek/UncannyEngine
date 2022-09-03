@@ -9,84 +9,60 @@ namespace uncanny
 {
 
 
-b32 FRendererVulkan::createDescriptors() {
+b32 FRendererVulkan::createDescriptors(FGraphicsPipelineVulkan* pPipeline) {
   UTRACE("Creating descriptors...");
-
-  u32 maxDescriptorCount{ mMaxFramesInFlight };
 
   VkDescriptorPoolSize poolSize{};
   poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSize.descriptorCount = maxDescriptorCount;
+  poolSize.descriptorCount = 1;
 
   VkDescriptorPoolCreateInfo poolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
   poolCreateInfo.pNext = nullptr;
   poolCreateInfo.flags = 0;
-  poolCreateInfo.maxSets = maxDescriptorCount;
+  poolCreateInfo.maxSets = 1;
   poolCreateInfo.poolSizeCount = 1;
   poolCreateInfo.pPoolSizes = &poolSize;
 
   U_VK_ASSERT( vkCreateDescriptorPool(mContextPtr->Device(), &poolCreateInfo, nullptr,
-                                      &mVkDescriptorPool) );
-
-  std::vector<VkDescriptorSetLayout> layouts(maxDescriptorCount, mVkDescriptorSetLayoutMeshColor);
+                                      &(pPipeline->descriptorPool)) );
 
   VkDescriptorSetAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
   allocateInfo.pNext = nullptr;
-  allocateInfo.descriptorPool = mVkDescriptorPool;
-  allocateInfo.descriptorSetCount = layouts.size();
-  allocateInfo.pSetLayouts = layouts.data();
+  allocateInfo.descriptorPool = pPipeline->descriptorPool;
+  allocateInfo.descriptorSetCount = 1;
+  allocateInfo.pSetLayouts = &mGraphicsPipeline.descriptorSetLayout;
 
-  mVkDescriptorSets.resize(allocateInfo.descriptorSetCount);
+  pPipeline->descriptorSetVector.resize(allocateInfo.descriptorSetCount);
   U_VK_ASSERT( vkAllocateDescriptorSets(mContextPtr->Device(), &allocateInfo,
-                                        mVkDescriptorSets.data()) );
+                                        pPipeline->descriptorSetVector.data()) );
 
-  if (mVkDescriptorSets.size() != mUniformBufferCameraVector.size()) {
-    UERROR("Wrong size of descriptors sets and camera UBOs! ds {} cu {}",
-           mVkDescriptorSets.size(), mUniformBufferCameraVector.size());
-    return UFALSE;
-  }
+  VkWriteDescriptorSet writeDescriptorSet{};
+  writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSet.pNext = nullptr;
+  writeDescriptorSet.dstSet = pPipeline->descriptorSetVector[0];
+  writeDescriptorSet.dstBinding = 0;
+  writeDescriptorSet.dstArrayElement = 0;
+  writeDescriptorSet.descriptorCount = 1;
+  writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  writeDescriptorSet.pImageInfo = nullptr;
+  writeDescriptorSet.pBufferInfo = &mUniformBufferCamera.descriptorInfo;
+  writeDescriptorSet.pTexelBufferView = nullptr;
 
-  for (size_t i = 0; i < mVkDescriptorSets.size(); i++) {
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = mUniformBufferCameraVector[i].handle;
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(FCameraUBO);
-
-    VkWriteDescriptorSet writeDescriptorSet{};
-    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSet.pNext = nullptr;
-    writeDescriptorSet.dstSet = mVkDescriptorSets[i];
-    writeDescriptorSet.dstBinding = 0;
-    writeDescriptorSet.dstArrayElement = 0;
-    writeDescriptorSet.descriptorCount = 1;
-    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writeDescriptorSet.pImageInfo = nullptr;
-    writeDescriptorSet.pBufferInfo = &bufferInfo;
-    writeDescriptorSet.pTexelBufferView = nullptr;
-
-    vkUpdateDescriptorSets(mContextPtr->Device(), 1, &writeDescriptorSet, 0, nullptr);
-  }
+  vkUpdateDescriptorSets(mContextPtr->Device(), 1, &writeDescriptorSet, 0, nullptr);
 
   UDEBUG("Created descriptors!");
   return UTRUE;
 }
 
 
-b32 FRendererVulkan::closeDescriptors() {
+b32 FRendererVulkan::closeDescriptors(FGraphicsPipelineVulkan* pPipeline) {
   UTRACE("Closing descriptors...");
 
-  //if (mVkDescriptorSets.empty()) {
-  //  UWARN("As descriptors sets array is empty, it won't be freed!");
-  //}
-  //else {
-  //  UTRACE("Freeing {} descriptor sets...", mVkDescriptorSets.size());
-  //  vkFreeDescriptorSets(mContextPtr->Device(), mVkDescriptorPool, mVkDescriptorSets.size(),
-  //                       mVkDescriptorSets.data());
-  //}
+  pPipeline->descriptorSetVector.clear();
 
-  if (mVkDescriptorPool != VK_NULL_HANDLE) {
+  if (pPipeline->descriptorPool != VK_NULL_HANDLE) {
     UTRACE("Destroying descriptor pool...");
-    vkDestroyDescriptorPool(mContextPtr->Device(), mVkDescriptorPool, nullptr);
+    vkDestroyDescriptorPool(mContextPtr->Device(), pPipeline->descriptorPool, nullptr);
   }
   else {
     UWARN("Descriptor pool is not created, so it won't be closed!");

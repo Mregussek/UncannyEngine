@@ -36,8 +36,25 @@ struct FBufferVulkan {
 };
 
 
+struct FBufferUniformVulkan {
+  FBufferVulkan buffer{};
+  VkDescriptorBufferInfo descriptorInfo{};
+};
+
+
 struct FCameraUBO {
   mat4 matrixModelViewProjection{};
+};
+
+
+struct FGraphicsPipelineVulkan {
+  VkDescriptorSetLayout descriptorSetLayout{ VK_NULL_HANDLE };
+  VkDescriptorPool descriptorPool{ VK_NULL_HANDLE };
+  std::vector<VkDescriptorSet> descriptorSetVector{};
+  VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
+  VkPipeline pipeline{ VK_NULL_HANDLE };
+  VkViewport viewport{};
+  VkRect2D scissor{};
 };
 
 
