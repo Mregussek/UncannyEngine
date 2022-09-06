@@ -12,16 +12,54 @@ namespace uncanny
 {
 
 
-struct FBufferVulkan {
-  VkBuffer handle{ VK_NULL_HANDLE };
-  VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
-  VkDescriptorBufferInfo descriptorInfo{};
-  u32 elemCount{ 0 };
+enum class EBufferType {
+  NONE, HOST_VISIBLE, DEVICE_WITH_STAGING
 };
 
 
-struct FBufferUniformDataCameraVulkan {
-  mat4 matrixModelViewProjection{};
+struct FBufferDataVulkan {
+  VkBuffer handle{ VK_NULL_HANDLE };
+  VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
+  VkDescriptorBufferInfo descriptorInfo{};
+  VkDeviceSize size{ 0 };
+  u32 elemCount{ 0 };
+  EBufferType type{ EBufferType::NONE };
+  const char* logInfo{ "" };
+};
+
+
+struct FBufferCreateStagingDependenciesVulkan {
+  VkQueue transferQueue{ VK_NULL_HANDLE };
+  VkCommandPool transferCommandPool{ VK_NULL_HANDLE };
+};
+
+
+struct FBufferCreateDependenciesVulkan {
+  void* pNext{ nullptr };
+  VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
+  VkDevice device{ VK_NULL_HANDLE };
+  VkDeviceSize size{ 0 };
+  void* pData{ nullptr };
+  VkBufferUsageFlags usage{ 0 };
+  EBufferType type{ EBufferType::NONE };
+  const char* logInfo{ "" };
+};
+
+
+class FBufferVulkan {
+public:
+
+  [[nodiscard]] b32 create(const FBufferCreateDependenciesVulkan& deps);
+  b32 close(VkDevice device);
+
+  const FBufferDataVulkan& getData() const { return mData; }
+
+private:
+
+  FBufferDataVulkan mData{};
+  VkBuffer mBufferStaging{ VK_NULL_HANDLE };
+  VkDeviceMemory mMemoryStaging{ VK_NULL_HANDLE };
+
 };
 
 
