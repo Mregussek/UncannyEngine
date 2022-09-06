@@ -37,6 +37,7 @@ b32 FBufferVulkan::create(const FBufferCreateDependenciesVulkan& deps) {
   UTRACE("Creating buffer {}...", deps.logInfo);
   mData.type = deps.type;
   mData.size = deps.size;
+  mData.elemCount = deps.elemCount;
   mData.logInfo = deps.logInfo;
 
   if (mData.type == EBufferType::HOST_VISIBLE) {
@@ -81,8 +82,17 @@ b32 FBufferVulkan::close(VkDevice device) {
 }
 
 
+VkDescriptorBufferInfo FBufferVulkan::getDescriptorBufferInfo() const {
+  VkDescriptorBufferInfo bufferInfo{};
+  bufferInfo.buffer = mData.handle;
+  bufferInfo.offset = 0;
+  bufferInfo.range = mData.size;
+  return bufferInfo;
+}
+
+
 b32 createBufferHandle(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage,
-                       VkBuffer* pOutHandle) {
+                       VkBuffer* pOutHandle, const char* logInfo) {
   VkBufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
@@ -94,6 +104,7 @@ b32 createBufferHandle(VkDevice device, VkDeviceSize size, VkBufferUsageFlags us
 
   U_VK_ASSERT( vkCreateBuffer(device, &createInfo, nullptr, pOutHandle) );
 
+  UTRACE("Created buffer handle {}!", logInfo);
   return UTRUE;
 }
 
@@ -105,7 +116,7 @@ b32 createHostVisibleBuffer(const FBufferCreateDependenciesVulkan& deps,
   };
 
   b32 createdHandle{ createBufferHandle(deps.device, pOutBuffer->size, usageFlags,
-                                        &(pOutBuffer->handle)) };
+                                        &(pOutBuffer->handle), deps.logInfo) };
   if (not createdHandle) {
     UERROR("Could not create vulkan buffer {} handle!", deps.logInfo);
     return UFALSE;
@@ -147,6 +158,7 @@ b32 createHostVisibleBuffer(const FBufferCreateDependenciesVulkan& deps,
 b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
                             VkBuffer* pStagingBuffer, VkDeviceMemory* pStagingMemory,
                             FBufferDataVulkan* pOutBuffer) {
+  UTRACE("Creating device local buffer {} ...", deps.logInfo);
   VkMemoryPropertyFlags hostVisiblePropertyFlags{
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
   };
@@ -156,9 +168,9 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   auto stagingDeps{reinterpret_cast<const FBufferCreateStagingDependenciesVulkan*>(deps.pNext)};
 
   b32 createdStagingHandle{ createBufferHandle(deps.device, deps.size, stagingUsageFlags,
-                                               pStagingBuffer) };
+                                               pStagingBuffer, "staging") };
   b32 createdHandle{ createBufferHandle(deps.device, deps.size, deviceLocalUsageFlags,
-                                        &(pOutBuffer->handle)) };
+                                        &(pOutBuffer->handle), deps.logInfo) };
   if (not createdStagingHandle or not createdHandle) {
     UERROR("Could not create staging handle or device local handle buffer {}!", deps.logInfo);
     return UFALSE;
@@ -171,6 +183,8 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   allocationStagingDeps.propertyFlags = hostVisiblePropertyFlags;
   allocationStagingDeps.logInfo = "staging";
 
+  b32 allocatedStaging{ FMemoryVulkan::allocate(allocationStagingDeps, pStagingMemory) };
+
   FMemoryAllocationDependenciesVulkan allocationDeviceDeps{};
   allocationDeviceDeps.physicalDevice = deps.physicalDevice;
   allocationDeviceDeps.device = deps.device;
@@ -178,10 +192,25 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   allocationDeviceDeps.propertyFlags = deviceLocalPropertyFlags;
   allocationDeviceDeps.logInfo = deps.logInfo;
 
-  b32 allocatedStaging{ FMemoryVulkan::allocate(allocationStagingDeps, pStagingMemory) };
   b32 allocatedDevice{ FMemoryVulkan::allocate(allocationDeviceDeps, &(pOutBuffer->deviceMemory)) };
+
   if (not allocatedStaging or not allocatedDevice) {
     UERROR("Could not allocate staging buffer or device buffer {}!", deps.logInfo);
+    return UFALSE;
+  }
+
+  FMemoryCopyDependenciesVulkan copyHostVisibleDeps{};
+  copyHostVisibleDeps.pNext = nullptr;
+  copyHostVisibleDeps.device = deps.device;
+  copyHostVisibleDeps.deviceMemory = *pStagingMemory;
+  copyHostVisibleDeps.size = pOutBuffer->size;
+  copyHostVisibleDeps.pData = deps.pData;
+  copyHostVisibleDeps.copyType = EMemoryCopyType::USE_HOST_MEMCPY;
+  copyHostVisibleDeps.logInfo = deps.logInfo;
+
+  b32 copiedToStagingHostVisibleMemory{ FMemoryVulkan::copy(copyHostVisibleDeps) };
+  if (not copiedToStagingHostVisibleMemory) {
+    UERROR("Could not copy data to host visible staging buffer {}!", deps.logInfo);
     return UFALSE;
   }
 
@@ -193,26 +222,28 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   copyStagingDeps.srcLogInfo = "staging";
   copyStagingDeps.dstLogInfo = deps.logInfo;
 
-  FMemoryCopyDependenciesVulkan copyDeps{};
-  copyDeps.pNext = reinterpret_cast<void*>(&copyStagingDeps);
-  copyDeps.device = deps.device;
-  copyDeps.deviceMemory = pOutBuffer->deviceMemory;
-  copyDeps.size = pOutBuffer->size;
-  copyDeps.pData = nullptr; // as it is staged copy, pData is not needed
-  copyDeps.copyType = EMemoryCopyType::USE_COMMAND_BUFFER;
-  copyDeps.logInfo = deps.logInfo;
+  FMemoryCopyDependenciesVulkan copyDeviceLocalDeps{};
+  copyDeviceLocalDeps.pNext = reinterpret_cast<void*>(&copyStagingDeps);
+  copyDeviceLocalDeps.device = deps.device;
+  copyDeviceLocalDeps.deviceMemory = pOutBuffer->deviceMemory;
+  copyDeviceLocalDeps.size = pOutBuffer->size;
+  copyDeviceLocalDeps.pData = nullptr; // as it is staged copy, pData is not needed
+  copyDeviceLocalDeps.copyType = EMemoryCopyType::USE_COMMAND_BUFFER;
+  copyDeviceLocalDeps.logInfo = deps.logInfo;
 
-  b32 copied{ FMemoryVulkan::copy(copyDeps) };
+  b32 copied{ FMemoryVulkan::copy(copyDeviceLocalDeps) };
   if (not copied) {
-    UERROR("Could not copy data to buffer {}!", deps.logInfo);
+    UERROR("Could not copy data to device local buffer {}!", deps.logInfo);
   }
 
-  UTRACE("Device local buffer with staging one!");
+  UTRACE("Device local buffer {} with staging one!", deps.logInfo);
   return UTRUE;
 }
 
 
 template<typename T> b32 closeHandle(VkDevice device, T* pHandle, const char* logInfo) {
+  UTRACE("Closing handle {} {}...", typeid(T).name(), logInfo);
+
   if (*pHandle != VK_NULL_HANDLE) {
     UTRACE("Destroying {} {}...", typeid(T).name(), logInfo);
     if constexpr (is_vk_buffer<T>::value) {
@@ -227,6 +258,7 @@ template<typename T> b32 closeHandle(VkDevice device, T* pHandle, const char* lo
     UWARN("As {} {} is not created, it is not destroyed!", typeid(T).name(), logInfo);
   }
 
+  UTRACE("Closed handle {} {}!", typeid(T).name(), logInfo);
   return UTRUE;
 }
 

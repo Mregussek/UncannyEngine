@@ -51,7 +51,8 @@ b32 FMemoryVulkan::allocate(const FMemoryAllocationDependenciesVulkan& deps,
   VkDeviceSize memoryOffset{ 0 };
   vkBindBufferMemory(deps.device, deps.buffer, *pOutDeviceMemoryHandle, memoryOffset);
 
-  UTRACE("Allocated and bound {} buffer memory!", deps.logInfo);
+  UTRACE("Allocated {} and bound {} buffer memory!", memoryAllocateInfo.allocationSize,
+         deps.logInfo);
   return UTRUE;
 }
 
@@ -65,6 +66,7 @@ b32 FMemoryVulkan::copy(const FMemoryCopyDependenciesVulkan& deps) {
       UERROR("Could not copy using host memcpy!");
       return UFALSE;
     }
+
     UDEBUG("Copied data using host memcpy!");
     return UTRUE;
   }
@@ -97,6 +99,7 @@ b32 FMemoryVulkan::findMemoryIndex(VkPhysicalDevice physicalDevice, u32 typeFilt
   for (u32 i = 0; i < memoryProperties.memoryTypeCount; i++) {
     // Check each memory type to see if its bit is set to 1.
     if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & flags) == flags) {
+      UTRACE("Found memory index {}!", i);
       *pOutIndex = i;
       return UTRUE;
     }
@@ -127,7 +130,8 @@ b32 copyDataFromHostToBuffer(VkDevice device, VkDeviceMemory deviceMemory,
 b32 copyDataFromDeviceToBuffer(
     VkDevice device, VkDeviceSize size,
     const FMemoryCopyBuffersUsingStagingBufferDependenciesVulkan* pDeps) {
-  UTRACE("Copying data from {} buffer to {} buffer...", pDeps->srcLogInfo, pDeps->dstLogInfo);
+  UTRACE("Copying {} data from {} buffer to {} buffer...", size, pDeps->srcLogInfo,
+         pDeps->dstLogInfo);
 
   VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
   allocateInfo.pNext = nullptr;
@@ -169,7 +173,7 @@ b32 copyDataFromDeviceToBuffer(
 
   vkFreeCommandBuffers(device, pDeps->transferCommandPool, 1, &transferCommandBuffer);
 
-  UTRACE("Copied data from {} buffer to {} buffer!", pDeps->srcLogInfo, pDeps->dstLogInfo);
+  UTRACE("Copied {} data from {} buffer to {} buffer!", size, pDeps->srcLogInfo, pDeps->dstLogInfo);
   return UTRUE;
 }
 

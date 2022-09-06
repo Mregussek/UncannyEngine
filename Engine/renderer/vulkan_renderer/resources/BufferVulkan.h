@@ -20,7 +20,6 @@ enum class EBufferType {
 struct FBufferDataVulkan {
   VkBuffer handle{ VK_NULL_HANDLE };
   VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
-  VkDescriptorBufferInfo descriptorInfo{};
   VkDeviceSize size{ 0 };
   u32 elemCount{ 0 };
   EBufferType type{ EBufferType::NONE };
@@ -39,6 +38,7 @@ struct FBufferCreateDependenciesVulkan {
   VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
   VkDevice device{ VK_NULL_HANDLE };
   VkDeviceSize size{ 0 };
+  u32 elemCount{ 0 };
   void* pData{ nullptr };
   VkBufferUsageFlags usage{ 0 };
   EBufferType type{ EBufferType::NONE };
@@ -52,7 +52,8 @@ public:
   [[nodiscard]] b32 create(const FBufferCreateDependenciesVulkan& deps);
   b32 close(VkDevice device);
 
-  const FBufferDataVulkan& getData() const { return mData; }
+  [[nodiscard]] const FBufferDataVulkan& getData() const { return mData; }
+  [[nodiscard]] VkDescriptorBufferInfo getDescriptorBufferInfo() const;
 
 private:
 

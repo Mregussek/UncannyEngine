@@ -4,6 +4,7 @@
 
 
 #include <renderer/Renderer.h>
+#include "resources/BufferVulkan.h"
 #include "RendererStructuresVulkan.h"
 #include "RendererDependenciesVulkan.h"
 #include <vector>
@@ -72,8 +73,8 @@ private:
   b32 closeGraphicsPipelinesGeneral();
 
   [[nodiscard]] b32 createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan* pOutVertex,
-                                         FBufferVulkan* pOutIndex);
-  b32 closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex, FBufferVulkan* pIndex);
+                                                    FBufferVulkan* pOutIndex) const;
+  b32 closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex, FBufferVulkan* pIndex) const;
 
   [[nodiscard]] b32 createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration);
   b32 closeUniformBuffers();
@@ -122,7 +123,7 @@ private:
   // Buffers
   FBufferVulkan mVertexBuffer{};
   FBufferVulkan mIndexBuffer{};
-  FBufferUniformVulkan mUniformBufferCamera{};
+  FBufferVulkan mUniformBufferCamera{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };

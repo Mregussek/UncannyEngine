@@ -1,10 +1,9 @@
 
 #include "RendererVulkan.h"
-#include "VulkanBuffers.h"
+#include "resources/BufferVulkan.h"
 #include <renderer/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan_context/VulkanUtilities.h>
 #include <utilities/Logger.h>
-
 
 
 namespace uncanny
@@ -12,35 +11,52 @@ namespace uncanny
 
 
 b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan* pOutVertex,
-                                                     FBufferVulkan* pOutIndex) {
+                                                     FBufferVulkan* pOutIndex) const {
   UTRACE("Creating buffers for mesh...");
 
-  pOutVertex->elemCount = pMesh->vertices.size();
-  VkDeviceSize vertexBufferSize{ sizeof(pMesh->vertices[0]) * pMesh->vertices.size() };
+  FBufferCreateStagingDependenciesVulkan stagingDeps{};
+  stagingDeps.transferQueue = mContextPtr->QueueCopy();
+  stagingDeps.transferCommandPool = mVkTransferCommandPool;
 
-  createAllocateAndCopyMeshDataToBuffer(
-      mContextPtr->PhysicalDevice(), mContextPtr->Device(), mVkTransferCommandPool,
-      mContextPtr->QueueCopy(), vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      pMesh->vertices.data(), pOutVertex, "vertex");
-  UDEBUG("Created vertex buffer for mesh!");
+  FBufferCreateDependenciesVulkan createDeps{};
+  createDeps.pNext = &stagingDeps;
+  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
+  createDeps.device = mContextPtr->Device();
+  createDeps.size = sizeof(pMesh->vertices[0]) * pMesh->vertices.size();
+  createDeps.elemCount = pMesh->vertices.size();
+  createDeps.pData = pMesh->vertices.data();
+  createDeps.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+  createDeps.type = EBufferType::DEVICE_WITH_STAGING;
+  createDeps.logInfo = "mesh vertex";
 
-  pOutIndex->elemCount = pMesh->indices.size();
-  VkDeviceSize indicesSize{ sizeof(pMesh->indices[0]) * pMesh->indices.size() };
+  b32 createdVertex{ pOutVertex->create(createDeps) };
+  if (not createdVertex) {
+    UERROR("Could not create {} buffer!");
+    return UFALSE;
+  }
 
-  createAllocateAndCopyMeshDataToBuffer(
-      mContextPtr->PhysicalDevice(), mContextPtr->Device(), mVkTransferCommandPool,
-      mContextPtr->QueueCopy(), indicesSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      pMesh->indices.data(), pOutIndex, "index");
-  UDEBUG("Created index buffer for mesh!");
+  createDeps.size = sizeof(pMesh->indices[0]) * pMesh->indices.size();
+  createDeps.elemCount = pMesh->indices.size();
+  createDeps.pData = pMesh->indices.data();
+  createDeps.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+  createDeps.logInfo = "mesh index";
+
+  b32 createdIndex{ pOutIndex->create(createDeps) };
+  if (not createdIndex) {
+    UERROR("Could not create {} buffer!");
+    return UFALSE;
+  }
+
   return UTRUE;
 }
 
 
-b32 FRendererVulkan::closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex, FBufferVulkan* pIndex) {
+b32 FRendererVulkan::closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex,
+                                                    FBufferVulkan* pIndex) const {
   UTRACE("Closing buffers for mesh...");
 
-  closeBuffer(mContextPtr->Device(), pVertex, "vertex");
-  closeBuffer(mContextPtr->Device(), pIndex, "index");
+  pVertex->close(mContextPtr->Device());
+  pIndex->close(mContextPtr->Device());
 
   UDEBUG("Closed buffers for mesh!");
   return UTRUE;

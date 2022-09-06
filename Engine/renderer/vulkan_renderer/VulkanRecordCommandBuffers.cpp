@@ -35,6 +35,9 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
   renderPassBeginInfo.pClearValues = &clearColorValue;
 
   VkDeviceSize vertexBufferOffsets[]{ 0 };
+  VkBuffer vertexHandle{ vertexBuffer.getData().handle };
+  VkBuffer indexHandle{ indexBuffer.getData().handle };
+  u32 indicesCount{ indexBuffer.getData().elemCount };
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
     renderArea.extent.width = renderTargetImages[i].extent.width;
@@ -52,14 +55,14 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
     vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.pipeline);
-    vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer.handle, vertexBufferOffsets);
-    vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer.handle, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexHandle, vertexBufferOffsets);
+    vkCmdBindIndexBuffer(commandBuffers[i], indexHandle, 0, VK_INDEX_TYPE_UINT32);
     vkCmdSetViewport(commandBuffers[i], 0, 1, &graphicsPipeline.viewport);
     vkCmdSetScissor(commandBuffers[i], 0, 1, &graphicsPipeline.scissor);
     vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
                             graphicsPipeline.pipelineLayout, 0, 1,
                             &graphicsPipeline.descriptorSetVector[0], 0, nullptr);
-    vkCmdDrawIndexed(commandBuffers[i], indexBuffer.elemCount, 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffers[i], indicesCount, 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffers[i]);
 

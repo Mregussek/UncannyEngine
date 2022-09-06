@@ -29,19 +29,6 @@ struct FImageVulkan {
 };
 
 
-struct FBufferVulkan {
-  VkBuffer handle{ VK_NULL_HANDLE };
-  VkDeviceMemory deviceMemory{ VK_NULL_HANDLE };
-  u32 elemCount{ 0 };
-};
-
-
-struct FBufferUniformVulkan {
-  FBufferVulkan buffer{};
-  VkDescriptorBufferInfo descriptorInfo{};
-};
-
-
 struct FCameraUBO {
   mat4 matrixModelViewProjection{};
 };

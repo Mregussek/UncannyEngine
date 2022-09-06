@@ -36,6 +36,8 @@ b32 FRendererVulkan::createDescriptors(FGraphicsPipelineVulkan* pPipeline) {
   U_VK_ASSERT( vkAllocateDescriptorSets(mContextPtr->Device(), &allocateInfo,
                                         pPipeline->descriptorSetVector.data()) );
 
+  VkDescriptorBufferInfo bufferInfo{ mUniformBufferCamera.getDescriptorBufferInfo() };
+
   VkWriteDescriptorSet writeDescriptorSet{};
   writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
   writeDescriptorSet.pNext = nullptr;
@@ -45,7 +47,7 @@ b32 FRendererVulkan::createDescriptors(FGraphicsPipelineVulkan* pPipeline) {
   writeDescriptorSet.descriptorCount = 1;
   writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   writeDescriptorSet.pImageInfo = nullptr;
-  writeDescriptorSet.pBufferInfo = &mUniformBufferCamera.descriptorInfo;
+  writeDescriptorSet.pBufferInfo = &bufferInfo;
   writeDescriptorSet.pTexelBufferView = nullptr;
 
   vkUpdateDescriptorSets(mContextPtr->Device(), 1, &writeDescriptorSet, 0, nullptr);

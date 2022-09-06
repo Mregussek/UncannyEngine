@@ -1,6 +1,5 @@
 
 #include "RendererVulkan.h"
-#include "VulkanBuffers.h"
 #include <renderer/Camera.h>
 #include <renderer/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan_context/VulkanUtilities.h>
@@ -17,28 +16,25 @@ static void moveCameraDataToStructUBO(FCamera* pCamera, FCameraUBO* pOutUBO);
 b32 FRendererVulkan::createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration) {
   UTRACE("Creating uniform buffers...");
 
-  VkDeviceSize bufferSize{ sizeof(FCameraUBO) };
-  VkMemoryPropertyFlags memoryPropertyFlags{
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
   FCameraUBO cameraUbo{};
   moveCameraDataToStructUBO(sceneConfiguration.pCamera, &cameraUbo);
-  void* pData{ &cameraUbo };
 
-  createBuffer(mContextPtr->Device(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, bufferSize,
-               &mUniformBufferCamera.buffer.handle, "camera UBO");
-  allocateAndBindBufferMemory(mContextPtr->PhysicalDevice(), mContextPtr->Device(),
-                              mUniformBufferCamera.buffer.handle,
-                              memoryPropertyFlags, &mUniformBufferCamera.buffer.deviceMemory,
-                              "camera UBO");
-  copyDataFromHostToBuffer(mContextPtr->Device(), mUniformBufferCamera.buffer.deviceMemory,
-                           bufferSize, pData, "camera UBO");
+  FBufferCreateDependenciesVulkan createDeps{};
+  createDeps.pNext = nullptr;
+  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
+  createDeps.device = mContextPtr->Device();
+  createDeps.size = sizeof(FCameraUBO);
+  createDeps.elemCount = 1;
+  createDeps.pData = &cameraUbo;
+  createDeps.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+  createDeps.type = EBufferType::HOST_VISIBLE;
+  createDeps.logInfo = "camera uniform";
 
-  VkDescriptorBufferInfo descriptorCameraBufferInfo{};
-  descriptorCameraBufferInfo.buffer = mUniformBufferCamera.buffer.handle;
-  descriptorCameraBufferInfo.offset = 0;
-  descriptorCameraBufferInfo.range = bufferSize;
-
-  mUniformBufferCamera.descriptorInfo = descriptorCameraBufferInfo;
+  b32 createdCameraUBO{ mUniformBufferCamera.create(createDeps) };
+  if (not createdCameraUBO) {
+    UERROR("Could not create camera ubo!");
+    return UFALSE;
+  }
 
   UDEBUG("Created uniform buffers!");
   return UTRUE;
@@ -48,8 +44,7 @@ b32 FRendererVulkan::createUniformBuffers(const FRenderSceneConfiguration& scene
 b32 FRendererVulkan::closeUniformBuffers() {
   UTRACE("Closing uniform buffers...");
 
-  closeBuffer(mContextPtr->Device(), &mUniformBufferCamera.buffer, "camera ubo");
-  mUniformBufferCamera.descriptorInfo = {};
+  mUniformBufferCamera.close(mContextPtr->Device());
 
   UDEBUG("Closed uniform buffers!");
   return UTRUE;
