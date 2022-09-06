@@ -17,7 +17,7 @@ template<> struct is_vk_buffer<VkBuffer> : std::true_type { };
 
 
 static b32 createBufferHandle(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage,
-                              VkBuffer* pOutHandle);
+                              VkBuffer* pOutHandle, const char* logInfo);
 
 
 static b32 createHostVisibleBuffer(const FBufferCreateDependenciesVulkan& deps,
