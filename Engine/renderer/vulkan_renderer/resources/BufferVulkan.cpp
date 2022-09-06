@@ -9,13 +9,6 @@ namespace uncanny
 {
 
 
-template<typename T> struct is_vk_device_memory : std::false_type { };
-template<> struct is_vk_device_memory<VkDeviceMemory> : std::true_type { };
-
-template<typename T> struct is_vk_buffer : std::false_type { };
-template<> struct is_vk_buffer<VkBuffer> : std::true_type { };
-
-
 static b32 createBufferHandle(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage,
                               VkBuffer* pOutHandle, const char* logInfo);
 
@@ -30,7 +23,7 @@ static b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
                                    FBufferDataVulkan* pOutBuffer);
 
 
-template<typename T> static b32 closeHandle(VkDevice device, T* pHandle, const char* logInfo);
+static b32 closeHandle(VkDevice device, VkBuffer* pBuffer, const char* logInfo);
 
 
 b32 FBufferVulkan::create(const FBufferCreateDependenciesVulkan& deps) {
@@ -69,10 +62,19 @@ b32 FBufferVulkan::create(const FBufferCreateDependenciesVulkan& deps) {
 b32 FBufferVulkan::close(VkDevice device) {
   UTRACE("Closing buffer...");
 
-  closeHandle<VkBuffer>(device, &mData.handle, mData.logInfo);
-  closeHandle<VkDeviceMemory>(device, &mData.deviceMemory, mData.logInfo);
-  closeHandle<VkBuffer>(device, &mBufferStaging, "staging");
-  closeHandle<VkDeviceMemory>(device, &mMemoryStaging, "staging");
+  closeHandle(device, &mData.handle, mData.logInfo);
+  closeHandle(device, &mBufferStaging, "staging");
+
+  FMemoryFreeDependenciesVulkan freeDeps{};
+  freeDeps.device = device;
+  freeDeps.pDeviceMemory = &mData.deviceMemory;
+  freeDeps.logInfo = mData.logInfo;
+  FMemoryVulkan::free(freeDeps);
+
+  freeDeps.pDeviceMemory = &mMemoryStaging;
+  freeDeps.logInfo = "staging";
+  FMemoryVulkan::free(freeDeps);
+
   mData.elemCount = 0;
   mData.size = 0;
   mData.logInfo = "";
@@ -241,24 +243,19 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
 }
 
 
-template<typename T> b32 closeHandle(VkDevice device, T* pHandle, const char* logInfo) {
-  UTRACE("Closing handle {} {}...", typeid(T).name(), logInfo);
+b32 closeHandle(VkDevice device, VkBuffer* pBuffer, const char* logInfo) {
+  UTRACE("Closing handle buffer {}...", logInfo);
 
-  if (*pHandle != VK_NULL_HANDLE) {
-    UTRACE("Destroying {} {}...", typeid(T).name(), logInfo);
-    if constexpr (is_vk_buffer<T>::value) {
-      vkDestroyBuffer(device, *pHandle, nullptr);
-    }
-    else if constexpr (is_vk_device_memory<T>::value) {
-      vkFreeMemory(device, *pHandle, nullptr);
-    }
-    *pHandle = VK_NULL_HANDLE;
+  if (*pBuffer != VK_NULL_HANDLE) {
+    UTRACE("Destroying {} buffer...", logInfo);
+    vkDestroyBuffer(device, *pBuffer, nullptr);
+    *pBuffer = VK_NULL_HANDLE;
   }
   else {
-    UWARN("As {} {} is not created, it is not destroyed!", typeid(T).name(), logInfo);
+    UWARN("As buffer {} is not created, it is not destroyed!", logInfo);
   }
 
-  UTRACE("Closed handle {} {}!", typeid(T).name(), logInfo);
+  UTRACE("Closed handle buffer {}!", logInfo);
   return UTRUE;
 }
 

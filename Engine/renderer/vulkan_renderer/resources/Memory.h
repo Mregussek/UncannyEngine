@@ -46,6 +46,13 @@ struct FMemoryCopyDependenciesVulkan {
 };
 
 
+struct FMemoryFreeDependenciesVulkan {
+  VkDevice device{ VK_NULL_HANDLE };
+  VkDeviceMemory* pDeviceMemory{ nullptr };
+  const char* logInfo{ "" };
+};
+
+
 class FMemoryVulkan {
 public:
 
@@ -53,6 +60,8 @@ public:
                       VkDeviceMemory* pOutDeviceMemoryHandle);
 
   static b32 copy(const FMemoryCopyDependenciesVulkan& deps);
+
+  static b32 free(const FMemoryFreeDependenciesVulkan& deps);
 
 private:
 

@@ -91,6 +91,21 @@ b32 FMemoryVulkan::copy(const FMemoryCopyDependenciesVulkan& deps) {
 }
 
 
+b32 FMemoryVulkan::free(const FMemoryFreeDependenciesVulkan& deps) {
+  UTRACE("Freeing memory {}...", deps.logInfo);
+
+  if (*(deps.pDeviceMemory) != VK_NULL_HANDLE) {
+    vkFreeMemory(deps.device, *(deps.pDeviceMemory), nullptr);
+    *(deps.pDeviceMemory) = VK_NULL_HANDLE;
+  }
+  else {
+    UWARN("As device memory {} is not created, it is not destroyed!", deps.logInfo);
+  }
+
+  return UTRUE;
+}
+
+
 b32 FMemoryVulkan::findMemoryIndex(VkPhysicalDevice physicalDevice, u32 typeFilter,
                                    VkMemoryPropertyFlags flags, u32* pOutIndex) {
   VkPhysicalDeviceMemoryProperties memoryProperties{};
