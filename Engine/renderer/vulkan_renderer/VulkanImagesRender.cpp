@@ -4,21 +4,10 @@
 #include <renderer/vulkan_context/VulkanUtilities.h>
 #include <renderer/vulkan_context/VulkanWindowSurface.h>
 #include <utilities/Logger.h>
-#include "VulkanImages.h"
 
 
 namespace uncanny
 {
-
-
-static b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
-                                   VkDevice device,
-                                   VkRenderPass renderPass,
-                                   VkExtent2D imageExtent,
-                                   VkFormat imageFormat,
-                                   VkImageTiling imageTiling,
-                                   VkImageUsageFlags imageUsage,
-                                   FImageVulkan* pOutRenderTargetImage);
 
 
 b32 FRendererVulkan::createRenderTargetImages() {
@@ -35,14 +24,6 @@ b32 FRendererVulkan::createRenderTargetImages() {
     return UFALSE;
   }
 
-  b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
-      imageFormat.format, imageTiling, mContextPtr->PhysicalDevice(),
-      mImageDependencies.renderTarget.formatsFeatureVector, "render target") };
-  if (not featuresAreSupported) {
-    UERROR("Could not create render target images, as format features are not supported!");
-    return UFALSE;
-  }
-
   VkImageUsageFlags imageUsage{ 0 };
   for (VkImageUsageFlags imageUsageFlag : mImageDependencies.renderTarget.usageVector) {
     imageUsage = imageUsage | imageUsageFlag;
@@ -50,13 +31,30 @@ b32 FRendererVulkan::createRenderTargetImages() {
 
   mImageRenderTargetVector.resize(imageCount);
 
+  VkExtent3D surfaceExtent3D{ mContextPtr->SurfaceExtent().width,
+                              mContextPtr->SurfaceExtent().height,
+                              1 };
+
+  FImageCreateDependenciesVulkan createDeps{};
+  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
+  createDeps.device = mContextPtr->Device();
+  createDeps.extent = surfaceExtent3D;
+  createDeps.format = imageFormat.format;
+  createDeps.tiling = imageTiling;
+  createDeps.usage = imageUsage;
+  createDeps.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  createDeps.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+  createDeps.type = EImageType::RENDER_TARGET;
+  createDeps.viewDeps.shouldCreate = UTRUE;
+  createDeps.framebufferDeps.shouldCreate = UTRUE;
+  createDeps.framebufferDeps.renderPass = mVkRenderPass;
+  createDeps.pFormatsFeaturesToCheck = &mImageDependencies.renderTarget.formatsFeatureVector;
+  createDeps.logInfo = "render target";
+
   for (u32 i = 0; i < imageCount; i++) {
     UTRACE("Creating render target image {}...", i);
-    b32 createdProperly{
-      createRenderTargetImage(mContextPtr->PhysicalDevice(), mContextPtr->Device(), mVkRenderPass,
-                              mContextPtr->SurfaceExtent(), imageFormat.format, imageTiling,
-                              imageUsage, &mImageRenderTargetVector[i]) };
-    if (not createdProperly) {
+    b32 created{ mImageRenderTargetVector[i].create(createDeps) };
+    if (not created) {
       UERROR("Could not create render target image at index {}", i);
       return UFALSE;
     }
@@ -77,7 +75,7 @@ b32 FRendererVulkan::closeRenderTargetImages() {
   }
 
   for (FImageVulkan& renderTargetImage : mImageRenderTargetVector) {
-    b32 closedProperly{ closeImageVulkan(&renderTargetImage, mContextPtr->Device(), "render target") };
+    b32 closedProperly{ renderTargetImage.close(mContextPtr->Device()) };
     if (not closedProperly) {
       UERROR("Could not close properly render target image!");
       return UFALSE;
@@ -106,105 +104,6 @@ b32 FRendererVulkan::recreateRenderTargetImages() {
   }
 
   UDEBUG("Recreated render target images!");
-  return UTRUE;
-}
-
-
-b32 createRenderTargetImage(VkPhysicalDevice physicalDevice,
-                            VkDevice device,
-                            VkRenderPass renderPass,
-                            VkExtent2D imageExtent,
-                            VkFormat imageFormat,
-                            VkImageTiling imageTiling,
-                            VkImageUsageFlags imageUsage,
-                            FImageVulkan* pOutRenderTargetImage) {
-  pOutRenderTargetImage->format = imageFormat;
-  pOutRenderTargetImage->tiling = imageTiling;
-  pOutRenderTargetImage->type = EImageType::RENDER_TARGET;
-
-  pOutRenderTargetImage->extent.width = imageExtent.width;
-  pOutRenderTargetImage->extent.height = imageExtent.height;
-  pOutRenderTargetImage->extent.depth = 1;
-
-  UTRACE("Creating render target image...");
-  VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-  imageCreateInfo.pNext = nullptr;
-  imageCreateInfo.flags = 0;
-  imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-  imageCreateInfo.format = pOutRenderTargetImage->format;
-  imageCreateInfo.extent = pOutRenderTargetImage->extent;
-  imageCreateInfo.mipLevels = 1;
-  imageCreateInfo.arrayLayers = 1;
-  imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-  imageCreateInfo.tiling = imageTiling;
-  imageCreateInfo.usage = imageUsage;
-  imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  imageCreateInfo.queueFamilyIndexCount = 0;
-  imageCreateInfo.pQueueFamilyIndices = nullptr;
-  imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-
-  VkResult createdImage{ vkCreateImage(device, &imageCreateInfo, nullptr,
-                                       &pOutRenderTargetImage->handle) };
-  if (createdImage != VK_SUCCESS) {
-    UERROR("Could not create render target image!");
-    return UFALSE;
-  }
-
-  b32 allocated{ allocateAndBindImageMemory(physicalDevice, device, pOutRenderTargetImage,
-                                            "render target") };
-  if (not allocated) {
-    UERROR("Could not allocate render target image memory!");
-    return UFALSE;
-  }
-
-  UTRACE("Creating render target image view...");
-  VkComponentMapping componentMapping{};
-  componentMapping.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-  componentMapping.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-  componentMapping.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-  componentMapping.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-  VkImageSubresourceRange imageSubresourceRange{};
-  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  imageSubresourceRange.baseMipLevel = 0;
-  imageSubresourceRange.levelCount = 1;
-  imageSubresourceRange.baseArrayLayer = 0;
-  imageSubresourceRange.layerCount = 1;
-
-  VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-  imageViewCreateInfo.pNext = nullptr;
-  imageViewCreateInfo.flags = 0;
-  imageViewCreateInfo.image = pOutRenderTargetImage->handle;
-  imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-  imageViewCreateInfo.format = pOutRenderTargetImage->format;
-  imageViewCreateInfo.components = componentMapping;
-  imageViewCreateInfo.subresourceRange = imageSubresourceRange;
-
-  VkResult createdView{ vkCreateImageView(device, &imageViewCreateInfo, nullptr,
-                                          &pOutRenderTargetImage->handleView) };
-  if (createdView != VK_SUCCESS) {
-    UERROR("Could not create render target image view!");
-    return UFALSE;
-  }
-
-  UTRACE("Creating render target framebuffer...");
-  VkFramebufferCreateInfo framebufferCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-  framebufferCreateInfo.pNext = nullptr;
-  framebufferCreateInfo.flags = 0;
-  framebufferCreateInfo.renderPass = renderPass;
-  framebufferCreateInfo.attachmentCount = 1;
-  framebufferCreateInfo.pAttachments = &pOutRenderTargetImage->handleView;
-  framebufferCreateInfo.width = pOutRenderTargetImage->extent.width;
-  framebufferCreateInfo.height = pOutRenderTargetImage->extent.height;
-  framebufferCreateInfo.layers = 1;
-
-  VkResult createFramebuffer{ vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr,
-                                                  &pOutRenderTargetImage->handleFramebuffer) };
-  if (createFramebuffer != VK_SUCCESS) {
-    UERROR("Could not create render target framebuffer!");
-    return UFALSE;
-  }
-
   return UTRUE;
 }
 

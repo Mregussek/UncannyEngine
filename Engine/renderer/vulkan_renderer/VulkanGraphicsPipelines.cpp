@@ -55,7 +55,7 @@ b32 FRendererVulkan::collectViewportScissorInfo(FGraphicsPipelineVulkan* pPipeli
 
   // TODO: handle taking proper extent properly for viewport and scissors!
   UWARN("During collection data for viewport and scissor using 0-indexes render target extent!");
-  VkExtent3D imageExtent{ mImageRenderTargetVector[0].extent };
+  VkExtent3D imageExtent{ mImageRenderTargetVector[0].getData().extent };
 
   VkViewport viewport{};
   viewport.x = 0.f;

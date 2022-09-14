@@ -1,10 +1,9 @@
 
 #include "RendererVulkan.h"
+#include "VulkanSwapchain.h"
 #include <renderer/vulkan_context/VulkanUtilities.h>
 #include <renderer/vulkan_context/VulkanWindowSurface.h>
 #include <renderer/vulkan_context/ContextVulkan.h>
-#include "VulkanSwapchain.h"
-#include "VulkanImages.h"
 #include <utilities/Logger.h>
 #include <window/Window.h>
 
@@ -76,14 +75,6 @@ b32 FRendererVulkan::createSwapchain() {
     return UFALSE;
   }
 
-  b32 featuresAreSupported{ areFormatsFeaturesDependenciesMetForImageFormat(
-      imageFormat.format, imageTiling, mContextPtr->PhysicalDevice(),
-      mSwapchainDependencies.imageFormatFeatureVector, "swapchain") };
-  if (not featuresAreSupported) {
-    UERROR("Could not create swapchain images, as format features are not supported!");
-    return UFALSE;
-  }
-
   // OR every image usage from dependencies
   VkImageUsageFlags imageUsage{ 0 };
   for (VkImageUsageFlags imageUsageFlag : mSwapchainDependencies.imageUsageVector) {
@@ -126,46 +117,29 @@ b32 FRendererVulkan::createSwapchain() {
 
   // Copying retrieved swapchain images into presentable member handles...
   mImagePresentableVector.resize(imageCount);
-  VkExtent3D presentableImageExtent{};
-  presentableImageExtent.width = imageExtent2D.width;
-  presentableImageExtent.height = imageExtent2D.height;
-  presentableImageExtent.depth = 1;
+
+  FImageCreateDependenciesVulkan createDeps{};
+  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
+  createDeps.device = mContextPtr->Device();
+  // createDeps.handleToUse will be filled later
+  createDeps.extent = { imageExtent2D.width, imageExtent2D.height, 1 };
+  createDeps.format = imageFormat.format;
+  createDeps.tiling = imageTiling;
+  createDeps.usage = imageUsage;
+  createDeps.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  createDeps.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  createDeps.type = EImageType::PRESENTABLE;
+  createDeps.viewDeps.shouldCreate = UFALSE;
+  createDeps.framebufferDeps.shouldCreate = UFALSE;
+  createDeps.pFormatsFeaturesToCheck = &mSwapchainDependencies.imageFormatFeatureVector;
+  createDeps.logInfo = "presentable swapchain";
+
   for(u32 i = 0; i < imageCount; i++) {
-    mImagePresentableVector[i].handle = imageVector[i];
-    mImagePresentableVector[i].type = EImageType::PRESENTABLE;
-    mImagePresentableVector[i].format = imageFormat.format;
-    mImagePresentableVector[i].extent = presentableImageExtent;
-    mImagePresentableVector[i].tiling = imageTiling;
+    UTRACE("Working on swapchain presentable image {}...", i);
+    createDeps.handleToUse = imageVector[i];
+    mImagePresentableVector[i].create(createDeps);
   }
   imageVector.clear();
-
-  UTRACE("Creating {} image views for swapchain presentable images...", imageCount);
-  for (u32 i = 0; i < imageCount; ++i) {
-    VkComponentMapping componentMapping{};
-    componentMapping.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    componentMapping.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    componentMapping.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    componentMapping.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-    VkImageSubresourceRange imageSubresourceRange{};
-    imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageSubresourceRange.baseMipLevel = 0;
-    imageSubresourceRange.levelCount = 1;
-    imageSubresourceRange.baseArrayLayer = 0;
-    imageSubresourceRange.layerCount = 1;
-
-    VkImageViewCreateInfo imageViewCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-    imageViewCreateInfo.pNext = nullptr;
-    imageViewCreateInfo.flags = 0;
-    imageViewCreateInfo.image = mImagePresentableVector[i].handle;
-    imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    imageViewCreateInfo.format = imageFormat.format;
-    imageViewCreateInfo.components = componentMapping;
-    imageViewCreateInfo.subresourceRange = imageSubresourceRange;
-
-    U_VK_ASSERT( vkCreateImageView(mContextPtr->Device(), &imageViewCreateInfo, nullptr,
-                                   &mImagePresentableVector[i].handleView) );
-  }
 
   UDEBUG("Created swapchain!");
   return UTRUE;
@@ -176,7 +150,7 @@ b32 FRendererVulkan::closeSwapchain() {
   UTRACE("Closing swapchain...");
 
   for (FImageVulkan& image : mImagePresentableVector) {
-    closeImageVulkan(&image, mContextPtr->Device(), "swapchain presentable");
+    image.close(mContextPtr->Device());
   }
   mImagePresentableVector.clear();
 
@@ -194,7 +168,7 @@ b32 FRendererVulkan::recreateSwapchain() {
   // Firstly destroying images and its image views as they are not needed and
   // those variables will be filled during createSwapchain()
   for (FImageVulkan& image : mImagePresentableVector) {
-    closeImageVulkan(&image, mContextPtr->Device(), "swapchain presentable");
+    image.close(mContextPtr->Device());
   }
   mImagePresentableVector.clear();
 

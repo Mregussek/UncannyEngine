@@ -40,10 +40,10 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
   u32 indicesCount{ indexBuffer.getData().elemCount };
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
-    renderArea.extent.width = renderTargetImages[i].extent.width;
-    renderArea.extent.height = renderTargetImages[i].extent.height;
+    renderArea.extent.width = renderTargetImages[i].getData().extent.width;
+    renderArea.extent.height = renderTargetImages[i].getData().extent.height;
     renderPassBeginInfo.renderArea = renderArea;
-    renderPassBeginInfo.framebuffer = renderTargetImages[i].handleFramebuffer;
+    renderPassBeginInfo.framebuffer = renderTargetImages[i].getData().handleFramebuffer;
 
     VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
                                                                &commandBufferBeginInfo) };
@@ -93,35 +93,38 @@ b32 recordCopyRenderTargetIntoPresentableImage(
     }
 
     for (u32 i = 0; i < renderTargetImages.size(); i++) {
-      if (renderTargetImages[i].type != EImageType::RENDER_TARGET) {
-        UERROR("Render target image has unsupported type: {}", (i32)renderTargetImages[i].type);
+      const FImageDataVulkan& renderData{ renderTargetImages[i].getData() };
+      const FImageDataVulkan& presentData{ presentableImages[i].getData() };
+
+      if (renderData.type != EImageType::RENDER_TARGET) {
+        UERROR("Render target image has unsupported type: {}", (i32)renderData.type);
         return UFALSE;
       }
-      if (presentableImages[i].type != EImageType::PRESENTABLE) {
-        UERROR("Render target image has unsupported type: {}", (i32)renderTargetImages[i].type);
+      if (presentData.type != EImageType::PRESENTABLE) {
+        UERROR("Render target image has unsupported type: {}", (i32)renderData.type);
         return UFALSE;
       }
-      if (renderTargetImages[i].format != presentableImages[i].format) {
+      if (renderData.format != presentData.format) {
         UERROR("Render target image and presentable image have different formats! rt {} pr {}",
-               renderTargetImages[i].format, presentableImages[i].format);
+               renderData.format, presentData.format);
         return UFALSE;
       }
-      if (renderTargetImages[i].extent.height != presentableImages[i].extent.height) {
+      if (renderData.extent.height != presentData.extent.height) {
         UERROR("Render target image height does not equal to presentable one's height! rt {} pr {}",
-               renderTargetImages[i].extent.height, presentableImages[i].extent.height);
+               renderData.extent.height, presentData.extent.height);
         return UFALSE;
       }
-      if (renderTargetImages[i].extent.width != presentableImages[i].extent.width) {
+      if (renderData.extent.width != presentData.extent.width) {
         UERROR("Render target image width does not equal to presentable one's width! rt {} pr {}",
-               renderTargetImages[i].extent.width, presentableImages[i].extent.width);
+               renderData.extent.width, presentData.extent.width);
         return UFALSE;
       }
-      if (renderTargetImages[i].extent.depth != presentableImages[i].extent.depth) {
+      if (renderData.extent.depth != presentData.extent.depth) {
         UERROR("Render target image width does not equal to presentable one's depth! rt {} pr {}",
-               renderTargetImages[i].extent.depth, presentableImages[i].extent.depth);
+               renderData.extent.depth, presentData.extent.depth);
         return UFALSE;
       }
-      if (renderTargetImages[i].extent.depth != 1) {
+      if (renderData.extent.depth != 1) {
         UERROR("Render target and presentable image have depth other than 1!");
         return UFALSE;
       }
@@ -139,7 +142,7 @@ b32 recordCopyRenderTargetIntoPresentableImage(
   copyRegion.srcOffset = { 0, 0, 0 };
   copyRegion.dstSubresource = subresourceLayers;
   copyRegion.dstOffset = { 0, 0, 0 };
-  copyRegion.extent = renderTargetImages[0].extent;
+  copyRegion.extent = renderTargetImages[0].getData().extent;
 
   VkImageSubresourceRange imageSubresourceRange{};
   imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -174,8 +177,11 @@ b32 recordCopyRenderTargetIntoPresentableImage(
   commandBufferBeginInfo.pInheritanceInfo = nullptr;
 
   for (u32 i = 0; i < renderTargetImages.size(); i++) {
-    barrierPresentableUndefinedToTransfer.image = presentableImages[i].handle;
-    barrierPresentableTransferToPresent.image = presentableImages[i].handle;
+    VkImage presentImageHandle{ presentableImages[i].getData().handle };
+    VkImage renderImageHandle{ renderTargetImages[i].getData().handle };
+
+    barrierPresentableUndefinedToTransfer.image = presentImageHandle;
+    barrierPresentableTransferToPresent.image = presentImageHandle;
 
     VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
                                                                &commandBufferBeginInfo) };
@@ -192,8 +198,8 @@ b32 recordCopyRenderTargetIntoPresentableImage(
                          0, nullptr,
                          1, &barrierPresentableUndefinedToTransfer);
     vkCmdCopyImage(commandBuffers[i],
-                   renderTargetImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                   presentableImages[i].handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   renderImageHandle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                   presentImageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                    1, &copyRegion);
     vkCmdPipelineBarrier(commandBuffers[i],
                          VK_PIPELINE_STAGE_TRANSFER_BIT,

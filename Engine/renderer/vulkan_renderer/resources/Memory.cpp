@@ -22,37 +22,47 @@ static b32 copyDataFromDeviceToBuffer(
 
 b32 FMemoryVulkan::allocate(const FMemoryAllocationDependenciesVulkan& deps,
                             VkDeviceMemory* pOutDeviceMemoryHandle) {
-  UTRACE("Allocating {} buffer memory...", deps.logInfo);
-
-  VkMemoryRequirements memoryReqs;
-  vkGetBufferMemoryRequirements(deps.device, deps.buffer, &memoryReqs);
+  UTRACE("Allocating {} memory...", deps.logInfo);
 
   u32 memoryTypeIndex{ UUNUSED };
-  b32 foundIndex{ FMemoryVulkan::findMemoryIndex(deps.physicalDevice, memoryReqs.memoryTypeBits,
+  b32 foundIndex{ FMemoryVulkan::findMemoryIndex(deps.physicalDevice,
+                                                 deps.memoryRequirements.memoryTypeBits,
                                                  deps.propertyFlags, &memoryTypeIndex) };
   if (foundIndex == UUNUSED) {
-    UERROR("Required memory type index not found, {} buffer is not valid!", deps.logInfo);
+    UERROR("Required memory type index not found, {} is not valid!", deps.logInfo);
     return UFALSE;
   }
 
   VkMemoryAllocateInfo memoryAllocateInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
   memoryAllocateInfo.pNext = nullptr;
-  memoryAllocateInfo.allocationSize = memoryReqs.size;
+  memoryAllocateInfo.allocationSize = deps.memoryRequirements.size;
   memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
 
   VkResult allocated{ vkAllocateMemory(deps.device, &memoryAllocateInfo, nullptr,
                                        pOutDeviceMemoryHandle) };
   if (allocated != VK_SUCCESS) {
-    UERROR("Could not allocate device memory for {} buffer!", deps.logInfo);
+    UERROR("Could not allocate device memory for {}!", deps.logInfo);
     return UFALSE;
   }
   sNumOfAllocations++;
 
-  VkDeviceSize memoryOffset{ 0 };
-  vkBindBufferMemory(deps.device, deps.buffer, *pOutDeviceMemoryHandle, memoryOffset);
+  UTRACE("Allocated {} {} memory!", memoryAllocateInfo.allocationSize, deps.logInfo);
+  return UTRUE;
+}
 
-  UTRACE("Allocated {} and bound {} buffer memory!", memoryAllocateInfo.allocationSize,
-         deps.logInfo);
+
+b32 FMemoryVulkan::bindBuffer(VkDevice device, VkBuffer buffer, VkDeviceMemory deviceMemory) {
+  UTRACE("Binding buffer memory...");
+  VkDeviceSize memoryOffset{ 0 };
+  vkBindBufferMemory(device, buffer, deviceMemory, memoryOffset);
+  return UTRUE;
+}
+
+
+b32 FMemoryVulkan::bindImage(VkDevice device, VkImage image, VkDeviceMemory deviceMemory) {
+  UTRACE("Binding image memory...");
+  VkDeviceSize memoryOffset{ 0 };
+  vkBindImageMemory(device, image, deviceMemory, memoryOffset);
   return UTRUE;
 }
 

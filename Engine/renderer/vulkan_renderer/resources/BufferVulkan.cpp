@@ -124,14 +124,19 @@ b32 createHostVisibleBuffer(const FBufferCreateDependenciesVulkan& deps,
     return UFALSE;
   }
 
+  VkMemoryRequirements memoryReqs;
+  vkGetBufferMemoryRequirements(deps.device, pOutBuffer->handle, &memoryReqs);
+
   FMemoryAllocationDependenciesVulkan allocationDeps{};
   allocationDeps.physicalDevice = deps.physicalDevice;
   allocationDeps.device = deps.device;
-  allocationDeps.buffer = pOutBuffer->handle;
+  allocationDeps.memoryRequirements = memoryReqs;
   allocationDeps.propertyFlags = hostVisiblePropertyFlags;
   allocationDeps.logInfo = deps.logInfo;
 
   b32 allocated{ FMemoryVulkan::allocate(allocationDeps, &(pOutBuffer->deviceMemory)) };
+  FMemoryVulkan::bindBuffer(deps.device, pOutBuffer->handle, pOutBuffer->deviceMemory);
+
   if (not allocated) {
     UERROR("Could not allocate buffer {}!", deps.logInfo);
     return UFALSE;
@@ -180,23 +185,31 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
     return UFALSE;
   }
 
+  VkMemoryRequirements memoryStagingReqs;
+  vkGetBufferMemoryRequirements(deps.device, *pStagingBuffer, &memoryStagingReqs);
+
   FMemoryAllocationDependenciesVulkan allocationStagingDeps{};
   allocationStagingDeps.physicalDevice = deps.physicalDevice;
   allocationStagingDeps.device = deps.device;
-  allocationStagingDeps.buffer = *pStagingBuffer;
+  allocationStagingDeps.memoryRequirements = memoryStagingReqs;
   allocationStagingDeps.propertyFlags = stagingPropertyFlags;
   allocationStagingDeps.logInfo = "staging";
 
   b32 allocatedStaging{ FMemoryVulkan::allocate(allocationStagingDeps, pStagingMemory) };
+  FMemoryVulkan::bindBuffer(deps.device, *pStagingBuffer, *pStagingMemory);
+
+  VkMemoryRequirements memoryDeviceLocalReqs;
+  vkGetBufferMemoryRequirements(deps.device, pOutBuffer->handle, &memoryDeviceLocalReqs);
 
   FMemoryAllocationDependenciesVulkan allocationDeviceDeps{};
   allocationDeviceDeps.physicalDevice = deps.physicalDevice;
   allocationDeviceDeps.device = deps.device;
-  allocationDeviceDeps.buffer = pOutBuffer->handle;
+  allocationDeviceDeps.memoryRequirements = memoryDeviceLocalReqs;
   allocationDeviceDeps.propertyFlags = deviceLocalPropertyFlags;
   allocationDeviceDeps.logInfo = deps.logInfo;
 
   b32 allocatedDevice{ FMemoryVulkan::allocate(allocationDeviceDeps, &(pOutBuffer->deviceMemory)) };
+  FMemoryVulkan::bindBuffer(deps.device, pOutBuffer->handle, pOutBuffer->deviceMemory);
 
   if (not allocatedStaging or not allocatedDevice) {
     UERROR("Could not allocate staging buffer or device buffer {}!", deps.logInfo);

@@ -5,6 +5,7 @@
 
 #include <renderer/Renderer.h>
 #include "resources/BufferVulkan.h"
+#include "resources/ImageVulkan.h"
 #include "RendererStructuresVulkan.h"
 #include "RendererDependenciesVulkan.h"
 #include <vector>

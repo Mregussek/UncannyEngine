@@ -19,7 +19,7 @@ enum class EMemoryCopyType {
 struct FMemoryAllocationDependenciesVulkan {
   VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
   VkDevice device{ VK_NULL_HANDLE };
-  VkBuffer buffer{ VK_NULL_HANDLE };
+  VkMemoryRequirements memoryRequirements{};
   VkMemoryPropertyFlags propertyFlags{ 0 };
   const char* logInfo{ "" };
 };
@@ -58,6 +58,10 @@ public:
 
   static b32 allocate(const FMemoryAllocationDependenciesVulkan& deps,
                       VkDeviceMemory* pOutDeviceMemoryHandle);
+
+  static b32 bindBuffer(VkDevice device, VkBuffer buffer, VkDeviceMemory deviceMemory);
+
+  static b32 bindImage(VkDevice device, VkImage image, VkDeviceMemory deviceMemory);
 
   static b32 copy(const FMemoryCopyDependenciesVulkan& deps);
 
