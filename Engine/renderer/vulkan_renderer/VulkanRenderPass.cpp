@@ -64,6 +64,7 @@ b32 FRendererVulkan::createRenderPasses() {
   return UTRUE;
 }
 
+
 b32 FRendererVulkan::closeRenderPasses() {
   UTRACE("Closing render passes...");
 
