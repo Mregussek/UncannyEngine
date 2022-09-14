@@ -161,7 +161,7 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
                             VkBuffer* pStagingBuffer, VkDeviceMemory* pStagingMemory,
                             FBufferDataVulkan* pOutBuffer) {
   UTRACE("Creating device local buffer {} ...", deps.logInfo);
-  VkMemoryPropertyFlags hostVisiblePropertyFlags{
+  VkMemoryPropertyFlags stagingPropertyFlags{
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
   };
   VkBufferUsageFlags stagingUsageFlags{ VK_BUFFER_USAGE_TRANSFER_SRC_BIT };
@@ -169,8 +169,10 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   VkBufferUsageFlags deviceLocalUsageFlags{ VK_BUFFER_USAGE_TRANSFER_DST_BIT | deps.usage };
   auto stagingDeps{reinterpret_cast<const FBufferCreateStagingDependenciesVulkan*>(deps.pNext)};
 
+  // Creating staging buffer handle
   b32 createdStagingHandle{ createBufferHandle(deps.device, deps.size, stagingUsageFlags,
                                                pStagingBuffer, "staging") };
+  // Creating actual buffer handle
   b32 createdHandle{ createBufferHandle(deps.device, deps.size, deviceLocalUsageFlags,
                                         &(pOutBuffer->handle), deps.logInfo) };
   if (not createdStagingHandle or not createdHandle) {
@@ -182,7 +184,7 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   allocationStagingDeps.physicalDevice = deps.physicalDevice;
   allocationStagingDeps.device = deps.device;
   allocationStagingDeps.buffer = *pStagingBuffer;
-  allocationStagingDeps.propertyFlags = hostVisiblePropertyFlags;
+  allocationStagingDeps.propertyFlags = stagingPropertyFlags;
   allocationStagingDeps.logInfo = "staging";
 
   b32 allocatedStaging{ FMemoryVulkan::allocate(allocationStagingDeps, pStagingMemory) };
@@ -224,6 +226,7 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   copyStagingDeps.srcLogInfo = "staging";
   copyStagingDeps.dstLogInfo = deps.logInfo;
 
+  // pNext is mandatory when using cmd buffer
   FMemoryCopyDependenciesVulkan copyDeviceLocalDeps{};
   copyDeviceLocalDeps.pNext = reinterpret_cast<void*>(&copyStagingDeps);
   copyDeviceLocalDeps.device = deps.device;
