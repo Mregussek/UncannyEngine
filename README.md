@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+14.09.2022 Separated vulkan context from renderer, added resources for vulkan (image and buffers) and refactored code accordingly, added uniform buffers and checked usage of math library [tree](https://github.com/Mregussek/UncannyEngine/tree/94bc7b9b5bd0923bb5100e673b3846793862a1e2)
+
 28.08.2022 Added index buffer, drawing a quad! [tree](https://github.com/Mregussek/UncannyEngine/tree/c6368d8cf7f02dd3ff31681c89484223453ec087)
 
 28.08.2022 Added staging buffer for vertex data! [tree](https://github.com/Mregussek/UncannyEngine/tree/754b43268619131bc14fab726278598f2e3005a9)
