@@ -6,7 +6,7 @@
 #include <renderer/Renderer.h>
 #include "resources/BufferVulkan.h"
 #include "resources/ImageVulkan.h"
-#include "RendererStructuresVulkan.h"
+#include "graphics_pipelines/GraphicsPipelinesVulkan.h"
 #include "RendererDependenciesVulkan.h"
 #include <vector>
 
@@ -16,6 +16,11 @@ namespace uncanny
 
 
 class FRenderContextVulkan;
+
+
+struct FCameraUBO {
+  mat4 matrixModelViewProjection{};
+};
 
 
 class FRendererVulkan : public FRenderer {
@@ -69,7 +74,7 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
-  b32 collectViewportScissorInfo(FGraphicsPipelineVulkan* pPipeline) const;
+  b32 collectViewportScissorInfo();
   [[nodiscard]] b32 createGraphicsPipelinesGeneral();
   b32 closeGraphicsPipelinesGeneral();
 
@@ -79,9 +84,6 @@ private:
 
   [[nodiscard]] b32 createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration);
   b32 closeUniformBuffers();
-
-  [[nodiscard]] b32 createDescriptors(FGraphicsPipelineVulkan* pPipeline);
-  b32 closeDescriptors(FGraphicsPipelineVulkan* pPipeline);
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
@@ -130,6 +132,8 @@ private:
   b32 mPrintNotProperExtent{ UFALSE };
   b32 mPrintCorrectExtent{ UFALSE };
   u32 mImagePresentableIndex{ UUNUSED };
+  VkViewport mVkViewport{};
+  VkRect2D mVkScissor{};
 
 };
 

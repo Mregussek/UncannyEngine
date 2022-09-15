@@ -1,5 +1,6 @@
 
 #include "RendererVulkan.h"
+#include "VulkanRecordCommandBuffers.h"
 #include <renderer/vulkan_context/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
@@ -9,9 +10,7 @@ namespace uncanny
 
 
 b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
-    const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
-    const FGraphicsPipelineVulkan& graphicsPipeline, const FBufferVulkan& vertexBuffer,
-    const FBufferVulkan& indexBuffer, const std::vector<VkCommandBuffer>& commandBuffers) {
+    const FRecordCommandsForIndexVertexBuffersDependencies& deps) {
   UTRACE("Recording command buffers with indexed vertex buffer binding in graphics pipeline for"
          "render target images...");
 
@@ -32,45 +31,51 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
 
   VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
   renderPassBeginInfo.pNext = nullptr;
-  renderPassBeginInfo.renderPass = renderPass;
+  renderPassBeginInfo.renderPass = deps.renderPass;
   renderPassBeginInfo.framebuffer = VK_NULL_HANDLE; // will be filled later
   renderPassBeginInfo.renderArea = {}; // will be filled later
   renderPassBeginInfo.clearValueCount = clearValues.size();
   renderPassBeginInfo.pClearValues = clearValues.data();
 
   VkDeviceSize vertexBufferOffsets[]{ 0 };
-  VkBuffer vertexHandle{ vertexBuffer.getData().handle };
-  VkBuffer indexHandle{ indexBuffer.getData().handle };
-  u32 indicesCount{ indexBuffer.getData().elemCount };
+  VkBuffer vertexHandle{ deps.pVertexBuffer->getData().handle };
+  VkBuffer indexHandle{ deps.pIndexBuffer->getData().handle };
+  u32 indicesCount{ deps.pIndexBuffer->getData().elemCount };
 
-  for (u32 i = 0; i < renderTargetImages.size(); i++) {
-    renderArea.extent.width = renderTargetImages[i].getData().extent.width;
-    renderArea.extent.height = renderTargetImages[i].getData().extent.height;
+  u32 renderTargetsSize{ (u32)deps.pRenderTargets->size() };
+
+  for (u32 i = 0; i < renderTargetsSize; i++) {
+    renderArea.extent.width = deps.pRenderTargets->at(i).getData().extent.width;
+    renderArea.extent.height = deps.pRenderTargets->at(i).getData().extent.height;
     renderPassBeginInfo.renderArea = renderArea;
-    renderPassBeginInfo.framebuffer = renderTargetImages[i].getData().handleFramebuffer;
+    renderPassBeginInfo.framebuffer = deps.pRenderTargets->at(i).getData().handleFramebuffer;
 
-    VkResult properlyPreparedForCommands{ vkBeginCommandBuffer(commandBuffers[i],
-                                                               &commandBufferBeginInfo) };
-    if (properlyPreparedForCommands != VK_SUCCESS) {
+    VkCommandBuffer cmdBuffer{ deps.pCommandBuffers->at(i) };
+
+    VkResult properlyBegan{ vkBeginCommandBuffer(cmdBuffer, &commandBufferBeginInfo) };
+    if (properlyBegan != VK_SUCCESS) {
       UERROR("Cannot record any commands! Wrong output of vkBeginCommandBuffer!");
       return UFALSE;
     }
 
-    vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.pipeline);
-    vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexHandle, vertexBufferOffsets);
-    vkCmdBindIndexBuffer(commandBuffers[i], indexHandle, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdSetViewport(commandBuffers[i], 0, 1, &graphicsPipeline.viewport);
-    vkCmdSetScissor(commandBuffers[i], 0, 1, &graphicsPipeline.scissor);
-    vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            graphicsPipeline.pipelineLayout, 0, 1,
-                            &graphicsPipeline.descriptorSetVector[0], 0, nullptr);
-    vkCmdDrawIndexed(commandBuffers[i], indicesCount, 1, 0, 0, 0);
+    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      deps.pGraphicsPipeline->getPipelineHandle());
+    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexHandle, vertexBufferOffsets);
+    vkCmdBindIndexBuffer(cmdBuffer, indexHandle, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdSetViewport(cmdBuffer, 0, 1, &deps.viewport);
+    vkCmdSetScissor(cmdBuffer, 0, 1, &deps.scissor);
+    vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            deps.pGraphicsPipeline->getPipelineLayout(), 0,
+                            deps.pGraphicsPipeline->getDescriptorSets().size(),
+                            deps.pGraphicsPipeline->getDescriptorSets().data(),
+                            0, nullptr);
+    vkCmdDrawIndexed(cmdBuffer, indicesCount, 1, 0, 0, 0);
 
-    vkCmdEndRenderPass(commandBuffers[i]);
+    vkCmdEndRenderPass(cmdBuffer);
 
-    VkResult properlyRecordedCommands{ vkEndCommandBuffer(commandBuffers[i]) };
+    VkResult properlyRecordedCommands{ vkEndCommandBuffer(cmdBuffer) };
     if (properlyRecordedCommands != VK_SUCCESS) {
       UERROR("Could not record command buffers!");
       return UFALSE;

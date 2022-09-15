@@ -3,7 +3,6 @@
 #define UNCANNYENGINE_VULKANRECORDCOMMANDBUFFERS_H
 
 
-#include "RendererStructuresVulkan.h"
 #include <volk.h>
 #include <utilities/Variables.h>
 #include <vector>
@@ -12,11 +11,25 @@
 namespace uncanny
 {
 
+class FImageVulkan;
+class FGraphicsPipelineVulkan;
+class FBufferVulkan;
+
+
+struct FRecordCommandsForIndexVertexBuffersDependencies {
+  const std::vector<FImageVulkan>* pRenderTargets{ nullptr };
+  VkRenderPass renderPass{ VK_NULL_HANDLE };
+  const FGraphicsPipelineVulkan* pGraphicsPipeline{ nullptr };
+  const FBufferVulkan* pVertexBuffer{ nullptr };
+  const FBufferVulkan* pIndexBuffer{ nullptr };
+  const std::vector<VkCommandBuffer>* pCommandBuffers{ nullptr };
+  VkViewport viewport{};
+  VkRect2D scissor{};
+};
+
 
 b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
-    const std::vector<FImageVulkan>& renderTargetImages, VkRenderPass renderPass,
-    const FGraphicsPipelineVulkan& graphicsPipeline, const FBufferVulkan& vertexBuffer,
-    const FBufferVulkan& indexBuffer, const std::vector<VkCommandBuffer>& commandBuffers);
+    const FRecordCommandsForIndexVertexBuffersDependencies& deps);
 
 
 b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& renderTargetImages,

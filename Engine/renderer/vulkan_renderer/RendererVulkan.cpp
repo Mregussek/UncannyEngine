@@ -186,11 +186,7 @@ b32 FRendererVulkan::parseSceneForRendering(
     return UFALSE;
   }
 
-  b32 createdDescriptors{ createDescriptors(&mGraphicsPipeline) };
-  if (not createdDescriptors) {
-    UERROR("Could not create descriptors!");
-    return UFALSE;
-  }
+  mGraphicsPipeline.passCameraUboToDescriptor(mContextPtr->Device(), &mUniformBufferCamera);
 
   UINFO("Parsed scene for rendering!");
   return UTRUE;
@@ -204,7 +200,6 @@ b32 FRendererVulkan::closeScene() {
     vkDeviceWaitIdle(mContextPtr->Device());
   }
 
-  closeDescriptors(&mGraphicsPipeline);
   closeUniformBuffers();
   closeVertexIndexBuffersForMesh(&mVertexBuffer, &mIndexBuffer);
 
@@ -217,7 +212,7 @@ b32 FRendererVulkan::prepareStateForRendering() {
   UTRACE("Preparing state for rendering...");
 
   // Collect info about viewport and scissor
-  collectViewportScissorInfo(&mGraphicsPipeline);
+  collectViewportScissorInfo();
   // Record commands as startup point
   b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
   if (not recordedCommandBuffers) {
@@ -251,9 +246,19 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
     return UFALSE;
   }
 
+  FRecordCommandsForIndexVertexBuffersDependencies recordIndexVertexPipelineDeps{};
+  recordIndexVertexPipelineDeps.pRenderTargets = &mImageRenderTargetVector;
+  recordIndexVertexPipelineDeps.renderPass = mVkRenderPass;
+  recordIndexVertexPipelineDeps.pGraphicsPipeline = &mGraphicsPipeline;
+  recordIndexVertexPipelineDeps.pVertexBuffer = &mVertexBuffer;
+  recordIndexVertexPipelineDeps.pIndexBuffer = &mIndexBuffer;
+  recordIndexVertexPipelineDeps.pCommandBuffers = &mVkRenderCommandBufferVector;
+  recordIndexVertexPipelineDeps.viewport = mVkViewport;
+  recordIndexVertexPipelineDeps.scissor = mVkScissor;
+
   b32 recordPipelineVertex{ recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
-      mImageRenderTargetVector, mVkRenderPass, mGraphicsPipeline, mVertexBuffer,
-      mIndexBuffer, mVkRenderCommandBufferVector) };
+      recordIndexVertexPipelineDeps)
+  };
   if (not recordPipelineVertex) {
     UFATAL("Could not record graphics pipeline with vertex buffer for render target cmd buffers!");
     return UFALSE;
