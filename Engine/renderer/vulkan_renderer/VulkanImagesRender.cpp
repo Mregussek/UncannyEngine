@@ -14,6 +14,11 @@ b32 FRendererVulkan::createRenderTargetImages() {
   u32 imageCount{ static_cast<u32>(mImagePresentableVector.size()) };
   UTRACE("Creating {} Render Target Images...", imageCount);
 
+  if (not mDepthImage.isCreated()) {
+    UERROR("Could not create render target image as depth image is not yet created!");
+    return UFALSE;
+  }
+
   VkSurfaceFormatKHR imageFormat{ VK_FORMAT_UNDEFINED };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
@@ -48,6 +53,7 @@ b32 FRendererVulkan::createRenderTargetImages() {
   createDeps.viewDeps.shouldCreate = UTRUE;
   createDeps.framebufferDeps.shouldCreate = UTRUE;
   createDeps.framebufferDeps.renderPass = mVkRenderPass;
+  createDeps.framebufferDeps.depthImageView = mDepthImage.getData().handleView;
   createDeps.pFormatsFeaturesToCheck = &mImageDependencies.renderTarget.formatsFeatureVector;
   createDeps.logInfo = "render target";
 

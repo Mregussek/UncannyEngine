@@ -48,6 +48,8 @@ b32 FRendererVulkan::createDepthImage() {
     return UFALSE;
   }
 
+  // TODO: add transition to VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+
   UDEBUG("Created depth image!");
   return UTRUE;
 }

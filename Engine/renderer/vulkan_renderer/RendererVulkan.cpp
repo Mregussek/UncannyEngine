@@ -95,17 +95,17 @@ b32 FRendererVulkan::init() {
     return UFALSE;
   }
 
-  // create render target images
-  b32 properlyCreatedRenderTargetImages{ createRenderTargetImages() };
-  if (not properlyCreatedRenderTargetImages) {
-    UFATAL("Could not create render target images, cannot render 3D!");
-    return UFALSE;
-  }
-
   // enable depth buffer with depth images for swapchain
   b32 properlyCreatedDepthImage{ createDepthImage() };
   if (not properlyCreatedDepthImage) {
     UFATAL("Could not create depth image, cannot render 3D!");
+    return UFALSE;
+  }
+
+  // create render target images
+  b32 properlyCreatedRenderTargetImages{ createRenderTargetImages() };
+  if (not properlyCreatedRenderTargetImages) {
+    UFATAL("Could not create render target images, cannot render 3D!");
     return UFALSE;
   }
 
@@ -376,15 +376,15 @@ b32 FRendererVulkan::endFrame() {
       return UFALSE;
     }
 
-    b32 properlyRecreatedRenderTargetImages{ recreateRenderTargetImages() };
-    if (not properlyRecreatedRenderTargetImages) {
-      UERROR("Could not recreate render target!");
-      return UFALSE;
-    }
-
     b32 properlyRecreatedDepthImage{ recreateDepthImage() };
     if (not properlyRecreatedDepthImage) {
       UERROR("Could not recreate depth image!");
+      return UFALSE;
+    }
+
+    b32 properlyRecreatedRenderTargetImages{ recreateRenderTargetImages() };
+    if (not properlyRecreatedRenderTargetImages) {
+      UERROR("Could not recreate render target!");
       return UFALSE;
     }
 

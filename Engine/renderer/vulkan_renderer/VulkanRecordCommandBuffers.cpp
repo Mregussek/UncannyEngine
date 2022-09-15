@@ -24,15 +24,19 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
   renderArea.extent = {}; // will be filled later
   renderArea.offset = { 0, 0 };
 
-  VkClearValue clearColorValue{ 0.2f, 0.5f, 0.8f, 0.0f };
+  VkClearValue clearColorValue{};
+  clearColorValue.color = { 0.2f, 0.5f, 0.8f, 0.0f };
+  VkClearValue clearDepthValue{};
+  clearDepthValue.depthStencil = { 1.f, 0 };
+  std::array<VkClearValue, 2> clearValues{ clearColorValue, clearDepthValue };
 
   VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
   renderPassBeginInfo.pNext = nullptr;
   renderPassBeginInfo.renderPass = renderPass;
   renderPassBeginInfo.framebuffer = VK_NULL_HANDLE; // will be filled later
   renderPassBeginInfo.renderArea = {}; // will be filled later
-  renderPassBeginInfo.clearValueCount = 1;
-  renderPassBeginInfo.pClearValues = &clearColorValue;
+  renderPassBeginInfo.clearValueCount = clearValues.size();
+  renderPassBeginInfo.pClearValues = clearValues.data();
 
   VkDeviceSize vertexBufferOffsets[]{ 0 };
   VkBuffer vertexHandle{ vertexBuffer.getData().handle };

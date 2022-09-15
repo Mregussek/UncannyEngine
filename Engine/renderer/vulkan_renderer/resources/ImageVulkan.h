@@ -41,6 +41,7 @@ struct FImageViewCreateDependenciesVulkan {
 struct FImageFramebufferCreateDependenciesVulkan {
   b32 shouldCreate{ UFALSE };
   VkRenderPass renderPass{ VK_NULL_HANDLE };
+  VkImageView depthImageView{ VK_NULL_HANDLE };
 };
 
 
@@ -69,6 +70,8 @@ public:
   b32 close(VkDevice device);
 
   [[nodiscard]] const FImageDataVulkan& getData() const { return mData; }
+
+  [[nodiscard]] b32 isCreated() const { return mCreated and mData.handle != VK_NULL_HANDLE; }
 
 private:
 

@@ -299,6 +299,20 @@ b32 createColoredMeshGraphicsPipeline(
   vertexInputStateCreateInfo.vertexAttributeDescriptionCount = vertexInputAttrDescVector.size();
   vertexInputStateCreateInfo.pVertexAttributeDescriptions = vertexInputAttrDescVector.data();
 
+  VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo{};
+  depthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+  depthStencilStateCreateInfo.pNext = nullptr;
+  depthStencilStateCreateInfo.flags = 0;
+  depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
+  depthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
+  depthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+  depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
+  depthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
+  depthStencilStateCreateInfo.front = {};
+  depthStencilStateCreateInfo.back = {};
+  depthStencilStateCreateInfo.minDepthBounds = 0.f;
+  depthStencilStateCreateInfo.maxDepthBounds = 1.f;
+
   // Create pipeline layout
   VkDescriptorSetLayoutBinding cameraLayoutBinding{};
   cameraLayoutBinding.binding = 0;
@@ -351,7 +365,7 @@ b32 createColoredMeshGraphicsPipeline(
   graphicsPipelineCreateInfo.pViewportState = &defaultConfig.viewportStateCreateInfo;
   graphicsPipelineCreateInfo.pRasterizationState = &defaultConfig.rasterizationStateCreateInfo;
   graphicsPipelineCreateInfo.pMultisampleState = &defaultConfig.multisampleStateCreateInfo;
-  graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
+  graphicsPipelineCreateInfo.pDepthStencilState = &depthStencilStateCreateInfo;
   graphicsPipelineCreateInfo.pColorBlendState = &defaultConfig.colorBlendStateCreateInfo;
   graphicsPipelineCreateInfo.pDynamicState = &defaultConfig.dynamicStateCreateInfo;
   graphicsPipelineCreateInfo.layout = pOutPipeline->pipelineLayout;

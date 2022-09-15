@@ -134,12 +134,14 @@ b32 FImageVulkan::create(const FImageCreateDependenciesVulkan& deps) {
   }
 
   UTRACE("Creating framebuffer for {} image...", mData.logInfo);
+  std::array<VkImageView, 2> attachments{ mData.handleView, deps.framebufferDeps.depthImageView };
+
   VkFramebufferCreateInfo framebufferCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
   framebufferCreateInfo.pNext = nullptr;
   framebufferCreateInfo.flags = 0;
   framebufferCreateInfo.renderPass = deps.framebufferDeps.renderPass;
-  framebufferCreateInfo.attachmentCount = 1;
-  framebufferCreateInfo.pAttachments = &mData.handleView;
+  framebufferCreateInfo.attachmentCount = attachments.size();
+  framebufferCreateInfo.pAttachments = attachments.data();
   framebufferCreateInfo.width = mData.extent.width;
   framebufferCreateInfo.height = mData.extent.height;
   framebufferCreateInfo.layers = 1;
