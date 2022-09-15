@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+15.09.2022 Added depth buffer testing [tree](https://github.com/Mregussek/UncannyEngine/tree/15f421038d9e43888cf33ab389998af6be9983a0)
+
 14.09.2022 Separated vulkan context from renderer, added resources for vulkan (image and buffers) and refactored code accordingly, added uniform buffers and checked usage of math library [tree](https://github.com/Mregussek/UncannyEngine/tree/94bc7b9b5bd0923bb5100e673b3846793862a1e2)
 
 28.08.2022 Added index buffer, drawing a quad! [tree](https://github.com/Mregussek/UncannyEngine/tree/c6368d8cf7f02dd3ff31681c89484223453ec087)
