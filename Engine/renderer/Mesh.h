@@ -4,6 +4,7 @@
 
 
 #include <math/vec3.h>
+#include <math/mat4.h>
 
 
 namespace uncanny
@@ -22,6 +23,7 @@ enum class EMeshType {
 
 
 struct FMesh {
+  mat4 transform{};
   std::vector<FVertex> vertices{};
   std::vector<u32> indices{};
   EMeshType type{ EMeshType::NONE };

@@ -126,8 +126,8 @@ void fillGraphicsPipelineDefaultConfig(FGraphicsPipelineConfiguration* pConfig) 
   fragmentStageCreateInfo.pName = "main";
   fragmentStageCreateInfo.pSpecializationInfo = nullptr;
 
-  std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo{vertexStageCreateInfo,
-                                                                      fragmentStageCreateInfo };
+  std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo{ vertexStageCreateInfo,
+                                                                       fragmentStageCreateInfo };
 
   pConfig->shaderStages = shaderStagesCreateInfo;
 

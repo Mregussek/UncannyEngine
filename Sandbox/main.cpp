@@ -9,6 +9,8 @@
 #include <renderer/Factory.h>
 #include <renderer/Camera.h>
 #include <utilities/Logger.h>
+#undef near
+#undef far
 
 
 using namespace uncanny;
@@ -56,18 +58,23 @@ auto main() -> i32 {
     return -1;
   }
 
-  f32 fieldOfView{ 45.f };
-  f32 aspectRatio{ (f32)windowSpecification.width / (f32)windowSpecification.height };
-
-  vec3 eye{ 2.f, 2.f, 2.f };
-  vec3 center{ 0.f, 0.f, 0.f };
-  vec3 up{ 0.f, 0.f, 1.f };
+  FCameraSpecification cameraSpecification{};
+  cameraSpecification.position = { 2.f, -0.5f, 2.f };
+  cameraSpecification.front = { 0.f, 0.f, 0.f };
+  cameraSpecification.worldUp = { 0.f, 1.f, 0.f };
+  cameraSpecification.fieldOfView = 45.f;
+  cameraSpecification.aspectRatio =
+      (f32)windowSpecification.width / (f32)windowSpecification.height;
+  cameraSpecification.near = 0.1f;
+  cameraSpecification.far = 10.f;
+  cameraSpecification.yaw = -90.f;
+  cameraSpecification.pitch = 0.f;
+  cameraSpecification.movementSpeed = 2.5f;
+  cameraSpecification.sensitivity = 1.f;
+  cameraSpecification.zoom = 45.f;
 
   FCamera camera{};
-  camera.mMatrixMVP =
-      mat4::perspective(fieldOfView, aspectRatio, 0.1f, 10.0f) *
-      mat4::lookAt(eye, center, up) *
-      mat4::rotation(45.f, { 0.f, 0.f, 1.f });
+  camera.init(cameraSpecification);
   FMeshTriangle meshTriangle{};
 
   FRenderSceneConfiguration renderSceneConfig{};

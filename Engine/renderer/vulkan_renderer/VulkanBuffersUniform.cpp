@@ -53,7 +53,7 @@ b32 FRendererVulkan::closeUniformBuffers() {
 
 void moveCameraDataToStructUBO(FCamera* pCamera, FCameraUBO* pOutUBO) {
   UTRACE("Moving camera data to UBO struct...");
-  pOutUBO->matrixModelViewProjection = pCamera->mMatrixMVP;
+  pOutUBO->matrixModelViewProjection = pCamera->retrieveMatrixMVP();
 }
 
 
