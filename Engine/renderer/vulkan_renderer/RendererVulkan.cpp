@@ -211,8 +211,6 @@ b32 FRendererVulkan::closeScene() {
 b32 FRendererVulkan::prepareStateForRendering() {
   UTRACE("Preparing state for rendering...");
 
-  // Collect info about viewport and scissor
-  collectViewportScissorInfo();
   // Record commands as startup point
   b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
   if (not recordedCommandBuffers) {
@@ -246,20 +244,15 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
     return UFALSE;
   }
 
-  FRecordCommandsForIndexVertexBuffersDependencies recordIndexVertexPipelineDeps{};
-  recordIndexVertexPipelineDeps.pRenderTargets = &mImageRenderTargetVector;
-  recordIndexVertexPipelineDeps.renderPass = mVkRenderPass;
-  recordIndexVertexPipelineDeps.pGraphicsPipeline = &mGraphicsPipeline;
-  recordIndexVertexPipelineDeps.pVertexBuffer = &mVertexBuffer;
-  recordIndexVertexPipelineDeps.pIndexBuffer = &mIndexBuffer;
-  recordIndexVertexPipelineDeps.pCommandBuffers = &mVkRenderCommandBufferVector;
-  recordIndexVertexPipelineDeps.viewport = mVkViewport;
-  recordIndexVertexPipelineDeps.scissor = mVkScissor;
+  FGraphicsPipelineRecordCommandsDependencies recordDeps{};
+  recordDeps.pRenderTargets = &mImageRenderTargetVector;
+  recordDeps.renderPass = mVkRenderPass;
+  recordDeps.pVertexBuffer = &mVertexBuffer;
+  recordDeps.pIndexBuffer = &mIndexBuffer;
+  recordDeps.pCommandBuffers = &mVkRenderCommandBufferVector;
 
-  b32 recordPipelineVertex{ recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
-      recordIndexVertexPipelineDeps)
-  };
-  if (not recordPipelineVertex) {
+  b32 recordPipeline{ mGraphicsPipeline.recordUsageCommands(recordDeps) };
+  if (not recordPipeline) {
     UFATAL("Could not record graphics pipeline with vertex buffer for render target cmd buffers!");
     return UFALSE;
   }

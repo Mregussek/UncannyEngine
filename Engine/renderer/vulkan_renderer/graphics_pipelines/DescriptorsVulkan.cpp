@@ -15,15 +15,8 @@ b32 FGraphicsPipelineDescriptorsVulkan::create(
   UTRACE("Creating descriptors for graphics pipeline {}...", deps.logInfo);
   mData.logInfo = deps.logInfo;
 
-  if (
-      deps.pVertexShaderData->layoutBindingVector.size() != 1 or
-      deps.pVertexShaderData->layoutBindingVector[0].descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
-    UERROR("Wrong descriptor layout binding size or type!");
-    return UFALSE;
-  }
-
   VkDescriptorPoolSize poolSize{};
-  poolSize.type = deps.pVertexShaderData->layoutBindingVector[0].descriptorType;
+  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   poolSize.descriptorCount = 1;
 
   VkDescriptorPoolCreateInfo poolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
@@ -41,9 +34,8 @@ b32 FGraphicsPipelineDescriptorsVulkan::create(
   allocateInfo.descriptorSetCount = 1;
   allocateInfo.pSetLayouts = &(deps.pLayoutData->descriptorSetLayout);
 
-  mData.descriptorSetVector.resize(allocateInfo.descriptorSetCount);
   U_VK_ASSERT( vkAllocateDescriptorSets(deps.device, &allocateInfo,
-                                        mData.descriptorSetVector.data()) );
+                                        &mData.cameraDescriptorSet) );
 
   UDEBUG("Created descriptors for graphics pipeline {}!", mData.logInfo);
   return UTRUE;
@@ -53,8 +45,6 @@ b32 FGraphicsPipelineDescriptorsVulkan::create(
 b32 FGraphicsPipelineDescriptorsVulkan::close(VkDevice device) {
   UTRACE("Closing descriptors for graphics pipeline {}...", mData.logInfo);
 
-  mData.descriptorSetVector.clear();
-
   if (mData.pool != VK_NULL_HANDLE) {
     UTRACE("Destroying descriptor pool...");
     vkDestroyDescriptorPool(device, mData.pool, nullptr);
@@ -63,6 +53,8 @@ b32 FGraphicsPipelineDescriptorsVulkan::close(VkDevice device) {
   else {
     UWARN("Descriptor pool is not created, so it won't be closed!");
   }
+
+  mData.cameraDescriptorSet = VK_NULL_HANDLE;
 
   UDEBUG("Closed descriptors for graphics pipeline {}!", mData.logInfo);
   return UTRUE;

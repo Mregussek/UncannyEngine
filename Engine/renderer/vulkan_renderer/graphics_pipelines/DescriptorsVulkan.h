@@ -18,7 +18,7 @@ struct FGraphicsPipelineLayoutDataVulkan;
 
 struct FGraphicsPipelineDescriptorsDataVulkan {
   VkDescriptorPool pool{ VK_NULL_HANDLE };
-  std::vector<VkDescriptorSet> descriptorSetVector{};
+  VkDescriptorSet cameraDescriptorSet{ VK_NULL_HANDLE };
   const char* logInfo{ "" };
 };
 

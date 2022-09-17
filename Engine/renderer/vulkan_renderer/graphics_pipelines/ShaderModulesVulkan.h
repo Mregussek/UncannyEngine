@@ -16,7 +16,7 @@ struct FShaderModuleVertexDataVulkan {
   VkShaderModule handle{ VK_NULL_HANDLE };
   VkVertexInputBindingDescription inputBindingDescription{};
   std::vector<VkVertexInputAttributeDescription> inputAttrDescVector{};
-  std::vector<VkDescriptorSetLayoutBinding> layoutBindingVector{};
+  VkDescriptorSetLayoutBinding cameraDescriptorLayoutBinding{};
   const char* path{ "" };
 };
 

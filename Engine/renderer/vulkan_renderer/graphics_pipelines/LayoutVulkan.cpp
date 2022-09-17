@@ -18,8 +18,8 @@ b32 FGraphicsPipelineLayoutVulkan::create(
   descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
   descriptorSetLayoutCreateInfo.pNext = nullptr;
   descriptorSetLayoutCreateInfo.flags = 0;
-  descriptorSetLayoutCreateInfo.bindingCount = deps.pVertexData->layoutBindingVector.size();
-  descriptorSetLayoutCreateInfo.pBindings = deps.pVertexData->layoutBindingVector.data();
+  descriptorSetLayoutCreateInfo.bindingCount = 1;
+  descriptorSetLayoutCreateInfo.pBindings = &(deps.pVertexData->cameraDescriptorLayoutBinding);
 
   U_VK_ASSERT( vkCreateDescriptorSetLayout(deps.device, &descriptorSetLayoutCreateInfo, nullptr,
                                            &(mData.descriptorSetLayout)) );

@@ -15,6 +15,7 @@ namespace uncanny
 {
 
 
+class FImageVulkan;
 class FBufferVulkan;
 
 
@@ -32,6 +33,15 @@ struct FGraphicsPipelineCreateDependenciesVulkan {
 };
 
 
+struct FGraphicsPipelineRecordCommandsDependencies {
+  const std::vector<FImageVulkan>* pRenderTargets{ nullptr };
+  VkRenderPass renderPass{ VK_NULL_HANDLE };
+  const FBufferVulkan* pVertexBuffer{ nullptr };
+  const FBufferVulkan* pIndexBuffer{ nullptr };
+  const std::vector<VkCommandBuffer>* pCommandBuffers{ nullptr };
+};
+
+
 class FGraphicsPipelineVulkan {
 public:
 
@@ -40,12 +50,14 @@ public:
 
   void passCameraUboToDescriptor(VkDevice device, FBufferVulkan* pCameraUBO);
 
+  b32 recordUsageCommands(const FGraphicsPipelineRecordCommandsDependencies& deps);
+
   [[nodiscard]] VkPipeline getPipelineHandle() const { return mData.pipeline; }
   [[nodiscard]] VkPipelineLayout getPipelineLayout() const {
     return mLayout.getData().pipelineLayout;
   }
-  [[nodiscard]] const std::vector<VkDescriptorSet>& getDescriptorSets() const {
-    return mDescriptors.getData().descriptorSetVector;
+  [[nodiscard]] std::vector<VkDescriptorSet> getDescriptorSets() const {
+    return { mDescriptors.getData().cameraDescriptorSet };
   }
 
 private:

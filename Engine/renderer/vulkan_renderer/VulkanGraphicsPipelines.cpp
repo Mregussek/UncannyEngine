@@ -11,33 +11,6 @@ namespace uncanny
 {
 
 
-b32 FRendererVulkan::collectViewportScissorInfo() {
-  UTRACE("Collecting viewport and scissor info for graphics pipeline...");
-
-  // TODO: handle taking proper extent properly for viewport and scissors!
-  UWARN("During collection data for viewport and scissor using 0-indexes render target extent!");
-  VkExtent3D imageExtent{ mImageRenderTargetVector[0].getData().extent };
-
-  VkViewport viewport{};
-  viewport.x = 0.f;
-  viewport.y = 0.f;
-  viewport.width = (f32)imageExtent.width;
-  viewport.height = (f32)imageExtent.height;
-  viewport.minDepth = 0.f;
-  viewport.maxDepth = 1.f;
-
-  VkRect2D scissor{};
-  scissor.extent = { imageExtent.width, imageExtent.height };
-  scissor.offset = { 0, 0 };
-
-  mVkViewport = viewport;
-  mVkScissor = scissor;
-
-  UTRACE("Collected viewport and scissor info for graphics pipeline!");
-  return UTRUE;
-}
-
-
 b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 

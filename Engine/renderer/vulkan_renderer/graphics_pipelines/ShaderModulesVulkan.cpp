@@ -17,12 +17,12 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
   UTRACE("Creating shader modules for graphics pipeline {}...", deps.logInfo);
   mData.logInfo = deps.logInfo;
 
-  std::vector<VkDescriptorSetLayoutBinding> descriptorLayoutBindingVector(1);
-  descriptorLayoutBindingVector[0].binding = 0;
-  descriptorLayoutBindingVector[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  descriptorLayoutBindingVector[0].descriptorCount = 1;
-  descriptorLayoutBindingVector[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-  descriptorLayoutBindingVector[0].pImmutableSamplers = nullptr;
+  VkDescriptorSetLayoutBinding cameraDescriptorLayoutBinding;
+  cameraDescriptorLayoutBinding.binding = 0;
+  cameraDescriptorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  cameraDescriptorLayoutBinding.descriptorCount = 1;
+  cameraDescriptorLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  cameraDescriptorLayoutBinding.pImmutableSamplers = nullptr;
 
   VkVertexInputBindingDescription vertexInputBindingDescription{};
   vertexInputBindingDescription.binding = 0;
@@ -45,7 +45,7 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
 
   mVertexData.inputBindingDescription = vertexInputBindingDescription;
   mVertexData.inputAttrDescVector = vertexInputAttrDescVector;
-  mVertexData.layoutBindingVector = descriptorLayoutBindingVector;
+  mVertexData.cameraDescriptorLayoutBinding = cameraDescriptorLayoutBinding;
 
   createShaderModule(deps.vertexPath, deps.device, &mVertexData.handle);
   createShaderModule(deps.fragmentPath, deps.device, &mFragmentData.handle);

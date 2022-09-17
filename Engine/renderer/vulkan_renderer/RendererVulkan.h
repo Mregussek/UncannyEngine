@@ -74,7 +74,6 @@ private:
   [[nodiscard]] b32 createGraphicsFences();
   b32 closeGraphicsFences();
 
-  b32 collectViewportScissorInfo();
   [[nodiscard]] b32 createGraphicsPipelinesGeneral();
   b32 closeGraphicsPipelinesGeneral();
 
@@ -132,8 +131,6 @@ private:
   b32 mPrintNotProperExtent{ UFALSE };
   b32 mPrintCorrectExtent{ UFALSE };
   u32 mImagePresentableIndex{ UUNUSED };
-  VkViewport mVkViewport{};
-  VkRect2D mVkScissor{};
 
 };
 
