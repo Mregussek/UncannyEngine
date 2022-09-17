@@ -50,9 +50,6 @@ private:
   [[nodiscard]] b32 recreateSwapchain();
   b32 closeSwapchain();
 
-  [[nodiscard]] b32 createRenderPasses();
-  b32 closeRenderPasses();
-
   [[nodiscard]] b32 createRenderTargetImages();
   [[nodiscard]] b32 recreateRenderTargetImages();
   b32 closeRenderTargetImages();
@@ -99,8 +96,6 @@ private:
   VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
   std::vector<FImageVulkan> mImagePresentableVector{};
-  // Render Passes
-  VkRenderPass mVkRenderPass{ VK_NULL_HANDLE };
   // Render Images info
   std::vector<FImageVulkan> mImageRenderTargetVector{};
   // Depth Image info

@@ -13,11 +13,6 @@ namespace uncanny
 b32 FRendererVulkan::createDepthImage() {
   UTRACE("Creating depth image...");
 
-  // TODO: Make sure no other format be used
-  UTRACE("Using 0-indexed depth format from dependencies!");
-  VkFormat imageFormat{ mImageDependencies.depth.formatCandidatesVector[0].format };
-  VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
-
   VkImageUsageFlags imageUsage{ 0 };
   for (VkImageUsageFlags imageUsageFlag : mImageDependencies.depth.usageVector) {
     imageUsage = imageUsage | imageUsageFlag;
@@ -31,8 +26,8 @@ b32 FRendererVulkan::createDepthImage() {
   createDeps.physicalDevice = mContextPtr->PhysicalDevice();
   createDeps.device = mContextPtr->Device();
   createDeps.extent = surfaceExtent3D;
-  createDeps.format = imageFormat;
-  createDeps.tiling = imageTiling;
+  createDeps.format = mGraphicsPipeline.getRenderPassData().depthFormat;
+  createDeps.tiling = VK_IMAGE_TILING_OPTIMAL;
   createDeps.usage = imageUsage;
   createDeps.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
   createDeps.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;

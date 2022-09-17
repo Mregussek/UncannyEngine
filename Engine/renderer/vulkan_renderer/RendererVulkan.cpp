@@ -88,10 +88,10 @@ b32 FRendererVulkan::init() {
     return UFALSE;
   }
 
-  // Create render passes
-  b32 properlyCreatedRenderPasses{ createRenderPasses() };
-  if (not properlyCreatedRenderPasses) {
-    UFATAL("Could not create render passes!");
+  // Create graphics pipelines
+  b32 properlyCreatedGraphicsPipelines{ createGraphicsPipelinesGeneral() };
+  if (not properlyCreatedGraphicsPipelines) {
+    UFATAL("Could not create graphics pipelines!");
     return UFALSE;
   }
 
@@ -133,13 +133,6 @@ b32 FRendererVulkan::init() {
     return UFALSE;
   }
 
-  // Create graphics pipelines
-  b32 properlyCreatedGraphicsPipelines{ createGraphicsPipelinesGeneral() };
-  if (not properlyCreatedGraphicsPipelines) {
-    UFATAL("Could not create graphics pipelines!");
-    return UFALSE;
-  }
-
   UINFO("Initialized vulkan renderer!");
   return UTRUE;
 }
@@ -153,14 +146,13 @@ void FRendererVulkan::terminate() {
     vkDeviceWaitIdle(mContextPtr->Device());
   }
 
-  closeGraphicsPipelinesGeneral();
   closeGraphicsFences();
   closeGraphicsSemaphores();
   closeCommandBuffers();
   closeCommandPool();
   closeDepthImage();
   closeRenderTargetImages();
-  closeRenderPasses();
+  closeGraphicsPipelinesGeneral();
   closeSwapchain();
 
   UINFO("Terminated vulkan renderer!");
@@ -246,7 +238,6 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
 
   FGraphicsPipelineRecordCommandsDependencies recordDeps{};
   recordDeps.pRenderTargets = &mImageRenderTargetVector;
-  recordDeps.renderPass = mVkRenderPass;
   recordDeps.pVertexBuffer = &mVertexBuffer;
   recordDeps.pIndexBuffer = &mIndexBuffer;
   recordDeps.pCommandBuffers = &mVkRenderCommandBufferVector;

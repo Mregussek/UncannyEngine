@@ -207,6 +207,26 @@ b32 FImageVulkan::close(VkDevice device) {
 }
 
 
+b32 detectFormatSupportingFormatFeatures(
+    VkPhysicalDevice physicalDevice, const std::vector<VkSurfaceFormatKHR>& formatCandidates,
+    VkImageTiling tiling, const std::vector<VkFormatFeatureFlags>& formatFeatures,
+    VkFormat* pOutFormat, const char* logInfo) {
+  for (VkSurfaceFormatKHR candidate : formatCandidates) {
+    b32 supported{ areFormatsFeaturesDependenciesMetForImageFormat(candidate.format, tiling,
+                                                                   physicalDevice,
+                                                                   formatFeatures, logInfo) };
+    if (supported) {
+      UDEBUG("Found {} {} format supporting format features!", logInfo, candidate.format);
+      *pOutFormat = candidate.format;
+      return UTRUE;
+    }
+  }
+
+  UERROR("Could not find proper {} candidate supporting format features", logInfo);
+  return UFALSE;
+}
+
+
 b32 areFormatsFeaturesDependenciesMetForImageFormat(
     VkFormat imageFormat, VkImageTiling tiling, VkPhysicalDevice physicalDevice,
     const std::vector<VkFormatFeatureFlags>& formatFeatureVector, const char* logInfo) {

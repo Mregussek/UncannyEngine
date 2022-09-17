@@ -6,6 +6,7 @@
 #include <volk.h>
 #include <utilities/Variables.h>
 #include <vector>
+#include "RenderPassVulkan.h"
 #include "ShaderModulesVulkan.h"
 #include "LayoutVulkan.h"
 #include "DescriptorsVulkan.h"
@@ -27,7 +28,7 @@ struct FGraphicsPipelineDataVulkan {
 
 struct FGraphicsPipelineCreateDependenciesVulkan {
   VkDevice device{ VK_NULL_HANDLE };
-  VkRenderPass renderPass{ VK_NULL_HANDLE };
+  FRenderPassCreateDependenciesVulkan* pRenderPassDeps{ nullptr };
   FShaderModulesCreateDependenciesVulkan* pShaderDeps{ nullptr };
   const char* logInfo{ "" };
 };
@@ -35,7 +36,6 @@ struct FGraphicsPipelineCreateDependenciesVulkan {
 
 struct FGraphicsPipelineRecordCommandsDependencies {
   const std::vector<FImageVulkan>* pRenderTargets{ nullptr };
-  VkRenderPass renderPass{ VK_NULL_HANDLE };
   const FBufferVulkan* pVertexBuffer{ nullptr };
   const FBufferVulkan* pIndexBuffer{ nullptr };
   const std::vector<VkCommandBuffer>* pCommandBuffers{ nullptr };
@@ -52,17 +52,12 @@ public:
 
   b32 recordUsageCommands(const FGraphicsPipelineRecordCommandsDependencies& deps);
 
-  [[nodiscard]] VkPipeline getPipelineHandle() const { return mData.pipeline; }
-  [[nodiscard]] VkPipelineLayout getPipelineLayout() const {
-    return mLayout.getData().pipelineLayout;
-  }
-  [[nodiscard]] std::vector<VkDescriptorSet> getDescriptorSets() const {
-    return { mDescriptors.getData().cameraDescriptorSet };
-  }
+  [[nodiscard]] FRenderPassDataVulkan getRenderPassData() const { return mRenderPass.getData(); }
 
 private:
 
   FGraphicsPipelineDataVulkan mData{};
+  FRenderPassVulkan mRenderPass{};
   FShaderModulesVulkan mShaders{};
   FGraphicsPipelineLayoutVulkan mLayout{};
   FGraphicsPipelineDescriptorsVulkan mDescriptors{};

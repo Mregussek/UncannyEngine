@@ -19,15 +19,7 @@ b32 FRendererVulkan::createRenderTargetImages() {
     return UFALSE;
   }
 
-  VkSurfaceFormatKHR imageFormat{ VK_FORMAT_UNDEFINED };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
-
-  b32 detected{ mContextPtr->detectSupportedImageFormatByWindowSurface(
-      mImageDependencies.renderTarget.formatCandidatesVector, &imageFormat) };
-  if (not detected) {
-    UERROR("Could not find suitable swapchain presentable image format from window surface!");
-    return UFALSE;
-  }
 
   VkImageUsageFlags imageUsage{ 0 };
   for (VkImageUsageFlags imageUsageFlag : mImageDependencies.renderTarget.usageVector) {
@@ -44,7 +36,7 @@ b32 FRendererVulkan::createRenderTargetImages() {
   createDeps.physicalDevice = mContextPtr->PhysicalDevice();
   createDeps.device = mContextPtr->Device();
   createDeps.extent = surfaceExtent3D;
-  createDeps.format = imageFormat.format;
+  createDeps.format = mGraphicsPipeline.getRenderPassData().renderTargetFormat;
   createDeps.tiling = imageTiling;
   createDeps.usage = imageUsage;
   createDeps.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -52,7 +44,7 @@ b32 FRendererVulkan::createRenderTargetImages() {
   createDeps.type = EImageType::RENDER_TARGET;
   createDeps.viewDeps.shouldCreate = UTRUE;
   createDeps.framebufferDeps.shouldCreate = UTRUE;
-  createDeps.framebufferDeps.renderPass = mVkRenderPass;
+  createDeps.framebufferDeps.renderPass = mGraphicsPipeline.getRenderPassData().renderPass;
   createDeps.framebufferDeps.depthImageView = mDepthImage.getData().handleView;
   createDeps.pFormatsFeaturesToCheck = &mImageDependencies.renderTarget.formatsFeatureVector;
   createDeps.logInfo = "render target";

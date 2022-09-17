@@ -1,25 +1,22 @@
 
-#include "RendererVulkan.h"
-#include <renderer/vulkan_context/ContextVulkan.h>
-#include <renderer/vulkan_context/VulkanUtilities.h>
+#include "RenderPassVulkan.h"
 #include <utilities/Logger.h>
+#include <array>
 
 
 namespace uncanny
 {
 
 
-b32 FRendererVulkan::createRenderPasses() {
-  UTRACE("Creating render passes...");
-
-  // TODO: Find better way for automating format retrieval for render pass
-  UWARN("During render pass creation using 0-indexed render target format from dependencies!");
-  VkFormat colorFormat{ mImageDependencies.renderTarget.formatCandidatesVector[0].format };
-  VkFormat depthFormat{ mImageDependencies.depth.formatCandidatesVector[0].format };
+b32 FRenderPassVulkan::create(const FRenderPassCreateDependenciesVulkan& deps) {
+  UTRACE("Creating render pass {}...", deps.logInfo);
+  mData.logInfo = deps.logInfo;
+  mData.renderTargetFormat = deps.renderTargetFormat;
+  mData.depthFormat = deps.depthFormat;
 
   VkAttachmentDescription colorAttachDesc{};
   colorAttachDesc.flags = 0;
-  colorAttachDesc.format = colorFormat;
+  colorAttachDesc.format = mData.renderTargetFormat;
   colorAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
   colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
   colorAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -30,7 +27,7 @@ b32 FRendererVulkan::createRenderPasses() {
 
   VkAttachmentDescription depthAttachDesc{};
   depthAttachDesc.flags = 0;
-  depthAttachDesc.format = depthFormat;
+  depthAttachDesc.format = mData.depthFormat;
   depthAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
   depthAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
   depthAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -83,33 +80,35 @@ b32 FRendererVulkan::createRenderPasses() {
   createInfo.dependencyCount = 1;
   createInfo.pDependencies = &subpassDeps;
 
-  VkResult created{ vkCreateRenderPass(mContextPtr->Device(), &createInfo, nullptr,
-                                       &mVkRenderPass) };
+  VkResult created{ vkCreateRenderPass(deps.device, &createInfo, nullptr,
+                                       &mData.renderPass) };
   if (created != VK_SUCCESS) {
-    UERROR("Could not create render pass! VkResult: {}", created);
+    UERROR("Could not create render pass {}! VkResult: {}", mData.logInfo, created);
     return UFALSE;
   }
 
-  UDEBUG("Created render passes!");
+  UDEBUG("Created render pass {}!", mData.logInfo);
   return UTRUE;
 }
 
 
-b32 FRendererVulkan::closeRenderPasses() {
-  UTRACE("Closing render passes...");
+b32 FRenderPassVulkan::close(VkDevice device) {
+  UTRACE("Closing render pass {}...", mData.logInfo);
 
-  if (mVkRenderPass != VK_NULL_HANDLE) {
+  if (mData.renderPass != VK_NULL_HANDLE) {
     UTRACE("Destroying render pass...");
-    vkDestroyRenderPass(mContextPtr->Device(), mVkRenderPass, nullptr);
+    vkDestroyRenderPass(device, mData.renderPass, nullptr);
+    mData.renderPass = VK_NULL_HANDLE;
   }
   else {
-    UWARN("As render pass is not created, it won't be destroyed!");
+    UWARN("As render pass {} is not created, it won't be destroyed!", mData.logInfo);
   }
 
-  UDEBUG("Closed render passes!");
+  mData.logInfo = "";
+
+  UDEBUG("Closed render pass {}!", mData.logInfo);
   return UTRUE;
 }
-
 
 
 }

@@ -13,6 +13,7 @@ b32 FGraphicsPipelineVulkan::create(const FGraphicsPipelineCreateDependenciesVul
   UTRACE("Creating graphics pipeline {}...", deps.logInfo);
   mData.logInfo = deps.logInfo;
 
+  mRenderPass.create(*deps.pRenderPassDeps);
   mShaders.create(*deps.pShaderDeps);
 
   FGraphicsPipelineLayoutCreateDependenciesVulkan layoutCreateDeps{};
@@ -148,7 +149,7 @@ b32 FGraphicsPipelineVulkan::create(const FGraphicsPipelineCreateDependenciesVul
   graphicsPipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
   graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
   graphicsPipelineCreateInfo.layout = mLayout.getData().pipelineLayout;
-  graphicsPipelineCreateInfo.renderPass = deps.renderPass;
+  graphicsPipelineCreateInfo.renderPass = mRenderPass.getData().renderPass;
   graphicsPipelineCreateInfo.subpass = 0;
   graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
   graphicsPipelineCreateInfo.basePipelineIndex = 0;
@@ -181,6 +182,7 @@ b32 FGraphicsPipelineVulkan::close(VkDevice device) {
   mLayout.close(device);
   mDescriptors.close(device);
   mShaders.close(device);
+  mRenderPass.close(device);
 
   UDEBUG("Closed graphics pipeline {}!", mData.logInfo);
   return UTRUE;
@@ -251,7 +253,7 @@ b32 FGraphicsPipelineVulkan::recordUsageCommands(
 
   VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
   renderPassBeginInfo.pNext = nullptr;
-  renderPassBeginInfo.renderPass = deps.renderPass;
+  renderPassBeginInfo.renderPass = mRenderPass.getData().renderPass;
   renderPassBeginInfo.framebuffer = VK_NULL_HANDLE; // will be filled later
   renderPassBeginInfo.renderArea = {}; // will be filled later
   renderPassBeginInfo.clearValueCount = clearValues.size();

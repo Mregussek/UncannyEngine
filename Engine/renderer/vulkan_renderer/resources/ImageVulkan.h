@@ -81,6 +81,12 @@ private:
 };
 
 
+b32 detectFormatSupportingFormatFeatures(
+    VkPhysicalDevice physicalDevice, const std::vector<VkSurfaceFormatKHR>& formatCandidates,
+    VkImageTiling tiling, const std::vector<VkFormatFeatureFlags>& formatFeatures,
+    VkFormat* pOutFormat, const char* logInfo);
+
+
 }
 
 

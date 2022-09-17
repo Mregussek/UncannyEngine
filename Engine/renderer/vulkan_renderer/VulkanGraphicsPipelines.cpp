@@ -1,10 +1,9 @@
 
 #include "RendererVulkan.h"
+#include "resources/ImageVulkan.h"
 #include <renderer/vulkan_context/ContextVulkan.h>
-#include <renderer/vulkan_context/VulkanUtilities.h>
 #include <utilities/Logger.h>
 #include <filesystem/FileManager.h>
-#include <renderer/Mesh.h>
 
 
 namespace uncanny
@@ -14,6 +13,30 @@ namespace uncanny
 b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 
+  VkSurfaceFormatKHR renderTargetFormat{ VK_FORMAT_UNDEFINED };
+  b32 detectedRenderTarget{ mContextPtr->detectSupportedImageFormatByWindowSurface(
+      mImageDependencies.renderTarget.formatCandidatesVector, &renderTargetFormat) };
+  if (not detectedRenderTarget) {
+    UERROR("Could not find suitable render target image format from window surface!");
+    return UFALSE;
+  }
+
+  VkFormat depthFormat{ VK_FORMAT_UNDEFINED };
+  b32 detectedDepth{ detectFormatSupportingFormatFeatures(
+      mContextPtr->PhysicalDevice(), mImageDependencies.depth.formatCandidatesVector,
+      VK_IMAGE_TILING_OPTIMAL, mImageDependencies.depth.formatsFeatureVector, &depthFormat,
+      "depth") };
+  if (not detectedDepth) {
+    UERROR("Could not find suitable depth image format with expected format features!");
+    return UFALSE;
+  }
+
+  FRenderPassCreateDependenciesVulkan renderPassDeps{};
+  renderPassDeps.device = mContextPtr->Device();
+  renderPassDeps.renderTargetFormat = renderTargetFormat.format;
+  renderPassDeps.depthFormat = depthFormat;
+  renderPassDeps.logInfo = "mesh color rp";
+
   FShaderModulesCreateDependenciesVulkan shaderDeps{};
   shaderDeps.device = mContextPtr->Device();
   shaderDeps.vertexPath = "shaders/colored_mesh.vert.spv";
@@ -22,7 +45,7 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
 
   FGraphicsPipelineCreateDependenciesVulkan createDeps{};
   createDeps.device = mContextPtr->Device();
-  createDeps.renderPass = mVkRenderPass;
+  createDeps.pRenderPassDeps = &renderPassDeps;
   createDeps.pShaderDeps = &shaderDeps;
   createDeps.logInfo = "mesh color gp";
 
