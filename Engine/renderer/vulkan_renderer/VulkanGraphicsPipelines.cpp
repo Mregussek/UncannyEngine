@@ -41,7 +41,7 @@ b32 FRendererVulkan::collectViewportScissorInfo() {
 b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 
-  FGraphicsPipelineShaderModulesCreateDependenciesVulkan shaderDeps{};
+  FShaderModulesCreateDependenciesVulkan shaderDeps{};
   shaderDeps.device = mContextPtr->Device();
   shaderDeps.vertexPath = "shaders/colored_mesh.vert.spv";
   shaderDeps.fragmentPath = "shaders/colored_mesh.frag.spv";

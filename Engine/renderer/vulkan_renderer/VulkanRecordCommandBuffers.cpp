@@ -41,8 +41,8 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
   VkBuffer vertexHandle{ deps.pVertexBuffer->getData().handle };
   VkBuffer indexHandle{ deps.pIndexBuffer->getData().handle };
   u32 indicesCount{ deps.pIndexBuffer->getData().elemCount };
-
   u32 renderTargetsSize{ (u32)deps.pRenderTargets->size() };
+  const std::vector<VkDescriptorSet>& descriptorSets{ deps.pGraphicsPipeline->getDescriptorSets() };
 
   for (u32 i = 0; i < renderTargetsSize; i++) {
     renderArea.extent.width = deps.pRenderTargets->at(i).getData().extent.width;
@@ -68,8 +68,7 @@ b32 recordIndexedVertexBufferGraphicsPipelineForRenderTarget(
     vkCmdSetScissor(cmdBuffer, 0, 1, &deps.scissor);
     vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             deps.pGraphicsPipeline->getPipelineLayout(), 0,
-                            deps.pGraphicsPipeline->getDescriptorSets().size(),
-                            deps.pGraphicsPipeline->getDescriptorSets().data(),
+                            descriptorSets.size(), descriptorSets.data(),
                             0, nullptr);
     vkCmdDrawIndexed(cmdBuffer, indicesCount, 1, 0, 0, 0);
 
