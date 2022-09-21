@@ -8,8 +8,6 @@
 #include <vector>
 #include "RenderPassVulkan.h"
 #include "ShaderModulesVulkan.h"
-#include "LayoutVulkan.h"
-#include "DescriptorsVulkan.h"
 
 
 namespace uncanny
@@ -22,6 +20,7 @@ class FBufferVulkan;
 
 struct FGraphicsPipelineDataVulkan {
   VkPipeline pipeline{ VK_NULL_HANDLE };
+  VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
   const char* logInfo{ "" };
 };
 
@@ -59,8 +58,6 @@ private:
   FGraphicsPipelineDataVulkan mData{};
   FRenderPassVulkan mRenderPass{};
   FShaderModulesVulkan mShaders{};
-  FGraphicsPipelineLayoutVulkan mLayout{};
-  FGraphicsPipelineDescriptorsVulkan mDescriptors{};
 
 };
 

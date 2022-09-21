@@ -1,6 +1,7 @@
 
 #include "GraphicsPipelinesVulkan.h"
 #include <utilities/Logger.h>
+#include <renderer/vulkan_context/VulkanUtilities.h>
 #include <renderer/vulkan_renderer/resources/BufferVulkan.h>
 #include <renderer/vulkan_renderer/resources/ImageVulkan.h>
 
@@ -16,21 +17,17 @@ b32 FGraphicsPipelineVulkan::create(const FGraphicsPipelineCreateDependenciesVul
   mRenderPass.create(*deps.pRenderPassDeps);
   mShaders.create(*deps.pShaderDeps);
 
-  FGraphicsPipelineLayoutCreateDependenciesVulkan layoutCreateDeps{};
-  layoutCreateDeps.device = deps.device;
-  layoutCreateDeps.pVertexData = &mShaders.getVertexData();
-  layoutCreateDeps.pFragmentData = &mShaders.getFragmentData();
-  layoutCreateDeps.logInfo = deps.logInfo;
+  VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+  pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipelineLayoutCreateInfo.pNext = nullptr;
+  pipelineLayoutCreateInfo.flags = 0;
+  pipelineLayoutCreateInfo.setLayoutCount = 1;
+  pipelineLayoutCreateInfo.pSetLayouts = &(mShaders.getData().descriptorSetLayout);
+  pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+  pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
-  mLayout.create(layoutCreateDeps);
-
-  FGraphicsPipelineDescriptorsCreateDependenciesVulkan descriptorsCreateDeps{};
-  descriptorsCreateDeps.device = deps.device;
-  descriptorsCreateDeps.pVertexShaderData = &mShaders.getVertexData();
-  descriptorsCreateDeps.pLayoutData = &mLayout.getData();
-  descriptorsCreateDeps.logInfo = deps.logInfo;
-
-  mDescriptors.create(descriptorsCreateDeps);
+  U_VK_ASSERT( vkCreatePipelineLayout(deps.device, &pipelineLayoutCreateInfo, nullptr,
+                                      &(mData.pipelineLayout)) );
 
   VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
   vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -148,7 +145,7 @@ b32 FGraphicsPipelineVulkan::create(const FGraphicsPipelineCreateDependenciesVul
   graphicsPipelineCreateInfo.pDepthStencilState = &depthStencilStateCreateInfo;
   graphicsPipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
   graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
-  graphicsPipelineCreateInfo.layout = mLayout.getData().pipelineLayout;
+  graphicsPipelineCreateInfo.layout = mData.pipelineLayout;
   graphicsPipelineCreateInfo.renderPass = mRenderPass.getData().renderPass;
   graphicsPipelineCreateInfo.subpass = 0;
   graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -179,8 +176,15 @@ b32 FGraphicsPipelineVulkan::close(VkDevice device) {
     UWARN("As {} graphics pipeline was not created, it won't be destroyed!", mData.logInfo);
   }
 
-  mLayout.close(device);
-  mDescriptors.close(device);
+  if (mData.pipelineLayout != VK_NULL_HANDLE) {
+    UTRACE("Destroying {} graphics pipeline layout...", mData.logInfo);
+    vkDestroyPipelineLayout(device, mData.pipelineLayout, nullptr);
+    mData.pipelineLayout = VK_NULL_HANDLE;
+  }
+  else {
+    UWARN("As {} graphics pipeline layout was not created, it won't be destroyed!", mData.logInfo);
+  }
+
   mShaders.close(device);
   mRenderPass.close(device);
 
@@ -198,7 +202,7 @@ void FGraphicsPipelineVulkan::passCameraUboToDescriptor(VkDevice device,
   VkWriteDescriptorSet writeDescriptorSet{};
   writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
   writeDescriptorSet.pNext = nullptr;
-  writeDescriptorSet.dstSet = mDescriptors.getData().cameraDescriptorSet;
+  writeDescriptorSet.dstSet = mShaders.getData().cameraDescriptorSet;
   writeDescriptorSet.dstBinding = mShaders.getVertexData().cameraDescriptorLayoutBinding.binding;
   writeDescriptorSet.dstArrayElement = 0;
   writeDescriptorSet.descriptorCount = 1;
@@ -264,7 +268,7 @@ b32 FGraphicsPipelineVulkan::recordUsageCommands(
   VkBuffer indexHandle{ deps.pIndexBuffer->getData().handle };
   u32 indicesCount{ deps.pIndexBuffer->getData().elemCount };
   u32 renderTargetsSize{ (u32)deps.pRenderTargets->size() };
-  std::vector<VkDescriptorSet> descriptorSets{ mDescriptors.getData().cameraDescriptorSet };
+  std::vector<VkDescriptorSet> descriptorSets{ mShaders.getData().cameraDescriptorSet };
 
   for (u32 i = 0; i < renderTargetsSize; i++) {
     renderPassBeginInfo.renderArea = renderArea;
@@ -286,7 +290,7 @@ b32 FGraphicsPipelineVulkan::recordUsageCommands(
     vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
     vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
     vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            mLayout.getData().pipelineLayout, 0,
+                            mData.pipelineLayout, 0,
                             descriptorSets.size(), descriptorSets.data(),
                             0, nullptr);
     vkCmdDrawIndexed(cmdBuffer, indicesCount, 1, 0, 0, 0);

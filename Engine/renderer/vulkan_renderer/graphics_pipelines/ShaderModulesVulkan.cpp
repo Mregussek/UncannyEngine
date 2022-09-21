@@ -3,6 +3,7 @@
 #include <filesystem/FileManager.h>
 #include <renderer/Mesh.h>
 #include <utilities/Logger.h>
+#include <renderer/vulkan_context/VulkanUtilities.h>
 
 
 namespace uncanny
@@ -23,6 +24,38 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
   cameraDescriptorLayoutBinding.descriptorCount = 1;
   cameraDescriptorLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
   cameraDescriptorLayoutBinding.pImmutableSamplers = nullptr;
+
+  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+  descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  descriptorSetLayoutCreateInfo.pNext = nullptr;
+  descriptorSetLayoutCreateInfo.flags = 0;
+  descriptorSetLayoutCreateInfo.bindingCount = 1;
+  descriptorSetLayoutCreateInfo.pBindings = &cameraDescriptorLayoutBinding;
+
+  U_VK_ASSERT( vkCreateDescriptorSetLayout(deps.device, &descriptorSetLayoutCreateInfo, nullptr,
+                                           &(mData.descriptorSetLayout)) );
+
+  VkDescriptorPoolSize poolSize{};
+  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  poolSize.descriptorCount = 1;
+
+  VkDescriptorPoolCreateInfo poolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+  poolCreateInfo.pNext = nullptr;
+  poolCreateInfo.flags = 0;
+  poolCreateInfo.maxSets = 1;
+  poolCreateInfo.poolSizeCount = 1;
+  poolCreateInfo.pPoolSizes = &poolSize;
+
+  U_VK_ASSERT( vkCreateDescriptorPool(deps.device, &poolCreateInfo, nullptr, &(mData.pool)) );
+
+  VkDescriptorSetAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+  allocateInfo.pNext = nullptr;
+  allocateInfo.descriptorPool = mData.pool;
+  allocateInfo.descriptorSetCount = 1;
+  allocateInfo.pSetLayouts = &(mData.descriptorSetLayout);
+
+  U_VK_ASSERT( vkAllocateDescriptorSets(deps.device, &allocateInfo,
+                                        &mData.cameraDescriptorSet) );
 
   VkVertexInputBindingDescription vertexInputBindingDescription{};
   vertexInputBindingDescription.binding = 0;
@@ -77,6 +110,26 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
 
 b32 FShaderModulesVulkan::close(VkDevice device) {
   UTRACE("Closing shader modules for graphics pipeline {}...", mData.logInfo);
+
+  if (mData.descriptorSetLayout != VK_NULL_HANDLE) {
+    UTRACE("Destroying {} descriptor set layout...", mData.logInfo);
+    vkDestroyDescriptorSetLayout(device, mData.descriptorSetLayout, nullptr);
+    mData.descriptorSetLayout = VK_NULL_HANDLE;
+  }
+  else {
+    UWARN("As {} descriptor set layout was not created, it won't be destroyed!", mData.logInfo);
+  }
+
+  if (mData.pool != VK_NULL_HANDLE) {
+    UTRACE("Destroying descriptor pool...");
+    vkDestroyDescriptorPool(device, mData.pool, nullptr);
+    mData.pool = VK_NULL_HANDLE;
+  }
+  else {
+    UWARN("Descriptor pool is not created, so it won't be closed!");
+  }
+
+  mData.cameraDescriptorSet = VK_NULL_HANDLE;
 
   closeShaderModule(device, &mVertexData.handle, "vertex");
   closeShaderModule(device, &mFragmentData.handle, "fragment");

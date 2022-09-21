@@ -28,7 +28,7 @@ public:
   virtual b32 init(const FRenderContextSpecification& renderContextSpecs);
   virtual void terminate();
 
-  virtual ERenderLibrary getLibrary() const;
+  [[nodiscard]] virtual ERenderLibrary getLibrary() const;
 
 };
 

@@ -29,6 +29,9 @@ struct FShaderModuleFragmentDataVulkan {
 
 struct FShaderModuleDataVulkan {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStagesVector{};
+  VkDescriptorSetLayout descriptorSetLayout{ VK_NULL_HANDLE };
+  VkDescriptorPool pool{ VK_NULL_HANDLE };
+  VkDescriptorSet cameraDescriptorSet{ VK_NULL_HANDLE };
   const char* logInfo{ "" };
 };
 
