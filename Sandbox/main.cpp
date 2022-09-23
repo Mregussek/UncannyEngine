@@ -78,7 +78,7 @@ auto main() -> i32 {
   camera.init(cameraSpecification);
 
   FMeshQuads meshQuads{};
-  meshQuads.transformLocal = mat4::rotation(deg2rad(45.f), { 0.f, 0.f, 1.f  });
+  meshQuads.transformLocal = mat4::rotation(deg2rad(45.f), { 0.f, 0.f, 1.f });
 
   FRenderSceneConfiguration renderSceneConfig{};
   renderSceneConfig.pMesh = &meshQuads;

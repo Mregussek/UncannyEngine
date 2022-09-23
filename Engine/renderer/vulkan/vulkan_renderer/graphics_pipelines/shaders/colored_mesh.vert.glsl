@@ -16,6 +16,6 @@ layout(binding = 0) uniform UObject {
 } uniformobject;
 
 void main() {
-    gl_Position = uniformobject.matrixMVP * vec4(inPosition, 1.f);
+    gl_Position = uniformobject.matrixMeshWorldTransform * vec4(inPosition, 1.f);
     fragColor = inColor;
 }
