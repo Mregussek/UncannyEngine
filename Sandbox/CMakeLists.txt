@@ -12,7 +12,7 @@ function(CopyDirToBuildDirectory AbsoluteDirPath DirName)
     )
 endfunction()
 
-set(SHADERS_DIR ${PROJECT_SOURCE_DIR}/Engine/renderer/vulkan_renderer/shaders)
+set(SHADERS_DIR ${PROJECT_SOURCE_DIR}/Engine/renderer/vulkan/vulkan_renderer/graphics_pipelines/shaders)
 set(SHADERS_DIR_NAME shaders)
 
 CopyDirToBuildDirectory(${SHADERS_DIR} ${SHADERS_DIR_NAME})

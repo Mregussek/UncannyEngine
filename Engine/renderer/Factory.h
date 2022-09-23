@@ -4,8 +4,8 @@
 
 
 #include "Context.h"
-#include "vulkan_context/ContextVulkan.h"
-#include "vulkan_renderer/RendererVulkan.h"
+#include "vulkan/vulkan_context/ContextVulkan.h"
+#include "vulkan/vulkan_renderer/RendererVulkan.h"
 
 
 namespace uncanny
