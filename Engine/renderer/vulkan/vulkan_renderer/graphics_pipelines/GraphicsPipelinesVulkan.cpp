@@ -249,7 +249,7 @@ b32 FGraphicsPipelineVulkan::recordUsageCommands(
   VkBuffer indexHandle{ deps.pIndexBuffer->getData().handle };
   u32 indicesCount{ deps.pIndexBuffer->getData().elemCount };
   u32 renderTargetsSize{ (u32)deps.pRenderTargets->size() };
-  std::vector<VkDescriptorSet> descriptorSets{ mShaders.getData().cameraDescriptorSet };
+  std::vector<VkDescriptorSet> descriptorSets{ mShaders.getData().descriptorSet };
 
   for (u32 i = 0; i < renderTargetsSize; i++) {
     renderPassBeginInfo.renderArea = renderArea;

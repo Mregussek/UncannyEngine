@@ -1,6 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/Camera.h>
 #include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <renderer/vulkan/vulkan_renderer/graphics_pipelines/ShaderModulesVulkan.h>
@@ -11,11 +10,9 @@ namespace uncanny
 {
 
 
-b32 FRendererVulkan::createUniformBuffer(FCamera* pCamera, FBufferVulkan* pUBO) {
+b32 FRendererVulkan::createUniformBuffer(FShaderModuleUniformVulkan* pShaderUniform,
+                                         FBufferVulkan* pBuffer) {
   UTRACE("Creating uniform buffer...");
-
-  FShaderModuleUniformVulkan uniformObjectShader{};
-  uniformObjectShader.matrixMVP = pCamera->retrieveMatrixMVP();
 
   FBufferCreateDependenciesVulkan createDeps{};
   createDeps.pNext = nullptr;
@@ -23,12 +20,12 @@ b32 FRendererVulkan::createUniformBuffer(FCamera* pCamera, FBufferVulkan* pUBO) 
   createDeps.device = mContextPtr->Device();
   createDeps.size = sizeof(FShaderModuleUniformVulkan);
   createDeps.elemCount = 1;
-  createDeps.pData = &uniformObjectShader;
+  createDeps.pData = pShaderUniform;
   createDeps.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
   createDeps.type = EBufferType::HOST_VISIBLE;
   createDeps.logInfo = "camera uniform";
 
-  b32 createdCameraUBO{ pUBO->create(createDeps) };
+  b32 createdCameraUBO{ pBuffer->create(createDeps) };
   if (not createdCameraUBO) {
     UERROR("Could not create ubo!");
     return UFALSE;
@@ -39,10 +36,10 @@ b32 FRendererVulkan::createUniformBuffer(FCamera* pCamera, FBufferVulkan* pUBO) 
 }
 
 
-b32 FRendererVulkan::closeUniformBuffer(FBufferVulkan* pUBO) {
+b32 FRendererVulkan::closeUniformBuffer(FBufferVulkan* pBuffer) {
   UTRACE("Closing uniform buffer...");
 
-  pUBO->close(mContextPtr->Device());
+  pBuffer->close(mContextPtr->Device());
 
   UDEBUG("Closed uniform buffer!");
   return UTRUE;

@@ -23,16 +23,30 @@ enum class EMeshType {
 
 
 struct FMesh {
-  mat4 transform{};
-  std::vector<FVertex> vertices{};
-  std::vector<u32> indices{};
-  EMeshType type{ EMeshType::NONE };
+  mat4 transformLocal{};
+
+  [[nodiscard]] FVertex* getVerticesData() { return mVertices.data(); }
+  [[nodiscard]] u32 getVerticesSizeof() const { return sizeof(mVertices[0]) * getVerticesCount(); }
+  [[nodiscard]] u32 getVerticesCount() const { return mVertices.size(); }
+
+  [[nodiscard]] u32* getIndicesData() { return mIndices.data(); }
+  [[nodiscard]] u32 getIndicesSizeof() const { return sizeof(mIndices[0]) * getIndicesCount(); }
+  [[nodiscard]] u32 getIndicesCount() const { return mIndices.size(); }
+
+  [[nodiscard]] EMeshType getType() const { return mType; }
+
+protected:
+
+  std::vector<FVertex> mVertices{};
+  std::vector<u32> mIndices{};
+  EMeshType mType{ EMeshType::NONE };
+
 };
 
 
-struct FMeshTriangle : public FMesh {
-  FMeshTriangle() {
-    vertices = {
+struct FMeshQuads : public FMesh {
+  FMeshQuads() {
+    mVertices = {
         FVertex{ { -0.5f, -0.5f, 0.f }, { 0.0f, 1.0f, 1.0f } },
         FVertex{ { 0.5f, -0.5f, 0.f }, { 0.0f, 1.0f, 1.0f } },
         FVertex{ { 0.5f, 0.5f, 0.f }, { 0.0f, 0.0f, 1.0f } },
@@ -48,12 +62,12 @@ struct FMeshTriangle : public FMesh {
         FVertex{ { 0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f } },
         FVertex{ { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f } }
     };
-    indices = {
+    mIndices = {
         0, 1, 2, 2, 3, 0,
         4, 5, 6, 6, 7, 4,
         8, 9, 10, 10, 11, 8
     };
-    type = EMeshType::TRIANGLE;
+    mType = EMeshType::TRIANGLE;
   }
 };
 

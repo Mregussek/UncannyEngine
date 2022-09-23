@@ -20,9 +20,25 @@ void FCamera::init(const FCameraSpecification& specs) {
 
 mat4 FCamera::retrieveMatrixMVP() const {
   return {
-    mat4::perspective(mSpecs.fieldOfView, mSpecs.aspectRatio, mSpecs.near, mSpecs.far) *
-    mat4::lookAt(mSpecs.position, mSpecs.position + mSpecs.front, mUp)
+    retrieveMatrixProjection() *
+    retrieveMatrixView() *
+    retrieveMatrixModel()
   };
+}
+
+
+mat4 FCamera::retrieveMatrixModel() const {
+  return mat4::identity();
+}
+
+
+mat4 FCamera::retrieveMatrixView() const {
+  return mat4::lookAt(mSpecs.position, mSpecs.position + mSpecs.front, mUp);
+}
+
+
+mat4 FCamera::retrieveMatrixProjection() const {
+  return mat4::perspective(mSpecs.fieldOfView, mSpecs.aspectRatio, mSpecs.near, mSpecs.far);
 }
 
 

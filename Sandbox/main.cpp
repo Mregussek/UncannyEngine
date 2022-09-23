@@ -4,6 +4,7 @@
 #include <math/mat4.h>
 #include <math/vec3.h>
 #include <math/vec4.h>
+#include <math/trigonometry.h>
 #include <renderer/Mesh.h>
 #include <renderer/Context.h>
 #include <renderer/Factory.h>
@@ -75,10 +76,12 @@ auto main() -> i32 {
 
   FCamera camera{};
   camera.init(cameraSpecification);
-  FMeshTriangle meshTriangle{};
+
+  FMeshQuads meshQuads{};
+  meshQuads.transformLocal = mat4::rotation(deg2rad(45.f), { 0.f, 0.f, 1.f  });
 
   FRenderSceneConfiguration renderSceneConfig{};
-  renderSceneConfig.pMesh = &meshTriangle;
+  renderSceneConfig.pMesh = &meshQuads;
   renderSceneConfig.pCamera = &camera;
 
   b32 rendererParsedScene{ pRenderer->parseSceneForRendering(renderSceneConfig) };

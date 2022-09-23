@@ -22,9 +22,9 @@ b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan
   createDeps.pNext = &stagingDeps;
   createDeps.physicalDevice = mContextPtr->PhysicalDevice();
   createDeps.device = mContextPtr->Device();
-  createDeps.size = sizeof(pMesh->vertices[0]) * pMesh->vertices.size();
-  createDeps.elemCount = pMesh->vertices.size();
-  createDeps.pData = pMesh->vertices.data();
+  createDeps.size = pMesh->getVerticesSizeof();
+  createDeps.elemCount = pMesh->getVerticesCount();
+  createDeps.pData = pMesh->getVerticesData();
   createDeps.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
   createDeps.type = EBufferType::DEVICE_WITH_STAGING;
   createDeps.logInfo = "mesh vertex";
@@ -35,9 +35,9 @@ b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan
     return UFALSE;
   }
 
-  createDeps.size = sizeof(pMesh->indices[0]) * pMesh->indices.size();
-  createDeps.elemCount = pMesh->indices.size();
-  createDeps.pData = pMesh->indices.data();
+  createDeps.size = pMesh->getIndicesSizeof();
+  createDeps.elemCount = pMesh->getIndicesCount();
+  createDeps.pData = pMesh->getIndicesData();
   createDeps.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
   createDeps.logInfo = "mesh index";
 

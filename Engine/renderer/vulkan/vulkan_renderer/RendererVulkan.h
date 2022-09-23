@@ -73,8 +73,9 @@ private:
                                                     FBufferVulkan* pOutIndex) const;
   b32 closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex, FBufferVulkan* pIndex) const;
 
-  [[nodiscard]] b32 createUniformBuffer(FCamera* pCamera, FBufferVulkan* pUBO);
-  b32 closeUniformBuffer(FBufferVulkan* pUBO);
+  [[nodiscard]] b32 createUniformBuffer(FShaderModuleUniformVulkan* pShaderUniform,
+                                        FBufferVulkan* pBuffer);
+  b32 closeUniformBuffer(FBufferVulkan* pBuffer);
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 

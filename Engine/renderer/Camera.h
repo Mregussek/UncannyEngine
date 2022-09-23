@@ -40,6 +40,9 @@ public:
   void init(const FCameraSpecification& specs);
 
   [[nodiscard]] mat4 retrieveMatrixMVP() const;
+  [[nodiscard]] mat4 retrieveMatrixModel() const;
+  [[nodiscard]] mat4 retrieveMatrixView() const;
+  [[nodiscard]] mat4 retrieveMatrixProjection() const;
 
 private:
 

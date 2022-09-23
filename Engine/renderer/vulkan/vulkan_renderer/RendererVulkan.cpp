@@ -2,6 +2,7 @@
 #include "RendererVulkan.h"
 #include "VulkanRecordCommandBuffers.h"
 #include <renderer/vulkan/vulkan_context/ContextVulkan.h>
+#include <renderer/vulkan/vulkan_renderer/graphics_pipelines/ShaderModulesVulkan.h>
 #include <utilities/Logger.h>
 
 
@@ -172,7 +173,10 @@ b32 FRendererVulkan::parseSceneForRendering(
     return UFALSE;
   }
 
-  b32 createdUniformBuffers{ createUniformBuffer(mSceneConfig.pCamera, &mUniformBuffer) };
+  FShaderModuleUniformVulkan shaderUniform{};
+  FShaderModulesVulkan::fillShaderUniform(mSceneConfig.pCamera, mSceneConfig.pMesh, &shaderUniform);
+
+  b32 createdUniformBuffers{ createUniformBuffer(&shaderUniform, &mUniformBuffer) };
   if (not createdUniformBuffers) {
     UERROR("Could not create uniform buffers!");
     return UFALSE;

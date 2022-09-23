@@ -2,6 +2,7 @@
 #include "ShaderModulesVulkan.h"
 #include <filesystem/FileManager.h>
 #include <renderer/Mesh.h>
+#include <renderer/Camera.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
 #include <utilities/Logger.h>
@@ -19,19 +20,19 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
   UTRACE("Creating shader modules for graphics pipeline {}...", deps.logInfo);
   mData.logInfo = deps.logInfo;
 
-  VkDescriptorSetLayoutBinding cameraDescriptorLayoutBinding;
-  cameraDescriptorLayoutBinding.binding = 0;
-  cameraDescriptorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  cameraDescriptorLayoutBinding.descriptorCount = 1;
-  cameraDescriptorLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-  cameraDescriptorLayoutBinding.pImmutableSamplers = nullptr;
+  VkDescriptorSetLayoutBinding descriptorLayoutBinding{};
+  descriptorLayoutBinding.binding = 0;
+  descriptorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  descriptorLayoutBinding.descriptorCount = 1;
+  descriptorLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  descriptorLayoutBinding.pImmutableSamplers = nullptr;
 
   VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
   descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
   descriptorSetLayoutCreateInfo.pNext = nullptr;
   descriptorSetLayoutCreateInfo.flags = 0;
   descriptorSetLayoutCreateInfo.bindingCount = 1;
-  descriptorSetLayoutCreateInfo.pBindings = &cameraDescriptorLayoutBinding;
+  descriptorSetLayoutCreateInfo.pBindings = &descriptorLayoutBinding;
 
   U_VK_ASSERT( vkCreateDescriptorSetLayout(deps.device, &descriptorSetLayoutCreateInfo, nullptr,
                                            &(mData.descriptorSetLayout)) );
@@ -56,7 +57,7 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
   allocateInfo.pSetLayouts = &(mData.descriptorSetLayout);
 
   U_VK_ASSERT( vkAllocateDescriptorSets(deps.device, &allocateInfo,
-                                        &mData.cameraDescriptorSet) );
+                                        &mData.descriptorSet) );
 
   VkVertexInputBindingDescription vertexInputBindingDescription{};
   vertexInputBindingDescription.binding = 0;
@@ -79,7 +80,7 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
 
   mVertexData.inputBindingDescription = vertexInputBindingDescription;
   mVertexData.inputAttrDescVector = vertexInputAttrDescVector;
-  mVertexData.cameraDescriptorLayoutBinding = cameraDescriptorLayoutBinding;
+  mVertexData.descriptorLayoutBinding = descriptorLayoutBinding;
 
   createShaderModule(deps.vertexPath, deps.device, &mVertexData.handle);
   createShaderModule(deps.fragmentPath, deps.device, &mFragmentData.handle);
@@ -109,6 +110,19 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
 }
 
 
+void FShaderModulesVulkan::fillShaderUniform(FCamera* pCamera, FMesh* pMesh,
+                                             FShaderModuleUniformVulkan* pOutShaderUniform) {
+  UTRACE("Filling shader uniform with camera and mesh data...");
+  pOutShaderUniform->matrixMVP = pCamera->retrieveMatrixMVP();
+  pOutShaderUniform->matrixModel = pCamera->retrieveMatrixModel();
+  pOutShaderUniform->matrixView = pCamera->retrieveMatrixView();
+  pOutShaderUniform->matrixProjection = pCamera->retrieveMatrixProjection();
+  pOutShaderUniform->matrixMeshLocalTransform = pMesh->transformLocal;
+  pOutShaderUniform->matrixMeshWorldTransform =
+      pOutShaderUniform->matrixMVP * pMesh->transformLocal;
+}
+
+
 void FShaderModulesVulkan::writeDataIntoDescriptorSet(
     const FShaderWriteIntoDescriptorSetDependenciesVulkan& deps) {
   UTRACE("Passing uniform data into descriptor from graphics pipeline {}...", mData.logInfo);
@@ -118,11 +132,11 @@ void FShaderModulesVulkan::writeDataIntoDescriptorSet(
   VkWriteDescriptorSet writeDescriptorSet{};
   writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
   writeDescriptorSet.pNext = nullptr;
-  writeDescriptorSet.dstSet = getData().cameraDescriptorSet;
-  writeDescriptorSet.dstBinding = getVertexData().cameraDescriptorLayoutBinding.binding;
+  writeDescriptorSet.dstSet = getData().descriptorSet;
+  writeDescriptorSet.dstBinding = getVertexData().descriptorLayoutBinding.binding;
   writeDescriptorSet.dstArrayElement = 0;
   writeDescriptorSet.descriptorCount = 1;
-  writeDescriptorSet.descriptorType = getVertexData().cameraDescriptorLayoutBinding.descriptorType;
+  writeDescriptorSet.descriptorType = getVertexData().descriptorLayoutBinding.descriptorType;
   writeDescriptorSet.pImageInfo = nullptr;
   writeDescriptorSet.pBufferInfo = &bufferInfo;
   writeDescriptorSet.pTexelBufferView = nullptr;
@@ -154,7 +168,7 @@ b32 FShaderModulesVulkan::close(VkDevice device) {
     UWARN("Descriptor pool is not created, so it won't be closed!");
   }
 
-  mData.cameraDescriptorSet = VK_NULL_HANDLE;
+  mData.descriptorSet = VK_NULL_HANDLE;
 
   closeShaderModule(device, &mVertexData.handle, "vertex");
   closeShaderModule(device, &mFragmentData.handle, "fragment");

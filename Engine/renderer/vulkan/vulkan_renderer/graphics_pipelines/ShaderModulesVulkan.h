@@ -14,10 +14,17 @@ namespace uncanny
 
 
 class FBufferVulkan;
+class FCamera;
+class FMesh;
 
 
 struct FShaderModuleUniformVulkan {
   mat4 matrixMVP{};
+  mat4 matrixModel{};
+  mat4 matrixView{};
+  mat4 matrixProjection{};
+  mat4 matrixMeshLocalTransform{};
+  mat4 matrixMeshWorldTransform{};
 };
 
 
@@ -25,7 +32,7 @@ struct FShaderModuleVertexDataVulkan {
   VkShaderModule handle{ VK_NULL_HANDLE };
   VkVertexInputBindingDescription inputBindingDescription{};
   std::vector<VkVertexInputAttributeDescription> inputAttrDescVector{};
-  VkDescriptorSetLayoutBinding cameraDescriptorLayoutBinding{};
+  VkDescriptorSetLayoutBinding descriptorLayoutBinding{};
   const char* path{ "" };
 };
 
@@ -40,7 +47,7 @@ struct FShaderModuleDataVulkan {
   std::vector<VkPipelineShaderStageCreateInfo> shaderStagesVector{};
   VkDescriptorSetLayout descriptorSetLayout{ VK_NULL_HANDLE };
   VkDescriptorPool pool{ VK_NULL_HANDLE };
-  VkDescriptorSet cameraDescriptorSet{ VK_NULL_HANDLE };
+  VkDescriptorSet descriptorSet{ VK_NULL_HANDLE };
   const char* logInfo{ "" };
 };
 
@@ -64,6 +71,9 @@ public:
 
   b32 create(const FShaderModulesCreateDependenciesVulkan& deps);
   b32 close(VkDevice device);
+
+  static void fillShaderUniform(FCamera* pCamera, FMesh* pMesh,
+                                FShaderModuleUniformVulkan* pOutShaderUniform);
 
   void writeDataIntoDescriptorSet(const FShaderWriteIntoDescriptorSetDependenciesVulkan& deps);
 
