@@ -178,7 +178,11 @@ b32 FRendererVulkan::parseSceneForRendering(
     return UFALSE;
   }
 
-  mGraphicsPipeline.passCameraUboToDescriptor(mContextPtr->Device(), &mUniformBufferCamera);
+  FShaderWriteIntoDescriptorSetDependenciesVulkan writeIntoDescriptorSetDeps{};
+  writeIntoDescriptorSetDeps.device = mContextPtr->Device();
+  writeIntoDescriptorSetDeps.pUniformBuffer = &mUniformBufferCamera;
+
+  mGraphicsPipeline.writeDataIntoDescriptorSet(writeIntoDescriptorSetDeps);
 
   UINFO("Parsed scene for rendering!");
   return UTRUE;

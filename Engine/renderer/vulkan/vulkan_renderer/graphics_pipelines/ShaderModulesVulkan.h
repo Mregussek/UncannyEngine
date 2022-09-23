@@ -6,10 +6,19 @@
 #include <volk.h>
 #include <utilities/Variables.h>
 #include <vector>
+#include <math/mat4.h>
 
 
 namespace uncanny
 {
+
+
+class FBufferVulkan;
+
+
+struct FShaderModuleUniformVulkan {
+  mat4 matrixMVP{};
+};
 
 
 struct FShaderModuleVertexDataVulkan {
@@ -44,11 +53,19 @@ struct FShaderModulesCreateDependenciesVulkan {
 };
 
 
+struct FShaderWriteIntoDescriptorSetDependenciesVulkan {
+  VkDevice device{ VK_NULL_HANDLE };
+  FBufferVulkan* pUniformBuffer{ nullptr };
+};
+
+
 class FShaderModulesVulkan {
 public:
 
   b32 create(const FShaderModulesCreateDependenciesVulkan& deps);
   b32 close(VkDevice device);
+
+  void writeDataIntoDescriptorSet(const FShaderWriteIntoDescriptorSetDependenciesVulkan& deps);
 
   [[nodiscard]] const FShaderModuleDataVulkan& getData() const { return mData; }
   [[nodiscard]] const FShaderModuleVertexDataVulkan& getVertexData() const { return mVertexData; }

@@ -47,8 +47,7 @@ public:
   b32 create(const FGraphicsPipelineCreateDependenciesVulkan& deps);
   b32 close(VkDevice device);
 
-  void passCameraUboToDescriptor(VkDevice device, FBufferVulkan* pCameraUBO);
-
+  void writeDataIntoDescriptorSet(const FShaderWriteIntoDescriptorSetDependenciesVulkan& deps);
   b32 recordUsageCommands(const FGraphicsPipelineRecordCommandsDependencies& deps);
 
   [[nodiscard]] FRenderPassDataVulkan getRenderPassData() const { return mRenderPass.getData(); }

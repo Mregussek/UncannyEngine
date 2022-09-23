@@ -3,6 +3,7 @@
 #include <filesystem/FileManager.h>
 #include <renderer/Mesh.h>
 #include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
 #include <utilities/Logger.h>
 
 
@@ -105,6 +106,30 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
 
   UDEBUG("Created shader modules for graphics pipeline {}!", mData.logInfo);
   return UTRUE;
+}
+
+
+void FShaderModulesVulkan::writeDataIntoDescriptorSet(
+    const FShaderWriteIntoDescriptorSetDependenciesVulkan& deps) {
+  UTRACE("Passing uniform data into descriptor from graphics pipeline {}...", mData.logInfo);
+
+  VkDescriptorBufferInfo bufferInfo{ deps.pUniformBuffer->getDescriptorBufferInfo() };
+
+  VkWriteDescriptorSet writeDescriptorSet{};
+  writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  writeDescriptorSet.pNext = nullptr;
+  writeDescriptorSet.dstSet = getData().cameraDescriptorSet;
+  writeDescriptorSet.dstBinding = getVertexData().cameraDescriptorLayoutBinding.binding;
+  writeDescriptorSet.dstArrayElement = 0;
+  writeDescriptorSet.descriptorCount = 1;
+  writeDescriptorSet.descriptorType = getVertexData().cameraDescriptorLayoutBinding.descriptorType;
+  writeDescriptorSet.pImageInfo = nullptr;
+  writeDescriptorSet.pBufferInfo = &bufferInfo;
+  writeDescriptorSet.pTexelBufferView = nullptr;
+
+  vkUpdateDescriptorSets(deps.device, 1, &writeDescriptorSet, 0, nullptr);
+
+  UDEBUG("Passed uniform data into descriptor from graphics pipeline {}!", mData.logInfo);
 }
 
 

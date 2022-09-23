@@ -18,11 +18,6 @@ namespace uncanny
 class FRenderContextVulkan;
 
 
-struct FCameraUBO {
-  mat4 matrixModelViewProjection{};
-};
-
-
 class FRendererVulkan : public FRenderer {
 public:
 

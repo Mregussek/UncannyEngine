@@ -3,6 +3,7 @@
 #include <renderer/Camera.h>
 #include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_renderer/graphics_pipelines/ShaderModulesVulkan.h>
 #include <utilities/Logger.h>
 
 
@@ -10,22 +11,22 @@ namespace uncanny
 {
 
 
-static void moveCameraDataToStructUBO(FCamera* pCamera, FCameraUBO* pOutUBO);
+static void moveCameraDataToStructUBO(FCamera* pCamera, FShaderModuleUniformVulkan* pOutUBO);
 
 
 b32 FRendererVulkan::createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration) {
   UTRACE("Creating uniform buffers...");
 
-  FCameraUBO cameraUbo{};
-  moveCameraDataToStructUBO(sceneConfiguration.pCamera, &cameraUbo);
+  FShaderModuleUniformVulkan uniformObjectShader{};
+  moveCameraDataToStructUBO(sceneConfiguration.pCamera, &uniformObjectShader);
 
   FBufferCreateDependenciesVulkan createDeps{};
   createDeps.pNext = nullptr;
   createDeps.physicalDevice = mContextPtr->PhysicalDevice();
   createDeps.device = mContextPtr->Device();
-  createDeps.size = sizeof(FCameraUBO);
+  createDeps.size = sizeof(FShaderModuleUniformVulkan);
   createDeps.elemCount = 1;
-  createDeps.pData = &cameraUbo;
+  createDeps.pData = &uniformObjectShader;
   createDeps.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
   createDeps.type = EBufferType::HOST_VISIBLE;
   createDeps.logInfo = "camera uniform";
@@ -51,9 +52,9 @@ b32 FRendererVulkan::closeUniformBuffers() {
 }
 
 
-void moveCameraDataToStructUBO(FCamera* pCamera, FCameraUBO* pOutUBO) {
+void moveCameraDataToStructUBO(FCamera* pCamera, FShaderModuleUniformVulkan* pOutUBO) {
   UTRACE("Moving camera data to UBO struct...");
-  pOutUBO->matrixModelViewProjection = pCamera->retrieveMatrixMVP();
+  pOutUBO->matrixMVP = pCamera->retrieveMatrixMVP();
 }
 
 

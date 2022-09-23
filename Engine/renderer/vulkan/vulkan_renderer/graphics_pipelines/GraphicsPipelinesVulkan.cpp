@@ -193,28 +193,9 @@ b32 FGraphicsPipelineVulkan::close(VkDevice device) {
 }
 
 
-void FGraphicsPipelineVulkan::passCameraUboToDescriptor(VkDevice device,
-                                                        FBufferVulkan* pCameraUBO) {
-  UTRACE("Passing camera uniform data into descriptor from graphics pipeline {}...", mData.logInfo);
-
-  VkDescriptorBufferInfo bufferInfo{ pCameraUBO->getDescriptorBufferInfo() };
-
-  VkWriteDescriptorSet writeDescriptorSet{};
-  writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  writeDescriptorSet.pNext = nullptr;
-  writeDescriptorSet.dstSet = mShaders.getData().cameraDescriptorSet;
-  writeDescriptorSet.dstBinding = mShaders.getVertexData().cameraDescriptorLayoutBinding.binding;
-  writeDescriptorSet.dstArrayElement = 0;
-  writeDescriptorSet.descriptorCount = 1;
-  writeDescriptorSet.descriptorType =
-      mShaders.getVertexData().cameraDescriptorLayoutBinding.descriptorType;
-  writeDescriptorSet.pImageInfo = nullptr;
-  writeDescriptorSet.pBufferInfo = &bufferInfo;
-  writeDescriptorSet.pTexelBufferView = nullptr;
-
-  vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, nullptr);
-
-  UDEBUG("Passed camera uniform data into descriptor from graphics pipeline {}!", mData.logInfo);
+void FGraphicsPipelineVulkan::writeDataIntoDescriptorSet(
+    const FShaderWriteIntoDescriptorSetDependenciesVulkan& deps) {
+  mShaders.writeDataIntoDescriptorSet(deps);
 }
 
 
