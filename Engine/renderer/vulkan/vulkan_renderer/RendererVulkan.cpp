@@ -172,7 +172,7 @@ b32 FRendererVulkan::parseSceneForRendering(
     return UFALSE;
   }
 
-  b32 createdUniformBuffers{ createUniformBuffers(mSceneConfig) };
+  b32 createdUniformBuffers{ createUniformBuffer(mSceneConfig.pCamera, &mUniformBuffer) };
   if (not createdUniformBuffers) {
     UERROR("Could not create uniform buffers!");
     return UFALSE;
@@ -180,7 +180,7 @@ b32 FRendererVulkan::parseSceneForRendering(
 
   FShaderWriteIntoDescriptorSetDependenciesVulkan writeIntoDescriptorSetDeps{};
   writeIntoDescriptorSetDeps.device = mContextPtr->Device();
-  writeIntoDescriptorSetDeps.pUniformBuffer = &mUniformBufferCamera;
+  writeIntoDescriptorSetDeps.pUniformBuffer = &mUniformBuffer;
 
   mGraphicsPipeline.writeDataIntoDescriptorSet(writeIntoDescriptorSetDeps);
 
@@ -196,7 +196,7 @@ b32 FRendererVulkan::closeScene() {
     vkDeviceWaitIdle(mContextPtr->Device());
   }
 
-  closeUniformBuffers();
+  closeUniformBuffer(&mUniformBuffer);
   closeVertexIndexBuffersForMesh(&mVertexBuffer, &mIndexBuffer);
 
   UINFO("Closed render scene!");

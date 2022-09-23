@@ -11,14 +11,11 @@ namespace uncanny
 {
 
 
-static void moveCameraDataToStructUBO(FCamera* pCamera, FShaderModuleUniformVulkan* pOutUBO);
-
-
-b32 FRendererVulkan::createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration) {
-  UTRACE("Creating uniform buffers...");
+b32 FRendererVulkan::createUniformBuffer(FCamera* pCamera, FBufferVulkan* pUBO) {
+  UTRACE("Creating uniform buffer...");
 
   FShaderModuleUniformVulkan uniformObjectShader{};
-  moveCameraDataToStructUBO(sceneConfiguration.pCamera, &uniformObjectShader);
+  uniformObjectShader.matrixMVP = pCamera->retrieveMatrixMVP();
 
   FBufferCreateDependenciesVulkan createDeps{};
   createDeps.pNext = nullptr;
@@ -31,30 +28,24 @@ b32 FRendererVulkan::createUniformBuffers(const FRenderSceneConfiguration& scene
   createDeps.type = EBufferType::HOST_VISIBLE;
   createDeps.logInfo = "camera uniform";
 
-  b32 createdCameraUBO{ mUniformBufferCamera.create(createDeps) };
+  b32 createdCameraUBO{ pUBO->create(createDeps) };
   if (not createdCameraUBO) {
-    UERROR("Could not create camera ubo!");
+    UERROR("Could not create ubo!");
     return UFALSE;
   }
 
-  UDEBUG("Created uniform buffers!");
+  UDEBUG("Created uniform buffer!");
   return UTRUE;
 }
 
 
-b32 FRendererVulkan::closeUniformBuffers() {
-  UTRACE("Closing uniform buffers...");
+b32 FRendererVulkan::closeUniformBuffer(FBufferVulkan* pUBO) {
+  UTRACE("Closing uniform buffer...");
 
-  mUniformBufferCamera.close(mContextPtr->Device());
+  pUBO->close(mContextPtr->Device());
 
-  UDEBUG("Closed uniform buffers!");
+  UDEBUG("Closed uniform buffer!");
   return UTRUE;
-}
-
-
-void moveCameraDataToStructUBO(FCamera* pCamera, FShaderModuleUniformVulkan* pOutUBO) {
-  UTRACE("Moving camera data to UBO struct...");
-  pOutUBO->matrixMVP = pCamera->retrieveMatrixMVP();
 }
 
 

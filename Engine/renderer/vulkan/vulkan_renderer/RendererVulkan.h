@@ -73,8 +73,8 @@ private:
                                                     FBufferVulkan* pOutIndex) const;
   b32 closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex, FBufferVulkan* pIndex) const;
 
-  [[nodiscard]] b32 createUniformBuffers(const FRenderSceneConfiguration& sceneConfiguration);
-  b32 closeUniformBuffers();
+  [[nodiscard]] b32 createUniformBuffer(FCamera* pCamera, FBufferVulkan* pUBO);
+  b32 closeUniformBuffer(FBufferVulkan* pUBO);
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
@@ -115,7 +115,7 @@ private:
   // Buffers
   FBufferVulkan mVertexBuffer{};
   FBufferVulkan mIndexBuffer{};
-  FBufferVulkan mUniformBufferCamera{};
+  FBufferVulkan mUniformBuffer{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };
