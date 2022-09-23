@@ -193,6 +193,8 @@ b32 FRendererVulkan::parseSceneForRendering(const FRenderSceneConfiguration& sce
 
 
 b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration& sceneConfig) {
+  vkQueueWaitIdle(mContextPtr->QueueRendering());
+
   mSceneConfig = sceneConfig;
 
   FShaderModuleUniformVulkan shaderUniform{};
@@ -216,9 +218,15 @@ b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration&
 
   mGraphicsPipeline.writeDataIntoDescriptorSet(writeIntoDescriptorSetDeps);
 
-  b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
-  if (not recordedCommandBuffers) {
-    UFATAL("Could not record command buffers!");
+  FGraphicsPipelineRecordCommandsDependencies recordDeps{};
+  recordDeps.pRenderTargets = &mImageRenderTargetVector;
+  recordDeps.pVertexBuffer = &mVertexBuffer;
+  recordDeps.pIndexBuffer = &mIndexBuffer;
+  recordDeps.pCommandBuffers = &mVkRenderCommandBufferVector;
+
+  b32 recordPipeline{ mGraphicsPipeline.recordUsageCommands(recordDeps) };
+  if (not recordPipeline) {
+    UFATAL("Could not record graphics pipeline with vertex buffer for render target cmd buffers!");
     return UFALSE;
   }
 
