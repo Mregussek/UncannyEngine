@@ -50,6 +50,8 @@ Mateusz Rzeczyca
 
 ## History
 
+23.09.2022 Changed directory structure for vulkan renderer, added graphics pipelines as separate structures, enabled updating uniform buffers during realtime (quads are rotating!) [tree](https://github.com/Mregussek/UncannyEngine/tree/ca783827f612787c6a9f741ddca847173e5aebac)
+
 15.09.2022 Added depth buffer testing [tree](https://github.com/Mregussek/UncannyEngine/tree/15f421038d9e43888cf33ab389998af6be9983a0)
 
 14.09.2022 Separated vulkan context from renderer, added resources for vulkan (image and buffers) and refactored code accordingly, added uniform buffers and checked usage of math library [tree](https://github.com/Mregussek/UncannyEngine/tree/94bc7b9b5bd0923bb5100e673b3846793862a1e2)
