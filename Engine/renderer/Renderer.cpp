@@ -18,7 +18,13 @@ void FRenderer::terminate() {
 }
 
 
-b32 FRenderer::parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration) {
+b32 FRenderer::parseSceneForRendering(const FRenderSceneConfiguration& sceneConfig) {
+  UFATAL("should not be used!");
+  return UFALSE;
+}
+
+
+b32 FRenderer::updateSceneDuringRendering(const uncanny::FRenderSceneConfiguration& sceneConfig) {
   UFATAL("should not be used!");
   return UFALSE;
 }

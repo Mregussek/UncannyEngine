@@ -27,7 +27,7 @@ struct FBufferDataVulkan {
 };
 
 
-struct FBufferCreateStagingDependenciesVulkan {
+struct FBufferStagingDependenciesVulkan {
   VkQueue transferQueue{ VK_NULL_HANDLE };
   VkCommandPool transferCommandPool{ VK_NULL_HANDLE };
 };
@@ -46,11 +46,21 @@ struct FBufferCreateDependenciesVulkan {
 };
 
 
+struct FBufferCopyDependenciesVulkan {
+  void* pNext{ nullptr };
+  VkDevice device{ VK_NULL_HANDLE };
+  VkDeviceSize size{ 0 };
+  void* pData{ nullptr };
+};
+
+
 class FBufferVulkan {
 public:
 
   [[nodiscard]] b32 create(const FBufferCreateDependenciesVulkan& deps);
   b32 close(VkDevice device);
+
+  [[nodiscard]] b32 copy(const FBufferCopyDependenciesVulkan& deps);
 
   [[nodiscard]] const FBufferDataVulkan& getData() const { return mData; }
   [[nodiscard]] VkDescriptorBufferInfo getDescriptorBufferInfo() const;

@@ -9,6 +9,9 @@ namespace uncanny
 {
 
 
+static b32 closeFences(VkDevice device, std::vector<VkFence>* pFencesVector, const char* logInfo);
+
+
 b32 FRendererVulkan::createGraphicsFences() {
   UTRACE("Creating graphics fences...");
 
@@ -32,23 +35,31 @@ b32 FRendererVulkan::createGraphicsFences() {
 b32 FRendererVulkan::closeGraphicsFences() {
   UTRACE("Closing graphics fences...");
 
-  if (mVkFencesInFlightFrames.empty()) {
-    UWARN("Graphics fences vector is empty, so nothing will be destroyed!");
+  closeFences(mContextPtr->Device(), &mVkFencesInFlightFrames, "in flight");
+
+  UDEBUG("Closed graphics fences!");
+  return UTRUE;
+}
+
+
+b32 closeFences(VkDevice device, std::vector<VkFence>* pFencesVector, const char* logInfo) {
+  if (pFencesVector->empty()) {
+    UWARN("{} fences vector is empty, so nothing will be destroyed!", logInfo);
     return UTRUE;
   }
 
-  for (u32 i = 0; i < mVkFencesInFlightFrames.size(); i++) {
-    UTRACE("Destroying graphics fence {}...", i);
-    if (mVkFencesInFlightFrames[i] != VK_NULL_HANDLE) {
-      vkDestroyFence(mContextPtr->Device(), mVkFencesInFlightFrames[i], nullptr);
-      mVkFencesInFlightFrames[i] = VK_NULL_HANDLE;
+  for (u32 i = 0; i < pFencesVector->size(); i++) {
+    if (pFencesVector->at(i) == VK_NULL_HANDLE) {
+      UWARN("As {} fence {} is not created, so it is not destroyed!", logInfo, i);
       continue;
     }
-    UWARN("As graphics fence {} is not created, so it is not destroyed!", i);
-  }
-  mVkFencesInFlightFrames.clear();
 
-  UDEBUG("Closed graphics fences!");
+    UTRACE("Destroying {} fence {}...", logInfo, i);
+    vkDestroyFence(device, pFencesVector->at(i), nullptr);
+    pFencesVector->at(i) = VK_NULL_HANDLE;
+  }
+
+  pFencesVector->clear();
   return UTRUE;
 }
 

@@ -59,6 +59,79 @@ b32 FBufferVulkan::create(const FBufferCreateDependenciesVulkan& deps) {
 }
 
 
+b32 FBufferVulkan::copy(const FBufferCopyDependenciesVulkan& deps) {
+  if (deps.size > mData.size) {
+    UERROR("Too much memory needed for copying that allocated at buffer {}, returning!",
+           mData.logInfo);
+    return UFALSE;
+  }
+
+  if (mData.type == EBufferType::HOST_VISIBLE) {
+    UTRACE("Copying data to buffer {} through host visible way...", mData.logInfo);
+    FMemoryCopyDependenciesVulkan copyDeps{};
+    copyDeps.pNext = nullptr;
+    copyDeps.device = deps.device;
+    copyDeps.deviceMemory = mData.deviceMemory;
+    copyDeps.size = deps.size;
+    copyDeps.pData = deps.pData;
+    copyDeps.copyType = EMemoryCopyType::USE_HOST_MEMCPY;
+    copyDeps.logInfo = mData.logInfo;
+
+    b32 copied{ FMemoryVulkan::copy(copyDeps) };
+    if (not copied) {
+      UERROR("Could not copy data to buffer {}!", mData.logInfo);
+      return UFALSE;
+    }
+  }
+  else if (mData.type == EBufferType::DEVICE_WITH_STAGING) {
+    UTRACE("Copying data to buffer {} through device staging way...", mData.logInfo);
+    auto stagingDeps{reinterpret_cast<const FBufferStagingDependenciesVulkan*>(deps.pNext)};
+
+    FMemoryCopyDependenciesVulkan copyHostVisibleDeps{};
+    copyHostVisibleDeps.pNext = nullptr;
+    copyHostVisibleDeps.device = deps.device;
+    copyHostVisibleDeps.deviceMemory = mMemoryStaging;
+    copyHostVisibleDeps.size = deps.size;
+    copyHostVisibleDeps.pData = deps.pData;
+    copyHostVisibleDeps.copyType = EMemoryCopyType::USE_HOST_MEMCPY;
+    copyHostVisibleDeps.logInfo = mData.logInfo;
+
+    b32 copiedToStagingHostVisibleMemory{ FMemoryVulkan::copy(copyHostVisibleDeps) };
+    if (not copiedToStagingHostVisibleMemory) {
+      UERROR("Could not copy data to host visible staging buffer {}!", mData.logInfo);
+      return UFALSE;
+    }
+
+    FMemoryCopyBuffersUsingStagingBufferDependenciesVulkan copyStagingDeps{};
+    copyStagingDeps.srcBuffer = mBufferStaging;
+    copyStagingDeps.dstBuffer = mData.handle;
+    copyStagingDeps.transferCommandPool = stagingDeps->transferCommandPool;
+    copyStagingDeps.transferQueue = stagingDeps->transferQueue;
+    copyStagingDeps.srcLogInfo = "staging";
+    copyStagingDeps.dstLogInfo = mData.logInfo;
+
+    // pNext is mandatory when using cmd buffer
+    FMemoryCopyDependenciesVulkan copyDeviceLocalDeps{};
+    copyDeviceLocalDeps.pNext = reinterpret_cast<void*>(&copyStagingDeps);
+    copyDeviceLocalDeps.device = deps.device;
+    copyDeviceLocalDeps.deviceMemory = mData.deviceMemory;
+    copyDeviceLocalDeps.size = deps.size;
+    copyDeviceLocalDeps.pData = nullptr; // as it is staged copy, pData is not needed
+    copyDeviceLocalDeps.copyType = EMemoryCopyType::USE_COMMAND_BUFFER;
+    copyDeviceLocalDeps.logInfo = mData.logInfo;
+
+    b32 copied{ FMemoryVulkan::copy(copyDeviceLocalDeps) };
+    if (not copied) {
+      UERROR("Could not copy data to device local buffer {}!", mData.logInfo);
+      return UFALSE;
+    }
+  }
+
+  UDEBUG("Properly copied memory at buffer {}!", mData.logInfo);
+  return UTRUE;
+}
+
+
 b32 FBufferVulkan::close(VkDevice device) {
   UTRACE("Closing buffer...");
 
@@ -172,7 +245,7 @@ b32 createDeviceLocalBuffer(const FBufferCreateDependenciesVulkan& deps,
   VkBufferUsageFlags stagingUsageFlags{ VK_BUFFER_USAGE_TRANSFER_SRC_BIT };
   VkMemoryPropertyFlags deviceLocalPropertyFlags{ VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT };
   VkBufferUsageFlags deviceLocalUsageFlags{ VK_BUFFER_USAGE_TRANSFER_DST_BIT | deps.usage };
-  auto stagingDeps{reinterpret_cast<const FBufferCreateStagingDependenciesVulkan*>(deps.pNext)};
+  auto stagingDeps{reinterpret_cast<const FBufferStagingDependenciesVulkan*>(deps.pNext)};
 
   // Creating staging buffer handle
   b32 createdStagingHandle{ createBufferHandle(deps.device, deps.size, stagingUsageFlags,

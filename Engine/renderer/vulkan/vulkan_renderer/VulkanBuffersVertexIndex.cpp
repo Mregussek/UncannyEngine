@@ -14,7 +14,7 @@ b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan
                                                      FBufferVulkan* pOutIndex) const {
   UTRACE("Creating buffers for mesh...");
 
-  FBufferCreateStagingDependenciesVulkan stagingDeps{};
+  FBufferStagingDependenciesVulkan stagingDeps{};
   stagingDeps.transferQueue = mContextPtr->QueueCopy();
   stagingDeps.transferCommandPool = mVkTransferCommandPool;
 

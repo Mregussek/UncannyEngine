@@ -24,7 +24,8 @@ public:
   b32 init() override;
   void terminate() override;
 
-  b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration) override;
+  b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfig) override;
+  b32 updateSceneDuringRendering(const FRenderSceneConfiguration& sceneConfig) override;
   b32 closeScene() override;
 
   [[nodiscard]] b32 prepareStateForRendering() override;
@@ -95,7 +96,6 @@ private:
   // Render Images info
   std::vector<FImageVulkan> mImageRenderTargetVector{};
   // Depth Image info
-  VkFormat mVkDepthFormat{ VK_FORMAT_UNDEFINED };
   FImageVulkan mDepthImage{};
   // Graphics Command Pools
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };

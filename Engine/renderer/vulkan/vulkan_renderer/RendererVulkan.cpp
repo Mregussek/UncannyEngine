@@ -160,11 +160,10 @@ void FRendererVulkan::terminate() {
 }
 
 
-b32 FRendererVulkan::parseSceneForRendering(
-    const FRenderSceneConfiguration& sceneConfiguration) {
+b32 FRendererVulkan::parseSceneForRendering(const FRenderSceneConfiguration& sceneConfig) {
   UTRACE("Parsing scene for rendering...");
 
-  mSceneConfig = sceneConfiguration;
+  mSceneConfig = sceneConfig;
 
   b32 createdVertexIndexBuffer{ createVertexIndexBuffersForMesh(
       mSceneConfig.pMesh, &mVertexBuffer, &mIndexBuffer) };
@@ -189,6 +188,40 @@ b32 FRendererVulkan::parseSceneForRendering(
   mGraphicsPipeline.writeDataIntoDescriptorSet(writeIntoDescriptorSetDeps);
 
   UINFO("Parsed scene for rendering!");
+  return UTRUE;
+}
+
+
+b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration& sceneConfig) {
+  mSceneConfig = sceneConfig;
+
+  FShaderModuleUniformVulkan shaderUniform{};
+  FShaderModulesVulkan::fillShaderUniform(mSceneConfig.pCamera, mSceneConfig.pMesh, &shaderUniform);
+
+  FBufferCopyDependenciesVulkan copyDeps{};
+  copyDeps.pNext = nullptr;
+  copyDeps.device = mContextPtr->Device();
+  copyDeps.size = sizeof(FShaderModuleUniformVulkan);
+  copyDeps.pData = &shaderUniform;
+
+  b32 copied{ mUniformBuffer.copy(copyDeps) };
+  if (not copied) {
+    UERROR("Could not copy render scene cfg to uniform buffer!");
+    return UFALSE;
+  }
+
+  FShaderWriteIntoDescriptorSetDependenciesVulkan writeIntoDescriptorSetDeps{};
+  writeIntoDescriptorSetDeps.device = mContextPtr->Device();
+  writeIntoDescriptorSetDeps.pUniformBuffer = &mUniformBuffer;
+
+  mGraphicsPipeline.writeDataIntoDescriptorSet(writeIntoDescriptorSetDeps);
+
+  b32 recordedCommandBuffers{ recordCommandBuffersGeneral() };
+  if (not recordedCommandBuffers) {
+    UFATAL("Could not record command buffers!");
+    return UFALSE;
+  }
+
   return UTRUE;
 }
 
@@ -274,15 +307,15 @@ ERendererState FRendererVulkan::prepareFrame() {
     return ERendererState::SURFACE_MINIMIZED;
   }
 
+  vkWaitForFences(mContextPtr->Device(), 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE,
+                  UINT64_MAX);
+  vkResetFences(mContextPtr->Device(), 1, &mVkFencesInFlightFrames[mCurrentFrame]);
+
   return ERendererState::RENDERING;
 }
 
 
 b32 FRendererVulkan::submitFrame() {
-  vkWaitForFences(mContextPtr->Device(), 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE,
-                  UINT64_MAX);
-  vkResetFences(mContextPtr->Device(), 1, &mVkFencesInFlightFrames[mCurrentFrame]);
-
   VkSubmitInfo renderSubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   renderSubmitInfo.pNext = nullptr;
   renderSubmitInfo.waitSemaphoreCount = 0;
@@ -293,7 +326,8 @@ b32 FRendererVulkan::submitFrame() {
   renderSubmitInfo.signalSemaphoreCount = 1;
   renderSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
 
-  U_VK_ASSERT( vkQueueSubmit(mContextPtr->QueueRendering(), 1, &renderSubmitInfo, VK_NULL_HANDLE) );
+  U_VK_ASSERT( vkQueueSubmit(mContextPtr->QueueRendering(), 1, &renderSubmitInfo,
+                             VK_NULL_HANDLE) );
 
   VkResult properlyAcquiredNextImage =
       vkAcquireNextImageKHR(mContextPtr->Device(), mVkSwapchainCurrent, UINT64_MAX,

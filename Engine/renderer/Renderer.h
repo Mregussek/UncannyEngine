@@ -31,7 +31,8 @@ public:
   virtual b32 init();
   virtual void terminate();
 
-  virtual b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfiguration);
+  virtual b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfig);
+  virtual b32 updateSceneDuringRendering(const FRenderSceneConfiguration& sceneConfig);
   virtual b32 closeScene();
 
   virtual b32 prepareStateForRendering();

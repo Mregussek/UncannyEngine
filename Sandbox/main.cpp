@@ -111,14 +111,18 @@ auto main() -> i32 {
     }
 
     ERendererState renderState{ pRenderer->prepareFrame() };
-    if (renderState == ERendererState::SURFACE_MINIMIZED) {
+    if (renderState != ERendererState::RENDERING) {
       continue;
     }
 
-    if (renderState == ERendererState::RENDERING) {
-      pRenderer->submitFrame();
-      pRenderer->endFrame();
+    meshQuads.transformLocal = mat4::rotation(glfwGetTime(), { 0.f, 0.f, 1.f });
+    b32 updatedRenderScene{ pRenderer->updateSceneDuringRendering(renderSceneConfig) };
+    if (not updatedRenderScene) {
+      break;
     }
+
+    pRenderer->submitFrame();
+    pRenderer->endFrame();
   }
 
   // Terminating everything
