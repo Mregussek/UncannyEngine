@@ -174,6 +174,9 @@ template<typename TProperties>
 void iterateOverAndLog(const std::vector<TProperties>& properties,
                        const char* (*pRetrieveFunc)(const TProperties&),
                        const char* areMandatory) {
+  if constexpr (not ENABLE_TERMINAL_LOGGING) {
+    return;
+  }
   UTRACE("{} Instance {} properties:", areMandatory, typeid(TProperties).name());
   for (TProperties property : properties) {
     std::cout << pRetrieveFunc(property) << ", ";

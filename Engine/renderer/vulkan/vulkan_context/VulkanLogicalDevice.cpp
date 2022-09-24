@@ -141,6 +141,9 @@ b32 FRenderContextVulkan::closeLogicalDevice() {
 
 void iterateOverAndLog(const std::vector<VkExtensionProperties>& properties,
                        const char* areMandatory) {
+  if constexpr (not ENABLE_TERMINAL_LOGGING) {
+    return;
+  }
   UTRACE("{} PhysicalDevice VkExtensionsProperties:", areMandatory);
   for (const VkExtensionProperties& property : properties) {
     std::cout << property.extensionName << ", ";
@@ -151,6 +154,9 @@ void iterateOverAndLog(const std::vector<VkExtensionProperties>& properties,
 
 void iterateOverAndLog(const std::vector<const char*>& properties,
                        const char* areMandatory) {
+  if constexpr (not ENABLE_TERMINAL_LOGGING) {
+    return;
+  }
   UTRACE("{} PhysicalDevice:", areMandatory);
   for (const char* property : properties) {
     std::cout << property << ", ";

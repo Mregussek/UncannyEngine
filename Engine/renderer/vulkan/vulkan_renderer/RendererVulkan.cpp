@@ -193,6 +193,7 @@ b32 FRendererVulkan::parseSceneForRendering(const FRenderSceneConfiguration& sce
 
 
 b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration& sceneConfig) {
+  UTRACE("Updating scene during rendering...");
   mSceneConfig = sceneConfig;
 
   FShaderModuleUniformVulkan shaderUniform{};
@@ -210,6 +211,7 @@ b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration&
     return UFALSE;
   }
 
+  UTRACE("Updated scene during rendering!");
   return UTRUE;
 }
 
@@ -246,6 +248,7 @@ b32 FRendererVulkan::prepareStateForRendering() {
 
 
 void FRendererVulkan::resetRenderLoopMembers() {
+  UTRACE("Resetting render loop members...");
   // surface is always proper after creation
   mSurfaceIsOutOfDate = UFALSE;
   // set current frame to 0, max value should be mSwapchainDependencies.usedImageCount
@@ -259,6 +262,8 @@ void FRendererVulkan::resetRenderLoopMembers() {
 
 
 b32 FRendererVulkan::recordCommandBuffersGeneral() {
+  UTRACE("Recording command buffers...");
+
   b32 properlyResetCommandPoolsAndBuffers{ resetCommandPool(mVkGraphicsCommandPool) };
   if (not properlyResetCommandPoolsAndBuffers) {
     UERROR("Could not reset command pools (with command buffers), so cannot record commands!");
@@ -284,6 +289,7 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
     return UFALSE;
   }
 
+  UTRACE("Recorded command buffers!");
   return UTRUE;
 }
 
