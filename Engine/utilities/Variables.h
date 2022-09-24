@@ -52,7 +52,7 @@ static_assert(sizeof(b32) == 4, "b32 does not match 32 bits");
 #define UIGNORE_ARGUMENT UUNUSED
 
 #define ENABLE_DEBUGGING_RENDERER 1
-#define ENABLE_TERMINAL_LOGGING 0
+#define ENABLE_TERMINAL_LOGGING 1
 
 }
 
