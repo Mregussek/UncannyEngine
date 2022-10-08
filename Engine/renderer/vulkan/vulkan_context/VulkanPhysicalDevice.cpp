@@ -225,7 +225,8 @@ b32 isPhysicalDeviceSuitable(VkPhysicalDevice physicalDevice,
 
   UTRACE("Make sure that device has proper count of queues family indexes");
   if (dependencies.queueFamilyIndexesCount > queuesCount) {
-    UTRACE("Device {} doesn't have enough count of QueueFamilyIndexes", deviceProperties.deviceName);
+    UTRACE("Device {} doesn't have enough count of QueueFamilyIndexes, expected: {} actual: {}",
+           deviceProperties.deviceName, dependencies.queueFamilyIndexesCount, queuesCount);
     return UFALSE;
   }
 
