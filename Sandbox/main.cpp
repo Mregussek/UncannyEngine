@@ -46,7 +46,10 @@ auto main() -> i32 {
   FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
   b32 initializedContext{ pRenderContext->init(renderContextSpecification) };
   if (not initializedContext) {
-    pWindow->close();
+      pWindow->close();
+      pRenderContext->terminate();
+      pWindow->terminate();
+      return -1;
   }
 
   FRenderer* pRenderer{ renderContextFactory.retrieveRendererFrom(pRenderContext) };

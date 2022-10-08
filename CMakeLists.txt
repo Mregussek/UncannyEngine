@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(UncannyEngine)
 
-set(ENV{VULKAN_SDK} "D:/SDKs/Vulkan/Vulkan_1.3.126.0")
+set(ENV{VULKAN_SDK} "C:/VulkanSDK/1.3.216.0")
 set(CMAKE_CXX_STANDARD 20)
 
 # ------------------- Loading dependencies
