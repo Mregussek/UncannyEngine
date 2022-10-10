@@ -29,9 +29,11 @@ public:
   b32 init(const FInstanceInitDependenciesVulkan& deps);
   void terminate();
 
+  [[nodiscard]] VkInstance Handle() const { return m_VkInstance; }
+
 private:
 
-  VkInstance mVkInstance{ VK_NULL_HANDLE };
+  VkInstance m_VkInstance{ VK_NULL_HANDLE };
 
 };
 

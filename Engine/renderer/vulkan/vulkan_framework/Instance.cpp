@@ -94,7 +94,7 @@ b32 FInstanceVulkan::init(const FInstanceInitDependenciesVulkan& deps) {
   createInfo.enabledExtensionCount = requiredExtensions.size();
   createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
-  VkResult instanceCreated{ vkCreateInstance(&createInfo, nullptr, &mVkInstance) };
+  VkResult instanceCreated{ vkCreateInstance(&createInfo, nullptr, &m_VkInstance) };
   if (instanceCreated != VK_SUCCESS) {
     // We don't want to assert instance creation as it is important result and can be handled with changing Graphics API
     UFATAL("Could not create VkInstance, check your vulkan SDK and GPU drivers");
@@ -102,7 +102,7 @@ b32 FInstanceVulkan::init(const FInstanceInitDependenciesVulkan& deps) {
   }
 
   // Loading volk...
-  volkLoadInstance(mVkInstance);
+  volkLoadInstance(m_VkInstance);
 
   UDEBUG("Initialized vulkan instance!");
   return UTRUE;
@@ -112,9 +112,9 @@ b32 FInstanceVulkan::init(const FInstanceInitDependenciesVulkan& deps) {
 void FInstanceVulkan::terminate() {
   UTRACE("Terminating instance vulkan...");
 
-  if (mVkInstance != VK_NULL_HANDLE) {
+  if (m_VkInstance != VK_NULL_HANDLE) {
     UTRACE("Destroying vulkan instance...");
-    vkDestroyInstance(mVkInstance, nullptr);
+    vkDestroyInstance(m_VkInstance, nullptr);
   }
   else {
     UWARN("vulkan instance is not closed, as it wasn't created!");

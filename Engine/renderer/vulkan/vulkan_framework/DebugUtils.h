@@ -30,7 +30,7 @@ public:
 
 private:
 
-  VkDebugUtilsMessengerEXT mVkDebugUtilsMsg{ VK_NULL_HANDLE };
+  VkDebugUtilsMessengerEXT m_VkDebugUtilsMsg{ VK_NULL_HANDLE };
 
 };
 

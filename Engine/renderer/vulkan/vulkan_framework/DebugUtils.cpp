@@ -44,7 +44,7 @@ b32 FDebugUtilsVulkan::init(const FDebugUtilsInitDependenciesVulkan& deps) {
   debugInfo.pfnUserCallback = debugCallbackFunc;
   debugInfo.pUserData = nullptr;
 
-  AssertResultVulkan( vkCreateDebugUtilsMessengerEXT(deps.instance, &debugInfo, nullptr, &mVkDebugUtilsMsg) );
+  AssertResultVulkan( vkCreateDebugUtilsMessengerEXT(deps.instance, &debugInfo, nullptr, &m_VkDebugUtilsMsg) );
 
   UDEBUG("Initialized debug utils vulkan!");
   return UTRUE;
@@ -54,10 +54,10 @@ b32 FDebugUtilsVulkan::init(const FDebugUtilsInitDependenciesVulkan& deps) {
 void FDebugUtilsVulkan::terminate(VkInstance instance) {
   UTRACE("Terminating debug utils vulkan...");
 
-  if (mVkDebugUtilsMsg != VK_NULL_HANDLE) {
+  if (m_VkDebugUtilsMsg != VK_NULL_HANDLE) {
     auto vkDestroyDebugUtilsMessengerEXT =
         (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    vkDestroyDebugUtilsMessengerEXT(instance, mVkDebugUtilsMsg, nullptr);
+    vkDestroyDebugUtilsMessengerEXT(instance, m_VkDebugUtilsMsg, nullptr);
   }
   else {
     UWARN("Debug Utils Messenger is not closed, as it wasn't created!");
