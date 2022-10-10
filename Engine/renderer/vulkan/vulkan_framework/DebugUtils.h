@@ -17,11 +17,16 @@ void emplaceRequiredDebugInstanceLayers(std::vector<const char*>* pRequiredLayer
 void emplaceRequiredDebugInstanceExtensions(std::vector<const char*>* pRequiredExtensions);
 
 
+struct FDebugUtilsInitDependenciesVulkan {
+  VkInstance instance{ VK_NULL_HANDLE };
+};
+
+
 class FDebugUtilsVulkan {
 public:
 
-  b32 init();
-  void terminate();
+  b32 init(const FDebugUtilsInitDependenciesVulkan& deps);
+  void terminate(VkInstance instance);
 
 private:
 
