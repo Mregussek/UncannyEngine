@@ -1,0 +1,11 @@
+
+#ifndef UNCANNYENGINE_LOGICALDEVICE_H
+#define UNCANNYENGINE_LOGICALDEVICE_H
+
+
+namespace uncanny::vkf {
+
+}
+
+
+#endif //UNCANNYENGINE_LOGICALDEVICE_H

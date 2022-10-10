@@ -6,6 +6,21 @@
 namespace uncanny
 {
 
+void emplaceRequiredGLFWWindowSurfaceInstanceExtensions(const FWindow* pWindow,
+                                                        std::vector<const char*>* pRequiredExtensions) {
+  UTRACE("Adding Window GLFW surface extensions to VkInstance...");
+  u32 extensionsCountGLFW{ 0 };
+  const char** requiredExtensionsGLFW{ glfwGetRequiredInstanceExtensions(&extensionsCountGLFW) };
+
+  for (u32 i = 0; i < extensionsCountGLFW; i++) {
+    pRequiredExtensions->push_back(requiredExtensionsGLFW[i]);
+  }
+  return;
+
+  UERROR("Unknown window {} library, cannot retrieve required vulkan instance extensions!",
+         pWindow->getSpecs().name);
+}
+
 
 static void errorCallbackGLFW(i32 error, const char* description) {
   UERROR("GLFW Error {}: {}", error, description);

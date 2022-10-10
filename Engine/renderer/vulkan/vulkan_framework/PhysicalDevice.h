@@ -1,0 +1,11 @@
+
+#ifndef UNCANNYENGINE_PHYSICALDEVICE_H
+#define UNCANNYENGINE_PHYSICALDEVICE_H
+
+
+namespace uncanny::vkf {
+
+}
+
+
+#endif //UNCANNYENGINE_PHYSICALDEVICE_H

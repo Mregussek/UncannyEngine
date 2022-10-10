@@ -24,9 +24,6 @@ enum class EEngineVersion {
 };
 
 
-u32 displayInfoAboutVersion(u32 version, const char* apiName);
-
-
 }
 
 

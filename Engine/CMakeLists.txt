@@ -12,7 +12,7 @@ file(GLOB_RECURSE ENGINE_LIBRARY_SOURCES
         ${PROJECT_SOURCE_DIR}/Engine/*.inl
         ${PROJECT_SOURCE_DIR}/Engine/*.h
         )
-add_library(UncannyLibrary ${ENGINE_LIBRARY_SOURCES} ${SPDLOG_LIBRARY_SOURCES})
+add_library(UncannyLibrary ${ENGINE_LIBRARY_SOURCES} ${SPDLOG_LIBRARY_SOURCES} renderer/vulkan/vulkan_framework/Instance.h renderer/vulkan/vulkan_framework/Instance.cpp renderer/vulkan/vulkan_framework/PhysicalDevice.h renderer/vulkan/vulkan_framework/PhysicalDevice.cpp renderer/vulkan/vulkan_framework/LogicalDevice.h renderer/vulkan/vulkan_framework/LogicalDevice.cpp renderer/vulkan/vulkan_framework/DebugUtils.h renderer/vulkan/vulkan_framework/DebugUtils.cpp renderer/vulkan/vulkan_framework/WindowSurface.h renderer/vulkan/vulkan_framework/WindowSurface.cpp renderer/vulkan/vulkan_framework/Utilities.h renderer/vulkan/vulkan_framework/Utilities.cpp)
 target_include_directories(UncannyLibrary
         PUBLIC
         ${PROJECT_SOURCE_DIR}/Engine

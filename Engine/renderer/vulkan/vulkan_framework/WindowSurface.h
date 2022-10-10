@@ -1,0 +1,11 @@
+
+#ifndef UNCANNYENGINE_WINDOWSURFACE_H
+#define UNCANNYENGINE_WINDOWSURFACE_H
+
+
+namespace uncanny::vkf {
+
+}
+
+
+#endif //UNCANNYENGINE_WINDOWSURFACE_H

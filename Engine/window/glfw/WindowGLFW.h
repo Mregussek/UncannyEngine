@@ -16,6 +16,10 @@ namespace uncanny
 {
 
 
+void emplaceRequiredGLFWWindowSurfaceInstanceExtensions(const FWindow* pWindow,
+                                                        std::vector<const char*>* pRequiredExtensions);
+
+
 class FWindowGLFW : public FWindow {
 public:
 
