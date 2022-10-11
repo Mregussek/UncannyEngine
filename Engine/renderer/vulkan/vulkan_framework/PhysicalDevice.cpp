@@ -78,6 +78,7 @@ b32 FPhysicalDeviceVulkan::init(const FPhysicalDeviceInitDependenciesVulkan& dep
     UERROR("Wrong graphics queue family returned!");
     return UFALSE;
   }
+  m_VkQueueFamilyPropertiesGraphics = queueFamilyPropertiesVector[m_QueueFamilyGraphics];
 
   m_QueueFamilyTransfer = findBestSuitableQueueFamilyForTransfer(queueFamilyPropertiesVector,
                                                                  m_QueueFamilyGraphics);
@@ -85,6 +86,7 @@ b32 FPhysicalDeviceVulkan::init(const FPhysicalDeviceInitDependenciesVulkan& dep
     UERROR("Wrong transfer queue family returned!");
     return UFALSE;
   }
+  m_VkQueueFamilyPropertiesTransfer = queueFamilyPropertiesVector[m_QueueFamilyTransfer];
 
   UDEBUG("Initialized physical device vulkan...");
   return UTRUE;
@@ -268,7 +270,7 @@ u32 findBestSuitableQueueFamilyForTransfer(const std::vector<VkQueueFamilyProper
     UTRACE("Found queue family index 0 ignored for transfer, but there is only one queue family available, returning");
     return 0;
   }
-  
+
   UERROR("No transfer queue family index found, returning unused!");
   return UUNUSED;
 }

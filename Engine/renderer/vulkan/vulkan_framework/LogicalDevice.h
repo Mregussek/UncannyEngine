@@ -12,6 +12,8 @@ namespace uncanny::vkf {
 
 struct FLogicalDeviceInitDependenciesVulkan {
   VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
+  VkQueueFamilyProperties queueFamilyPropertiesGraphics{};
+  VkQueueFamilyProperties queueFamilyPropertiesTransfer{};
   u32 queueFamilyIndexGraphics{ UUNUSED };
   u32 queueFamilyIndexTransfer{ UUNUSED };
 };

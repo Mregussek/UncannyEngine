@@ -24,6 +24,8 @@ public:
 private:
 
   VkPhysicalDevice m_VkPhysicalDevice{ VK_NULL_HANDLE };
+  VkQueueFamilyProperties m_VkQueueFamilyPropertiesGraphics{};
+  VkQueueFamilyProperties m_VkQueueFamilyPropertiesTransfer{};
   u32 m_QueueFamilyGraphics{ UUNUSED };
   u32 m_QueueFamilyTransfer{ UUNUSED };
 
