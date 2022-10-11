@@ -32,6 +32,11 @@ public:
 
   [[nodiscard]] b32 isMinimized(VkPhysicalDevice physicalDevice, const FWindow* pWindow);
 
+  [[nodiscard]] VkSurfaceKHR Handle() const { return m_VkSurface; }
+  [[nodiscard]] VkSurfaceCapabilitiesKHR Capabilities() const { return m_VkSurfaceCaps; }
+  [[nodiscard]] VkExtent2D Extent() const { return m_VkExtent2D; }
+  [[nodiscard]] VkPresentModeKHR PresentMode() const { return m_VkPresentMode; }
+
 private:
 
   VkSurfaceKHR m_VkSurface{ VK_NULL_HANDLE };

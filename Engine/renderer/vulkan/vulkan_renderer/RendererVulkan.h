@@ -4,6 +4,12 @@
 
 
 #include <renderer/Renderer.h>
+#include <renderer/vulkan/vulkan_framework/Instance.h>
+#include <renderer/vulkan/vulkan_framework/DebugUtils.h>
+#include <renderer/vulkan/vulkan_framework/PhysicalDevice.h>
+#include <renderer/vulkan/vulkan_framework/LogicalDevice.h>
+#include <renderer/vulkan/vulkan_framework/Queues.h>
+#include <renderer/vulkan/vulkan_framework/WindowSurface.h>
 #include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
 #include <renderer/vulkan/vulkan_resources/ImageVulkan.h>
 #include "graphics_pipelines/GraphicsPipelinesVulkan.h"
@@ -15,13 +21,13 @@ namespace uncanny
 {
 
 
-class FRenderContextVulkan;
+class FWindow;
 
 
 class FRendererVulkan : public FRenderer {
 public:
 
-  b32 init() override;
+  b32 init(const FRendererSpecification& specs) override;
   void terminate() override;
 
   b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfig) override;
@@ -33,7 +39,6 @@ public:
   b32 submitFrame() override;
   b32 endFrame() override;
 
-  void passContext(FRenderContextVulkan* pContext);
   static void getRequiredExtensions(std::vector<const char*>* pRequiredExtensions);
 
 private:
@@ -85,7 +90,16 @@ private:
 
 
   // Class Members
-  FRenderContextVulkan* mContextPtr{ nullptr };
+  // Vulkan Framework Members
+  vkf::FInstanceVulkan m_Instance{};
+#if ENABLE_DEBUGGING_RENDERER
+  vkf::FDebugUtilsVulkan m_DebugUtils{};
+#endif
+  vkf::FPhysicalDeviceVulkan m_PhysicalDevice{};
+  vkf::FLogicalDeviceVulkan m_LogicalDevice{};
+  vkf::FQueuesVulkan m_Queues{};
+  vkf::FWindowSurfaceVulkan m_WindowSurface{};
+  // Configs, Deps
   FRenderSceneConfiguration mSceneConfig{};
   FSwapchainDependencies mSwapchainDependencies{};
   FImagesDependencies mImageDependencies{};

@@ -7,7 +7,7 @@ namespace uncanny
 {
 
 
-b32 FRenderer::init() {
+b32 FRenderer::init(const FRendererSpecification& specs) {
   UFATAL("should not be used!");
   return UFALSE;
 }

@@ -21,6 +21,12 @@ public:
   b32 init(const FPhysicalDeviceInitDependenciesVulkan& deps);
   void terminate();
 
+  [[nodiscard]] VkPhysicalDevice Handle() const { return m_VkPhysicalDevice; }
+  [[nodiscard]] VkQueueFamilyProperties QueueFamilyPropertiesGraphics() const { return m_VkQueueFamilyPropertiesGraphics; }
+  [[nodiscard]] VkQueueFamilyProperties QueueFamilyPropertiesTransfer() const { return m_VkQueueFamilyPropertiesTransfer; }
+  [[nodiscard]] u32 QueueFamilyGraphics() const { return m_QueueFamilyGraphics; }
+  [[nodiscard]] u32 QueueFamilyTransfer() const { return m_QueueFamilyTransfer; }
+
 private:
 
   VkPhysicalDevice m_VkPhysicalDevice{ VK_NULL_HANDLE };

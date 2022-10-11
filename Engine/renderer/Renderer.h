@@ -25,10 +25,18 @@ struct FRenderSceneConfiguration {
 };
 
 
+struct FRendererSpecification {
+  const FWindow* pWindow{ nullptr };
+  const char* appName{ "" };
+  u32 engineVersion{ UVERSION_UNDEFINED };
+  u32 appVersion{ UVERSION_UNDEFINED };
+};
+
+
 class FRenderer {
 public:
 
-  virtual b32 init();
+  virtual b32 init(const FRendererSpecification& specs);
   virtual void terminate();
 
   virtual b32 parseSceneForRendering(const FRenderSceneConfiguration& sceneConfig);

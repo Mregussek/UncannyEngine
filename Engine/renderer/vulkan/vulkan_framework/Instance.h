@@ -16,7 +16,7 @@ namespace uncanny::vkf {
 
 struct FInstanceInitDependenciesVulkan {
   u32 expectedVulkanApiVersion{ UVERSION_UNDEFINED };
-  ::uncanny::FWindow* pWindow{ nullptr };
+  const ::uncanny::FWindow* pWindow{ nullptr };
   const char* appName{ "" };
   u32 engineVersion{ UVERSION_UNDEFINED };
   u32 appVersion{ UVERSION_UNDEFINED };

@@ -1,7 +1,6 @@
 
 #include "RendererVulkan.h"
 #include "VulkanRecordCommandBuffers.h"
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/vulkan_renderer/graphics_pipelines/ShaderModulesVulkan.h>
 #include <utilities/Logger.h>
 
@@ -56,20 +55,49 @@ void FRendererVulkan::defineDependencies() {
 }
 
 
-void FRendererVulkan::passContext(FRenderContextVulkan* pContext) {
-  UTRACE("Setting render context at renderer...");
-  mContextPtr = pContext;
-}
-
-
 void FRendererVulkan::getRequiredExtensions(std::vector<const char*>* pRequiredExtensions) {
   UTRACE("Adding swapchain extension to required...");
   pRequiredExtensions->push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
 
 
-b32 FRendererVulkan::init() {
+b32 FRendererVulkan::init(const FRendererSpecification& specs) {
   UTRACE("Initializing vulkan renderer...");
+
+  vkf::FInstanceInitDependenciesVulkan instanceInitDeps{};
+  instanceInitDeps.expectedVulkanApiVersion = VK_API_VERSION_1_3;
+  instanceInitDeps.pWindow = specs.pWindow;
+  instanceInitDeps.appName = specs.appName;
+  instanceInitDeps.engineVersion = specs.engineVersion;
+  instanceInitDeps.appVersion = specs.appVersion;
+
+  b32 instanceInitialized{ m_Instance.init(instanceInitDeps) };
+  if (not instanceInitialized) {
+    UFATAL("Cannot run vulkan renderer! Instance failed to initialize!");
+    return UFALSE;
+  }
+
+#if ENABLE_DEBUGGING_RENDERER
+  vkf::FDebugUtilsInitDependenciesVulkan debugUtilsInitDependencies{};
+  debugUtilsInitDependencies.instance = m_Instance.Handle();
+
+  b32 debugUtilsInitialized{ m_DebugUtils.init(debugUtilsInitDependencies) };
+  if (not debugUtilsInitialized) {
+    UFATAL("Could not start debugging renderer! Debug Utils failed to initialize");
+    return UFALSE;
+  }
+#endif
+
+  vkf::FPhysicalDeviceInitDependenciesVulkan physicalDeviceInitDeps{};
+  physicalDeviceInitDeps.instance = m_Instance.Handle();
+
+  b32 physicalDeviceInitialized{ m_PhysicalDevice.init(physicalDeviceInitDeps) };
+  if (not physicalDeviceInitialized) {
+    UFATAL("Cannot run vulkan renderer! Physical device failed to initialize!");
+    return UFALSE;
+  }
+
+
 
   // define all dependencies for vulkan renderer before setup
   defineDependencies();

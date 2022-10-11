@@ -25,6 +25,10 @@ public:
   b32 init(const FQueuesInitDependenciesVulkan& deps);
   void terminate();
 
+  [[nodiscard]] VkQueue QueueRendering() const { return m_VkQueueRendering; }
+  [[nodiscard]] VkQueue QueuePresentation() const { return m_VkQueuePresentation; }
+  [[nodiscard]] VkQueue QueueTransfer() const { return m_VkQueueTransfer; }
+
 private:
 
   VkQueue m_VkQueueRendering{ VK_NULL_HANDLE };

@@ -6,7 +6,6 @@
 #include <math/vec4.h>
 #include <math/trigonometry.h>
 #include <renderer/Mesh.h>
-#include <renderer/Context.h>
 #include <renderer/Factory.h>
 #include <renderer/Camera.h>
 #include <utilities/Logger.h>
@@ -20,7 +19,7 @@ using namespace uncanny;
 auto main() -> i32 {
   // Utilities setup
   FLogger::init(FLogger::sLoggerPtr);
-  FRenderContextFactory renderContextFactory{};
+  FRendererFactory rendererFactory{};
   FWindowFactory windowFactory{};
 
   // Window subsystem configuration
@@ -37,27 +36,13 @@ auto main() -> i32 {
   pWindow->init(windowSpecification);
 
   // Rendering subsystem configuration
-  FRenderContextSpecification renderContextSpecification{};
-  renderContextSpecification.pWindow = pWindow;
-  renderContextSpecification.pAppName = "Uncanny Sandbox";
-  renderContextSpecification.appVersion = UENGINE_MAKE_VERSION(0, 0, 1);
-  renderContextSpecification.engineVersion = (u32)EEngineVersion::LATEST;
+  FRendererSpecification rendererSpecification{};
 
-  FRenderContext* pRenderContext{ renderContextFactory.create<ERenderLibrary::VULKAN>() };
-  b32 initializedContext{ pRenderContext->init(renderContextSpecification) };
-  if (not initializedContext) {
-      pWindow->close();
-      pRenderContext->terminate();
-      pWindow->terminate();
-      return -1;
-  }
-
-  FRenderer* pRenderer{ renderContextFactory.retrieveRendererFrom(pRenderContext) };
+  FRenderer* pRenderer{ rendererFactory.create<ERenderLibrary::VULKAN>() };
   b32 initializedRenderer{ pRenderer->init() };
   if (not initializedRenderer) {
     pWindow->close();
     pRenderer->terminate();
-    pRenderContext->terminate();
     pWindow->terminate();
     return -1;
   }
@@ -91,7 +76,6 @@ auto main() -> i32 {
   if (not rendererParsedScene) {
     pWindow->close();
     pRenderer->terminate();
-    pRenderContext->terminate();
     pWindow->terminate();
     return -1;
   }
@@ -101,7 +85,6 @@ auto main() -> i32 {
     pWindow->close();
     pRenderer->closeScene();
     pRenderer->terminate();
-    pRenderContext->terminate();
     pWindow->terminate();
     return -1;
   }
@@ -131,7 +114,6 @@ auto main() -> i32 {
   // Terminating everything
   pRenderer->closeScene();
   pRenderer->terminate();
-  pRenderContext->terminate();
   pWindow->terminate();
 
   return 0;

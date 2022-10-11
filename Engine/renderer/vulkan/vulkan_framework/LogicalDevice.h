@@ -25,6 +25,8 @@ public:
   b32 init(const FLogicalDeviceInitDependenciesVulkan& deps);
   void terminate();
 
+  [[nodiscard]] VkDevice Handle() const { return m_VkDevice; }
+
 private:
 
   VkDevice m_VkDevice{ VK_NULL_HANDLE };
