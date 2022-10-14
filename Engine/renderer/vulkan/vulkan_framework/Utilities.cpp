@@ -17,7 +17,7 @@ void AssertVulkan(b32 boolean, VkResult result) {
 
 
 void AssertResultVulkan(VkResult result) {
-  if (result != VK_SUCCESS) {
+  if (result == VK_SUCCESS) {
     return;
   }
 

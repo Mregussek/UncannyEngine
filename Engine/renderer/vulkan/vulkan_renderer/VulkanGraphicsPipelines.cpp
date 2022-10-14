@@ -13,8 +13,11 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   UTRACE("Creating graphics pipelines general...");
 
   VkSurfaceFormatKHR renderTargetFormat{ VK_FORMAT_UNDEFINED };
-  b32 detectedRenderTarget{ mContextPtr->detectSupportedImageFormatByWindowSurface(
-      mImageDependencies.renderTarget.formatCandidatesVector, &renderTargetFormat) };
+  b32 detectedRenderTarget{
+    m_WindowSurface.detectSupportedImageFormat(m_PhysicalDevice.Handle(),
+                                               mImageDependencies.renderTarget.formatCandidatesVector,
+                                               &renderTargetFormat)
+  };
   if (not detectedRenderTarget) {
     UERROR("Could not find suitable render target image format from window surface!");
     return UFALSE;

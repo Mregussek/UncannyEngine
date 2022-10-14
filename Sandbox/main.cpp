@@ -101,7 +101,7 @@ auto main() -> i32 {
     }
 
     FRendererPrepareFrameSpecification prepareFrameSpecs{};
-    prepareFrameSpecs.pWindow = pWindow;
+    FRendererEndFrameSpecification endFrameSpecs{};
 
     ERendererState renderState{ pRenderer->prepareFrame(prepareFrameSpecs) };
     if (renderState != ERendererState::RENDERING) {
@@ -115,7 +115,7 @@ auto main() -> i32 {
     }
 
     pRenderer->submitFrame();
-    pRenderer->endFrame();
+    pRenderer->endFrame(endFrameSpecs);
   }
 
   // Terminating everything

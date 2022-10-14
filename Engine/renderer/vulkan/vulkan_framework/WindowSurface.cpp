@@ -1,13 +1,9 @@
 
 #include "WindowSurface.h"
 #include "Utilities.h"
-#include <vulkan/vulkan_win32.h>
 #include <utilities/Logger.h>
 #include <window/Window.h>
 #include <window/glfw/WindowGLFW.h>
-#ifdef WIN32
-#include <windows.h>
-#endif
 
 
 namespace uncanny::vkf {

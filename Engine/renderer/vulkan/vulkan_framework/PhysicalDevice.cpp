@@ -118,13 +118,13 @@ b32 physicalDeviceDoesNotHaveMandatoryDependencies(VkPhysicalDevice physicalDevi
   const b32 isIntegrated{ properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU };
   if (not (isDiscrete or isIntegrated)) {
     UTRACE("Physical device {} isn't discrete nor integrated GPU!", properties.deviceName);
-    return UFALSE;
+    return UTRUE;
   }
 
   UTRACE("Make sure that physical device {} has swapchain support", properties.deviceName);
   if (not isRequiredPropertyAvailable(VK_KHR_SWAPCHAIN_EXTENSION_NAME, extensions)) {
     UTRACE("Physical device {} doesn't have swapchain support!", properties.deviceName);
-    return UFALSE;
+    return UTRUE;
   }
 
   u32 queueFamilyCount{ 0 };
@@ -148,11 +148,11 @@ b32 physicalDeviceDoesNotHaveMandatoryDependencies(VkPhysicalDevice physicalDevi
   if (not (hasGraphicsQueueFamily and hasTransferQueueFamily)) {
     UTRACE("Physical device {} does not have graphics or transfer queue family! Graphics {} Transfer {}",
            properties.deviceName, hasGraphicsQueueFamily, hasTransferQueueFamily);
-    return UFALSE;
+    return UTRUE;
   }
 
-  UTRACE("Found physical device {} having all mandatory dependencies!", properties.deviceName);
-  return UTRUE;
+  UDEBUG("Found physical device {} having all mandatory dependencies!", properties.deviceName);
+  return UFALSE;
 }
 
 
