@@ -1,6 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <renderer/vulkan/vulkan_renderer/graphics_pipelines/ShaderModulesVulkan.h>
 #include <utilities/Logger.h>
@@ -16,8 +15,8 @@ b32 FRendererVulkan::createUniformBuffer(FShaderModuleUniformVulkan* pShaderUnif
 
   FBufferCreateDependenciesVulkan createDeps{};
   createDeps.pNext = nullptr;
-  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
-  createDeps.device = mContextPtr->Device();
+  createDeps.physicalDevice = m_PhysicalDevice.Handle();
+  createDeps.device = m_LogicalDevice.Handle();
   createDeps.size = sizeof(FShaderModuleUniformVulkan);
   createDeps.elemCount = 1;
   createDeps.pData = pShaderUniform;
@@ -39,7 +38,7 @@ b32 FRendererVulkan::createUniformBuffer(FShaderModuleUniformVulkan* pShaderUnif
 b32 FRendererVulkan::closeUniformBuffer(FBufferVulkan* pBuffer) {
   UTRACE("Closing uniform buffer...");
 
-  pBuffer->close(mContextPtr->Device());
+  pBuffer->close(m_LogicalDevice.Handle());
 
   UDEBUG("Closed uniform buffer!");
   return UTRUE;

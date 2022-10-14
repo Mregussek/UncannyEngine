@@ -1,7 +1,6 @@
 
 #include "RendererVulkan.h"
 #include <renderer/vulkan/vulkan_resources/ImageVulkan.h>
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <utilities/Logger.h>
 #include <filesystem/FileManager.h>
 
@@ -23,7 +22,7 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
 
   VkFormat depthFormat{ VK_FORMAT_UNDEFINED };
   b32 detectedDepth{ detectFormatSupportingFormatFeatures(
-      mContextPtr->PhysicalDevice(), mImageDependencies.depth.formatCandidatesVector,
+      m_PhysicalDevice.Handle(), mImageDependencies.depth.formatCandidatesVector,
       VK_IMAGE_TILING_OPTIMAL, mImageDependencies.depth.formatsFeatureVector, &depthFormat,
       "depth") };
   if (not detectedDepth) {
@@ -32,19 +31,19 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   }
 
   FRenderPassCreateDependenciesVulkan renderPassDeps{};
-  renderPassDeps.device = mContextPtr->Device();
+  renderPassDeps.device = m_LogicalDevice.Handle();
   renderPassDeps.renderTargetFormat = renderTargetFormat.format;
   renderPassDeps.depthFormat = depthFormat;
   renderPassDeps.logInfo = "mesh color rp";
 
   FShaderModulesCreateDependenciesVulkan shaderDeps{};
-  shaderDeps.device = mContextPtr->Device();
+  shaderDeps.device = m_LogicalDevice.Handle();
   shaderDeps.vertexPath = "shaders/colored_mesh.vert.spv";
   shaderDeps.fragmentPath = "shaders/colored_mesh.frag.spv";
   shaderDeps.logInfo = "mesh color sh";
 
   FGraphicsPipelineCreateDependenciesVulkan createDeps{};
-  createDeps.device = mContextPtr->Device();
+  createDeps.device = m_LogicalDevice.Handle();
   createDeps.pRenderPassDeps = &renderPassDeps;
   createDeps.pShaderDeps = &shaderDeps;
   createDeps.logInfo = "mesh color gp";
@@ -63,7 +62,7 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
 b32 FRendererVulkan::closeGraphicsPipelinesGeneral() {
   UTRACE("Closing graphics pipelines general...");
 
-  mGraphicsPipeline.close(mContextPtr->Device());
+  mGraphicsPipeline.close(m_LogicalDevice.Handle());
 
   UDEBUG("Closed graphics pipelines general!");
   return UTRUE;

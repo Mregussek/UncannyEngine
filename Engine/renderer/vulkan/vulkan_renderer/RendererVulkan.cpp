@@ -1,6 +1,7 @@
 
 #include "RendererVulkan.h"
 #include "VulkanRecordCommandBuffers.h"
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <renderer/vulkan/vulkan_renderer/graphics_pipelines/ShaderModulesVulkan.h>
 #include <utilities/Logger.h>
 
@@ -97,7 +98,43 @@ b32 FRendererVulkan::init(const FRendererSpecification& specs) {
     return UFALSE;
   }
 
+  vkf::FLogicalDeviceInitDependenciesVulkan logicalDeviceInitDeps{};
+  logicalDeviceInitDeps.physicalDevice = m_PhysicalDevice.Handle();
+  logicalDeviceInitDeps.queueFamilyPropertiesGraphics = m_PhysicalDevice.QueueFamilyPropertiesGraphics();
+  logicalDeviceInitDeps.queueFamilyPropertiesTransfer = m_PhysicalDevice.QueueFamilyPropertiesTransfer();
+  logicalDeviceInitDeps.queueFamilyIndexGraphics = m_PhysicalDevice.QueueFamilyGraphics();
+  logicalDeviceInitDeps.queueFamilyIndexTransfer = m_PhysicalDevice.QueueFamilyTransfer();
 
+  b32 logicalDeviceInitialized{ m_LogicalDevice.init(logicalDeviceInitDeps) };
+  if (not logicalDeviceInitialized) {
+    UFATAL("Cannot run vulkan renderer! Logical device failed to initialize!");
+    return UFALSE;
+  }
+
+  vkf::FQueuesInitDependenciesVulkan queuesInitDeps{};
+  queuesInitDeps.logicalDevice = m_LogicalDevice.Handle();
+  queuesInitDeps.queueFamilyIndexGraphics = m_PhysicalDevice.QueueFamilyGraphics();
+  queuesInitDeps.availableQueuesGraphics = m_PhysicalDevice.QueueFamilyPropertiesGraphics().queueCount;
+  queuesInitDeps.queueFamilyIndexTransfer = m_PhysicalDevice.QueueFamilyTransfer();
+  queuesInitDeps.availableQueuesTransfer = m_PhysicalDevice.QueueFamilyPropertiesTransfer().queueCount;
+
+  b32 queuesInitialized{ m_Queues.init(queuesInitDeps) };
+  if (not queuesInitialized) {
+    UFATAL("Cannot run vulkan renderer! Queues failed to initialize!");
+    return UFALSE;
+  }
+
+  vkf::FWindowSurfaceInitDependenciesVulkan windowSurfaceInitDeps{};
+  windowSurfaceInitDeps.instance = m_Instance.Handle();
+  windowSurfaceInitDeps.physicalDevice = m_PhysicalDevice.Handle();
+  windowSurfaceInitDeps.pWindow = specs.pWindow;
+  windowSurfaceInitDeps.queueFamilyIndexGraphics = m_PhysicalDevice.QueueFamilyGraphics();
+
+  b32 windowSurfaceInitialized{ m_WindowSurface.init(windowSurfaceInitDeps) };
+  if (not windowSurfaceInitialized) {
+    UFATAL("Cannot run vulkan renderer! Window Surface failed to initialize!");
+    return UFALSE;
+  }
 
   // define all dependencies for vulkan renderer before setup
   defineDependencies();
@@ -170,9 +207,8 @@ b32 FRendererVulkan::init(const FRendererSpecification& specs) {
 void FRendererVulkan::terminate() {
   UTRACE("Terminating vulkan renderer...");
 
-  if (mContextPtr->Device() != VK_NULL_HANDLE) {
-    UTRACE("Waiting for Device Idle state before terminating...");
-    vkDeviceWaitIdle(mContextPtr->Device());
+  if (m_LogicalDevice.Handle() != VK_NULL_HANDLE) {
+    m_LogicalDevice.waitIdle();
   }
 
   closeGraphicsFences();
@@ -210,7 +246,7 @@ b32 FRendererVulkan::parseSceneForRendering(const FRenderSceneConfiguration& sce
   }
 
   FShaderWriteIntoDescriptorSetDependenciesVulkan writeIntoDescriptorSetDeps{};
-  writeIntoDescriptorSetDeps.device = mContextPtr->Device();
+  writeIntoDescriptorSetDeps.device = m_LogicalDevice.Handle();
   writeIntoDescriptorSetDeps.pUniformBuffer = &mUniformBuffer;
 
   mGraphicsPipeline.writeDataIntoDescriptorSet(writeIntoDescriptorSetDeps);
@@ -229,7 +265,7 @@ b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration&
 
   FBufferCopyDependenciesVulkan copyDeps{};
   copyDeps.pNext = nullptr;
-  copyDeps.device = mContextPtr->Device();
+  copyDeps.device = m_LogicalDevice.Handle();
   copyDeps.size = sizeof(FShaderModuleUniformVulkan);
   copyDeps.pData = &shaderUniform;
 
@@ -246,9 +282,8 @@ b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration&
 
 b32 FRendererVulkan::closeScene() {
   UTRACE("Closing render scene...");
-  if (mContextPtr->Device() != VK_NULL_HANDLE) {
-    UTRACE("Waiting for Device Idle state before terminating...");
-    vkDeviceWaitIdle(mContextPtr->Device());
+  if (m_LogicalDevice.Handle() != VK_NULL_HANDLE) {
+    m_LogicalDevice.waitIdle();
   }
 
   closeUniformBuffer(&mUniformBuffer);
@@ -322,16 +357,16 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
 }
 
 
-ERendererState FRendererVulkan::prepareFrame() {
+ERendererState FRendererVulkan::prepareFrame(const FRendererPrepareFrameSpecification& specs) {
   // if window is minimized, if so we don't want to schedule anything and recreate swapchain
-  b32 surfaceImageState{ mContextPtr->isWindowSurfacePresentableImageExtentProper() };
+  b32 surfaceImageState{ m_WindowSurface.isMinimized(m_PhysicalDevice.Handle()) };
   if (shouldReturnAfterWindowSurfacePresentableImageStateValidation(surfaceImageState)) {
     return ERendererState::SURFACE_MINIMIZED;
   }
 
-  vkWaitForFences(mContextPtr->Device(), 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE,
+  vkWaitForFences(m_LogicalDevice.Handle(), 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE,
                   UINT64_MAX);
-  vkResetFences(mContextPtr->Device(), 1, &mVkFencesInFlightFrames[mCurrentFrame]);
+  vkResetFences(m_LogicalDevice.Handle(), 1, &mVkFencesInFlightFrames[mCurrentFrame]);
 
   return ERendererState::RENDERING;
 }
@@ -348,11 +383,10 @@ b32 FRendererVulkan::submitFrame() {
   renderSubmitInfo.signalSemaphoreCount = 1;
   renderSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
 
-  U_VK_ASSERT( vkQueueSubmit(mContextPtr->QueueRendering(), 1, &renderSubmitInfo,
-                             VK_NULL_HANDLE) );
+  vkf::AssertResultVulkan( vkQueueSubmit(m_Queues.QueueRendering(), 1, &renderSubmitInfo, VK_NULL_HANDLE) );
 
   VkResult properlyAcquiredNextImage =
-      vkAcquireNextImageKHR(mContextPtr->Device(), mVkSwapchainCurrent, UINT64_MAX,
+      vkAcquireNextImageKHR(m_LogicalDevice.Handle(), mVkSwapchainCurrent, UINT64_MAX,
                             mVkSemaphoreImageAvailableVector[mCurrentFrame],
                             VK_NULL_HANDLE, &mImagePresentableIndex);
   switch(properlyAcquiredNextImage) {
@@ -384,8 +418,8 @@ b32 FRendererVulkan::submitFrame() {
   copySubmitInfo.signalSemaphoreCount = 1;
   copySubmitInfo.pSignalSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
 
-  U_VK_ASSERT( vkQueueSubmit(mContextPtr->QueueCopy(), 1, &copySubmitInfo,
-                             mVkFencesInFlightFrames[mCurrentFrame]) );
+  vkf::AssertResultVulkan( vkQueueSubmit(m_Queues.QueueTransfer(), 1, &copySubmitInfo,
+                                         mVkFencesInFlightFrames[mCurrentFrame]) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
   queuePresentInfo.pNext = nullptr;
@@ -397,7 +431,7 @@ b32 FRendererVulkan::submitFrame() {
   queuePresentInfo.pResults = nullptr;
 
   VkResult properlyPresentedImage{
-      vkQueuePresentKHR(mContextPtr->QueuePresentation(), &queuePresentInfo) };
+      vkQueuePresentKHR(m_Queues.QueuePresentation(), &queuePresentInfo) };
   switch(properlyPresentedImage) {
     case VK_SUCCESS: break;
     case VK_SUBOPTIMAL_KHR:
@@ -416,12 +450,12 @@ b32 FRendererVulkan::submitFrame() {
 }
 
 
-b32 FRendererVulkan::endFrame() {
+b32 FRendererVulkan::endFrame(const FRendererEndFrameSpecification& specs) {
   // Check if surface is out of date and surface is not minimized
-  if (mSurfaceIsOutOfDate and mContextPtr->isWindowSurfacePresentableImageExtentProper()) {
+  if (mSurfaceIsOutOfDate and m_WindowSurface.isMinimized(m_PhysicalDevice.Handle())) {
     UTRACE("As surface is out of date and is not minimized, need to recreate swapchain...");
 
-    vkDeviceWaitIdle(mContextPtr->Device());
+    m_LogicalDevice.waitIdle();
 
     b32 properlyRecreatedSwapchain{ recreateSwapchain() };
     if (not properlyRecreatedSwapchain) {

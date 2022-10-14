@@ -1,7 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
-#include <renderer/vulkan/vulkan_context/VulkanWindowSurface.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
@@ -18,13 +16,13 @@ b32 FRendererVulkan::createDepthImage() {
     imageUsage = imageUsage | imageUsageFlag;
   }
 
-  VkExtent3D surfaceExtent3D{ mContextPtr->SurfaceExtent().width,
-                              mContextPtr->SurfaceExtent().height,
+  VkExtent3D surfaceExtent3D{ m_WindowSurface.Extent().width,
+                              m_WindowSurface.Extent().height,
                               1 };
 
   FImageCreateDependenciesVulkan createDeps{};
-  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
-  createDeps.device = mContextPtr->Device();
+  createDeps.physicalDevice = m_PhysicalDevice.Handle();
+  createDeps.device = m_LogicalDevice.Handle();
   createDeps.extent = surfaceExtent3D;
   createDeps.format = mGraphicsPipeline.getRenderPassData().depthFormat;
   createDeps.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -53,7 +51,7 @@ b32 FRendererVulkan::createDepthImage() {
 b32 FRendererVulkan::closeDepthImage() {
   UTRACE("Closing depth image...");
 
-  b32 closedProperly{ mDepthImage.close(mContextPtr->Device()) };
+  b32 closedProperly{ mDepthImage.close(m_LogicalDevice.Handle()) };
   if (not closedProperly) {
     UERROR("Could not close properly depth image!");
     return UFALSE;

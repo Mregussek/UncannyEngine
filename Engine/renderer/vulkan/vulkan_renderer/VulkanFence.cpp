@@ -1,6 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
@@ -23,7 +22,7 @@ b32 FRendererVulkan::createGraphicsFences() {
   createInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
   for (u32 i = 0; i < imageCount; i++) {
-    U_VK_ASSERT( vkCreateFence(mContextPtr->Device(), &createInfo, nullptr,
+    U_VK_ASSERT( vkCreateFence(m_LogicalDevice.Handle(), &createInfo, nullptr,
                                &mVkFencesInFlightFrames[i]) );
   }
 
@@ -35,7 +34,7 @@ b32 FRendererVulkan::createGraphicsFences() {
 b32 FRendererVulkan::closeGraphicsFences() {
   UTRACE("Closing graphics fences...");
 
-  closeFences(mContextPtr->Device(), &mVkFencesInFlightFrames, "in flight");
+  closeFences(m_LogicalDevice.Handle(), &mVkFencesInFlightFrames, "in flight");
 
   UDEBUG("Closed graphics fences!");
   return UTRUE;

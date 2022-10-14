@@ -32,6 +32,8 @@ static VkPresentModeKHR getProperPresentMode(VkPhysicalDevice physicalDevice, Vk
 b32 FWindowSurfaceVulkan::init(const FWindowSurfaceInitDependenciesVulkan& deps) {
   UTRACE("Initializing window surface vulkan...");
 
+  m_pWindow = deps.pWindow;
+
   if constexpr (WIN32) {
     UTRACE("Creating Win32 KHR window surface...");
 
@@ -60,7 +62,7 @@ b32 FWindowSurfaceVulkan::init(const FWindowSurfaceInitDependenciesVulkan& deps)
     return UFALSE;
   }
 
-  updateCapabilities(deps.physicalDevice, deps.pWindow);
+  updateCapabilities(deps.physicalDevice);
 
   UDEBUG("Initialized window surface vulkan!");
   return UTRUE;
@@ -86,18 +88,17 @@ void FWindowSurfaceVulkan::terminate(VkInstance instance) {
 }
 
 
-void FWindowSurfaceVulkan::updateCapabilities(VkPhysicalDevice physicalDevice,
-                                              const FWindow* pWindow) {
+void FWindowSurfaceVulkan::updateCapabilities(VkPhysicalDevice physicalDevice) {
   UTRACE("Querying surface capabilities...");
   AssertResultVulkan( vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, m_VkSurface, &m_VkSurfaceCaps) );
 
-  m_VkExtent2D = getProperExtent2D(m_VkSurfaceCaps, pWindow);
+  m_VkExtent2D = getProperExtent2D(m_VkSurfaceCaps, m_pWindow);
   m_VkPresentMode = getProperPresentMode(physicalDevice, m_VkSurface);
 }
 
 
-b32 FWindowSurfaceVulkan::isMinimized(VkPhysicalDevice physicalDevice, const FWindow* pWindow) {
-  updateCapabilities(physicalDevice, pWindow);
+b32 FWindowSurfaceVulkan::isMinimized(VkPhysicalDevice physicalDevice) {
+  updateCapabilities(physicalDevice);
 
   if (m_VkExtent2D.width <= 1 and m_VkExtent2D.height <= 1) {
     return UFALSE;

@@ -35,9 +35,9 @@ public:
   b32 closeScene() override;
 
   [[nodiscard]] b32 prepareStateForRendering() override;
-  [[nodiscard]] ERendererState prepareFrame() override;
+  [[nodiscard]] ERendererState prepareFrame(const FRendererPrepareFrameSpecification& specs) override;
   b32 submitFrame() override;
-  b32 endFrame() override;
+  b32 endFrame(const FRendererEndFrameSpecification& specs) override;
 
   static void getRequiredExtensions(std::vector<const char*>* pRequiredExtensions);
 

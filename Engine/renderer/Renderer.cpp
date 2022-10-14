@@ -42,7 +42,7 @@ b32 FRenderer::prepareStateForRendering() {
 }
 
 
-ERendererState FRenderer::prepareFrame() {
+ERendererState FRenderer::prepareFrame(const FRendererPrepareFrameSpecification& specs) {
   UFATAL("should not be used!");
   return ERendererState::NONE;
 }
@@ -54,7 +54,7 @@ b32 FRenderer::submitFrame() {
 }
 
 
-b32 FRenderer::endFrame() {
+b32 FRenderer::endFrame(const FRendererEndFrameSpecification& specs) {
   UFATAL("should not be used!");
   return UFALSE;
 }

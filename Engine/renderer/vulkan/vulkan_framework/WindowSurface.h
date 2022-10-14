@@ -17,7 +17,7 @@ namespace uncanny::vkf {
 struct FWindowSurfaceInitDependenciesVulkan {
   VkInstance instance{ VK_NULL_HANDLE };
   VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
-  ::uncanny::FWindow* pWindow{ nullptr };
+  const ::uncanny::FWindow* pWindow{ nullptr };
   u32 queueFamilyIndexGraphics{ UUNUSED };
 };
 
@@ -28,9 +28,9 @@ public:
   b32 init(const FWindowSurfaceInitDependenciesVulkan& deps);
   void terminate(VkInstance instance);
 
-  void updateCapabilities(VkPhysicalDevice physicalDevice, const FWindow* pWindow);
+  void updateCapabilities(VkPhysicalDevice physicalDevice);
 
-  [[nodiscard]] b32 isMinimized(VkPhysicalDevice physicalDevice, const FWindow* pWindow);
+  [[nodiscard]] b32 isMinimized(VkPhysicalDevice physicalDevice);
 
   [[nodiscard]] VkSurfaceKHR Handle() const { return m_VkSurface; }
   [[nodiscard]] VkSurfaceCapabilitiesKHR Capabilities() const { return m_VkSurfaceCaps; }
@@ -39,6 +39,7 @@ public:
 
 private:
 
+  const ::uncanny::FWindow* m_pWindow{ nullptr };
   VkSurfaceKHR m_VkSurface{ VK_NULL_HANDLE };
   VkSurfaceCapabilitiesKHR m_VkSurfaceCaps{};
   VkExtent2D m_VkExtent2D{ 0, 0 };

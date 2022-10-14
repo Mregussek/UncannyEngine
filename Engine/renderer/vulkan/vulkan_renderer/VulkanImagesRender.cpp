@@ -1,7 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
-#include <renderer/vulkan/vulkan_context/VulkanWindowSurface.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
@@ -28,13 +26,13 @@ b32 FRendererVulkan::createRenderTargetImages() {
 
   mImageRenderTargetVector.resize(imageCount);
 
-  VkExtent3D surfaceExtent3D{ mContextPtr->SurfaceExtent().width,
-                              mContextPtr->SurfaceExtent().height,
+  VkExtent3D surfaceExtent3D{ m_WindowSurface.Extent().width,
+                              m_WindowSurface.Extent().height,
                               1 };
 
   FImageCreateDependenciesVulkan createDeps{};
-  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
-  createDeps.device = mContextPtr->Device();
+  createDeps.physicalDevice = m_PhysicalDevice.Handle();
+  createDeps.device = m_LogicalDevice.Handle();
   createDeps.extent = surfaceExtent3D;
   createDeps.format = mGraphicsPipeline.getRenderPassData().renderTargetFormat;
   createDeps.tiling = imageTiling;
@@ -73,7 +71,7 @@ b32 FRendererVulkan::closeRenderTargetImages() {
   }
 
   for (FImageVulkan& renderTargetImage : mImageRenderTargetVector) {
-    b32 closedProperly{ renderTargetImage.close(mContextPtr->Device()) };
+    b32 closedProperly{ renderTargetImage.close(m_LogicalDevice.Handle()) };
     if (not closedProperly) {
       UERROR("Could not close properly render target image!");
       return UFALSE;

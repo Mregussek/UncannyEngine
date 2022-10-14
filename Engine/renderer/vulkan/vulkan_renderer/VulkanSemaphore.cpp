@@ -1,6 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
@@ -28,7 +27,7 @@ b32 FRendererVulkan::createGraphicsSemaphores() {
 
   for (u32 i = 0; i < imageCount; i++) {
     VkResult createdImageAvailableSemaphore{
-      vkCreateSemaphore(mContextPtr->Device(), &createInfo, nullptr,
+      vkCreateSemaphore(m_LogicalDevice.Handle(), &createInfo, nullptr,
                         &mVkSemaphoreImageAvailableVector[i]) };
     if (createdImageAvailableSemaphore != VK_SUCCESS) {
       UERROR("Could not create image available semaphore {}!", i);
@@ -36,7 +35,7 @@ b32 FRendererVulkan::createGraphicsSemaphores() {
     }
 
     VkResult createdRenderFinishSemaphore{
-      vkCreateSemaphore(mContextPtr->Device(), &createInfo, nullptr,
+      vkCreateSemaphore(m_LogicalDevice.Handle(), &createInfo, nullptr,
                         &mVkSemaphoreRenderingFinishedVector[i]) };
     if (createdRenderFinishSemaphore != VK_SUCCESS) {
       UERROR("Could not create render finished semaphore {}!", i);
@@ -44,7 +43,7 @@ b32 FRendererVulkan::createGraphicsSemaphores() {
     }
 
     VkResult createdCopyImageSemaphore{
-        vkCreateSemaphore(mContextPtr->Device(), &createInfo, nullptr,
+        vkCreateSemaphore(m_LogicalDevice.Handle(), &createInfo, nullptr,
                           &mVkSemaphoreCopyImageFinishedVector[i]) };
     if (createdCopyImageSemaphore != VK_SUCCESS) {
       UERROR("Could not create copy image semaphore {}!", i);
@@ -60,11 +59,11 @@ b32 FRendererVulkan::createGraphicsSemaphores() {
 b32 FRendererVulkan::closeGraphicsSemaphores() {
   UTRACE("Closing graphics semaphores...");
 
-  closeSemaphoresVector(mContextPtr->Device(), &mVkSemaphoreImageAvailableVector,
+  closeSemaphoresVector(m_LogicalDevice.Handle(), &mVkSemaphoreImageAvailableVector,
                         "image available");
-  closeSemaphoresVector(mContextPtr->Device(), &mVkSemaphoreRenderingFinishedVector,
+  closeSemaphoresVector(m_LogicalDevice.Handle(), &mVkSemaphoreRenderingFinishedVector,
                         "rendering finished");
-  closeSemaphoresVector(mContextPtr->Device(), &mVkSemaphoreCopyImageFinishedVector,
+  closeSemaphoresVector(m_LogicalDevice.Handle(), &mVkSemaphoreCopyImageFinishedVector,
                         "copy image finished");
 
   UDEBUG("Closed graphics semaphores!");

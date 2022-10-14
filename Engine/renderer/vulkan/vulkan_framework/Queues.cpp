@@ -15,14 +15,14 @@ b32 FQueuesVulkan::init(const FQueuesInitDependenciesVulkan& deps) {
     if (deps.availableQueuesGraphics == 1) {
       UTRACE("Queues vulkan have only one available queue for queue family {}!", deps.queueFamilyIndexGraphics);
       m_QueueIndexRendering = 0;
-      m_QueueIndexPresentation = m_QueueIndexRendering;
-      m_QueueIndexTransfer = m_QueueIndexPresentation;
+      m_QueueIndexPresentation = 0;
+      m_QueueIndexTransfer = 0;
     }
     // If there is at least two available queues for graphics and transfer as they share the same queue family
     else {
       UTRACE("Queues vulkan have at least two available queues for queue family {}!", deps.queueFamilyIndexGraphics);
       m_QueueIndexRendering = 0;
-      m_QueueIndexPresentation = m_QueueIndexRendering;
+      m_QueueIndexPresentation = 0;
       m_QueueIndexTransfer = 1;
     }
   }
@@ -32,7 +32,7 @@ b32 FQueuesVulkan::init(const FQueuesInitDependenciesVulkan& deps) {
     if (deps.availableQueuesGraphics == 1) {
       UTRACE("Queues vulkan for graphics have only one queue available, rendering and presentation will be shared!");
       m_QueueIndexRendering = 0;
-      m_QueueIndexPresentation = m_QueueIndexRendering;
+      m_QueueIndexPresentation = 0;
     }
     else {
       UTRACE("Queues vulkan for graphics have at least two queues available, rendering and present will be separated!");

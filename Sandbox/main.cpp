@@ -37,9 +37,13 @@ auto main() -> i32 {
 
   // Rendering subsystem configuration
   FRendererSpecification rendererSpecification{};
+  rendererSpecification.pWindow = pWindow;
+  rendererSpecification.appVersion = UENGINE_MAKE_VERSION(0, 0, 0);
+  rendererSpecification.engineVersion = (u32)EEngineVersion::LATEST;
+  rendererSpecification.appName = "Uncanny Sandbox";
 
   FRenderer* pRenderer{ rendererFactory.create<ERenderLibrary::VULKAN>() };
-  b32 initializedRenderer{ pRenderer->init() };
+  b32 initializedRenderer{ pRenderer->init(rendererSpecification) };
   if (not initializedRenderer) {
     pWindow->close();
     pRenderer->terminate();
@@ -96,7 +100,10 @@ auto main() -> i32 {
       continue;
     }
 
-    ERendererState renderState{ pRenderer->prepareFrame() };
+    FRendererPrepareFrameSpecification prepareFrameSpecs{};
+    prepareFrameSpecs.pWindow = pWindow;
+
+    ERendererState renderState{ pRenderer->prepareFrame(prepareFrameSpecs) };
     if (renderState != ERendererState::RENDERING) {
       continue;
     }

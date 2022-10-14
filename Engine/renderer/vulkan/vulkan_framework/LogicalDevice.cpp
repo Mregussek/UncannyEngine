@@ -116,6 +116,12 @@ void FLogicalDeviceVulkan::terminate() {
 }
 
 
+void FLogicalDeviceVulkan::waitIdle() const {
+  UTRACE("Logical device is waiting idle till all queues will be done with its commands...");
+  vkDeviceWaitIdle(m_VkDevice);
+}
+
+
 void ensureRequiredPropertiesAvailable(VkPhysicalDevice physicalDevice,
                                        const std::vector<const char*>& requiredProperties) {
   UTRACE("Ensuring all required {} are available for vulkan instance...", typeid(VkExtensionProperties).name());

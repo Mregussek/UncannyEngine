@@ -1,6 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
@@ -26,12 +25,12 @@ b32 FRendererVulkan::createCommandBuffers() {
   allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocateInfo.commandBufferCount = mSwapchainDependencies.usedImageCount;
 
-  U_VK_ASSERT( vkAllocateCommandBuffers(mContextPtr->Device(), &allocateInfo,
+  U_VK_ASSERT( vkAllocateCommandBuffers(m_LogicalDevice.Handle(), &allocateInfo,
                                         mVkRenderCommandBufferVector.data()) );
 
   allocateInfo.commandPool = mVkTransferCommandPool;
 
-  U_VK_ASSERT( vkAllocateCommandBuffers(mContextPtr->Device(), &allocateInfo,
+  U_VK_ASSERT( vkAllocateCommandBuffers(m_LogicalDevice.Handle(), &allocateInfo,
                                         mVkCopyCommandBufferVector.data()) );
 
   UDEBUG("Created command buffers!");
@@ -42,9 +41,9 @@ b32 FRendererVulkan::createCommandBuffers() {
 b32 FRendererVulkan::closeCommandBuffers() {
   UTRACE("Closing command buffers...");
 
-  freeCommandBufferVector(mContextPtr->Device(), mVkGraphicsCommandPool,
+  freeCommandBufferVector(m_LogicalDevice.Handle(), mVkGraphicsCommandPool,
                           &mVkRenderCommandBufferVector, "render");
-  freeCommandBufferVector(mContextPtr->Device(), mVkTransferCommandPool,
+  freeCommandBufferVector(m_LogicalDevice.Handle(), mVkTransferCommandPool,
                           &mVkCopyCommandBufferVector, "copy");
 
   UDEBUG("Closed command buffers!");

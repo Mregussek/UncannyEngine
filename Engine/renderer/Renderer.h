@@ -33,6 +33,14 @@ struct FRendererSpecification {
 };
 
 
+struct FRendererPrepareFrameSpecification {
+};
+
+
+struct FRendererEndFrameSpecification {
+};
+
+
 class FRenderer {
 public:
 
@@ -44,9 +52,10 @@ public:
   virtual b32 closeScene();
 
   virtual b32 prepareStateForRendering();
-  virtual ERendererState prepareFrame();
+  virtual ERendererState prepareFrame(const FRendererPrepareFrameSpecification& specs);
   virtual b32 submitFrame();
-  virtual b32 endFrame();
+  virtual b32 endFrame(const FRendererEndFrameSpecification& specs);
+
 };
 
 

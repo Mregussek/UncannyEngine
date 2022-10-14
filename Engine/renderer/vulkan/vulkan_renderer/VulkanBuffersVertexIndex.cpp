@@ -1,7 +1,6 @@
 
 #include "RendererVulkan.h"
 #include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
 #include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
@@ -15,13 +14,13 @@ b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan
   UTRACE("Creating buffers for mesh...");
 
   FBufferStagingDependenciesVulkan stagingDeps{};
-  stagingDeps.transferQueue = mContextPtr->QueueCopy();
+  stagingDeps.transferQueue = m_Queues.QueueTransfer();
   stagingDeps.transferCommandPool = mVkTransferCommandPool;
 
   FBufferCreateDependenciesVulkan createDeps{};
   createDeps.pNext = &stagingDeps;
-  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
-  createDeps.device = mContextPtr->Device();
+  createDeps.physicalDevice = m_PhysicalDevice.Handle();
+  createDeps.device = m_LogicalDevice.Handle();
   createDeps.size = pMesh->getVerticesSizeof();
   createDeps.elemCount = pMesh->getVerticesCount();
   createDeps.pData = pMesh->getVerticesData();
@@ -55,8 +54,8 @@ b32 FRendererVulkan::closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex,
                                                     FBufferVulkan* pIndex) const {
   UTRACE("Closing buffers for mesh...");
 
-  pVertex->close(mContextPtr->Device());
-  pIndex->close(mContextPtr->Device());
+  pVertex->close(m_LogicalDevice.Handle());
+  pIndex->close(m_LogicalDevice.Handle());
 
   UDEBUG("Closed buffers for mesh!");
   return UTRUE;

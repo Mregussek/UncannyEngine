@@ -1,7 +1,6 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/VulkanUtilities.h>
-#include <renderer/vulkan/vulkan_context/ContextVulkan.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <utilities/Logger.h>
 #include <window/Window.h>
 
@@ -17,7 +16,7 @@ static void destroySwapchain(VkSwapchainKHR* pSwapchain, VkDevice device,
 b32 FRendererVulkan::areSwapchainDependenciesCorrect() {
   UTRACE("Validating swapchain dependencies...");
 
-  auto surfaceCaps{ mContextPtr->SurfaceCapabilities() };
+  auto surfaceCaps{ m_WindowSurface.Capabilities() };
   // make sure that surface caps support used image count...
   u32 minCount{ surfaceCaps.minImageCount };
   u32 maxCount{ surfaceCaps.maxImageCount };
@@ -57,7 +56,7 @@ b32 FRendererVulkan::createSwapchain() {
   }
 
   VkSurfaceFormatKHR imageFormat{ VK_FORMAT_UNDEFINED };
-  VkExtent2D imageExtent2D{ mContextPtr->SurfaceExtent() };
+  VkExtent2D imageExtent2D{ m_WindowSurface.Extent() };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
   b32 detected{ mContextPtr->detectSupportedImageFormatByWindowSurface(
@@ -76,7 +75,7 @@ b32 FRendererVulkan::createSwapchain() {
   VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
-  createInfo.surface = mContextPtr->Surface();
+  createInfo.surface = m_WindowSurface.Handle();
   createInfo.minImageCount = mSwapchainDependencies.usedImageCount;
   createInfo.imageFormat = imageFormat.format;
   createInfo.imageColorSpace = imageFormat.colorSpace;
@@ -88,11 +87,11 @@ b32 FRendererVulkan::createSwapchain() {
   createInfo.pQueueFamilyIndices = nullptr; // for exclusive sharing mode, param is ignored
   createInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
   createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // no transparency with OS
-  createInfo.presentMode = mContextPtr->SurfacePresentMode();
+  createInfo.presentMode = m_WindowSurface.PresentMode();
   createInfo.clipped = VK_TRUE; // clipping world that is beyond presented surface (not visible)
   createInfo.oldSwapchain = mVkSwapchainOld;
 
-  VkResult createdSwapchain{ vkCreateSwapchainKHR(mContextPtr->Device(), &createInfo, nullptr,
+  VkResult createdSwapchain{ vkCreateSwapchainKHR(m_LogicalDevice.Handle(), &createInfo, nullptr,
                                                   &mVkSwapchainCurrent) };
   if (createdSwapchain != VK_SUCCESS) {
     UERROR("Could not create swapchain!");
@@ -101,18 +100,18 @@ b32 FRendererVulkan::createSwapchain() {
 
   UTRACE("Retrieving presentable images from swapchain...");
   u32 imageCount{ 0 };
-  U_VK_ASSERT( vkGetSwapchainImagesKHR(mContextPtr->Device(), mVkSwapchainCurrent, &imageCount,
+  vkf::AssertResultVulkan( vkGetSwapchainImagesKHR(m_LogicalDevice.Handle(), mVkSwapchainCurrent, &imageCount,
                                        nullptr) );
   std::vector<VkImage> imageVector(imageCount);
-  U_VK_ASSERT( vkGetSwapchainImagesKHR(mContextPtr->Device(), mVkSwapchainCurrent, &imageCount,
+  vkf::AssertResultVulkan( vkGetSwapchainImagesKHR(m_LogicalDevice.Handle(), mVkSwapchainCurrent, &imageCount,
                                        imageVector.data()) );
 
   // Copying retrieved swapchain images into presentable member handles...
   mImagePresentableVector.resize(imageCount);
 
   FImageCreateDependenciesVulkan createDeps{};
-  createDeps.physicalDevice = mContextPtr->PhysicalDevice();
-  createDeps.device = mContextPtr->Device();
+  createDeps.physicalDevice = m_PhysicalDevice.Handle();
+  createDeps.device = m_LogicalDevice.Handle();
   // createDeps.handleToUse will be filled later
   createDeps.extent = { imageExtent2D.width, imageExtent2D.height, 1 };
   createDeps.format = imageFormat.format;
@@ -142,12 +141,12 @@ b32 FRendererVulkan::closeSwapchain() {
   UTRACE("Closing swapchain...");
 
   for (FImageVulkan& image : mImagePresentableVector) {
-    image.close(mContextPtr->Device());
+    image.close(m_LogicalDevice.Handle());
   }
   mImagePresentableVector.clear();
 
-  destroySwapchain(&mVkSwapchainCurrent, mContextPtr->Device(), "Current");
-  destroySwapchain(&mVkSwapchainOld, mContextPtr->Device(), "Old");
+  destroySwapchain(&mVkSwapchainCurrent, m_LogicalDevice.Handle(), "Current");
+  destroySwapchain(&mVkSwapchainOld, m_LogicalDevice.Handle(), "Old");
 
   UDEBUG("Closed swapchain!");
   return UTRUE;
@@ -160,16 +159,12 @@ b32 FRendererVulkan::recreateSwapchain() {
   // Firstly destroying images and its image views as they are not needed and
   // those variables will be filled during createSwapchain()
   for (FImageVulkan& image : mImagePresentableVector) {
-    image.close(mContextPtr->Device());
+    image.close(m_LogicalDevice.Handle());
   }
   mImagePresentableVector.clear();
 
   // query new information about window surface capabilities
-  b32 collectedCapabilities{ mContextPtr->collectWindowSurfaceCapabilities() };
-  if (not collectedCapabilities) {
-    UERROR("Could not update window surface capabilities!");
-    return UFALSE;
-  }
+  m_WindowSurface.updateCapabilities(m_PhysicalDevice.Handle());
 
   // reassigning variables, where old swapchain will be used to creation new one
   mVkSwapchainOld = mVkSwapchainCurrent;
@@ -183,7 +178,7 @@ b32 FRendererVulkan::recreateSwapchain() {
   }
 
   // destroying old swapchain
-  destroySwapchain(&mVkSwapchainOld, mContextPtr->Device(), "OldRecreate");
+  destroySwapchain(&mVkSwapchainOld, m_LogicalDevice.Handle(), "OldRecreate");
 
   UDEBUG("Recreated swapchain!");
   return UTRUE;
