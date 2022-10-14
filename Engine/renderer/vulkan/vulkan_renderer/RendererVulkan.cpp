@@ -4,6 +4,7 @@
 #include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <renderer/vulkan/vulkan_renderer/graphics_pipelines/ShaderModulesVulkan.h>
 #include <utilities/Logger.h>
+#include <vulkan/vulkan_win32.h>
 
 
 namespace uncanny

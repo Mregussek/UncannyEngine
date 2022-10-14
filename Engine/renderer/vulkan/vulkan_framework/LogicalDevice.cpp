@@ -63,7 +63,7 @@ b32 FLogicalDeviceVulkan::init(const FLogicalDeviceInitDependenciesVulkan& deps)
     deviceQueueCreateInfoVector[0].flags = 0;
     deviceQueueCreateInfoVector[0].queueFamilyIndex = deps.queueFamilyIndexGraphics;
     deviceQueueCreateInfoVector[0].queueCount = deps.queueFamilyPropertiesGraphics.queueCount;
-    std::vector<f32> priorities(deviceQueueCreateInfoVector[0].queueCount){ 1.f };
+    std::vector<f32> priorities(deviceQueueCreateInfoVector[0].queueCount, 1.f);
     deviceQueueCreateInfoVector[0].pQueuePriorities = priorities.data();
   }
 
@@ -74,7 +74,7 @@ b32 FLogicalDeviceVulkan::init(const FLogicalDeviceInitDependenciesVulkan& deps)
     deviceQueueCreateInfoVector[1].flags = 0;
     deviceQueueCreateInfoVector[1].queueFamilyIndex = deps.queueFamilyIndexTransfer;
     deviceQueueCreateInfoVector[1].queueCount = deps.queueFamilyPropertiesTransfer.queueCount;
-    std::vector<f32> priorities(deviceQueueCreateInfoVector[1].queueCount){ 1.f };
+    std::vector<f32> priorities(deviceQueueCreateInfoVector[1].queueCount, 1.f);
     deviceQueueCreateInfoVector[1].pQueuePriorities = priorities.data();
   }
 

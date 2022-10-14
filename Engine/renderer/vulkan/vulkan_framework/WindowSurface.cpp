@@ -5,6 +5,9 @@
 #include <utilities/Logger.h>
 #include <window/Window.h>
 #include <window/glfw/WindowGLFW.h>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 
 namespace uncanny::vkf {
@@ -19,6 +22,7 @@ static HWND retrieveHandleFromWindow(const FWindow* pWindow) {
 
   UFATAL("Could not retrieve window handle!");
   AssertResultVulkan(VK_ERROR_UNKNOWN);
+  return {};
 }
 #endif
 
@@ -94,6 +98,41 @@ void FWindowSurfaceVulkan::updateCapabilities(VkPhysicalDevice physicalDevice) {
 
   m_VkExtent2D = getProperExtent2D(m_VkSurfaceCaps, m_pWindow);
   m_VkPresentMode = getProperPresentMode(physicalDevice, m_VkSurface);
+}
+
+
+b32 FWindowSurfaceVulkan::detectSupportedImageFormat(VkPhysicalDevice physicalDevice,
+                                                     const std::vector<VkSurfaceFormatKHR>& candidates,
+                                                     VkSurfaceFormatKHR* pOutFormat) {
+  UTRACE("Detecting supported image format by window surface from candidates...");
+
+  // query surface format info...
+  u32 formatCount{ 0 };
+  AssertResultVulkan( vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_VkSurface, &formatCount, nullptr) );
+  std::vector<VkSurfaceFormatKHR> availableFormats(formatCount);
+  AssertResultVulkan( vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_VkSurface, &formatCount,
+                                                           availableFormats.data()) );
+
+  auto it = std::find_if(candidates.cbegin(), candidates.cend(),
+                         [availableFormats = std::as_const(availableFormats)](VkSurfaceFormatKHR candidate) -> b32 {
+    for (VkSurfaceFormatKHR af : availableFormats) {
+      if (candidate.format ==  af.format and candidate.colorSpace == af.colorSpace) {
+        return UTRUE;
+      }
+    }
+    return UFALSE;
+  });
+  if (it != candidates.cend()) {
+    pOutFormat->format = it->format;
+    pOutFormat->colorSpace = it->colorSpace;
+    UDEBUG("Found candidate format supported by window surface! f {} cs {}",
+           pOutFormat->format, pOutFormat->colorSpace);
+    return UTRUE;
+  }
+
+  UERROR("Could not find proper format candidate supported by window surface!");
+  *pOutFormat = {};
+  return UFALSE;
 }
 
 

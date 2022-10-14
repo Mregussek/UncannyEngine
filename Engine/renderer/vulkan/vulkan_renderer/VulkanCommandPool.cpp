@@ -1,6 +1,6 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <utilities/Logger.h>
 
 
@@ -14,14 +14,14 @@ b32 FRendererVulkan::createCommandPool() {
   // even when VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT is set use vkResetCommandPool
   VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
   createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  createInfo.queueFamilyIndex = mContextPtr->QueueFamilyIndexGraphics();
+  createInfo.queueFamilyIndex = m_PhysicalDevice.QueueFamilyGraphics();
 
-  U_VK_ASSERT( vkCreateCommandPool(mContextPtr->Device(), &createInfo, nullptr,
-                                   &mVkGraphicsCommandPool) );
+  vkf::AssertResultVulkan( vkCreateCommandPool(m_LogicalDevice.Handle(), &createInfo, nullptr,
+                                               &mVkGraphicsCommandPool) );
 
-  createInfo.queueFamilyIndex = mContextPtr->QueueFamilyIndexTransfer();
+  createInfo.queueFamilyIndex = m_PhysicalDevice.QueueFamilyTransfer();
 
-  U_VK_ASSERT( vkCreateCommandPool(mContextPtr->Device(), &createInfo, nullptr,
+  vkf::AssertResultVulkan( vkCreateCommandPool(m_LogicalDevice.Handle(), &createInfo, nullptr,
                                    &mVkTransferCommandPool) );
 
   UDEBUG("Created command pools!");
@@ -33,7 +33,7 @@ b32 FRendererVulkan::resetCommandPool(const VkCommandPool& commandPool) {
   UTRACE("Resetting command pools...");
 
   VkCommandPoolResetFlags flags = 0;
-  VkResult result{ vkResetCommandPool(mContextPtr->Device(), commandPool, flags) };
+  VkResult result{ vkResetCommandPool(m_LogicalDevice.Handle(), commandPool, flags) };
   if (result != VK_SUCCESS) {
     UERROR("Could not reset command pools!");
     return UFALSE;
@@ -49,7 +49,7 @@ b32 FRendererVulkan::closeCommandPool() {
 
   if (mVkGraphicsCommandPool != VK_NULL_HANDLE) {
     UTRACE("Destroying graphics command pool...");
-    vkDestroyCommandPool(mContextPtr->Device(), mVkGraphicsCommandPool, nullptr);
+    vkDestroyCommandPool(m_LogicalDevice.Handle(), mVkGraphicsCommandPool, nullptr);
   }
   else {
     UWARN("As graphics command pool was not created, it won't be closed!");
@@ -57,7 +57,7 @@ b32 FRendererVulkan::closeCommandPool() {
 
   if (mVkTransferCommandPool != VK_NULL_HANDLE) {
     UTRACE("Destroying transfer command pool...");
-    vkDestroyCommandPool(mContextPtr->Device(), mVkTransferCommandPool, nullptr);
+    vkDestroyCommandPool(m_LogicalDevice.Handle(), mVkTransferCommandPool, nullptr);
   }
   else {
     UWARN("As transfer command pool was not created, it won't be closed!");

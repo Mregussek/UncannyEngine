@@ -59,8 +59,9 @@ b32 FRendererVulkan::createSwapchain() {
   VkExtent2D imageExtent2D{ m_WindowSurface.Extent() };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
 
-  b32 detected{ mContextPtr->detectSupportedImageFormatByWindowSurface(
-      mSwapchainDependencies.formatCandidatesVector, &imageFormat) };
+  b32 detected{ m_WindowSurface.detectSupportedImageFormat(m_PhysicalDevice.Handle(),
+                                                           mSwapchainDependencies.formatCandidatesVector,
+                                                           &imageFormat) };
   if (not detected) {
     UERROR("Could not find suitable swapchain presentable image format from window surface!");
     return UFALSE;

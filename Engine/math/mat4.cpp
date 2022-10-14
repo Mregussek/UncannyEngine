@@ -2,6 +2,8 @@
 #include "mat4.h"
 #include "vec4.h"
 #include "vec3.h"
+#undef far
+#undef near
 
 
 namespace uncanny

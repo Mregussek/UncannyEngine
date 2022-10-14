@@ -30,6 +30,10 @@ public:
 
   void updateCapabilities(VkPhysicalDevice physicalDevice);
 
+  b32 detectSupportedImageFormat(VkPhysicalDevice physicalDevice,
+                                 const std::vector<VkSurfaceFormatKHR>& candidates,
+                                 VkSurfaceFormatKHR* pOutFormat);
+
   [[nodiscard]] b32 isMinimized(VkPhysicalDevice physicalDevice);
 
   [[nodiscard]] VkSurfaceKHR Handle() const { return m_VkSurface; }

@@ -17,6 +17,9 @@
 #include <utilities/Variables.h>
 #include <utilities/Libraries.h>
 #include <utilities/Versions.h>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 
 #endif //UNCANNYENGINE_INCLUDES_H

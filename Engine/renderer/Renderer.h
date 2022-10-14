@@ -12,6 +12,7 @@ namespace uncanny
 
 
 class FCamera;
+class FWindow;
 
 
 enum class ERendererState {
