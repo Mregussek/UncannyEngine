@@ -54,17 +54,17 @@ b32 FLogicalDeviceVulkan::init(const FLogicalDeviceInitDependenciesVulkan& deps)
     deviceQueuesLength = 2;
   }
 
+  f32 priorities[3]{ 1.f };
   std::vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfoVector(deviceQueuesLength);
 
   // Create Queue Family for graphics...
-  if (deviceQueuesLength >= 1) {
+  if (deviceQueueCreateInfoVector.size() >= 1) {
     deviceQueueCreateInfoVector[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     deviceQueueCreateInfoVector[0].pNext = nullptr;
     deviceQueueCreateInfoVector[0].flags = 0;
     deviceQueueCreateInfoVector[0].queueFamilyIndex = deps.queueFamilyIndexGraphics;
     deviceQueueCreateInfoVector[0].queueCount = deps.queueFamilyPropertiesGraphics.queueCount;
-    std::vector<f32> priorities(deviceQueueCreateInfoVector[0].queueCount, 1.f);
-    deviceQueueCreateInfoVector[0].pQueuePriorities = priorities.data();
+    deviceQueueCreateInfoVector[0].pQueuePriorities = priorities;
   }
 
   // Create Queue Family for transfer if possible...
@@ -74,8 +74,7 @@ b32 FLogicalDeviceVulkan::init(const FLogicalDeviceInitDependenciesVulkan& deps)
     deviceQueueCreateInfoVector[1].flags = 0;
     deviceQueueCreateInfoVector[1].queueFamilyIndex = deps.queueFamilyIndexTransfer;
     deviceQueueCreateInfoVector[1].queueCount = deps.queueFamilyPropertiesTransfer.queueCount;
-    std::vector<f32> priorities(deviceQueueCreateInfoVector[1].queueCount, 1.f);
-    deviceQueueCreateInfoVector[1].pQueuePriorities = priorities.data();
+    deviceQueueCreateInfoVector[1].pQueuePriorities = priorities;
   }
 
   VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
