@@ -364,9 +364,7 @@ ERendererState FRendererVulkan::prepareFrame(const FRendererPrepareFrameSpecific
     return ERendererState::SURFACE_MINIMIZED;
   }
 
-  vkWaitForFences(m_LogicalDevice.Handle(), 1, &mVkFencesInFlightFrames[mCurrentFrame], VK_TRUE,
-                  UINT64_MAX);
-  vkResetFences(m_LogicalDevice.Handle(), 1, &mVkFencesInFlightFrames[mCurrentFrame]);
+  mFencesInFlightFrames[mCurrentFrame].wait(m_LogicalDevice.Handle());
 
   return ERendererState::RENDERING;
 }
@@ -381,13 +379,13 @@ b32 FRendererVulkan::submitFrame() {
   renderSubmitInfo.commandBufferCount = 1;
   renderSubmitInfo.pCommandBuffers = &mVkRenderCommandBufferVector[mCurrentFrame];
   renderSubmitInfo.signalSemaphoreCount = 1;
-  renderSubmitInfo.pSignalSemaphores = &mVkSemaphoreRenderingFinishedVector[mCurrentFrame];
+  renderSubmitInfo.pSignalSemaphores = mSemaphoreRenderingFinishedVector[mCurrentFrame].HandlePtr();
 
   vkf::AssertResultVulkan( vkQueueSubmit(m_Queues.QueueRendering(), 1, &renderSubmitInfo, VK_NULL_HANDLE) );
 
   VkResult properlyAcquiredNextImage =
       vkAcquireNextImageKHR(m_LogicalDevice.Handle(), mVkSwapchainCurrent, UINT64_MAX,
-                            mVkSemaphoreImageAvailableVector[mCurrentFrame],
+                            mSemaphoreImageAvailableVector[mCurrentFrame].Handle(),
                             VK_NULL_HANDLE, &mImagePresentableIndex);
   switch(properlyAcquiredNextImage) {
     case VK_SUCCESS: break;
@@ -403,8 +401,8 @@ b32 FRendererVulkan::submitFrame() {
   }
 
   VkSemaphore waitCopySemaphores[]{
-      mVkSemaphoreRenderingFinishedVector[mCurrentFrame],
-      mVkSemaphoreImageAvailableVector[mCurrentFrame] };
+      mSemaphoreRenderingFinishedVector[mCurrentFrame].Handle(),
+      mSemaphoreImageAvailableVector[mCurrentFrame].Handle() };
   VkPipelineStageFlags copyStageMasks[]{
       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT };
 
@@ -416,15 +414,15 @@ b32 FRendererVulkan::submitFrame() {
   copySubmitInfo.commandBufferCount = 1;
   copySubmitInfo.pCommandBuffers = &mVkCopyCommandBufferVector[mCurrentFrame];
   copySubmitInfo.signalSemaphoreCount = 1;
-  copySubmitInfo.pSignalSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
+  copySubmitInfo.pSignalSemaphores = mSemaphoreCopyImageFinishedVector[mCurrentFrame].HandlePtr();
 
   vkf::AssertResultVulkan( vkQueueSubmit(m_Queues.QueueTransfer(), 1, &copySubmitInfo,
-                                         mVkFencesInFlightFrames[mCurrentFrame]) );
+                                         mFencesInFlightFrames[mCurrentFrame].Handle()) );
 
   VkPresentInfoKHR queuePresentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
   queuePresentInfo.pNext = nullptr;
   queuePresentInfo.waitSemaphoreCount = 1;
-  queuePresentInfo.pWaitSemaphores = &mVkSemaphoreCopyImageFinishedVector[mCurrentFrame];
+  queuePresentInfo.pWaitSemaphores = mSemaphoreCopyImageFinishedVector[mCurrentFrame].HandlePtr();
   queuePresentInfo.swapchainCount = 1;
   queuePresentInfo.pSwapchains = &mVkSwapchainCurrent;
   queuePresentInfo.pImageIndices = &mImagePresentableIndex;

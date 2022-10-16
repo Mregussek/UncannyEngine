@@ -10,6 +10,9 @@
 #include <renderer/vulkan/vulkan_framework/LogicalDevice.h>
 #include <renderer/vulkan/vulkan_framework/Queues.h>
 #include <renderer/vulkan/vulkan_framework/WindowSurface.h>
+#include <renderer/vulkan/vulkan_framework/Fence.h>
+#include <renderer/vulkan/vulkan_framework/Semaphore.h>
+
 #include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
 #include <renderer/vulkan/vulkan_resources/ImageVulkan.h>
 #include "graphics_pipelines/GraphicsPipelinesVulkan.h"
@@ -118,11 +121,11 @@ private:
   VkCommandPool mVkTransferCommandPool{ VK_NULL_HANDLE };
   std::vector<VkCommandBuffer> mVkCopyCommandBufferVector{};
   // Semaphores
-  std::vector<VkSemaphore> mVkSemaphoreImageAvailableVector{};
-  std::vector<VkSemaphore> mVkSemaphoreRenderingFinishedVector{};
-  std::vector<VkSemaphore> mVkSemaphoreCopyImageFinishedVector{};
+  std::vector<vkf::FSemaphoreVulkan> mSemaphoreImageAvailableVector{};
+  std::vector<vkf::FSemaphoreVulkan> mSemaphoreRenderingFinishedVector{};
+  std::vector<vkf::FSemaphoreVulkan> mSemaphoreCopyImageFinishedVector{};
   // Frames in flight
-  std::vector<VkFence> mVkFencesInFlightFrames{};
+  std::vector<vkf::FFenceVulkan> mFencesInFlightFrames{};
   u32 mMaxFramesInFlight{ UUNUSED };
   u32 mCurrentFrame{ UUNUSED };
   // Pipelines
