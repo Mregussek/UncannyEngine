@@ -10,10 +10,17 @@
 namespace uncanny::vkf {
 
 
-void AssertVulkan(b32 boolean, VkResult result);
-
-
 void AssertResultVulkan(VkResult result);
+
+
+struct FDriverVersionInfo {
+  u32 major{ 0 };
+  u32 minor{ 0 };
+  u32 patch{ 0 };
+};
+
+
+FDriverVersionInfo decodeDriverVersionVulkan(u32 version, u32 vendorID);
 
 
 const char* retrieveInfoAboutVkResult(VkResult result);

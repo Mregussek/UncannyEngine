@@ -1,7 +1,7 @@
 
 #include "GraphicsPipelinesVulkan.h"
 #include <utilities/Logger.h>
-#include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
 #include <renderer/vulkan/vulkan_resources/ImageVulkan.h>
 
@@ -26,8 +26,8 @@ b32 FGraphicsPipelineVulkan::create(const FGraphicsPipelineCreateDependenciesVul
   pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
   pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
-  U_VK_ASSERT( vkCreatePipelineLayout(deps.device, &pipelineLayoutCreateInfo, nullptr,
-                                      &(mData.pipelineLayout)) );
+  vkf::AssertResultVulkan( vkCreatePipelineLayout(deps.device, &pipelineLayoutCreateInfo, nullptr,
+                                                  &(mData.pipelineLayout)) );
 
   VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
   vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

@@ -1,7 +1,7 @@
 
 #include "ImageVulkan.h"
 #include "Memory.h"
-#include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <utilities/Logger.h>
 
 
@@ -71,7 +71,7 @@ b32 FImageVulkan::create(const FImageCreateDependenciesVulkan& deps) {
     imageCreateInfo.pQueueFamilyIndices = nullptr;
     imageCreateInfo.initialLayout = mData.initialLayout;
 
-    U_VK_ASSERT( vkCreateImage(deps.device, &imageCreateInfo, nullptr, &mData.handle) );
+    vkf::AssertResultVulkan( vkCreateImage(deps.device, &imageCreateInfo, nullptr, &mData.handle) );
 
     UTRACE("Allocating {} image device memory...", mData.logInfo);
     VkMemoryRequirements memoryReqs{};
@@ -125,8 +125,8 @@ b32 FImageVulkan::create(const FImageCreateDependenciesVulkan& deps) {
   imageViewCreateInfo.components = componentMapping;
   imageViewCreateInfo.subresourceRange = imageSubresourceRange;
 
-  U_VK_ASSERT( vkCreateImageView(deps.device, &imageViewCreateInfo, nullptr,
-                                 &mData.handleView) );
+  vkf::AssertResultVulkan( vkCreateImageView(deps.device, &imageViewCreateInfo, nullptr,
+                                             &mData.handleView) );
 
   if (not deps.framebufferDeps.shouldCreate) { // if you should not create framebuffer
     UWARN("As framebuffer is not needed for {}, skipping framebuffer creation!", mData.logInfo);
@@ -146,8 +146,8 @@ b32 FImageVulkan::create(const FImageCreateDependenciesVulkan& deps) {
   framebufferCreateInfo.height = mData.extent.height;
   framebufferCreateInfo.layers = 1;
 
-  U_VK_ASSERT( vkCreateFramebuffer(deps.device, &framebufferCreateInfo, nullptr,
-                                   &mData.handleFramebuffer) );
+  vkf::AssertResultVulkan( vkCreateFramebuffer(deps.device, &framebufferCreateInfo, nullptr,
+                                               &mData.handleFramebuffer) );
   UDEBUG("Created image along with image view and framebuffer for {}!", mData.logInfo);
   return UTRUE;
 }

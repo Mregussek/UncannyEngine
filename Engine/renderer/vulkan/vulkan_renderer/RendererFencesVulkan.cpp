@@ -1,6 +1,5 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
 

@@ -1,7 +1,6 @@
 
 #include "RendererVulkan.h"
 #include "VulkanRecordCommandBuffers.h"
-#include <renderer/vulkan/VulkanUtilities.h>
 #include <utilities/Logger.h>
 
 
@@ -15,7 +14,7 @@ b32 recordCopyRenderTargetIntoPresentableImage(
     const std::vector<VkCommandBuffer>& commandBuffers) {
   UTRACE("Recording command buffers for copying render target images into presentable ones!");
 
-  if constexpr (U_VK_DEBUG) {
+  if constexpr (ENABLE_DEBUGGING_RENDERER) {
     UTRACE("Making sure that copy render target into presentable command buffers can be recorded!");
     if (renderTargetImages.size() == presentableImages.size() and renderTargetImages.empty()) {
       UERROR("No render target images and no presentable images! Cannot record cmd!");

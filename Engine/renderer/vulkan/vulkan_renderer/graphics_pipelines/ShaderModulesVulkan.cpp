@@ -3,7 +3,7 @@
 #include <filesystem/FileManager.h>
 #include <renderer/Mesh.h>
 #include <renderer/Camera.h>
-#include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
 #include <utilities/Logger.h>
 
@@ -34,8 +34,8 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
   descriptorSetLayoutCreateInfo.bindingCount = 1;
   descriptorSetLayoutCreateInfo.pBindings = &descriptorLayoutBinding;
 
-  U_VK_ASSERT( vkCreateDescriptorSetLayout(deps.device, &descriptorSetLayoutCreateInfo, nullptr,
-                                           &(mData.descriptorSetLayout)) );
+  vkf::AssertResultVulkan( vkCreateDescriptorSetLayout(deps.device, &descriptorSetLayoutCreateInfo,
+                                                       nullptr, &(mData.descriptorSetLayout)) );
 
   VkDescriptorPoolSize poolSize{};
   poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -48,7 +48,8 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
   poolCreateInfo.poolSizeCount = 1;
   poolCreateInfo.pPoolSizes = &poolSize;
 
-  U_VK_ASSERT( vkCreateDescriptorPool(deps.device, &poolCreateInfo, nullptr, &(mData.pool)) );
+  vkf::AssertResultVulkan( vkCreateDescriptorPool(deps.device, &poolCreateInfo, nullptr,
+                                                  &(mData.pool)) );
 
   VkDescriptorSetAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
   allocateInfo.pNext = nullptr;
@@ -56,8 +57,8 @@ b32 FShaderModulesVulkan::create(const FShaderModulesCreateDependenciesVulkan& d
   allocateInfo.descriptorSetCount = 1;
   allocateInfo.pSetLayouts = &(mData.descriptorSetLayout);
 
-  U_VK_ASSERT( vkAllocateDescriptorSets(deps.device, &allocateInfo,
-                                        &mData.descriptorSet) );
+  vkf::AssertResultVulkan( vkAllocateDescriptorSets(deps.device, &allocateInfo,
+                                                    &mData.descriptorSet) );
 
   VkVertexInputBindingDescription vertexInputBindingDescription{};
   vertexInputBindingDescription.binding = 0;

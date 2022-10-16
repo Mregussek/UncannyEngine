@@ -1,7 +1,7 @@
 
 #include "BufferVulkan.h"
 #include "Memory.h"
-#include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <utilities/Logger.h>
 
 
@@ -177,7 +177,7 @@ b32 createBufferHandle(VkDevice device, VkDeviceSize size, VkBufferUsageFlags us
   createInfo.queueFamilyIndexCount = 0;
   createInfo.pQueueFamilyIndices = nullptr;
 
-  U_VK_ASSERT( vkCreateBuffer(device, &createInfo, nullptr, pOutHandle) );
+  vkf::AssertResultVulkan( vkCreateBuffer(device, &createInfo, nullptr, pOutHandle) );
 
   UTRACE("Created buffer handle {}!", logInfo);
   return UTRUE;

@@ -1,6 +1,6 @@
 
 #include "Memory.h"
-#include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <utilities/Logger.h>
 
 
@@ -165,14 +165,14 @@ b32 copyDataFromDeviceToBuffer(
   allocateInfo.commandBufferCount = 1;
 
   VkCommandBuffer transferCommandBuffer{ VK_NULL_HANDLE };
-  U_VK_ASSERT( vkAllocateCommandBuffers(device, &allocateInfo, &transferCommandBuffer) );
+  vkf::AssertResultVulkan( vkAllocateCommandBuffers(device, &allocateInfo, &transferCommandBuffer) );
 
   VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
   beginInfo.pNext = nullptr;
   beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
   beginInfo.pInheritanceInfo = nullptr;
 
-  U_VK_ASSERT( vkBeginCommandBuffer(transferCommandBuffer, &beginInfo) );
+  vkf::AssertResultVulkan( vkBeginCommandBuffer(transferCommandBuffer, &beginInfo) );
 
   VkBufferCopy copyRegion{};
   copyRegion.srcOffset = 0; // Optional
@@ -181,7 +181,7 @@ b32 copyDataFromDeviceToBuffer(
 
   vkCmdCopyBuffer(transferCommandBuffer, pDeps->srcBuffer, pDeps->dstBuffer, 1, &copyRegion);
 
-  U_VK_ASSERT( vkEndCommandBuffer(transferCommandBuffer) );
+  vkf::AssertResultVulkan( vkEndCommandBuffer(transferCommandBuffer) );
 
   VkSubmitInfo copySubmitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
   copySubmitInfo.pNext = nullptr;
@@ -193,7 +193,7 @@ b32 copyDataFromDeviceToBuffer(
   copySubmitInfo.signalSemaphoreCount = 0;
   copySubmitInfo.pSignalSemaphores = nullptr;
 
-  U_VK_ASSERT( vkQueueSubmit(pDeps->transferQueue, 1, &copySubmitInfo, VK_NULL_HANDLE) );
+  vkf::AssertResultVulkan( vkQueueSubmit(pDeps->transferQueue, 1, &copySubmitInfo, VK_NULL_HANDLE) );
   vkQueueWaitIdle(pDeps->transferQueue);
 
   vkFreeCommandBuffers(device, pDeps->transferCommandPool, 1, &transferCommandBuffer);

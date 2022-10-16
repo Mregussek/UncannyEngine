@@ -1,6 +1,6 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/VulkanUtilities.h>
+#include <renderer/vulkan/vulkan_framework/Utilities.h>
 #include <utilities/Logger.h>
 
 
@@ -25,13 +25,13 @@ b32 FRendererVulkan::createCommandBuffers() {
   allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocateInfo.commandBufferCount = mSwapchainDependencies.usedImageCount;
 
-  U_VK_ASSERT( vkAllocateCommandBuffers(m_LogicalDevice.Handle(), &allocateInfo,
-                                        mVkRenderCommandBufferVector.data()) );
+  vkf::AssertResultVulkan( vkAllocateCommandBuffers(m_LogicalDevice.Handle(), &allocateInfo,
+                                                    mVkRenderCommandBufferVector.data()) );
 
   allocateInfo.commandPool = mVkTransferCommandPool;
 
-  U_VK_ASSERT( vkAllocateCommandBuffers(m_LogicalDevice.Handle(), &allocateInfo,
-                                        mVkCopyCommandBufferVector.data()) );
+  vkf::AssertResultVulkan( vkAllocateCommandBuffers(m_LogicalDevice.Handle(), &allocateInfo,
+                                                    mVkCopyCommandBufferVector.data()) );
 
   UDEBUG("Created command buffers!");
   return UTRUE;
