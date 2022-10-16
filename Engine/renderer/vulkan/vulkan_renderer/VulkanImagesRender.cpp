@@ -8,7 +8,7 @@ namespace uncanny
 
 
 b32 FRendererVulkan::createRenderTargetImages() {
-  u32 imageCount{ static_cast<u32>(mImagePresentableVector.size()) };
+  u32 imageCount{ static_cast<u32>(m_Swapchain.PresentableImages().size()) };
   UTRACE("Creating {} Render Target Images...", imageCount);
 
   if (not mDepthImage.isCreated()) {

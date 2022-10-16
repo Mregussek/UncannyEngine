@@ -58,7 +58,7 @@ struct FImageCreateDependenciesVulkan {
   EImageType type{ EImageType::NONE };
   FImageViewCreateDependenciesVulkan viewDeps{};
   FImageFramebufferCreateDependenciesVulkan framebufferDeps{};
-  std::vector<VkFormatFeatureFlags>* pFormatsFeaturesToCheck{};
+  const std::vector<VkFormatFeatureFlags>* pFormatsFeaturesToCheck{};
   const char* logInfo{ "" };
 };
 

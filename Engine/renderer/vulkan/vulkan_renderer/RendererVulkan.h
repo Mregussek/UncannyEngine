@@ -10,6 +10,7 @@
 #include <renderer/vulkan/vulkan_framework/LogicalDevice.h>
 #include <renderer/vulkan/vulkan_framework/Queues.h>
 #include <renderer/vulkan/vulkan_framework/WindowSurface.h>
+#include <renderer/vulkan/vulkan_framework/Swapchain.h>
 #include <renderer/vulkan/vulkan_framework/Fence.h>
 #include <renderer/vulkan/vulkan_framework/Semaphore.h>
 #include <renderer/vulkan/vulkan_framework/Buffer.h>
@@ -47,11 +48,6 @@ private:
 
   void defineDependencies();
   [[nodiscard]] b32 validateDependencies() const;
-
-  [[nodiscard]] b32 areSwapchainDependenciesCorrect();
-  [[nodiscard]] b32 createSwapchain();
-  [[nodiscard]] b32 recreateSwapchain();
-  b32 closeSwapchain();
 
   [[nodiscard]] b32 createRenderTargetImages();
   [[nodiscard]] b32 recreateRenderTargetImages();
@@ -101,14 +97,11 @@ private:
   vkf::FLogicalDeviceVulkan m_LogicalDevice{};
   vkf::FQueuesVulkan m_Queues{};
   vkf::FWindowSurfaceVulkan m_WindowSurface{};
+  vkf::FSwapchainVulkan m_Swapchain{};
   // Configs, Deps
   FRenderSceneConfiguration mSceneConfig{};
   FSwapchainDependencies mSwapchainDependencies{};
   FImagesDependencies mImageDependencies{};
-  // Swapchain
-  VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
-  VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
-  std::vector<vkf::FImageVulkan> mImagePresentableVector{};
   // Render Images info
   std::vector<vkf::FImageVulkan> mImageRenderTargetVector{};
   // Depth Image info

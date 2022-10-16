@@ -65,6 +65,17 @@ void FRendererVulkan::getRequiredExtensions(std::vector<const char*>* pRequiredE
 b32 FRendererVulkan::init(const FRendererSpecification& specs) {
   UTRACE("Initializing vulkan renderer...");
 
+  // define all dependencies for vulkan renderer before setup
+  defineDependencies();
+  b32 properDependenciesDefined{ validateDependencies() };
+  if (not properDependenciesDefined) {
+    UFATAL("Wrong dependencies defined for vulkan renderer!");
+    return UFALSE;
+  }
+
+  // assign members
+  mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
+
   vkf::FInstanceInitDependenciesVulkan instanceInitDeps{};
   instanceInitDeps.expectedVulkanApiVersion = VK_API_VERSION_1_3;
   instanceInitDeps.pWindow = specs.pWindow;
@@ -78,16 +89,16 @@ b32 FRendererVulkan::init(const FRendererSpecification& specs) {
     return UFALSE;
   }
 
-#if ENABLE_DEBUGGING_RENDERER
-  vkf::FDebugUtilsInitDependenciesVulkan debugUtilsInitDependencies{};
-  debugUtilsInitDependencies.instance = m_Instance.Handle();
+  if constexpr (ENABLE_DEBUGGING_RENDERER) {
+    vkf::FDebugUtilsInitDependenciesVulkan debugUtilsInitDependencies{};
+    debugUtilsInitDependencies.instance = m_Instance.Handle();
 
-  b32 debugUtilsInitialized{ m_DebugUtils.init(debugUtilsInitDependencies) };
-  if (not debugUtilsInitialized) {
-    UFATAL("Could not start debugging renderer! Debug Utils failed to initialize");
-    return UFALSE;
+    b32 debugUtilsInitialized{ m_DebugUtils.init(debugUtilsInitDependencies) };
+    if (not debugUtilsInitialized) {
+      UFATAL("Could not start debugging renderer! Debug Utils failed to initialize");
+      return UFALSE;
+    }
   }
-#endif
 
   vkf::FPhysicalDeviceInitDependenciesVulkan physicalDeviceInitDeps{};
   physicalDeviceInitDeps.instance = m_Instance.Handle();
@@ -136,21 +147,20 @@ b32 FRendererVulkan::init(const FRendererSpecification& specs) {
     return UFALSE;
   }
 
-  // define all dependencies for vulkan renderer before setup
-  defineDependencies();
-  b32 properDependenciesDefined{ validateDependencies() };
-  if (not properDependenciesDefined) {
-    UFATAL("Wrong dependencies defined for vulkan renderer!");
-    return UFALSE;
-  }
-
-  // assign members
-  mMaxFramesInFlight = mSwapchainDependencies.usedImageCount;
+  vkf::FSwapchainInitDependenciesVulkan swapchainInitDeps{};
+  swapchainInitDeps.physicalDevice = m_PhysicalDevice.Handle();
+  swapchainInitDeps.logicalDevice = m_LogicalDevice.Handle();
+  swapchainInitDeps.pWindowSurface = &m_WindowSurface;
+  swapchainInitDeps.pPresentableImageUsageVector = &mSwapchainDependencies.imageUsageVector;
+  swapchainInitDeps.pFormatCandidatesVector = &mSwapchainDependencies.formatCandidatesVector;
+  swapchainInitDeps.pFormatFeaturesVector = &mSwapchainDependencies.imageFormatFeatureVector;
+  swapchainInitDeps.usedImageCount = mSwapchainDependencies.usedImageCount;
 
   // we can create swapchain for acquiring presentable images
-  b32 properlyCreatedSwapchain{ createSwapchain() };
+  b32 properlyCreatedSwapchain{ m_Swapchain.init(swapchainInitDeps) };
   if (not properlyCreatedSwapchain) {
-    UFATAL("Could not create swapchain, cannot acquire images nor present them!");
+    UFATAL("Cannot run vulkan renderer! Swapchain failed to initialize! Cannot present images "
+           "and acquire them!");
     return UFALSE;
   }
 
@@ -218,7 +228,14 @@ void FRendererVulkan::terminate() {
   closeDepthImage();
   closeRenderTargetImages();
   closeGraphicsPipelinesGeneral();
-  closeSwapchain();
+  m_Swapchain.terminate(m_LogicalDevice.Handle());
+  m_WindowSurface.terminate(m_Instance.Handle());
+  m_LogicalDevice.terminate();
+  m_PhysicalDevice.terminate();
+  if constexpr (ENABLE_DEBUGGING_RENDERER) {
+    m_DebugUtils.terminate(m_Instance.Handle());
+  }
+  m_Instance.terminate();
 
   UINFO("Terminated vulkan renderer!");
 }
@@ -346,7 +363,7 @@ b32 FRendererVulkan::recordCommandBuffersGeneral() {
   }
 
   b32 recordedCopyImage{ recordCopyRenderTargetIntoPresentableImage(
-      mImageRenderTargetVector, mImagePresentableVector, mVkCopyCommandBufferVector) };
+      mImageRenderTargetVector, m_Swapchain.PresentableImages(), mVkCopyCommandBufferVector) };
   if (not recordedCopyImage) {
     UFATAL("Could not record copy image command buffers!");
     return UFALSE;
@@ -384,7 +401,7 @@ b32 FRendererVulkan::submitFrame() {
   vkf::AssertResultVulkan( vkQueueSubmit(m_Queues.QueueRendering(), 1, &renderSubmitInfo, VK_NULL_HANDLE) );
 
   VkResult properlyAcquiredNextImage =
-      vkAcquireNextImageKHR(m_LogicalDevice.Handle(), mVkSwapchainCurrent, UINT64_MAX,
+      vkAcquireNextImageKHR(m_LogicalDevice.Handle(), m_Swapchain.Handle(), UINT64_MAX,
                             mSemaphoreImageAvailableVector[mCurrentFrame].Handle(),
                             VK_NULL_HANDLE, &mImagePresentableIndex);
   switch(properlyAcquiredNextImage) {
@@ -424,7 +441,7 @@ b32 FRendererVulkan::submitFrame() {
   queuePresentInfo.waitSemaphoreCount = 1;
   queuePresentInfo.pWaitSemaphores = mSemaphoreCopyImageFinishedVector[mCurrentFrame].HandlePtr();
   queuePresentInfo.swapchainCount = 1;
-  queuePresentInfo.pSwapchains = &mVkSwapchainCurrent;
+  queuePresentInfo.pSwapchains = m_Swapchain.HandlePtr();
   queuePresentInfo.pImageIndices = &mImagePresentableIndex;
   queuePresentInfo.pResults = nullptr;
 
@@ -455,7 +472,16 @@ b32 FRendererVulkan::endFrame(const FRendererEndFrameSpecification& specs) {
 
     m_LogicalDevice.waitIdle();
 
-    b32 properlyRecreatedSwapchain{ recreateSwapchain() };
+    vkf::FSwapchainRecreateDependenciesVulkan swapchainRecreateDeps{};
+    swapchainRecreateDeps.physicalDevice = m_PhysicalDevice.Handle();
+    swapchainRecreateDeps.logicalDevice = m_LogicalDevice.Handle();
+    swapchainRecreateDeps.pWindowSurface = &m_WindowSurface;
+    swapchainRecreateDeps.pPresentableImageUsageVector = &mSwapchainDependencies.imageUsageVector;
+    swapchainRecreateDeps.pFormatCandidatesVector = &mSwapchainDependencies.formatCandidatesVector;
+    swapchainRecreateDeps.pFormatFeaturesVector = &mSwapchainDependencies.imageFormatFeatureVector;
+    swapchainRecreateDeps.usedImageCount = mSwapchainDependencies.usedImageCount;
+
+    b32 properlyRecreatedSwapchain{ m_Swapchain.recreate(swapchainRecreateDeps) };
     if (not properlyRecreatedSwapchain) {
       UERROR("Could not recreate swapchain!");
       return UFALSE;
