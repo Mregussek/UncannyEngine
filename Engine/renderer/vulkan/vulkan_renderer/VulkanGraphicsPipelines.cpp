@@ -1,6 +1,6 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_resources/ImageVulkan.h>
+#include <renderer/vulkan/vulkan_framework/Image.h>
 #include <utilities/Logger.h>
 #include <filesystem/FileManager.h>
 
@@ -24,7 +24,7 @@ b32 FRendererVulkan::createGraphicsPipelinesGeneral() {
   }
 
   VkFormat depthFormat{ VK_FORMAT_UNDEFINED };
-  b32 detectedDepth{ detectFormatSupportingFormatFeatures(
+  b32 detectedDepth{ vkf::detectFormatSupportingFormatFeatures(
       m_PhysicalDevice.Handle(), mImageDependencies.depth.formatCandidatesVector,
       VK_IMAGE_TILING_OPTIMAL, mImageDependencies.depth.formatsFeatureVector, &depthFormat,
       "depth") };

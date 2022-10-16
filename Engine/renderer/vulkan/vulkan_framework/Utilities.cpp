@@ -8,7 +8,8 @@
 #define U_NV_DRIVER_VERSION_PATCH(version)  (((version) >> 6) & 0x0ff)
 
 
-namespace uncanny::vkf {
+namespace uncanny::vkf
+{
 
 
 void AssertResultVulkan(VkResult result) {

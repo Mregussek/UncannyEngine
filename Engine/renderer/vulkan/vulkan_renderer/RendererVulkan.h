@@ -12,9 +12,8 @@
 #include <renderer/vulkan/vulkan_framework/WindowSurface.h>
 #include <renderer/vulkan/vulkan_framework/Fence.h>
 #include <renderer/vulkan/vulkan_framework/Semaphore.h>
-
-#include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
-#include <renderer/vulkan/vulkan_resources/ImageVulkan.h>
+#include <renderer/vulkan/vulkan_framework/Buffer.h>
+#include <renderer/vulkan/vulkan_framework/Image.h>
 #include "graphics_pipelines/GraphicsPipelinesVulkan.h"
 #include "RendererDependenciesVulkan.h"
 #include <vector>
@@ -78,13 +77,13 @@ private:
   [[nodiscard]] b32 createGraphicsPipelinesGeneral();
   b32 closeGraphicsPipelinesGeneral();
 
-  [[nodiscard]] b32 createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan* pOutVertex,
-                                                    FBufferVulkan* pOutIndex) const;
-  b32 closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex, FBufferVulkan* pIndex) const;
+  [[nodiscard]] b32 createVertexIndexBuffersForMesh(FMesh* pMesh, vkf::FBufferVulkan* pOutVertex,
+                                                    vkf::FBufferVulkan* pOutIndex) const;
+  b32 closeVertexIndexBuffersForMesh(vkf::FBufferVulkan* pVertex, vkf::FBufferVulkan* pIndex) const;
 
   [[nodiscard]] b32 createUniformBuffer(FShaderModuleUniformVulkan* pShaderUniform,
-                                        FBufferVulkan* pBuffer);
-  b32 closeUniformBuffer(FBufferVulkan* pBuffer);
+                                        vkf::FBufferVulkan* pBuffer);
+  b32 closeUniformBuffer(vkf::FBufferVulkan* pBuffer);
 
   [[nodiscard]] b32 recordCommandBuffersGeneral();
 
@@ -109,11 +108,11 @@ private:
   // Swapchain
   VkSwapchainKHR mVkSwapchainCurrent{ VK_NULL_HANDLE };
   VkSwapchainKHR mVkSwapchainOld{ VK_NULL_HANDLE };
-  std::vector<FImageVulkan> mImagePresentableVector{};
+  std::vector<vkf::FImageVulkan> mImagePresentableVector{};
   // Render Images info
-  std::vector<FImageVulkan> mImageRenderTargetVector{};
+  std::vector<vkf::FImageVulkan> mImageRenderTargetVector{};
   // Depth Image info
-  FImageVulkan mDepthImage{};
+  vkf::FImageVulkan mDepthImage{};
   // Graphics Command Pools
   VkCommandPool mVkGraphicsCommandPool{ VK_NULL_HANDLE };
   std::vector<VkCommandBuffer> mVkRenderCommandBufferVector{};
@@ -131,9 +130,9 @@ private:
   // Pipelines
   FGraphicsPipelineVulkan mGraphicsPipeline{};
   // Buffers
-  FBufferVulkan mVertexBuffer{};
-  FBufferVulkan mIndexBuffer{};
-  FBufferVulkan mUniformBuffer{};
+  vkf::FBufferVulkan mVertexBuffer{};
+  vkf::FBufferVulkan mIndexBuffer{};
+  vkf::FBufferVulkan mUniformBuffer{};
   // Render Loop info
   b32 mSurfaceIsOutOfDate{ UFALSE };
   b32 mPrintNotProperExtent{ UFALSE };

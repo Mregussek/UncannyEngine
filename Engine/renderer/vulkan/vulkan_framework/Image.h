@@ -1,6 +1,6 @@
 
-#ifndef UNCANNYENGINE_IMAGEVULKAN_H
-#define UNCANNYENGINE_IMAGEVULKAN_H
+#ifndef UNCANNYENGINE_IMAGE_H
+#define UNCANNYENGINE_IMAGE_H
 
 
 #include <volk.h>
@@ -8,7 +8,7 @@
 #include <vector>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 
@@ -90,4 +90,4 @@ b32 detectFormatSupportingFormatFeatures(
 }
 
 
-#endif //UNCANNYENGINE_IMAGEVULKAN_H
+#endif //UNCANNYENGINE_IMAGE_H

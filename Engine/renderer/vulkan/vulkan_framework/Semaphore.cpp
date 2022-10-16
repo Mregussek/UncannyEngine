@@ -4,8 +4,8 @@
 #include <utilities/Logger.h>
 
 
-namespace uncanny::vkf {
-
+namespace uncanny::vkf
+{
 
 
 b32 FSemaphoreVulkan::init(const FSemaphoreInitDependenciesVulkan& deps) {

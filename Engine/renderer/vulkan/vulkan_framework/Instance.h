@@ -7,11 +7,16 @@
 #include <utilities/Variables.h>
 
 
-namespace uncanny {
-class FWindow;
-}
+namespace uncanny
+{
 
-namespace uncanny::vkf {
+
+class FWindow;
+
+
+}
+namespace uncanny::vkf
+{
 
 
 struct FInstanceInitDependenciesVulkan {

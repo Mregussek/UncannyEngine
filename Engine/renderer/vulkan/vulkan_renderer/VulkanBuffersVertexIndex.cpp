@@ -1,6 +1,6 @@
 
 #include "RendererVulkan.h"
-#include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
+#include <renderer/vulkan/vulkan_framework/Buffer.h>
 #include <utilities/Logger.h>
 
 
@@ -8,15 +8,15 @@ namespace uncanny
 {
 
 
-b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan* pOutVertex,
-                                                     FBufferVulkan* pOutIndex) const {
+b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, vkf::FBufferVulkan* pOutVertex,
+                                                     vkf::FBufferVulkan* pOutIndex) const {
   UTRACE("Creating buffers for mesh...");
 
-  FBufferStagingDependenciesVulkan stagingDeps{};
+  vkf::FBufferStagingDependenciesVulkan stagingDeps{};
   stagingDeps.transferQueue = m_Queues.QueueTransfer();
   stagingDeps.transferCommandPool = mVkTransferCommandPool;
 
-  FBufferCreateDependenciesVulkan createDeps{};
+  vkf::FBufferCreateDependenciesVulkan createDeps{};
   createDeps.pNext = &stagingDeps;
   createDeps.physicalDevice = m_PhysicalDevice.Handle();
   createDeps.device = m_LogicalDevice.Handle();
@@ -24,7 +24,7 @@ b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan
   createDeps.elemCount = pMesh->getVerticesCount();
   createDeps.pData = pMesh->getVerticesData();
   createDeps.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-  createDeps.type = EBufferType::DEVICE_WITH_STAGING;
+  createDeps.type = vkf::EBufferType::DEVICE_WITH_STAGING;
   createDeps.logInfo = "mesh vertex";
 
   b32 createdVertex{ pOutVertex->create(createDeps) };
@@ -49,8 +49,8 @@ b32 FRendererVulkan::createVertexIndexBuffersForMesh(FMesh* pMesh, FBufferVulkan
 }
 
 
-b32 FRendererVulkan::closeVertexIndexBuffersForMesh(FBufferVulkan* pVertex,
-                                                    FBufferVulkan* pIndex) const {
+b32 FRendererVulkan::closeVertexIndexBuffersForMesh(vkf::FBufferVulkan* pVertex,
+                                                    vkf::FBufferVulkan* pIndex) const {
   UTRACE("Closing buffers for mesh...");
 
   pVertex->close(m_LogicalDevice.Handle());

@@ -1,11 +1,11 @@
 
-#include "ImageVulkan.h"
+#include "Image.h"
 #include "Memory.h"
-#include <renderer/vulkan/vulkan_framework/Utilities.h>
+#include "Utilities.h"
 #include <utilities/Logger.h>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 
@@ -71,7 +71,7 @@ b32 FImageVulkan::create(const FImageCreateDependenciesVulkan& deps) {
     imageCreateInfo.pQueueFamilyIndices = nullptr;
     imageCreateInfo.initialLayout = mData.initialLayout;
 
-    vkf::AssertResultVulkan( vkCreateImage(deps.device, &imageCreateInfo, nullptr, &mData.handle) );
+    AssertResultVulkan( vkCreateImage(deps.device, &imageCreateInfo, nullptr, &mData.handle) );
 
     UTRACE("Allocating {} image device memory...", mData.logInfo);
     VkMemoryRequirements memoryReqs{};
@@ -125,7 +125,7 @@ b32 FImageVulkan::create(const FImageCreateDependenciesVulkan& deps) {
   imageViewCreateInfo.components = componentMapping;
   imageViewCreateInfo.subresourceRange = imageSubresourceRange;
 
-  vkf::AssertResultVulkan( vkCreateImageView(deps.device, &imageViewCreateInfo, nullptr,
+  AssertResultVulkan( vkCreateImageView(deps.device, &imageViewCreateInfo, nullptr,
                                              &mData.handleView) );
 
   if (not deps.framebufferDeps.shouldCreate) { // if you should not create framebuffer
@@ -146,7 +146,7 @@ b32 FImageVulkan::create(const FImageCreateDependenciesVulkan& deps) {
   framebufferCreateInfo.height = mData.extent.height;
   framebufferCreateInfo.layers = 1;
 
-  vkf::AssertResultVulkan( vkCreateFramebuffer(deps.device, &framebufferCreateInfo, nullptr,
+  AssertResultVulkan( vkCreateFramebuffer(deps.device, &framebufferCreateInfo, nullptr,
                                                &mData.handleFramebuffer) );
   UDEBUG("Created image along with image view and framebuffer for {}!", mData.logInfo);
   return UTRUE;

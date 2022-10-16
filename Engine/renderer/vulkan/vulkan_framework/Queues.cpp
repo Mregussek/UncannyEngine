@@ -3,7 +3,8 @@
 #include <utilities/Logger.h>
 
 
-namespace uncanny::vkf {
+namespace uncanny::vkf
+{
 
 
 b32 FQueuesVulkan::init(const FQueuesInitDependenciesVulkan& deps) {

@@ -1,10 +1,10 @@
 
 #include "Memory.h"
-#include <renderer/vulkan/vulkan_framework/Utilities.h>
+#include "Utilities.h"
 #include <utilities/Logger.h>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 

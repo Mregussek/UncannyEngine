@@ -10,12 +10,17 @@
 #include "ShaderModulesVulkan.h"
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 
 class FImageVulkan;
 class FBufferVulkan;
+
+
+}
+namespace uncanny
+{
 
 
 struct FGraphicsPipelineDataVulkan {
@@ -34,9 +39,9 @@ struct FGraphicsPipelineCreateDependenciesVulkan {
 
 
 struct FGraphicsPipelineRecordCommandsDependencies {
-  const std::vector<FImageVulkan>* pRenderTargets{ nullptr };
-  const FBufferVulkan* pVertexBuffer{ nullptr };
-  const FBufferVulkan* pIndexBuffer{ nullptr };
+  const std::vector<vkf::FImageVulkan>* pRenderTargets{ nullptr };
+  const vkf::FBufferVulkan* pVertexBuffer{ nullptr };
+  const vkf::FBufferVulkan* pIndexBuffer{ nullptr };
   const std::vector<VkCommandBuffer>* pCommandBuffers{ nullptr };
 };
 

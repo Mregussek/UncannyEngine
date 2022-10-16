@@ -7,7 +7,8 @@
 #endif
 
 
-namespace uncanny::vkf {
+namespace uncanny::vkf
+{
 
 
 template<typename T> struct is_vk_extension_properties : std::false_type { };

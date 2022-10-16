@@ -29,7 +29,7 @@ b32 FRendererVulkan::createRenderTargetImages() {
                               m_WindowSurface.Extent().height,
                               1 };
 
-  FImageCreateDependenciesVulkan createDeps{};
+  vkf::FImageCreateDependenciesVulkan createDeps{};
   createDeps.physicalDevice = m_PhysicalDevice.Handle();
   createDeps.device = m_LogicalDevice.Handle();
   createDeps.extent = surfaceExtent3D;
@@ -38,7 +38,7 @@ b32 FRendererVulkan::createRenderTargetImages() {
   createDeps.usage = imageUsage;
   createDeps.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   createDeps.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-  createDeps.type = EImageType::RENDER_TARGET;
+  createDeps.type = vkf::EImageType::RENDER_TARGET;
   createDeps.viewDeps.shouldCreate = UTRUE;
   createDeps.framebufferDeps.shouldCreate = UTRUE;
   createDeps.framebufferDeps.renderPass = mGraphicsPipeline.getRenderPassData().renderPass;
@@ -69,7 +69,7 @@ b32 FRendererVulkan::closeRenderTargetImages() {
     return UTRUE;
   }
 
-  for (FImageVulkan& renderTargetImage : mImageRenderTargetVector) {
+  for (vkf::FImageVulkan& renderTargetImage : mImageRenderTargetVector) {
     b32 closedProperly{ renderTargetImage.close(m_LogicalDevice.Handle()) };
     if (not closedProperly) {
       UERROR("Could not close properly render target image!");

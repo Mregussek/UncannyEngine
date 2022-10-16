@@ -110,7 +110,7 @@ b32 FRendererVulkan::createSwapchain() {
   // Copying retrieved swapchain images into presentable member handles...
   mImagePresentableVector.resize(imageCount);
 
-  FImageCreateDependenciesVulkan createDeps{};
+  vkf::FImageCreateDependenciesVulkan createDeps{};
   createDeps.physicalDevice = m_PhysicalDevice.Handle();
   createDeps.device = m_LogicalDevice.Handle();
   // createDeps.handleToUse will be filled later
@@ -120,7 +120,7 @@ b32 FRendererVulkan::createSwapchain() {
   createDeps.usage = imageUsage;
   createDeps.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   createDeps.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  createDeps.type = EImageType::PRESENTABLE;
+  createDeps.type = vkf::EImageType::PRESENTABLE;
   createDeps.viewDeps.shouldCreate = UFALSE;
   createDeps.framebufferDeps.shouldCreate = UFALSE;
   createDeps.pFormatsFeaturesToCheck = &mSwapchainDependencies.imageFormatFeatureVector;
@@ -141,7 +141,7 @@ b32 FRendererVulkan::createSwapchain() {
 b32 FRendererVulkan::closeSwapchain() {
   UTRACE("Closing swapchain...");
 
-  for (FImageVulkan& image : mImagePresentableVector) {
+  for (vkf::FImageVulkan& image : mImagePresentableVector) {
     image.close(m_LogicalDevice.Handle());
   }
   mImagePresentableVector.clear();
@@ -159,7 +159,7 @@ b32 FRendererVulkan::recreateSwapchain() {
 
   // Firstly destroying images and its image views as they are not needed and
   // those variables will be filled during createSwapchain()
-  for (FImageVulkan& image : mImagePresentableVector) {
+  for (vkf::FImageVulkan& image : mImagePresentableVector) {
     image.close(m_LogicalDevice.Handle());
   }
   mImagePresentableVector.clear();

@@ -8,15 +8,22 @@
 #include <vector>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
+
 
 class FImageVulkan;
 
 
-b32 recordCopyRenderTargetIntoPresentableImage(const std::vector<FImageVulkan>& renderTargetImages,
-                                               const std::vector<FImageVulkan>& presentableImages,
-                                               const std::vector<VkCommandBuffer>& commandBuffers);
+}
+namespace uncanny
+{
+
+
+b32 recordCopyRenderTargetIntoPresentableImage(
+    const std::vector<vkf::FImageVulkan>& renderTargetImages,
+    const std::vector<vkf::FImageVulkan>& presentableImages,
+    const std::vector<VkCommandBuffer>& commandBuffers);
 
 
 }

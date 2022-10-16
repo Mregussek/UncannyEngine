@@ -2,8 +2,8 @@
 #include "GraphicsPipelinesVulkan.h"
 #include <utilities/Logger.h>
 #include <renderer/vulkan/vulkan_framework/Utilities.h>
-#include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
-#include <renderer/vulkan/vulkan_resources/ImageVulkan.h>
+#include <renderer/vulkan/vulkan_framework/Buffer.h>
+#include <renderer/vulkan/vulkan_framework/Image.h>
 
 
 namespace uncanny

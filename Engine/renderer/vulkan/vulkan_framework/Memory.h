@@ -1,13 +1,13 @@
 
-#ifndef UNCANNYENGINE_ALLOCATIONS_H
-#define UNCANNYENGINE_ALLOCATIONS_H
+#ifndef UNCANNYENGINE_MEMORY_H
+#define UNCANNYENGINE_MEMORY_H
 
 
-#include <utilities/Variables.h>
 #include <volk.h>
+#include <utilities/Variables.h>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 
@@ -80,4 +80,4 @@ private:
 }
 
 
-#endif //UNCANNYENGINE_ALLOCATIONS_H
+#endif //UNCANNYENGINE_MEMORY_H

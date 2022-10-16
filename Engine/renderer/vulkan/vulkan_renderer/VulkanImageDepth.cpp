@@ -19,7 +19,7 @@ b32 FRendererVulkan::createDepthImage() {
                               m_WindowSurface.Extent().height,
                               1 };
 
-  FImageCreateDependenciesVulkan createDeps{};
+  vkf::FImageCreateDependenciesVulkan createDeps{};
   createDeps.physicalDevice = m_PhysicalDevice.Handle();
   createDeps.device = m_LogicalDevice.Handle();
   createDeps.extent = surfaceExtent3D;
@@ -28,7 +28,7 @@ b32 FRendererVulkan::createDepthImage() {
   createDeps.usage = imageUsage;
   createDeps.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
   createDeps.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  createDeps.type = EImageType::DEPTH;
+  createDeps.type = vkf::EImageType::DEPTH;
   createDeps.viewDeps.shouldCreate = UTRUE;
   createDeps.framebufferDeps.shouldCreate = UFALSE;
   createDeps.pFormatsFeaturesToCheck = &mImageDependencies.depth.formatsFeatureVector;

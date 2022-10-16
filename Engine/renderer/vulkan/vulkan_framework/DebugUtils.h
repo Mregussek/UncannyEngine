@@ -8,7 +8,8 @@
 #include <utilities/Variables.h>
 
 
-namespace uncanny::vkf {
+namespace uncanny::vkf
+{
 
 
 void emplaceRequiredDebugInstanceLayers(std::vector<const char*>* pRequiredLayers);

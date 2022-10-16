@@ -1,11 +1,11 @@
 
-#include "BufferVulkan.h"
+#include "Buffer.h"
 #include "Memory.h"
-#include <renderer/vulkan/vulkan_framework/Utilities.h>
+#include "Utilities.h"
 #include <utilities/Logger.h>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 
@@ -177,7 +177,7 @@ b32 createBufferHandle(VkDevice device, VkDeviceSize size, VkBufferUsageFlags us
   createInfo.queueFamilyIndexCount = 0;
   createInfo.pQueueFamilyIndices = nullptr;
 
-  vkf::AssertResultVulkan( vkCreateBuffer(device, &createInfo, nullptr, pOutHandle) );
+  AssertResultVulkan( vkCreateBuffer(device, &createInfo, nullptr, pOutHandle) );
 
   UTRACE("Created buffer handle {}!", logInfo);
   return UTRUE;

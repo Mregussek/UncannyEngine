@@ -4,7 +4,7 @@
 #include <renderer/Mesh.h>
 #include <renderer/Camera.h>
 #include <renderer/vulkan/vulkan_framework/Utilities.h>
-#include <renderer/vulkan/vulkan_resources/BufferVulkan.h>
+#include <renderer/vulkan/vulkan_framework/Buffer.h>
 #include <utilities/Logger.h>
 
 

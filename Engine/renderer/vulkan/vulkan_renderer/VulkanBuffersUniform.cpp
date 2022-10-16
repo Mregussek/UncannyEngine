@@ -9,10 +9,10 @@ namespace uncanny
 
 
 b32 FRendererVulkan::createUniformBuffer(FShaderModuleUniformVulkan* pShaderUniform,
-                                         FBufferVulkan* pBuffer) {
+                                         vkf::FBufferVulkan* pBuffer) {
   UTRACE("Creating uniform buffer...");
 
-  FBufferCreateDependenciesVulkan createDeps{};
+  vkf::FBufferCreateDependenciesVulkan createDeps{};
   createDeps.pNext = nullptr;
   createDeps.physicalDevice = m_PhysicalDevice.Handle();
   createDeps.device = m_LogicalDevice.Handle();
@@ -20,7 +20,7 @@ b32 FRendererVulkan::createUniformBuffer(FShaderModuleUniformVulkan* pShaderUnif
   createDeps.elemCount = 1;
   createDeps.pData = pShaderUniform;
   createDeps.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-  createDeps.type = EBufferType::HOST_VISIBLE;
+  createDeps.type = vkf::EBufferType::HOST_VISIBLE;
   createDeps.logInfo = "camera uniform";
 
   b32 createdCameraUBO{ pBuffer->create(createDeps) };
@@ -34,7 +34,7 @@ b32 FRendererVulkan::createUniformBuffer(FShaderModuleUniformVulkan* pShaderUnif
 }
 
 
-b32 FRendererVulkan::closeUniformBuffer(FBufferVulkan* pBuffer) {
+b32 FRendererVulkan::closeUniformBuffer(vkf::FBufferVulkan* pBuffer) {
   UTRACE("Closing uniform buffer...");
 
   pBuffer->close(m_LogicalDevice.Handle());

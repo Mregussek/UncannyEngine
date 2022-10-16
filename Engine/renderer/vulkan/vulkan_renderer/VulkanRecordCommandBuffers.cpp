@@ -9,8 +9,8 @@ namespace uncanny
 
 
 b32 recordCopyRenderTargetIntoPresentableImage(
-    const std::vector<FImageVulkan>& renderTargetImages,
-    const std::vector<FImageVulkan>& presentableImages,
+    const std::vector<vkf::FImageVulkan>& renderTargetImages,
+    const std::vector<vkf::FImageVulkan>& presentableImages,
     const std::vector<VkCommandBuffer>& commandBuffers) {
   UTRACE("Recording command buffers for copying render target images into presentable ones!");
 
@@ -22,14 +22,14 @@ b32 recordCopyRenderTargetIntoPresentableImage(
     }
 
     for (u32 i = 0; i < renderTargetImages.size(); i++) {
-      const FImageDataVulkan& renderData{ renderTargetImages[i].getData() };
-      const FImageDataVulkan& presentData{ presentableImages[i].getData() };
+      const vkf::FImageDataVulkan& renderData{ renderTargetImages[i].getData() };
+      const vkf::FImageDataVulkan& presentData{ presentableImages[i].getData() };
 
-      if (renderData.type != EImageType::RENDER_TARGET) {
+      if (renderData.type != vkf::EImageType::RENDER_TARGET) {
         UERROR("Render target image has unsupported type: {}", (i32)renderData.type);
         return UFALSE;
       }
-      if (presentData.type != EImageType::PRESENTABLE) {
+      if (presentData.type != vkf::EImageType::PRESENTABLE) {
         UERROR("Render target image has unsupported type: {}", (i32)renderData.type);
         return UFALSE;
       }

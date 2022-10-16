@@ -13,10 +13,12 @@
 #include <volk.h>
 
 
-namespace uncanny {
+namespace uncanny
+{
   class FWindow;
 }
-namespace uncanny::vkf {
+namespace uncanny::vkf
+{
 
 
 struct FWindowSurfaceInitDependenciesVulkan {

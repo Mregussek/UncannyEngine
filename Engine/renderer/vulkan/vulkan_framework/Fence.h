@@ -7,7 +7,8 @@
 #include <utilities/Variables.h>
 
 
-namespace uncanny::vkf {
+namespace uncanny::vkf
+{
 
 
 struct FFenceInitDependenciesVulkan {

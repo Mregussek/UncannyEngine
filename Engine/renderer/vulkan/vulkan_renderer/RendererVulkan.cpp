@@ -263,7 +263,7 @@ b32 FRendererVulkan::updateSceneDuringRendering(const FRenderSceneConfiguration&
   FShaderModuleUniformVulkan shaderUniform{};
   FShaderModulesVulkan::fillShaderUniform(mSceneConfig.pCamera, mSceneConfig.pMesh, &shaderUniform);
 
-  FBufferCopyDependenciesVulkan copyDeps{};
+  vkf::FBufferCopyDependenciesVulkan copyDeps{};
   copyDeps.pNext = nullptr;
   copyDeps.device = m_LogicalDevice.Handle();
   copyDeps.size = sizeof(FShaderModuleUniformVulkan);

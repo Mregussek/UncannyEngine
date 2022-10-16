@@ -9,11 +9,18 @@
 #include <math/mat4.h>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 
 class FBufferVulkan;
+
+
+}
+namespace uncanny
+{
+
+
 class FCamera;
 class FMesh;
 
@@ -62,7 +69,7 @@ struct FShaderModulesCreateDependenciesVulkan {
 
 struct FShaderWriteIntoDescriptorSetDependenciesVulkan {
   VkDevice device{ VK_NULL_HANDLE };
-  FBufferVulkan* pUniformBuffer{ nullptr };
+  vkf::FBufferVulkan* pUniformBuffer{ nullptr };
 };
 
 

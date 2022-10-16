@@ -6,7 +6,8 @@
 #include <window/glfw/WindowGLFW.h>
 
 
-namespace uncanny::vkf {
+namespace uncanny::vkf
+{
 
 
 #ifdef WIN32

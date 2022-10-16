@@ -1,14 +1,13 @@
 
-#ifndef UNCANNYENGINE_BUFFERVULKAN_H
-#define UNCANNYENGINE_BUFFERVULKAN_H
+#ifndef UNCANNYENGINE_BUFFER_H
+#define UNCANNYENGINE_BUFFER_H
 
 
-#include <utilities/Variables.h>
 #include <volk.h>
-#include <math/mat4.h>
+#include <utilities/Variables.h>
 
 
-namespace uncanny
+namespace uncanny::vkf
 {
 
 
@@ -77,4 +76,4 @@ private:
 }
 
 
-#endif //UNCANNYENGINE_BUFFERVULKAN_H
+#endif //UNCANNYENGINE_BUFFER_H
