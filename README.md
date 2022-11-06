@@ -6,43 +6,58 @@ Furthermore, I want to try implement ray tracing in future releases.
 
 Build system: cmake
 
-Used IDE: CLion
+Used IDE: CLion and Visual Studio Code
 
-Compiler: Visual Studio 17 2022 MSVC 19.32.31332.0
+Compiler: MSVC 19.29.30146.0
+
+Generator: Visual Studio 16 2019
 
 ## Build
 
 For compilation, you should have Visual Studio installed! UncannyEngine is a library imported by UncannySandbox.
+UncannyEngine uses CMake build system.
 
-In the main CMakeLists.txt file in this repository, you should modify Vulkan SDK to your installed one.
-
-```cmake
-set(ENV{VULKAN_SDK} "<YOUR PATH TO INSTALLED VULKAN SDK>")
-```
-
-Example:
+For its proper work you should have VulkanSDK installed in first proposed
+directory. In my case it is default path set by Vulkan Installer *C:\VulkanSDK\1.3.231.1*.
+If you have installed Vulkan in other directory please add below line to main CMakeLists.txt file before
+find_package(Vulkan):
 
 ```cmake
+set(ENV{VULKAN_SDK} "<PATH_TO_VULKAN_SDK>")
+
+#Example:
 set(ENV{VULKAN_SDK} "D:/SDKs/Vulkan/Vulkan_1.3.126.0")
+find_package( Vulkan REQUIRED )
 ```
-
-### Automatic way
-
-Just open in CLion as a CMake project and then load it. Afterwards CLion will get everything
-prepared and ready to use.
-
-### Manual Way
 
 Create *build* directory and run in it cmake command:
 
 ```bash
 mkdir build
 cd build
-cmake ..
+cmake -G "Visual Studio 16 2019" -A x64 ..
 ```
 
-At the end you should open generated .sln file and there compile the whole solution. UncannySandbox
-should be set as a starting project and must be run in order to see results.
+Now you should open generated .sln file at *build* directory and there compile the whole solution. Now you can go to
+*build\Sandbox\Debug* directory, where you will find compiled .exe file.
+
+**Please note that all  paths to resources like shaders, models etc. are stored along with compiled .exe file.
+Currently, you won't be able to run anything from Visual Studio IDE.**
+
+If you are using Clion you should set proper toolchain and generator, I have found Ninja generator to fail finding
+VulkanSDK.
+
+<p align="center">
+  <img width="650" height="340" src="doc/img/clion_cmake_configuration.png" alt="">
+</p>
+
+## Images
+
+UncannyEngine after running UncannySandbox 06.11.2022:
+
+<p align="center">
+  <img width="650" height="340" src="doc/img/quads_rotating_06_11_2022.png" alt="">
+</p>
 
 ## Author
 
