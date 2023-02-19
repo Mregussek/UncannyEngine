@@ -12,20 +12,20 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(Vulkan REQUIRED)
 
 # Volk
-set(ENV{VOLK_3RDPARTY_DIR} "UTools/3rdparty/volk")
-add_subdirectory($ENV{VOLK_3RDPARTY_DIR})
+#set(ENV{VOLK_3RDPARTY_DIR} "UTools/3rdparty/volk")
+#add_subdirectory($ENV{VOLK_3RDPARTY_DIR})
 
 # OpenGL
 find_package(OpenGL REQUIRED)
 
 # GLFW
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
-set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
-set(ENV{GLFW_3RDPARTY_DIR} UTools/3rdparty/glfw)
-add_subdirectory($ENV{GLFW_3RDPARTY_DIR})
+#set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
+#set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
+#set(ENV{GLFW_3RDPARTY_DIR} UTools/3rdparty/glfw)
+#add_subdirectory($ENV{GLFW_3RDPARTY_DIR})
 
 # spdlog
-set(ENV{SPDLOG_3RDPARTY_DIR} UTools/3rdparty/spdlog)
+#set(ENV{SPDLOG_3RDPARTY_DIR} UTools/3rdparty/spdlog)
 
 # ------------------- Some Info display
 
