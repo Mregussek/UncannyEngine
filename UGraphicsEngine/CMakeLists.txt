@@ -28,7 +28,7 @@ set_target_properties(UncannyGraphicsEngine
         LINKER_LANGUAGE C++)
 target_include_directories(UncannyGraphicsEngine
         PUBLIC
-        ${UGRAPHICSENGINE_PATH}
+        ${PROJECT_SOURCE_DIR}
         ${OPENGL_INCLUDE_DIR}
         ${OPENGL_INCLUDE_DIRS}
         $ENV{VOLK_3RDPARTY_DIR}
@@ -38,6 +38,7 @@ target_link_libraries(UncannyGraphicsEngine
         PRIVATE
         ${OPENGL_LIBRARIES}
         volk_headers
+        UncannyTools
         )
 target_compile_features(UncannyGraphicsEngine
         PUBLIC

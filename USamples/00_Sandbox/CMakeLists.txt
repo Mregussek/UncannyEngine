@@ -4,6 +4,10 @@ target_include_directories(Sandbox
         PUBLIC
         ${PROJECT_SOURCE_DIR}
         )
+target_link_directories(Sandbox
+        PUBLIC
+        ${PROJECT_SOURCE_DIR}
+        )
 target_link_libraries(Sandbox
         PUBLIC
         UncannyGraphicsEngine

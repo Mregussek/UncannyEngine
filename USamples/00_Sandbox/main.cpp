@@ -1,16 +1,18 @@
 
 #include <UTools/Logger/Log.h>
-#include <UGraphicsEngine/RHI/RHI.h>
+#include "UGraphicsEngine/RHI/RenderHardwareInterfaceVulkan.h"
 
 using namespace uncanny;
 
 int main() {
-  // checking tools include
-  FLogger::init(FLogger::sLoggerPtr);
-  UINFO("Hello UncannyEngine!");
+  FLogger::create();
+  FLogger::trace("Hello UncannyEngine!");
 
-  // checking graphics engine include
-  RHI rhi;
+  FRenderHardwareInterfaceVulkan rhi;
+  rhi.Create();
+
+
+  rhi.Destroy();
 
   return 0;
 }
