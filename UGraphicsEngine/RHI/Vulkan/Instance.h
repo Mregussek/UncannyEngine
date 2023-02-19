@@ -3,10 +3,26 @@
 #define UNCANNYENGINE_INSTANCE_H
 
 
-namespace uncanny {
+#include <volk.h>
 
 
-class FVulkanInstance {
+namespace uncanny::vulkan {
+
+
+class FInstanceProperties;
+
+
+class FInstance {
+public:
+
+  ~FInstance();
+
+  void Create(const FInstanceProperties& properties);
+  void Destroy();
+
+private:
+
+  VkInstance m_Instance;
 
 };
 
