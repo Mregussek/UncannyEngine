@@ -5,8 +5,8 @@
 using namespace uncanny;
 
 int main() {
-  FLogger::create();
-  FLogger::trace("Hello UncannyEngine!");
+  FLog::create();
+  FLog::trace("Hello UncannyEngine!");
 
   FRenderHardwareInterfaceVulkan rhi;
   rhi.Create();

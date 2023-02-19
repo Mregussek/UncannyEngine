@@ -68,7 +68,7 @@ void AssertVkAndThrow(VkResult result) {
     return;
   }
   std::string failureString{ GetStringForVkResult(result) };
-  FLogger::error("Vulkan error: {}", failureString);
+  FLog::error("Vulkan error: {}", failureString);
   throw std::runtime_error("Vulkan error: " + failureString);
 }
 

@@ -64,7 +64,7 @@ b8 FInstanceProperties::IsLayerAvailable(const char* layerName) const {
     return layerName == std::string_view(vkLayerProperties.layerName);
   });
   if (foundLayer == m_AvailableLayerProperties.end()) {
-    FLogger::error("Layer {} is not available!", layerName);
+    FLog::error("Layer {} is not available!", layerName);
     return UFALSE;
   }
 
@@ -77,7 +77,7 @@ b8 FInstanceProperties::IsExtensionAvailable(const char* extensionName) const {
     return extensionName == std::string_view(vkExtensionProperties.extensionName);
   });
   if (foundExtension == m_AvailableExtensionsProperties.end()) {
-    FLogger::error("Extension {} is not available!", extensionName);
+    FLog::error("Extension {} is not available!", extensionName);
     return UFALSE;
   }
 
