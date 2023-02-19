@@ -12,6 +12,11 @@
 namespace uncanny::vulkan {
 
 
+/*
+ * @brief FInstanceProperties is a helper class for FInstance. It is responsible for validation of all
+ * requested instance layers and extensions with actual available ones. Afterwards object of this class
+ * is handed to the FInstance.Create().
+ */
 class FInstanceProperties {
 public:
 

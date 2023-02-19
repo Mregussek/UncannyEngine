@@ -19,7 +19,7 @@ void FRenderHardwareInterfaceVulkan::Create() {
 
 
 void FRenderHardwareInterfaceVulkan::Destroy() {
-
+  m_VolkHandler.Destroy();
 }
 
 
