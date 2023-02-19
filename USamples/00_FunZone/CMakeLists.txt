@@ -2,11 +2,12 @@
 add_executable(FunZone main.cpp)
 target_include_directories(FunZone
         PUBLIC
-        ${PROJECT_SOURCE_DIR}/UGraphicsEngine
+        ${PROJECT_SOURCE_DIR}
         )
 target_link_libraries(FunZone
         PUBLIC
         UncannyGraphicsEngine
+        UncannyTools
         )
 target_compile_features(FunZone
         PUBLIC

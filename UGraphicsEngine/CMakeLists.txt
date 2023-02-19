@@ -1,17 +1,27 @@
 
 set(UGRAPHICSENGINE_PATH ${PROJECT_SOURCE_DIR}/UGraphicsEngine/)
 
-#file(GLOB_RECURSE SPDLOG_LIBRARY_SOURCES
-#        $ENV{SPDLOG_3RDPARTY_DIR}/include/spdlog/*.h
-#        )
+# Vulkan
+find_package(Vulkan REQUIRED)
+
+# Volk
+set(ENV{VOLK_3RDPARTY_DIR} "${UGRAPHICSENGINE_PATH}/3rdparty/volk")
+add_subdirectory($ENV{VOLK_3RDPARTY_DIR})
+
+# OpenGL
+find_package(OpenGL REQUIRED)
+
+# Get all engine files without 3rdparty ones
 file(GLOB_RECURSE ENGINE_LIBRARY_SOURCES
         ${UGRAPHICSENGINE_PATH}/*.cpp
         ${UGRAPHICSENGINE_PATH}/*.inl
         ${UGRAPHICSENGINE_PATH}/*.h
         )
+list(FILTER ENGINE_LIBRARY_SOURCES EXCLUDE REGEX "${UGRAPHICSENGINE_PATH}/3rdparty/.*" )
+
+# Create a library for UncannyGraphicsEngine
 add_library(UncannyGraphicsEngine
         ${ENGINE_LIBRARY_SOURCES}
-        #${SPDLOG_LIBRARY_SOURCES}
         )
 set_target_properties(UncannyGraphicsEngine
         PROPERTIES
@@ -21,16 +31,13 @@ target_include_directories(UncannyGraphicsEngine
         ${UGRAPHICSENGINE_PATH}
         ${OPENGL_INCLUDE_DIR}
         ${OPENGL_INCLUDE_DIRS}
-        $ENV{SPDLOG_3RDPARTY_DIR}/include
         $ENV{VOLK_3RDPARTY_DIR}
         $ENV{VULKAN_SDK}/include
-        $ENV{GLFW_3RDPARTY_DIR}/include
         )
 target_link_libraries(UncannyGraphicsEngine
         PRIVATE
         ${OPENGL_LIBRARIES}
-        #glfw
-        #volk_headers
+        volk_headers
         )
 target_compile_features(UncannyGraphicsEngine
         PUBLIC
