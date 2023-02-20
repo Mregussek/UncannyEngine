@@ -6,7 +6,6 @@
   #define VK_USE_PLATFORM_WIN32_KHR 1
 #endif
 #include "Vulkan/VolkHandler.h"
-#include "Vulkan/InstanceAttributes.h"
 #include "Vulkan/Instance.h"
 #include "Vulkan/PhysicalDevice.h"
 #include "Vulkan/EXTDebugUtils.h"
@@ -25,7 +24,6 @@ public:
 
 private:
 
-  vulkan::FInstanceAttributes m_InstanceAttributes{};
   vulkan::FInstance m_Instance{};
   vulkan::FEXTDebugUtils m_DebugUtils{};
   vulkan::FPhysicalDevice m_PhysicalDevice{};

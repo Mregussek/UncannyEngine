@@ -3,20 +3,39 @@
 #define UNCANNYENGINE_QUEUEFAMILYSELECTOR_H
 
 
+#ifdef WIN32
+  #define VK_USE_PLATFORM_WIN32_KHR 1
+#endif
 #include <volk.h>
 #include <span>
+#include <optional>
 #include "UTools/UTypes.h"
 
 
 namespace uncanny::vulkan {
 
 
+class FInstance;
+class FPhysicalDevice;
+
+
+typedef i32 FQueueFamilyScore;
+
+
 class FQueueFamilySelector {
 public:
 
-  [[nodiscard]] u32 SelectGraphicsQueueFamily(std::span<VkQueueFamilyProperties> queueFamilyProperties) const;
-  [[nodiscard]] u32 SelectPresentQueueFamily(std::span<VkQueueFamilyProperties> queueFamilyProperties) const;
-  [[nodiscard]] u32 SelectTransferQueueFamily(std::span<VkQueueFamilyProperties> queueFamilyProperties) const;
+  [[nodiscard]] std::optional<u32> SelectGraphicsQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+                                                             const FInstance& instance,
+                                                             const FPhysicalDevice& physicalDevice) const;
+
+  [[nodiscard]] std::optional<u32> SelectPresentQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+                                                            const FInstance& instance,
+                                                            const FPhysicalDevice& physicalDevice) const;
+
+  [[nodiscard]] std::optional<u32> SelectTransferQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+                                                             const FInstance& instance,
+                                                             const FPhysicalDevice& physicalDevice) const;
 
 };
 

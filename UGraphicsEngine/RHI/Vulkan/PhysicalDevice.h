@@ -16,6 +16,7 @@ public:
   void Initialize(VkPhysicalDevice physicalDevice);
 
   [[nodiscard]] VkPhysicalDevice GetHandle() const { return m_PhysicalDevice; }
+  [[nodiscard]] const FPhysicalDeviceAttributes& GetAttributes() const { return m_Attributes; }
 
 private:
 

@@ -1,6 +1,8 @@
 
 #include "RenderHardwareInterfaceVulkan.h"
 #include <volk.h>
+#include "Vulkan/InstanceAttributes.h"
+#include "Vulkan/LogicalDeviceAttributes.h"
 #include "Vulkan/PhysicalDeviceSelector.h"
 #include "UTools/Logger/Log.h"
 
@@ -18,17 +20,18 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
 
   m_VolkHandler.Create();
 
-  m_InstanceAttributes.Initialize();
-  if (!m_InstanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3)) {
+  vulkan::FInstanceAttributes instanceAttributes{};
+  instanceAttributes.Initialize();
+  if (!instanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3)) {
     FLog::critical("Not available vulkan version, cannot start RHI!");
     return UFALSE;
   }
-  m_InstanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");
-  m_InstanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-  m_InstanceAttributes.AddExtensionName(VK_KHR_SURFACE_EXTENSION_NAME);
-  m_InstanceAttributes.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  instanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");
+  instanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+  instanceAttributes.AddExtensionName(VK_KHR_SURFACE_EXTENSION_NAME);
+  instanceAttributes.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-  m_Instance.Create(m_InstanceAttributes);
+  m_Instance.Create(instanceAttributes);
 
   m_VolkHandler.LoadInstance(m_Instance);
 
@@ -39,6 +42,13 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
     VkPhysicalDevice selectedPhysicalDevice = vulkan::FPhysicalDeviceSelector().Select(availablePhysicalDevices);
     m_PhysicalDevice.Initialize(selectedPhysicalDevice);
   }
+
+  vulkan::FLogicalDeviceAttributes logicalDeviceAttributes{};
+  logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
+                                                       m_Instance,
+                                                       m_PhysicalDevice);
+
+
 
   return UTRUE;
 }

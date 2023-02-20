@@ -12,7 +12,7 @@
 namespace uncanny::vulkan {
 
 
-typedef u32 FPhysicalDeviceScore;
+typedef i32 FPhysicalDeviceScore;
 
 
 /*
