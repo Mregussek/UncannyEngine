@@ -1,5 +1,5 @@
 
-#include "InstanceProperties.h"
+#include "InstanceAttributes.h"
 #include "Utilities.h"
 
 #include <algorithm>
@@ -10,14 +10,14 @@
 namespace uncanny::vulkan {
 
 
-void FInstanceProperties::Initialize() {
+void FInstanceAttributes::Initialize() {
   GatherAvailableVersion();
   GatherAvailableLayers();
   GatherAvailableExtensions();
 }
 
 
-b8 FInstanceProperties::AddLayerName(const char* layerName) {
+b8 FInstanceAttributes::AddLayerName(const char* layerName) {
   if (IsLayerAvailable(layerName)) {
     m_RequestedLayers.push_back(layerName);
     return UTRUE;
@@ -27,7 +27,7 @@ b8 FInstanceProperties::AddLayerName(const char* layerName) {
 }
 
 
-b8 FInstanceProperties::AddExtensionName(const char* extensionName) {
+b8 FInstanceAttributes::AddExtensionName(const char* extensionName) {
   if (IsExtensionAvailable(extensionName)) {
     m_RequestExtensions.push_back(extensionName);
     return UTRUE;
@@ -37,7 +37,7 @@ b8 FInstanceProperties::AddExtensionName(const char* extensionName) {
 }
 
 
-b8 FInstanceProperties::IsVersionAvailable(u32 apiVersion) const {
+b8 FInstanceAttributes::IsVersionAvailable(u32 apiVersion) const {
   // Supported version has always higher value than default VK_API_VERSION_1_3 for example
   if (m_SupportedVersion >= apiVersion) {
     return UTRUE;
@@ -47,13 +47,13 @@ b8 FInstanceProperties::IsVersionAvailable(u32 apiVersion) const {
 }
 
 
-void FInstanceProperties::GatherAvailableVersion() {
+void FInstanceAttributes::GatherAvailableVersion() {
   VkResult result{ vkEnumerateInstanceVersion(&m_SupportedVersion) };
   AssertVkAndThrow(result);
 }
 
 
-void FInstanceProperties::GatherAvailableLayers() {
+void FInstanceAttributes::GatherAvailableLayers() {
   u32 layerCount{ 0 };
   VkResult result = vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
   AssertVkAndThrow(result);
@@ -64,7 +64,7 @@ void FInstanceProperties::GatherAvailableLayers() {
 }
 
 
-void FInstanceProperties::GatherAvailableExtensions() {
+void FInstanceAttributes::GatherAvailableExtensions() {
   u32 extensionCount{ 0 };
   VkResult result = vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount,
                                                            nullptr);
@@ -76,9 +76,9 @@ void FInstanceProperties::GatherAvailableExtensions() {
 }
 
 
-b8 FInstanceProperties::IsLayerAvailable(const char* layerName) const {
+b8 FInstanceAttributes::IsLayerAvailable(const char* layerName) const {
   auto foundLayer = std::ranges::find_if(m_AvailableLayerProperties, [layerName](const VkLayerProperties& vkLayerProperties) -> b32 {
-    return layerName == std::string_view(vkLayerProperties.layerName);
+    return std::strcmp(layerName, vkLayerProperties.layerName) == 0;
   });
   if (foundLayer == m_AvailableLayerProperties.end()) {
     FLog::error("Layer {} is not available!", layerName);
@@ -89,9 +89,9 @@ b8 FInstanceProperties::IsLayerAvailable(const char* layerName) const {
 }
 
 
-b8 FInstanceProperties::IsExtensionAvailable(const char* extensionName) const {
+b8 FInstanceAttributes::IsExtensionAvailable(const char* extensionName) const {
   auto foundExtension = std::ranges::find_if(m_AvailableExtensionsProperties, [extensionName](const VkExtensionProperties& vkExtensionProperties) -> b32 {
-    return extensionName == std::string_view(vkExtensionProperties.extensionName);
+    return std::strcmp(extensionName, vkExtensionProperties.extensionName) == 0;
   });
   if (foundExtension == m_AvailableExtensionsProperties.end()) {
     FLog::error("Extension {} is not available!", extensionName);

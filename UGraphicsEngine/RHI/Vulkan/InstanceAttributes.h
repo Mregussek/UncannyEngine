@@ -1,6 +1,6 @@
 
-#ifndef UNCANNYENGINE_INSTANCEPROPERTIES_H
-#define UNCANNYENGINE_INSTANCEPROPERTIES_H
+#ifndef UNCANNYENGINE_INSTANCEATTRIBUTES_H
+#define UNCANNYENGINE_INSTANCEATTRIBUTES_H
 
 
 #include <volk.h>
@@ -17,7 +17,7 @@ namespace uncanny::vulkan {
  * requested instance layers and extensions with actual available ones. Also, it queries API version that is
  * ready to use. Afterwards object of this class is handed to the FInstance.Create().
  */
-class FInstanceProperties {
+class FInstanceAttributes {
 public:
 
   void Initialize();
@@ -55,4 +55,4 @@ private:
 }
 
 
-#endif //UNCANNYENGINE_INSTANCEPROPERTIES_H
+#endif //UNCANNYENGINE_INSTANCEATTRIBUTES_H

@@ -6,8 +6,8 @@
 namespace uncanny::vulkan {
 
 
-void FInstance::Create(const FInstanceProperties& properties) {
-  m_Properties = properties;
+void FInstance::Create(const FInstanceAttributes& attributes) {
+  m_Attributes = attributes;
 
   VkApplicationInfo applicationInfo{};
   applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -16,17 +16,17 @@ void FInstance::Create(const FInstanceProperties& properties) {
   applicationInfo.applicationVersion = 1;
   applicationInfo.pEngineName = "UGraphicsEngine";
   applicationInfo.engineVersion = 1;
-  applicationInfo.apiVersion = m_Properties.GetVersion();
+  applicationInfo.apiVersion = m_Attributes.GetVersion();
 
   VkInstanceCreateInfo instanceInfo{};
   instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   instanceInfo.pNext = nullptr;
   instanceInfo.flags = 0;
   instanceInfo.pApplicationInfo = &applicationInfo;
-  instanceInfo.enabledLayerCount = m_Properties.GetRequestedLayers().size();
-  instanceInfo.ppEnabledLayerNames = m_Properties.GetRequestedLayers().data();
-  instanceInfo.enabledExtensionCount = m_Properties.GetRequestedExtensions().size();
-  instanceInfo.ppEnabledExtensionNames = m_Properties.GetRequestedExtensions().data();
+  instanceInfo.enabledLayerCount = m_Attributes.GetRequestedLayers().size();
+  instanceInfo.ppEnabledLayerNames = m_Attributes.GetRequestedLayers().data();
+  instanceInfo.enabledExtensionCount = m_Attributes.GetRequestedExtensions().size();
+  instanceInfo.ppEnabledExtensionNames = m_Attributes.GetRequestedExtensions().data();
   VkResult result = vkCreateInstance(&instanceInfo, nullptr, &m_Instance);
   AssertVkAndThrow(result);
 }

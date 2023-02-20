@@ -4,13 +4,10 @@
 
 
 #include <volk.h>
-#include "InstanceProperties.h"
+#include "InstanceAttributes.h"
 
 
 namespace uncanny::vulkan {
-
-
-class FInstanceProperties;
 
 
 /*
@@ -21,7 +18,7 @@ class FInstanceProperties;
 class FInstance {
 public:
 
-  void Create(const FInstanceProperties& properties);
+  void Create(const FInstanceAttributes& attributes);
   void Destroy();
 
   // Returning vector by value, but new compilers should do Return Value Optimization RVO
@@ -31,7 +28,7 @@ public:
 
 private:
 
-  FInstanceProperties m_Properties{};
+  FInstanceAttributes m_Attributes{};
   VkInstance m_Instance{ VK_NULL_HANDLE };
 
 };

@@ -18,17 +18,17 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
 
   m_VolkHandler.Create();
 
-  m_InstanceProperties.Initialize();
-  if (!m_InstanceProperties.IsVersionAvailable(VK_API_VERSION_1_3)) {
+  m_InstanceAttributes.Initialize();
+  if (!m_InstanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3)) {
     FLog::critical("Not available vulkan version, cannot start RHI!");
     return UFALSE;
   }
-  m_InstanceProperties.AddLayerName("VK_LAYER_KHRONOS_validation");
-  m_InstanceProperties.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-  m_InstanceProperties.AddExtensionName(VK_KHR_SURFACE_EXTENSION_NAME);
-  m_InstanceProperties.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  m_InstanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");
+  m_InstanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+  m_InstanceAttributes.AddExtensionName(VK_KHR_SURFACE_EXTENSION_NAME);
+  m_InstanceAttributes.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-  m_Instance.Create(m_InstanceProperties);
+  m_Instance.Create(m_InstanceAttributes);
 
   m_VolkHandler.LoadInstance(m_Instance);
 
@@ -39,8 +39,6 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
     VkPhysicalDevice selectedPhysicalDevice = vulkan::FPhysicalDeviceSelector().Select(availablePhysicalDevices);
     m_PhysicalDevice.Initialize(selectedPhysicalDevice);
   }
-
-
 
   return UTRUE;
 }

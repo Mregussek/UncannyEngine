@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include "PhysicalDeviceAttributes.h"
 
 
 namespace uncanny::vulkan {
@@ -18,6 +19,7 @@ public:
 
 private:
 
+  FPhysicalDeviceAttributes m_Attributes{};
   VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };
 
 };
