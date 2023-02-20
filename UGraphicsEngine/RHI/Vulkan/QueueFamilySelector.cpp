@@ -124,10 +124,10 @@ FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
                                    const FPhysicalDevice& physicalDevice) {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-    score -= 50;
+    score -= 25;
   }
   if (properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-    score -= 50;
+    score -= 25;
   }
   if (properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
     score += 100;
