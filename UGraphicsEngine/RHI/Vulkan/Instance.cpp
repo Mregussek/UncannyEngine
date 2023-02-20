@@ -33,9 +33,10 @@ void FInstance::Create(const FInstanceProperties& properties) {
 
 
 void FInstance::Destroy() {
-  if (m_Instance != VK_NULL_HANDLE) {
-    vkDestroyInstance(m_Instance, nullptr);
+  if (m_Instance == VK_NULL_HANDLE) {
+    return;
   }
+  vkDestroyInstance(m_Instance, nullptr);
 }
 
 

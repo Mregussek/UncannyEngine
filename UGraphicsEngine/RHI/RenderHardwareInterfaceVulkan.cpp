@@ -31,6 +31,8 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
 
   m_VolkHandler.LoadInstance(m_Instance);
 
+  m_DebugUtils.Create(m_Instance);
+
   return UTRUE;
 }
 
@@ -40,6 +42,7 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
     return;
   }
 
+  m_DebugUtils.Destroy(m_Instance);
   m_Instance.Destroy();
   m_VolkHandler.Destroy();
   m_Destroyed = UTRUE;
