@@ -1,9 +1,6 @@
 [submodule "UTools/3rdparty/spdlog"]
 	path = UTools/3rdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "UTools/3rdparty/glfw"]
-	path = UTools/3rdparty/glfw
-	url = https://github.com/glfw/glfw.git
 [submodule "UGraphicsEngine/3rdparty/volk"]
 	path = UGraphicsEngine/3rdparty/volk
 	url = https://github.com/zeux/volk.git
