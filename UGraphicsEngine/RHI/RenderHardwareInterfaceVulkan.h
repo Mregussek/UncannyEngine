@@ -18,7 +18,7 @@ public:
 
   ~FRenderHardwareInterfaceVulkan();
 
-  void Create();
+  b8 Create();
   void Destroy();
 
 private:
@@ -26,6 +26,8 @@ private:
   vulkan::FInstanceProperties m_InstanceProperties;
   vulkan::FInstance m_Instance;
   vulkan::FVolkHandler m_VolkHandler;
+  // @brief boolean guard for Destroy() method in destructor
+  b8 m_Destroyed{ UFALSE };
 
 };
 

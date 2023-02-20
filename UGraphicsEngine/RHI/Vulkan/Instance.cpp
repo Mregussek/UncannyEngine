@@ -1,23 +1,41 @@
 
 #include "Instance.h"
-#include "InstanceProperties.h"
+#include "Utilities.h"
 
 
 namespace uncanny::vulkan {
 
 
-FInstance::~FInstance() {
-  Destroy();
-}
-
-
 void FInstance::Create(const FInstanceProperties& properties) {
+  m_Properties = properties;
 
+  VkApplicationInfo applicationInfo{};
+  applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+  applicationInfo.pNext = nullptr;
+  applicationInfo.pApplicationName = "UncannyEngineApplication";
+  applicationInfo.applicationVersion = 1;
+  applicationInfo.pEngineName = "UGraphicsEngine";
+  applicationInfo.engineVersion = 1;
+  applicationInfo.apiVersion = m_Properties.GetVersion();
+
+  VkInstanceCreateInfo instanceInfo{};
+  instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+  instanceInfo.pNext = nullptr;
+  instanceInfo.flags = 0;
+  instanceInfo.pApplicationInfo = &applicationInfo;
+  instanceInfo.enabledLayerCount = m_Properties.GetRequestedLayers().size();
+  instanceInfo.ppEnabledLayerNames = m_Properties.GetRequestedLayers().data();
+  instanceInfo.enabledExtensionCount = m_Properties.GetRequestedExtensions().size();
+  instanceInfo.ppEnabledExtensionNames = m_Properties.GetRequestedExtensions().data();
+  VkResult result = vkCreateInstance(&instanceInfo, nullptr, &m_Instance);
+  AssertVkAndThrow(result);
 }
 
 
 void FInstance::Destroy() {
-
+  if (m_Instance != VK_NULL_HANDLE) {
+    vkDestroyInstance(m_Instance, nullptr);
+  }
 }
 
 

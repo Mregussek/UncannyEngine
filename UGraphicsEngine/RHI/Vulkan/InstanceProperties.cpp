@@ -11,6 +11,7 @@ namespace uncanny::vulkan {
 
 
 void FInstanceProperties::Initialize() {
+  GatherAvailableVersion();
   GatherAvailableLayers();
   GatherAvailableExtensions();
 }
@@ -33,6 +34,22 @@ b8 FInstanceProperties::AddExtensionName(const char* extensionName) {
   }
 
   return UFALSE;
+}
+
+
+b8 FInstanceProperties::IsVersionAvailable(u32 apiVersion) const {
+  // Supported version has always higher value than default VK_API_VERSION_1_3 for example
+  if (m_SupportedVersion >= apiVersion) {
+    return UTRUE;
+  }
+
+  return UFALSE;
+}
+
+
+void FInstanceProperties::GatherAvailableVersion() {
+  VkResult result{ vkEnumerateInstanceVersion(&m_SupportedVersion) };
+  AssertVkAndThrow(result);
 }
 
 

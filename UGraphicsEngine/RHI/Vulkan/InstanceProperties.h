@@ -14,8 +14,8 @@ namespace uncanny::vulkan {
 
 /*
  * @brief FInstanceProperties is a helper class for FInstance. It is responsible for validation of all
- * requested instance layers and extensions with actual available ones. Afterwards object of this class
- * is handed to the FInstance.Create().
+ * requested instance layers and extensions with actual available ones. Also, it queries API version that is
+ * ready to use. Afterwards object of this class is handed to the FInstance.Create().
  */
 class FInstanceProperties {
 public:
@@ -25,11 +25,15 @@ public:
   b8 AddLayerName(const char* layerName);
   b8 AddExtensionName(const char* extensionName);
 
+  [[nodiscard]] b8 IsVersionAvailable(u32 apiVersion) const;
+
+  [[nodiscard]] u32 GetVersion() const noexcept { return m_SupportedVersion; }
   [[nodiscard]] const std::vector<const char*>& GetRequestedLayers() const noexcept { return m_RequestedLayers; }
   [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const noexcept { return m_RequestExtensions; }
 
 private:
 
+  void GatherAvailableVersion();
   void GatherAvailableLayers();
   void GatherAvailableExtensions();
 
@@ -37,11 +41,13 @@ private:
   [[nodiscard]] b8 IsExtensionAvailable(const char* extensionName) const;
 
 
-  std::vector<VkLayerProperties> m_AvailableLayerProperties;
-  std::vector<VkExtensionProperties> m_AvailableExtensionsProperties;
+  std::vector<VkLayerProperties> m_AvailableLayerProperties{};
+  std::vector<VkExtensionProperties> m_AvailableExtensionsProperties{};
 
-  std::vector<const char*> m_RequestedLayers;
-  std::vector<const char*> m_RequestExtensions;
+  std::vector<const char*> m_RequestedLayers{};
+  std::vector<const char*> m_RequestExtensions{};
+
+  u32 m_SupportedVersion{ UVERSION_UNDEFINED };
 
 };
 

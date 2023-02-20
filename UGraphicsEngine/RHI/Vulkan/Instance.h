@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include "InstanceProperties.h"
 
 
 namespace uncanny::vulkan {
@@ -12,17 +13,23 @@ namespace uncanny::vulkan {
 class FInstanceProperties;
 
 
+/*
+ * @brief FInstance is wrapper class for VkInstance functionality. App is responsible for destruction
+ * of VkInstance with vkDestroyInstance. FInstanceProperties delivers all required layers and extensions along
+ * with API version during creation.
+ */
 class FInstance {
 public:
-
-  ~FInstance();
 
   void Create(const FInstanceProperties& properties);
   void Destroy();
 
+  [[nodiscard]] VkInstance GetHandle() const { return m_Instance; }
+
 private:
 
-  VkInstance m_Instance;
+  FInstanceProperties m_Properties{};
+  VkInstance m_Instance{ VK_NULL_HANDLE };
 
 };
 
