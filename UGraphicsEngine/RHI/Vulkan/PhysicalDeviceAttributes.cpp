@@ -6,20 +6,22 @@
 namespace uncanny::vulkan {
 
 
-void FPhysicalDeviceAttributes::Initialize(VkPhysicalDevice physicalDevice) {
-  vkGetPhysicalDeviceProperties(physicalDevice, &m_Properties);
+void FPhysicalDeviceAttributes::Initialize(VkPhysicalDevice vkPhysicalDevice) {
+  vkGetPhysicalDeviceProperties(vkPhysicalDevice, &m_Properties);
 
   u32 extensionCount{ 0 };
-  VkResult result = vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+  VkResult result = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice, nullptr, &extensionCount, nullptr);
   AssertVkAndThrow(result);
   m_ExtensionProperties.resize(extensionCount);
-  result = vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, m_ExtensionProperties.data());
+  result = vkEnumerateDeviceExtensionProperties(vkPhysicalDevice, nullptr, &extensionCount, m_ExtensionProperties.data());
   AssertVkAndThrow(result);
 
   u32 queueFamilyCount{ 0 };
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+  vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, nullptr);
   m_QueueFamilyProperties.resize(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, m_QueueFamilyProperties.data());
+  vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, m_QueueFamilyProperties.data());
+
+  vkGetPhysicalDeviceFeatures(vkPhysicalDevice, &m_Features);
 }
 
 

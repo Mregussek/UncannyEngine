@@ -14,7 +14,7 @@ namespace uncanny::vulkan {
 class FPhysicalDeviceAttributes {
 public:
 
-  void Initialize(VkPhysicalDevice physicalDevice);
+  void Initialize(VkPhysicalDevice vkPhysicalDevice);
 
   b8 IsExtensionPresent(const char* extensionName) const;
 
@@ -25,6 +25,7 @@ public:
 private:
 
   VkPhysicalDeviceProperties m_Properties{};
+  VkPhysicalDeviceFeatures m_Features{};
   std::vector<VkExtensionProperties> m_ExtensionProperties{};
   std::vector<VkQueueFamilyProperties> m_QueueFamilyProperties{};
 
