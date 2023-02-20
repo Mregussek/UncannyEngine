@@ -26,16 +26,16 @@ class FQueueFamilySelector {
 public:
 
   [[nodiscard]] std::optional<u32> SelectGraphicsQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
-                                                             const FInstance& instance,
-                                                             const FPhysicalDevice& physicalDevice) const;
+                                                             VkInstance vkInstance,
+                                                             VkPhysicalDevice vkPhysicalDevice) const;
 
   [[nodiscard]] std::optional<u32> SelectPresentQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
-                                                            const FInstance& instance,
-                                                            const FPhysicalDevice& physicalDevice) const;
+                                                            VkInstance vkInstance,
+                                                            VkPhysicalDevice vkPhysicalDevice) const;
 
   [[nodiscard]] std::optional<u32> SelectTransferQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
-                                                             const FInstance& instance,
-                                                             const FPhysicalDevice& physicalDevice) const;
+                                                             VkInstance vkInstance,
+                                                             VkPhysicalDevice vkPhysicalDevice) const;
 
 };
 

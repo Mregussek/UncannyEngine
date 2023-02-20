@@ -11,65 +11,65 @@
 namespace uncanny::vulkan {
 
 
-typedef std::function<FQueueFamilyScore(VkQueueFamilyProperties, u32, const FInstance&, const FPhysicalDevice&)> GetScoreFunctionObject;
+typedef std::function<FQueueFamilyScore(VkQueueFamilyProperties, u32, VkInstance, VkPhysicalDevice)> GetScoreFunctionObject;
 
 
 static std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
                                             const GetScoreFunctionObject& getScoreFunctionObject,
-                                            const FInstance& instance,
-                                            const FPhysicalDevice& physicalDevice);
+                                            VkInstance vkInstance,
+                                            VkPhysicalDevice vkPhysicalDevice);
 
 
 static FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties,
                                           u32 queueFamilyIndex,
-                                          const FInstance& instance,
-                                          const FPhysicalDevice& physicalDevice);
+                                          VkInstance vkInstance,
+                                          VkPhysicalDevice vkPhysicalDevice);
 
 
 static FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
                                          u32 queueFamilyIndex,
-                                         const FInstance& instance,
-                                         const FPhysicalDevice& physicalDevice);
+                                         VkInstance vkInstance,
+                                         VkPhysicalDevice vkPhysicalDevice);
 
 
 static FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
                                           u32 queueFamilyIndex,
-                                          const FInstance& instance,
-                                          const FPhysicalDevice& physicalDevice);
+                                          VkInstance vkInstance,
+                                          VkPhysicalDevice vkPhysicalDevice);
 
 
 std::optional<u32> FQueueFamilySelector::SelectGraphicsQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
-                                                                   const FInstance& instance,
-                                                                   const FPhysicalDevice& physicalDevice) const {
+                                                                   VkInstance vkInstance,
+                                                                   VkPhysicalDevice vkPhysicalDevice) const {
   GetScoreFunctionObject getScoreFuncObj = GetGraphicsScore;
-  return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, instance, physicalDevice);
+  return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
 
 
 std::optional<u32> FQueueFamilySelector::SelectPresentQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
-                                                                  const FInstance& instance,
-                                                                  const FPhysicalDevice& physicalDevice) const {
+                                                                  VkInstance vkInstance,
+                                                                  VkPhysicalDevice vkPhysicalDevice) const {
   GetScoreFunctionObject getScoreFuncObj = GetPresentScore;
-  return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, instance, physicalDevice);
+  return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
 
 
 std::optional<u32> FQueueFamilySelector::SelectTransferQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
-                                                                   const FInstance& instance,
-                                                                   const FPhysicalDevice& physicalDevice) const {
+                                                                   VkInstance vkInstance,
+                                                                   VkPhysicalDevice vkPhysicalDevice) const {
   GetScoreFunctionObject getScoreFuncObj = GetTransferScore;
-  return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, instance, physicalDevice);
+  return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
 
 
 std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
                                      const GetScoreFunctionObject& getScoreFunctionObject,
-                                     const FInstance& instance,
-                                     const FPhysicalDevice& physicalDevice) {
+                                     VkInstance vkInstance,
+                                     VkPhysicalDevice vkPhysicalDevice) {
   std::multimap<FQueueFamilyScore, u32> ratings;
   std::ranges::for_each(queueFamilyProperties,
-                        [&ratings, getScoreFunctionObject, &instance, &physicalDevice, idx = 0](const VkQueueFamilyProperties& properties) mutable{
-                          FQueueFamilyScore score = getScoreFunctionObject(properties, idx, instance, physicalDevice);
+                        [&ratings, getScoreFunctionObject, &vkInstance, &vkPhysicalDevice, idx = 0](const VkQueueFamilyProperties& properties) mutable{
+                          FQueueFamilyScore score = getScoreFunctionObject(properties, idx, vkInstance, vkPhysicalDevice);
                           ratings.insert(std::make_pair(score, idx));
                           ++idx;
                         });
@@ -83,8 +83,8 @@ std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> qu
 
 FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties,
                                    u32 queueFamilyIndex,
-                                   const FInstance& instance,
-                                   const FPhysicalDevice& physicalDevice) {
+                                   VkInstance vkInstance,
+                                   VkPhysicalDevice vkPhysicalDevice) {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
     score += 100;
@@ -95,8 +95,8 @@ FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties,
 
 FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
                                   u32 queueFamilyIndex,
-                                  const FInstance& instance,
-                                  const FPhysicalDevice& physicalDevice) {
+                                  VkInstance vkInstance,
+                                  VkPhysicalDevice vkPhysicalDevice) {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
     score += 50;
@@ -105,8 +105,8 @@ FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
 #ifdef WIN32
   auto vkGetPhysicalDeviceWin32PresentationSupportKHR =
       (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vkGetInstanceProcAddr(
-          instance.GetHandle(), "vkGetPhysicalDeviceWin32PresentationSupportKHR");
-  VkBool32 supported = vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice.GetHandle(), queueFamilyIndex);
+          vkInstance, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+  VkBool32 supported = vkGetPhysicalDeviceWin32PresentationSupportKHR(vkPhysicalDevice, queueFamilyIndex);
   if (supported) {
     score += 100;
   }
@@ -120,8 +120,8 @@ FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
 
 FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
                                    u32 queueFamilyIndex,
-                                   const FInstance& instance,
-                                   const FPhysicalDevice& physicalDevice) {
+                                   VkInstance vkInstance,
+                                   VkPhysicalDevice vkPhysicalDevice) {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
     score -= 25;

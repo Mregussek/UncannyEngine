@@ -1,7 +1,6 @@
 
 #include "LogicalDeviceAttributes.h"
-#include "Instance.h"
-#include "PhysicalDevice.h"
+#include "PhysicalDeviceAttributes.h"
 #include "QueueFamilySelector.h"
 
 
@@ -9,28 +8,38 @@ namespace uncanny::vulkan {
 
 
 void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
-                                                            const FInstance& instance,
-                                                            const FPhysicalDevice& physicalDevice) {
+                                                            VkInstance vkInstance,
+                                                            VkPhysicalDevice vkPhysicalDevice) {
   std::optional<u32> graphicsQueueFamily = vulkan::FQueueFamilySelector().SelectGraphicsQueueFamily(queueFamilyProperties,
-                                                                                                    instance,
-                                                                                                    physicalDevice);
+                                                                                                    vkInstance,
+                                                                                                    vkPhysicalDevice);
   if (graphicsQueueFamily.has_value()) {
     m_GraphicsQueueFamilyIndex = graphicsQueueFamily.value();
   }
 
   std::optional<u32> presentQueueFamily = vulkan::FQueueFamilySelector().SelectPresentQueueFamily(queueFamilyProperties,
-                                                                                                  instance,
-                                                                                                  physicalDevice);
+                                                                                                  vkInstance,
+                                                                                                  vkPhysicalDevice);
   if (presentQueueFamily.has_value()) {
     m_PresentQueueFamilyIndex = presentQueueFamily.value();
   }
 
   std::optional<u32> transferQueueFamily = vulkan::FQueueFamilySelector().SelectTransferQueueFamily(queueFamilyProperties,
-                                                                                                    instance,
-                                                                                                    physicalDevice);
+                                                                                                    vkInstance,
+                                                                                                    vkPhysicalDevice);
   if (transferQueueFamily.has_value()) {
     m_TransferQueueFamilyIndex = transferQueueFamily.value();
   }
+}
+
+
+b8 FLogicalDeviceAttributes::AddExtensionName(const char* extensionName, const FPhysicalDeviceAttributes& physicalDeviceAttributes) {
+  if (physicalDeviceAttributes.IsExtensionPresent(extensionName)) {
+    m_RequestedExtensions.push_back(extensionName);
+    return UTRUE;
+  }
+
+  return UFALSE;
 }
 
 

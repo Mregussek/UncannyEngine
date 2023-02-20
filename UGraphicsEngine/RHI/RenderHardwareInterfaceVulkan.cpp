@@ -47,9 +47,9 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
 
   vulkan::FLogicalDeviceAttributes logicalDeviceAttributes{};
   logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
-                                                       m_Instance,
-                                                       m_PhysicalDevice);
-
+                                                       m_Instance.GetHandle(),
+                                                       m_PhysicalDevice.GetHandle());
+  logicalDeviceAttributes.AddExtensionName(VK_KHR_SWAPCHAIN_EXTENSION_NAME, m_PhysicalDevice.GetAttributes());
 
 
   return UTRUE;
