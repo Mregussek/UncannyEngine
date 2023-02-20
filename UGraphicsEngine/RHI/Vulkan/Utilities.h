@@ -16,7 +16,7 @@ std::string GetStringForVkResult(VkResult result);
 void AssertVkAndThrow(VkResult result);
 
 
-void AssertVkAndThrow(VkResult result, const char* specialMsg);
+void AssertVkAndThrow(VkResult result, std::string_view specialMsg);
 
 
 }

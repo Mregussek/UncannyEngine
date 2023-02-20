@@ -13,7 +13,7 @@ namespace uncanny {
 
 
 template<typename T>
-concept ConceptLogMessage = std::is_same_v<T, const char*>;
+concept ConceptLogMessage = std::is_same_v<T, const char*> || std::is_same_v<T, std::string>;
 
 
 class FLogImpl {

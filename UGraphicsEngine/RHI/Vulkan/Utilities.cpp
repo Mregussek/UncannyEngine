@@ -67,14 +67,19 @@ void AssertVkAndThrow(VkResult result) {
   if (result == VK_SUCCESS) {
     return;
   }
-  std::string failureString{ GetStringForVkResult(result) };
-  FLog::error("Vulkan error: {}", failureString);
-  throw std::runtime_error("Vulkan error: " + failureString);
+  std::string failureString{ "Vulkan error: " + GetStringForVkResult(result) };
+  FLog::error(failureString);
+  throw std::runtime_error(failureString);
 }
 
 
-void AssertVkAndThrow(VkResult result, const char* specialMsg) {
-
+void AssertVkAndThrow(VkResult result, std::string_view specialMsg) {
+  if (result == VK_SUCCESS) {
+    return;
+  }
+  std::string failureString{ std::string(specialMsg) + "\nVulkan error: " + GetStringForVkResult(result) };
+  FLog::error(failureString);
+  throw std::runtime_error(failureString);
 }
 
 

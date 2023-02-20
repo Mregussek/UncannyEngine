@@ -17,6 +17,10 @@ target_compile_features(Sandbox
         PUBLIC
         cxx_std_20
         )
+target_compile_options(Sandbox
+        PRIVATE
+        /NODEFAULTLIB
+        )
 
 function(CopyDirToBuildDirectory TargetName AbsoluteDirPath DirName)
     add_custom_command(
