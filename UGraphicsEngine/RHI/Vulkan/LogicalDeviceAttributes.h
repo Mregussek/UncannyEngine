@@ -1,0 +1,17 @@
+
+#ifndef UNCANNYENGINE_LOGICALDEVICEATTRIBUTES_H
+#define UNCANNYENGINE_LOGICALDEVICEATTRIBUTES_H
+
+
+namespace uncanny::vulkan {
+
+
+class FLogicalDeviceAttributes {
+
+};
+
+
+}
+
+
+#endif //UNCANNYENGINE_LOGICALDEVICEATTRIBUTES_H
