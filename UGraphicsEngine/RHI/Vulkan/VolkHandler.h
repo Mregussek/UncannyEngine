@@ -3,6 +3,9 @@
 #define UNCANNYENGINE_VOLKHANDLER_H
 
 
+#include <volk.h>
+
+
 namespace uncanny::vulkan {
 
 
@@ -17,7 +20,7 @@ class FVolkHandler {
 public:
 
   void Create();
-  void LoadInstance(const FInstance& instance);
+  void LoadInstance(VkInstance vkInstance);
   void Destroy();
 
 };

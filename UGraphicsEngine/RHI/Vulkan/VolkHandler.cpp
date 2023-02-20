@@ -16,8 +16,8 @@ void FVolkHandler::Create() {
 }
 
 
-void FVolkHandler::LoadInstance(const FInstance& instance) {
-  volkLoadInstance(instance.GetHandle());
+void FVolkHandler::LoadInstance(VkInstance vkInstance) {
+  volkLoadInstance(vkInstance);
 }
 
 

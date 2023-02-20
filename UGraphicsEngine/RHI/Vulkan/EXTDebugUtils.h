@@ -15,8 +15,8 @@ class FInstance;
 class FEXTDebugUtils {
 public:
 
-  void Create(const FInstance& instance);
-  void Destroy(const FInstance& instance);
+  void Create(VkInstance vkInstance);
+  void Destroy(VkInstance vkInstance);
 
 private:
 

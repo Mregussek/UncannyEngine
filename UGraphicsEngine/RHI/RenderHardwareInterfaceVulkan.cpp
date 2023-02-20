@@ -33,23 +33,26 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
     instanceAttributes.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     m_Instance.Create(instanceAttributes);
-  } // instanceAttributes is destructed here
+  }
 
-  m_VolkHandler.LoadInstance(m_Instance);
-
-  m_DebugUtils.Create(m_Instance);
+  m_VolkHandler.LoadInstance(m_Instance.GetHandle());
+  m_DebugUtils.Create(m_Instance.GetHandle());
 
   {
     auto availablePhysicalDevices = m_Instance.QueryAvailablePhysicalDevices();
     VkPhysicalDevice selectedPhysicalDevice = vulkan::FPhysicalDeviceSelector().Select(availablePhysicalDevices);
     m_PhysicalDevice.Initialize(selectedPhysicalDevice);
-  } // availablePhysicalDevices and selectedPhysicalDevice are destroyed here
+  }
 
-  vulkan::FLogicalDeviceAttributes logicalDeviceAttributes{};
-  logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
-                                                       m_Instance.GetHandle(),
-                                                       m_PhysicalDevice.GetHandle());
-  logicalDeviceAttributes.AddExtensionName(VK_KHR_SWAPCHAIN_EXTENSION_NAME, m_PhysicalDevice.GetAttributes());
+  {
+    vulkan::FLogicalDeviceAttributes logicalDeviceAttributes{};
+    logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
+                                                         m_Instance.GetHandle(),
+                                                         m_PhysicalDevice.GetHandle());
+    logicalDeviceAttributes.AddExtensionName(VK_KHR_SWAPCHAIN_EXTENSION_NAME, m_PhysicalDevice.GetAttributes());
+
+    m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());
+  }
 
 
   return UTRUE;
@@ -61,7 +64,8 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
     return;
   }
 
-  m_DebugUtils.Destroy(m_Instance);
+  m_LogicalDevice.Destroy();
+  m_DebugUtils.Destroy(m_Instance.GetHandle());
   m_Instance.Destroy();
   m_VolkHandler.Destroy();
   m_Destroyed = UTRUE;

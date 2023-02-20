@@ -14,9 +14,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(VkDebugUtilsMessageSeverityFlag
                                                  void* pUserData);
 
 
-void FEXTDebugUtils::Create(const FInstance& instance) {
+void FEXTDebugUtils::Create(VkInstance vkInstance) {
   auto vkCreateDebugUtilsMessengerEXT =
-      (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance.GetHandle(),
+      (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance,
                                                                 "vkCreateDebugUtilsMessengerEXT");
   VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
   debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -30,18 +30,18 @@ void FEXTDebugUtils::Create(const FInstance& instance) {
       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
   debugInfo.pfnUserCallback = debugCallbackFunc;
   debugInfo.pUserData = nullptr;
-  VkResult result = vkCreateDebugUtilsMessengerEXT(instance.GetHandle(), &debugInfo, nullptr, &m_DebugUtils);
+  VkResult result = vkCreateDebugUtilsMessengerEXT(vkInstance, &debugInfo, nullptr, &m_DebugUtils);
   AssertVkAndThrow(result);
 }
 
 
-void FEXTDebugUtils::Destroy(const FInstance& instance) {
+void FEXTDebugUtils::Destroy(VkInstance vkInstance) {
   if (m_DebugUtils == VK_NULL_HANDLE) {
     return;
   }
   auto vkDestroyDebugUtilsMessengerEXT =
-      (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance.GetHandle(), "vkDestroyDebugUtilsMessengerEXT");
-  vkDestroyDebugUtilsMessengerEXT(instance.GetHandle(), m_DebugUtils, nullptr);
+      (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugUtilsMessengerEXT");
+  vkDestroyDebugUtilsMessengerEXT(vkInstance, m_DebugUtils, nullptr);
 }
 
 
