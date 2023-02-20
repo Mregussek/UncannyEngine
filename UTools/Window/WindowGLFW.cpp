@@ -32,6 +32,8 @@ void FWindowGLFW::Create(const FWindowConfiguration &windowConfiguration) {
   glfwWindowHint(GLFW_RESIZABLE, m_Configuration.resizable ? GLFW_TRUE : GLFW_FALSE);
 
   m_pWindow = std::unique_ptr<GLFWwindow, GLFWwindowDeleter>(glfwCreateWindow(m_Configuration.width, m_Configuration.height, m_Configuration.name, nullptr, nullptr));
+
+  UpdateSize();
 }
 
 
