@@ -40,4 +40,15 @@ void FInstance::Destroy() {
 }
 
 
+std::vector<VkPhysicalDevice> FInstance::QueryAvailablePhysicalDevices() const {
+  u32 count{ 0 };
+  VkResult result = vkEnumeratePhysicalDevices(m_Instance, &count, nullptr);
+  AssertVkAndThrow(result);
+  std::vector<VkPhysicalDevice> physicalDevicesVector(count);
+  result = vkEnumeratePhysicalDevices(m_Instance, &count, physicalDevicesVector.data());
+  AssertVkAndThrow(result);
+  return physicalDevicesVector;
+}
+
+
 }

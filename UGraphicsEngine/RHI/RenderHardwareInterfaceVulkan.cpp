@@ -1,6 +1,7 @@
 
 #include "RenderHardwareInterfaceVulkan.h"
 #include <volk.h>
+#include "Vulkan/PhysicalDeviceSelector.h"
 #include "UTools/Logger/Log.h"
 
 
@@ -32,6 +33,14 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
   m_VolkHandler.LoadInstance(m_Instance);
 
   m_DebugUtils.Create(m_Instance);
+
+  {
+    auto availablePhysicalDevices = m_Instance.QueryAvailablePhysicalDevices();
+    VkPhysicalDevice selectedPhysicalDevice = vulkan::FPhysicalDeviceSelector().Select(availablePhysicalDevices);
+    m_PhysicalDevice.Initialize(selectedPhysicalDevice);
+  }
+
+
 
   return UTRUE;
 }

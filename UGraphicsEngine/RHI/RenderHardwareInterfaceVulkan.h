@@ -8,6 +8,7 @@
 #include "Vulkan/VolkHandler.h"
 #include "Vulkan/InstanceProperties.h"
 #include "Vulkan/Instance.h"
+#include "Vulkan/PhysicalDevice.h"
 #include "Vulkan/EXTDebugUtils.h"
 
 
@@ -27,6 +28,7 @@ private:
   vulkan::FInstanceProperties m_InstanceProperties{};
   vulkan::FInstance m_Instance{};
   vulkan::FEXTDebugUtils m_DebugUtils{};
+  vulkan::FPhysicalDevice m_PhysicalDevice{};
   vulkan::FVolkHandler m_VolkHandler{};
   // @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };

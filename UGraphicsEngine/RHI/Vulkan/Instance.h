@@ -24,6 +24,9 @@ public:
   void Create(const FInstanceProperties& properties);
   void Destroy();
 
+  // Returning vector by value, but new compilers should do Return Value Optimization RVO
+  [[nodiscard]] std::vector<VkPhysicalDevice> QueryAvailablePhysicalDevices() const;
+
   [[nodiscard]] VkInstance GetHandle() const { return m_Instance; }
 
 private:
