@@ -23,6 +23,7 @@ public:
   [[nodiscard]] FQueueFamilyIndex GetGraphicsQueueFamilyIndex() const { return m_Attributes.GetGraphicsQueueFamilyIndex(); }
   [[nodiscard]] FQueueFamilyIndex GetPresentQueueFamilyIndex() const { return m_Attributes.GetPresentQueueFamilyIndex(); }
   [[nodiscard]] FQueueFamilyIndex GetTransferQueueFamilyIndex() const { return m_Attributes.GetTransferQueueFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetComputeQueueFamilyIndex() const { return m_Attributes.GetComputeQueueFamilyIndex(); }
 
   [[nodiscard]] const FLogicalDeviceFactory& GetFactory() const { return m_Factory; }
 
@@ -36,6 +37,7 @@ private:
   FQueue m_GraphicsQueue{};
   FQueue m_PresentQueue{};
   FQueue m_TransferQueue{};
+  FQueue m_ComputeQueue{};
   VkDevice m_Device{ VK_NULL_HANDLE };
 
 };

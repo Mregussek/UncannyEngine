@@ -30,6 +30,13 @@ void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQu
     m_TransferQueueFamilyIndex = transferQueueFamily.value();
     m_TransferQueueIndex = 0;
   }
+
+  std::optional<FQueueFamilyIndex> computeQueueFamily =
+      vulkan::FQueueFamilySelector().SelectComputeQueueFamily(queueFamilyProperties, vkInstance, vkPhysicalDevice);
+  if (computeQueueFamily.has_value()) {
+    m_ComputeQueueFamilyIndex = computeQueueFamily.value();
+    m_ComputeQueueIndex = 0;
+  }
 }
 
 

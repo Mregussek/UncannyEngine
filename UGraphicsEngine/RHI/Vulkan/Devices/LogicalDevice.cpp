@@ -37,6 +37,8 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
                                                 m_Attributes.GetPresentQueueIndex());
   creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetTransferQueueFamilyIndex(),
                                                 m_Attributes.GetTransferQueueIndex());
+  creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetComputeQueueFamilyIndex(),
+                                                m_Attributes.GetComputeQueueIndex());
 
   const auto& requiredExtensions = m_Attributes.GetRequiredExtensions();
   const auto& deviceQueueCreateInfo = creator.GetDeviceQueueCreateInfoVector();
@@ -90,6 +92,11 @@ void FLogicalDevice::InitializeQueues() {
   vkGetDeviceQueue(m_Device, m_Attributes.GetTransferQueueFamilyIndex(), m_Attributes.GetTransferQueueIndex(),
                    &transferQueueHandle);
   m_TransferQueue.Initialize(transferQueueHandle, m_Attributes.GetTransferQueueFamilyIndex());
+
+  VkQueue computeQueueHandle{ VK_NULL_HANDLE };
+  vkGetDeviceQueue(m_Device, m_Attributes.GetComputeQueueFamilyIndex(), m_Attributes.GetComputeQueueIndex(),
+                   &computeQueueHandle);
+  m_ComputeQueue.Initialize(computeQueueHandle, m_Attributes.GetComputeQueueFamilyIndex());
 }
 
 

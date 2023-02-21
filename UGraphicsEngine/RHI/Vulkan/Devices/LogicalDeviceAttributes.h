@@ -33,10 +33,12 @@ public:
   [[nodiscard]] FQueueFamilyIndex GetGraphicsQueueFamilyIndex() const noexcept { return m_GraphicsQueueFamilyIndex; }
   [[nodiscard]] FQueueFamilyIndex GetPresentQueueFamilyIndex() const noexcept { return m_PresentQueueFamilyIndex; }
   [[nodiscard]] FQueueFamilyIndex GetTransferQueueFamilyIndex() const noexcept { return m_TransferQueueFamilyIndex; }
+  [[nodiscard]] FQueueFamilyIndex GetComputeQueueFamilyIndex() const noexcept { return m_ComputeQueueFamilyIndex; }
 
   [[nodiscard]] FQueueIndex GetGraphicsQueueIndex() const noexcept { return m_GraphicsQueueIndex; }
   [[nodiscard]] FQueueIndex GetPresentQueueIndex() const noexcept { return m_PresentQueueIndex; }
   [[nodiscard]] FQueueIndex GetTransferQueueIndex() const noexcept { return m_TransferQueueIndex; }
+  [[nodiscard]] FQueueIndex GetComputeQueueIndex() const noexcept { return m_ComputeQueueIndex; }
 
   [[nodiscard]] const std::vector<const char*>& GetRequiredExtensions() const { return m_RequestedExtensions; }
   [[nodiscard]] const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_DeviceFeatures; }
@@ -50,11 +52,13 @@ private:
   FQueueFamilyIndex m_GraphicsQueueFamilyIndex{ UUNUSED };
   FQueueFamilyIndex m_PresentQueueFamilyIndex{ UUNUSED };
   FQueueFamilyIndex m_TransferQueueFamilyIndex{ UUNUSED };
+  FQueueFamilyIndex m_ComputeQueueFamilyIndex{ UUNUSED };
 
   // Those are queue indexes for vkDeviceGetQueue...
   FQueueIndex m_GraphicsQueueIndex{ UUNUSED };
   FQueueIndex m_PresentQueueIndex{ UUNUSED };
   FQueueIndex m_TransferQueueIndex{ UUNUSED };
+  FQueueIndex m_ComputeQueueIndex{ UUNUSED };
 
 };
 

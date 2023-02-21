@@ -58,6 +58,7 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
   m_GraphicsCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetGraphicsQueueFamilyIndex());
   m_PresentCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetPresentQueueFamilyIndex());
   m_TransferCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetTransferQueueFamilyIndex());
+  m_ComputeCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetComputeQueueFamilyIndex());
 
   return UTRUE;
 }
@@ -72,6 +73,7 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
   m_GraphicsCommandPool.Destroy();
   m_PresentCommandPool.Destroy();
   m_TransferCommandPool.Destroy();
+  m_ComputeCommandPool.Destroy();
   m_LogicalDevice.Destroy();
   m_DebugUtils.Destroy(m_Instance.GetHandle());
   m_Instance.Destroy();

@@ -38,6 +38,12 @@ static FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
                                           VkPhysicalDevice vkPhysicalDevice);
 
 
+static FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties,
+                                         u32 queueFamilyIndex,
+                                         VkInstance vkInstance,
+                                         VkPhysicalDevice vkPhysicalDevice);
+
+
 std::optional<u32> FQueueFamilySelector::SelectGraphicsQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
                                                                    VkInstance vkInstance,
                                                                    VkPhysicalDevice vkPhysicalDevice) const {
@@ -58,6 +64,14 @@ std::optional<u32> FQueueFamilySelector::SelectTransferQueueFamily(std::span<con
                                                                    VkInstance vkInstance,
                                                                    VkPhysicalDevice vkPhysicalDevice) const {
   GetScoreFunctionObject getScoreFuncObj = GetTransferScore;
+  return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
+}
+
+
+std::optional<u32> FQueueFamilySelector::SelectComputeQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+                                                                  VkInstance vkInstance,
+                                                                  VkPhysicalDevice vkPhysicalDevice) const {
+  GetScoreFunctionObject getScoreFuncObj = GetComputeScore;
   return SelectQueueFamily(queueFamilyProperties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
 
@@ -131,6 +145,24 @@ FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
   }
   if (properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
     score += 100;
+  }
+  return score;
+}
+
+
+FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties,
+                                  u32 queueFamilyIndex,
+                                  VkInstance vkInstance,
+                                  VkPhysicalDevice vkPhysicalDevice) {
+  FQueueFamilyScore score{ 0 };
+  if (properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
+    score += 100;
+  }
+  if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+    score -= 25;
+  }
+  if (properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+    score -= 25;
   }
   return score;
 }

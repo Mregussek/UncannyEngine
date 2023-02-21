@@ -34,6 +34,7 @@ private:
   vulkan::FCommandPool m_GraphicsCommandPool{ VK_NULL_HANDLE, VK_NULL_HANDLE };
   vulkan::FCommandPool m_PresentCommandPool{ VK_NULL_HANDLE, VK_NULL_HANDLE };
   vulkan::FCommandPool m_TransferCommandPool{ VK_NULL_HANDLE, VK_NULL_HANDLE };
+  vulkan::FCommandPool m_ComputeCommandPool{ VK_NULL_HANDLE, VK_NULL_HANDLE };
   // @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };
 

@@ -37,6 +37,10 @@ public:
                                                              VkInstance vkInstance,
                                                              VkPhysicalDevice vkPhysicalDevice) const;
 
+  [[nodiscard]] std::optional<u32> SelectComputeQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+                                                            VkInstance vkInstance,
+                                                            VkPhysicalDevice vkPhysicalDevice) const;
+
 };
 
 
