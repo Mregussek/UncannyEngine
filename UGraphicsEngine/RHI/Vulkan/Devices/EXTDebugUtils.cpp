@@ -56,19 +56,19 @@ VkBool32 VKAPI_CALL debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT mes
   const auto performance = messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
   if (error) {
-    FLog::error("{} : {}\n", "ERROR", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "ERROR", pCallbackData->pMessage);
   }
   else if (warning) {
-    FLog::error("{} : {}\n", "WARNING", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "WARNING", pCallbackData->pMessage);
   }
   else if (info) {
-    FLog::error("{} : {}\n", "INFO", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "INFO", pCallbackData->pMessage);
   }
   else if (verbose) {
-    FLog::error("{} : {}\n", "VERBOSE", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "VERBOSE", pCallbackData->pMessage);
   }
   else if (performance) {
-    FLog::error("{} : {}\n", "PERFORMANCE", pCallbackData->pMessage);
+    UERROR("{} : {}\n", "PERFORMANCE", pCallbackData->pMessage);
   }
 
   return VK_FALSE;

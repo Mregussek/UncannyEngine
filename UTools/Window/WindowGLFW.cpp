@@ -7,7 +7,7 @@ namespace uncanny {
 
 
 static void errorCallbackGLFW(i32 error, const char* description) {
-  FLog::error("GLFW Error {}: {}", error, description);
+  UERROR("GLFW Error {}: {}", error, description);
 }
 
 
@@ -24,7 +24,7 @@ void FWindowGLFW::Create(const FWindowConfiguration &windowConfiguration) {
   i32 result = glfwInit();
   if (!result) {
     const char* msg{ "Cannot initialize glfw library!" };
-    FLog::critical(msg);
+    UCRITICAL(msg);
     throw std::runtime_error(msg);
   }
 

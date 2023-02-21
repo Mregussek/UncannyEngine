@@ -68,7 +68,7 @@ void AssertVkAndThrow(VkResult result) {
     return;
   }
   std::string failureString{ "Vulkan error: " + GetStringForVkResult(result) };
-  FLog::error(failureString);
+  UERROR(failureString.c_str());
   throw std::runtime_error(failureString);
 }
 
@@ -78,7 +78,7 @@ void AssertVkAndThrow(VkResult result, std::string_view specialMsg) {
     return;
   }
   std::string failureString{ std::string(specialMsg) + "\nVulkan error: " + GetStringForVkResult(result) };
-  FLog::error(failureString);
+  UERROR(failureString.c_str());
   throw std::runtime_error(failureString);
 }
 

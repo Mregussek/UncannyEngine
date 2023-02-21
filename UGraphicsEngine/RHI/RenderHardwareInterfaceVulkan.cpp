@@ -24,7 +24,7 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
     vulkan::FInstanceAttributes instanceAttributes{};
     instanceAttributes.Initialize();
     if (!instanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3)) {
-      FLog::critical("Not available vulkan version, cannot start RHI!");
+      UCRITICAL("Not available vulkan version, cannot start RHI!");
       return UFALSE;
     }
     instanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");

@@ -11,7 +11,7 @@ void FPhysicalDevice::Initialize(VkPhysicalDevice physicalDevice) {
 
   m_Attributes.Initialize(m_PhysicalDevice);
 
-  FLog::info("Chosen Physical Device: {}", m_Attributes.GetDeviceProperties().deviceName);
+  UINFO("Chosen Physical Device: {}", m_Attributes.GetDeviceProperties().deviceName);
 }
 
 
