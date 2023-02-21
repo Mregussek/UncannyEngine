@@ -115,6 +115,8 @@ void FLogicalDeviceQueueCreateInfoCreator::AddQueueFamilyToDeviceQueueCreateInfo
     return;
   }
 
+  // If possible to increase queue count, do it
+  // I want to enable at graphics queue family usage for graphics queue_index = 0 and for presentation queue_index = 1
   if (queueIndex > m_DeviceQueueCreateInfoVector.at(index).queueCount - 1) {
     m_DeviceQueueCreateInfoVector.at(index).queueCount += 1;
   }
