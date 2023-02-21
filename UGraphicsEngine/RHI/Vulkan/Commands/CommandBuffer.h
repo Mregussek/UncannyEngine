@@ -12,6 +12,10 @@ namespace uncanny::vulkan {
 class FCommandBuffer {
 public:
 
+  ~FCommandBuffer();
+
+  void Free();
+
 private:
 
   VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };
