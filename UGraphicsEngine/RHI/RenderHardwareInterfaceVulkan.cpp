@@ -4,6 +4,7 @@
 #include "UGraphicsEngine/RHI/Vulkan/Devices/InstanceAttributes.h"
 #include "UGraphicsEngine/RHI/Vulkan/Devices/LogicalDeviceAttributes.h"
 #include "UGraphicsEngine/RHI/Vulkan/Devices/PhysicalDeviceSelector.h"
+#include "UGraphicsEngine/RHI/Vulkan/Utilities.h"
 #include "UTools/Logger/Log.h"
 
 
@@ -15,7 +16,7 @@ FRenderHardwareInterfaceVulkan::~FRenderHardwareInterfaceVulkan() {
 }
 
 
-b8 FRenderHardwareInterfaceVulkan::Create() {
+void FRenderHardwareInterfaceVulkan::Create() {
   m_Destroyed = UFALSE;
 
   m_VolkHandler.Create();
@@ -24,8 +25,7 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
     vulkan::FInstanceAttributes instanceAttributes{};
     instanceAttributes.Initialize();
     if (!instanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3)) {
-      UCRITICAL("Not available vulkan version, cannot start RHI!");
-      return UFALSE;
+      vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start RHI!");
     }
     instanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");
     instanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
@@ -59,8 +59,6 @@ b8 FRenderHardwareInterfaceVulkan::Create() {
   m_PresentCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetPresentQueueFamilyIndex());
   m_TransferCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetTransferQueueFamilyIndex());
   m_ComputeCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetComputeQueueFamilyIndex());
-
-  return UTRUE;
 }
 
 

@@ -21,7 +21,7 @@ public:
 
   ~FRenderHardwareInterfaceVulkan();
 
-  b8 Create();
+  void Create();
   void Destroy();
 
 private:
