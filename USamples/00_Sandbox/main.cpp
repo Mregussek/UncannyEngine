@@ -28,7 +28,6 @@ private:
 
   void Start() {
     FLog::create();
-    FLog::trace("Hello UncannyEngine!");
 
     FWindowConfiguration windowConfiguration;
     windowConfiguration.fullscreen = UFALSE;
