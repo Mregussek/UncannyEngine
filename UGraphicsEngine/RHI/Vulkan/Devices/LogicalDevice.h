@@ -27,6 +27,8 @@ public:
 
   [[nodiscard]] const FLogicalDeviceFactory& GetFactory() const { return m_Factory; }
 
+  [[nodiscard]] b32 IsValid() const noexcept { return m_Device != VK_NULL_HANDLE; }
+
 private:
 
   void InitializeQueues();

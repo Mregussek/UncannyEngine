@@ -68,7 +68,9 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
   if (m_Destroyed) {
     return;
   }
-  m_LogicalDevice.Wait();
+  if (m_LogicalDevice.IsValid()) {
+    m_LogicalDevice.Wait();
+  }
 
   m_GraphicsCommandPool.Destroy();
   m_PresentCommandPool.Destroy();
