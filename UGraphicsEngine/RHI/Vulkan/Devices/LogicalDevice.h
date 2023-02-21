@@ -5,6 +5,7 @@
 
 #include "UGraphicsEngine/3rdparty/volk/volk.h"
 #include "LogicalDeviceAttributes.h"
+#include "Queue.h"
 
 
 namespace uncanny::vulkan {
@@ -18,7 +19,13 @@ public:
 
 private:
 
+  void InitializeQueues();
+
+
   FLogicalDeviceAttributes m_Attributes{};
+  FQueue m_GraphicsQueue{};
+  FQueue m_PresentQueue{};
+  FQueue m_TransferQueue{};
   VkDevice m_Device{ VK_NULL_HANDLE };
 
 };

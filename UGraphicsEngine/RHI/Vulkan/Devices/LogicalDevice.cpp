@@ -55,6 +55,8 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
 
   VkResult result = vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &m_Device);
   AssertVkAndThrow(result);
+
+  InitializeQueues();
 }
 
 
@@ -63,6 +65,24 @@ void FLogicalDevice::Destroy() {
     vkDeviceWaitIdle(m_Device);
     vkDestroyDevice(m_Device, nullptr);
   }
+}
+
+
+void FLogicalDevice::InitializeQueues() {
+  VkQueue graphicsQueueHandle{ VK_NULL_HANDLE };
+  vkGetDeviceQueue(m_Device, m_Attributes.GetGraphicsQueueFamilyIndex(), m_Attributes.GetGraphicsQueueIndex(),
+                   &graphicsQueueHandle);
+  m_GraphicsQueue.Initialize(graphicsQueueHandle);
+
+  VkQueue presentQueueHandle{ VK_NULL_HANDLE };
+  vkGetDeviceQueue(m_Device, m_Attributes.GetPresentQueueFamilyIndex(), m_Attributes.GetPresentQueueIndex(),
+                   &presentQueueHandle);
+  m_PresentQueue.Initialize(presentQueueHandle);
+
+  VkQueue transferQueueHandle{ VK_NULL_HANDLE };
+  vkGetDeviceQueue(m_Device, m_Attributes.GetTransferQueueFamilyIndex(), m_Attributes.GetTransferQueueIndex(),
+                   &transferQueueHandle);
+  m_TransferQueue.Initialize(transferQueueHandle);
 }
 
 
