@@ -5,6 +5,7 @@
 
 #include "UGraphicsEngine/3rdparty/volk/volk.h"
 #include "LogicalDeviceAttributes.h"
+#include "LogicalDeviceFactory.h"
 #include "Queue.h"
 
 
@@ -17,12 +18,21 @@ public:
   void Create(const FLogicalDeviceAttributes& attributes, VkPhysicalDevice vkPhysicalDevice);
   void Destroy();
 
+  void Wait() const;
+
+  [[nodiscard]] FQueueFamilyIndex GetGraphicsQueueFamilyIndex() const { return m_Attributes.GetGraphicsQueueFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetPresentQueueFamilyIndex() const { return m_Attributes.GetPresentQueueFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetTransferQueueFamilyIndex() const { return m_Attributes.GetTransferQueueFamilyIndex(); }
+
+  [[nodiscard]] const FLogicalDeviceFactory& GetFactory() const { return m_Factory; }
+
 private:
 
   void InitializeQueues();
 
 
   FLogicalDeviceAttributes m_Attributes{};
+  FLogicalDeviceFactory m_Factory{};
   FQueue m_GraphicsQueue{};
   FQueue m_PresentQueue{};
   FQueue m_TransferQueue{};

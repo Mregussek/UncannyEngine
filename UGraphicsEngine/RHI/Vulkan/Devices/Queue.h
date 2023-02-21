@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include "LogicalDeviceAttributes.h"
 
 
 namespace uncanny::vulkan {
@@ -12,11 +13,14 @@ namespace uncanny::vulkan {
 class FQueue {
 public:
 
-  void Initialize(VkQueue queue);
+  void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);
+
+  [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_FamilyIndex; }
 
 private:
 
   VkQueue m_Queue{ VK_NULL_HANDLE };
+  FQueueFamilyIndex m_FamilyIndex{ UUNUSED };
 
 };
 

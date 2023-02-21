@@ -2,7 +2,7 @@
 #define VOLK_IMPLEMENTATION
 #include "UGraphicsEngine/3rdparty/volk/volk.h"
 
-#include "Utilities.h"
+#include "UGraphicsEngine/RHI/Vulkan/Utilities.h"
 #include "Instance.h"
 #include "VolkHandler.h"
 

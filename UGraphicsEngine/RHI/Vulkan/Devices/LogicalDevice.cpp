@@ -1,6 +1,6 @@
 
 #include "LogicalDevice.h"
-#include "Utilities.h"
+#include "UGraphicsEngine/RHI/Vulkan/Utilities.h"
 
 
 namespace uncanny::vulkan {
@@ -56,6 +56,8 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
   VkResult result = vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &m_Device);
   AssertVkAndThrow(result);
 
+  m_Factory.m_Device = m_Device;
+
   InitializeQueues();
 }
 
@@ -68,21 +70,26 @@ void FLogicalDevice::Destroy() {
 }
 
 
+void FLogicalDevice::Wait() const {
+  vkDeviceWaitIdle(m_Device);
+}
+
+
 void FLogicalDevice::InitializeQueues() {
   VkQueue graphicsQueueHandle{ VK_NULL_HANDLE };
   vkGetDeviceQueue(m_Device, m_Attributes.GetGraphicsQueueFamilyIndex(), m_Attributes.GetGraphicsQueueIndex(),
                    &graphicsQueueHandle);
-  m_GraphicsQueue.Initialize(graphicsQueueHandle);
+  m_GraphicsQueue.Initialize(graphicsQueueHandle, m_Attributes.GetGraphicsQueueFamilyIndex());
 
   VkQueue presentQueueHandle{ VK_NULL_HANDLE };
   vkGetDeviceQueue(m_Device, m_Attributes.GetPresentQueueFamilyIndex(), m_Attributes.GetPresentQueueIndex(),
                    &presentQueueHandle);
-  m_PresentQueue.Initialize(presentQueueHandle);
+  m_PresentQueue.Initialize(presentQueueHandle, m_Attributes.GetPresentQueueFamilyIndex());
 
   VkQueue transferQueueHandle{ VK_NULL_HANDLE };
   vkGetDeviceQueue(m_Device, m_Attributes.GetTransferQueueFamilyIndex(), m_Attributes.GetTransferQueueIndex(),
                    &transferQueueHandle);
-  m_TransferQueue.Initialize(transferQueueHandle);
+  m_TransferQueue.Initialize(transferQueueHandle, m_Attributes.GetTransferQueueFamilyIndex());
 }
 
 
