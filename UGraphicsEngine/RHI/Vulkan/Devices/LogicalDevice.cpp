@@ -6,7 +6,7 @@
 namespace uncanny::vulkan {
 
 
-class FLogicalDeviceCreator {
+class FLogicalDeviceQueueCreateInfoCreator {
 public:
 
   void AddQueueFamilyToDeviceQueueCreateInfo(FQueueFamilyIndex queueFamilyIndex, FQueueIndex queueIndex);
@@ -15,7 +15,10 @@ public:
 
 private:
 
-  [[nodiscard]] std::pair<b8, u32> IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const;
+  // @brief Checks if queue family is present in DeviceQueueCreateInfo Vector
+  // @return pair of boolean and index, where boolean indicates true if queue family index is present and
+  //  u32 index indicates position in vector of such queue create info
+  [[nodiscard]] std::pair<b32, u64> IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const;
 
   std::vector<VkDeviceQueueCreateInfo> m_DeviceQueueCreateInfoVector{};
   f32 m_QueuePriority{ 1.f };
@@ -23,10 +26,11 @@ private:
 };
 
 
+
 void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysicalDevice vkPhysicalDevice) {
   m_Attributes = attributes;
 
-  FLogicalDeviceCreator creator{};
+  FLogicalDeviceQueueCreateInfoCreator creator{};
   creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetGraphicsQueueFamilyIndex(),
                                                 m_Attributes.GetGraphicsQueueIndex());
   creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetPresentQueueFamilyIndex(),
@@ -63,8 +67,8 @@ void FLogicalDevice::Destroy() {
 
 
 
-void FLogicalDeviceCreator::AddQueueFamilyToDeviceQueueCreateInfo(FQueueFamilyIndex queueFamilyIndex,
-                                                                  FQueueIndex queueIndex) {
+void FLogicalDeviceQueueCreateInfoCreator::AddQueueFamilyToDeviceQueueCreateInfo(FQueueFamilyIndex queueFamilyIndex,
+                                                                                 FQueueIndex queueIndex) {
   auto [isPresent, index] = IsQueueFamilyPresent(queueFamilyIndex);
   if (!isPresent) {
     VkDeviceQueueCreateInfo &createInfo = m_DeviceQueueCreateInfoVector.emplace_back();
@@ -83,15 +87,15 @@ void FLogicalDeviceCreator::AddQueueFamilyToDeviceQueueCreateInfo(FQueueFamilyIn
 }
 
 
-std::pair<b8, u32> FLogicalDeviceCreator::IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const {
+std::pair<b32, u64> FLogicalDeviceQueueCreateInfoCreator::IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const {
   auto it = std::ranges::find_if(m_DeviceQueueCreateInfoVector, [queueFamilyIndex](const VkDeviceQueueCreateInfo& createInfo) -> b32 {
     return queueFamilyIndex == createInfo.queueFamilyIndex;
   });
   if (it != m_DeviceQueueCreateInfoVector.end()) {
-    return { UTRUE, std::distance(m_DeviceQueueCreateInfoVector.begin(), it) };
+    return std::make_pair(UTRUE, std::distance(m_DeviceQueueCreateInfoVector.begin(), it));
   }
 
-  return { UFALSE,  UUNUSED };
+  return std::make_pair(UFALSE, UUNUSED);
 }
 
 

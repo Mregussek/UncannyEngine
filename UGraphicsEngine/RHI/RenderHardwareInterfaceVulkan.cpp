@@ -1,9 +1,9 @@
 
 #include "RenderHardwareInterfaceVulkan.h"
 #include <volk.h>
-#include "Vulkan/InstanceAttributes.h"
-#include "Vulkan/LogicalDeviceAttributes.h"
-#include "Vulkan/PhysicalDeviceSelector.h"
+#include "UGraphicsEngine/RHI/Vulkan/Devices/InstanceAttributes.h"
+#include "UGraphicsEngine/RHI/Vulkan/Devices/LogicalDeviceAttributes.h"
+#include "UGraphicsEngine/RHI/Vulkan/Devices/PhysicalDeviceSelector.h"
 #include "UTools/Logger/Log.h"
 
 
