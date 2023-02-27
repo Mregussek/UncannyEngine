@@ -5,7 +5,6 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDeviceAttributes.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/PhysicalDeviceSelector.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
-#include "UTools/Logger/Log.h"
 
 
 namespace uncanny {
@@ -53,14 +52,6 @@ void FRenderHardwareInterfaceVulkan::Create() {
 
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());
   }
-
-  vulkan::FLogicalDeviceFactory logicalDeviceFactory = m_LogicalDevice.GetFactory();
-  m_GraphicsCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetGraphicsQueueFamilyIndex());
-  m_TransferCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetTransferQueueFamilyIndex());
-  m_ComputeCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetComputeQueueFamilyIndex());
-
-  m_RenderCommandBuffers = m_GraphicsCommandPool.GetFactory().AllocatePrimaryCommandBuffers(2);
-  m_TransferCommandBuffers = m_TransferCommandPool.GetFactory().AllocatePrimaryCommandBuffers(2);
 }
 
 
@@ -72,19 +63,6 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
     m_LogicalDevice.Wait();
   }
 
-  // Renderer objects
-  std::ranges::for_each(m_RenderCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer){
-    commandBuffer.Free();
-  });
-  m_RenderCommandBuffers.clear();
-  std::ranges::for_each(m_TransferCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer){
-    commandBuffer.Free();
-  });
-  m_TransferCommandBuffers.clear();
-  // Renderer objects
-  m_GraphicsCommandPool.Destroy();
-  m_TransferCommandPool.Destroy();
-  m_ComputeCommandPool.Destroy();
   m_LogicalDevice.Destroy();
   m_DebugUtils.Destroy(m_Instance.GetHandle());
   m_Instance.Destroy();

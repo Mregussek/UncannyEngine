@@ -10,8 +10,6 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/EXTDebugUtils.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/PhysicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDevice.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
 
 
 namespace uncanny {
@@ -25,6 +23,8 @@ public:
   void Create();
   void Destroy();
 
+  [[nodiscard]] const vulkan::FLogicalDevice& GetLogicalDevice() const { return m_LogicalDevice; }
+
 private:
 
   vulkan::FInstance m_Instance{};
@@ -32,11 +32,6 @@ private:
   vulkan::FPhysicalDevice m_PhysicalDevice{};
   vulkan::FLogicalDevice m_LogicalDevice{};
   vulkan::FVolkHandler m_VolkHandler{};
-  vulkan::FCommandPool m_GraphicsCommandPool{ VK_NULL_HANDLE, VK_NULL_HANDLE };
-  vulkan::FCommandPool m_TransferCommandPool{ VK_NULL_HANDLE, VK_NULL_HANDLE };
-  vulkan::FCommandPool m_ComputeCommandPool{ VK_NULL_HANDLE, VK_NULL_HANDLE };
-  std::vector<vulkan::FCommandBuffer> m_RenderCommandBuffers{};
-  std::vector<vulkan::FCommandBuffer> m_TransferCommandBuffers{};
   // @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };
 

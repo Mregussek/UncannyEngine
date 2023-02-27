@@ -2,6 +2,7 @@
 #include <UTools/Logger/Log.h>
 #include <UTools/Window/WindowGLFW.h>
 #include <UGraphicsEngine/Renderer/RenderHardwareInterfaceVulkan.h>
+#include <UGraphicsEngine/Renderer/RendererVulkan.h>
 
 using namespace uncanny;
 
@@ -39,16 +40,20 @@ private:
     m_Window.Create(windowConfiguration);
 
     m_RHI.Create();
+
+    m_Renderer.Create(&m_RHI.GetLogicalDevice());
   }
 
   void Destroy() {
+    m_Renderer.Destroy();
     m_RHI.Destroy();
     m_Window.Destroy();
   }
 
 
-  FWindowGLFW m_Window;
-  FRenderHardwareInterfaceVulkan m_RHI;
+  FWindowGLFW m_Window{};
+  FRenderHardwareInterfaceVulkan m_RHI{};
+  FRendererVulkan m_Renderer{};
 
 };
 
