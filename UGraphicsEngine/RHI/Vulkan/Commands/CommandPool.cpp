@@ -11,6 +11,7 @@ FCommandPool::FCommandPool(VkDevice vkDevice, VkCommandPool vkCommandPool) :
   m_CommandPool(vkCommandPool)
 {
   m_Factory.m_CommandPool = m_CommandPool;
+  m_Factory.m_Device = m_Device;
 }
 
 

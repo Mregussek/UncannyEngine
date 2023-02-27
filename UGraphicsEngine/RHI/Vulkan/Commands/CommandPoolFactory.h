@@ -5,6 +5,7 @@
 
 #include <vector>
 #include "CommandBuffer.h"
+#include "UTools/UTypes.h"
 
 
 namespace uncanny::vulkan {
@@ -16,13 +17,14 @@ class FCommandPoolFactory {
 
 public:
 
-  [[nodiscard]] std::vector<FCommandBuffer> AllocateCommandBuffers() const;
+  [[nodiscard]] std::vector<FCommandBuffer> AllocatePrimaryCommandBuffers(u32 count) const;
 
-  [[nodiscard]] FCommandBuffer AllocateSingleUseCommandBuffer() const;
+  [[nodiscard]] FCommandBuffer AllocateAndBeginSingleUseCommandBuffer() const;
 
 private:
 
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
+  VkDevice m_Device{ VK_NULL_HANDLE };
 
 };
 

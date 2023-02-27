@@ -56,9 +56,11 @@ void FRenderHardwareInterfaceVulkan::Create() {
 
   vulkan::FLogicalDeviceFactory logicalDeviceFactory = m_LogicalDevice.GetFactory();
   m_GraphicsCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetGraphicsQueueFamilyIndex());
-  m_PresentCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetPresentQueueFamilyIndex());
   m_TransferCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetTransferQueueFamilyIndex());
   m_ComputeCommandPool = logicalDeviceFactory.CreateCommandPool(m_LogicalDevice.GetComputeQueueFamilyIndex());
+
+  m_RenderCommandBuffers = m_GraphicsCommandPool.GetFactory().AllocatePrimaryCommandBuffers(2);
+  m_TransferCommandBuffers = m_TransferCommandPool.GetFactory().AllocatePrimaryCommandBuffers(2);
 }
 
 
@@ -70,8 +72,15 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
     m_LogicalDevice.Wait();
   }
 
+  std::ranges::for_each(m_RenderCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer){
+    commandBuffer.Free();
+  });
+  m_RenderCommandBuffers.clear();
+  std::ranges::for_each(m_TransferCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer){
+    commandBuffer.Free();
+  });
+  m_TransferCommandBuffers.clear();
   m_GraphicsCommandPool.Destroy();
-  m_PresentCommandPool.Destroy();
   m_TransferCommandPool.Destroy();
   m_ComputeCommandPool.Destroy();
   m_LogicalDevice.Destroy();

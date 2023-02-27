@@ -12,6 +12,8 @@ namespace uncanny::vulkan {
 class FCommandBuffer {
 public:
 
+  FCommandBuffer() = delete;
+  FCommandBuffer(VkDevice device, VkCommandBuffer commandBuffer);
   ~FCommandBuffer();
 
   void Free();
@@ -19,6 +21,7 @@ public:
 private:
 
   VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };
+  VkDevice m_Device{ VK_NULL_HANDLE };
 
 };
 

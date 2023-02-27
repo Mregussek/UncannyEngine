@@ -25,6 +25,11 @@ public:
   [[nodiscard]] FQueueFamilyIndex GetTransferQueueFamilyIndex() const { return m_Attributes.GetTransferQueueFamilyIndex(); }
   [[nodiscard]] FQueueFamilyIndex GetComputeQueueFamilyIndex() const { return m_Attributes.GetComputeQueueFamilyIndex(); }
 
+  [[nodiscard]] const FQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
+  [[nodiscard]] const FQueue& GetPresentQueue() const { return m_PresentQueue; }
+  [[nodiscard]] const FQueue& GetTransferQueue() const { return m_TransferQueue; }
+  [[nodiscard]] const FQueue& GetComputeQueue() const { return m_ComputeQueue; }
+
   [[nodiscard]] const FLogicalDeviceFactory& GetFactory() const { return m_Factory; }
 
   [[nodiscard]] b32 IsValid() const noexcept { return m_Device != VK_NULL_HANDLE; }
