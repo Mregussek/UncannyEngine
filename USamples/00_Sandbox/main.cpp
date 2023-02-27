@@ -1,7 +1,7 @@
 
 #include <UTools/Logger/Log.h>
 #include <UTools/Window/WindowGLFW.h>
-#include <UGraphicsEngine/RHI/RenderHardwareInterfaceVulkan.h>
+#include <UGraphicsEngine/Renderer/RenderHardwareInterfaceVulkan.h>
 
 using namespace uncanny;
 

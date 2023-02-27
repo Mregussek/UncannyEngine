@@ -5,13 +5,13 @@
 #ifdef WIN32
   #define VK_USE_PLATFORM_WIN32_KHR 1
 #endif
-#include "UGraphicsEngine/RHI/Vulkan/Devices/VolkHandler.h"
-#include "UGraphicsEngine/RHI/Vulkan/Devices/Instance.h"
-#include "UGraphicsEngine/RHI/Vulkan/Devices/EXTDebugUtils.h"
-#include "UGraphicsEngine/RHI/Vulkan/Devices/PhysicalDevice.h"
-#include "UGraphicsEngine/RHI/Vulkan/Devices/LogicalDevice.h"
-#include "UGraphicsEngine/RHI/Vulkan/Commands/CommandPool.h"
-#include "UGraphicsEngine/RHI/Vulkan/Commands/CommandBuffer.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/VolkHandler.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/Instance.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/EXTDebugUtils.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/PhysicalDevice.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDevice.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
 
 
 namespace uncanny {

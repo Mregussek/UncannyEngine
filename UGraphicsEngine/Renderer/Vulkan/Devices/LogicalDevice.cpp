@@ -1,6 +1,6 @@
 
 #include "LogicalDevice.h"
-#include "UGraphicsEngine/RHI/Vulkan/Utilities.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
 namespace uncanny::vulkan {

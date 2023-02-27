@@ -1,10 +1,10 @@
 
 #include "RenderHardwareInterfaceVulkan.h"
 #include <volk.h>
-#include "UGraphicsEngine/RHI/Vulkan/Devices/InstanceAttributes.h"
-#include "UGraphicsEngine/RHI/Vulkan/Devices/LogicalDeviceAttributes.h"
-#include "UGraphicsEngine/RHI/Vulkan/Devices/PhysicalDeviceSelector.h"
-#include "UGraphicsEngine/RHI/Vulkan/Utilities.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/InstanceAttributes.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDeviceAttributes.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/PhysicalDeviceSelector.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UTools/Logger/Log.h"
 
 
@@ -25,7 +25,7 @@ void FRenderHardwareInterfaceVulkan::Create() {
     vulkan::FInstanceAttributes instanceAttributes{};
     instanceAttributes.Initialize();
     if (!instanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3)) {
-      vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start RHI!");
+      vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
     }
     instanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");
     instanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
@@ -72,6 +72,7 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
     m_LogicalDevice.Wait();
   }
 
+  // Renderer objects
   std::ranges::for_each(m_RenderCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer){
     commandBuffer.Free();
   });
@@ -80,6 +81,7 @@ void FRenderHardwareInterfaceVulkan::Destroy() {
     commandBuffer.Free();
   });
   m_TransferCommandBuffers.clear();
+  // Renderer objects
   m_GraphicsCommandPool.Destroy();
   m_TransferCommandPool.Destroy();
   m_ComputeCommandPool.Destroy();
