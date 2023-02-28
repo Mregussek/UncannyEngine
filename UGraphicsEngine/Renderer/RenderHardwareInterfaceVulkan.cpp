@@ -15,7 +15,8 @@ FRenderHardwareInterfaceVulkan::~FRenderHardwareInterfaceVulkan() {
 }
 
 
-void FRenderHardwareInterfaceVulkan::Create() {
+void FRenderHardwareInterfaceVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
+  m_pWindow = pWindow;
   m_Destroyed = UFALSE;
 
   m_VolkHandler.Create();

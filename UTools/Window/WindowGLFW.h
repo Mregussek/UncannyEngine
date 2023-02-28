@@ -10,19 +10,10 @@
 #include <GLFW/glfw3native.h>
 #undef APIENTRY
 #include <memory>
-#include "UTools/UTypes.h"
+#include "IWindow.h"
 
 
 namespace uncanny {
-
-
-struct FWindowConfiguration {
-  u32 resizable{ UFALSE };
-  b32 fullscreen{ UFALSE };
-  i32 width{ 0 };
-  i32 height{ 0 };
-  const char* name{ "" };
-};
 
 
 struct GLFWwindowDeleter {
@@ -32,24 +23,24 @@ struct GLFWwindowDeleter {
 };
 
 
-class FWindowGLFW {
+class FWindowGLFW : public IWindow {
 public:
 
-  ~FWindowGLFW();
+  ~FWindowGLFW() override;
 
-  void Create(const FWindowConfiguration& windowConfiguration);
-  void Destroy();
+  void Create(const FWindowConfiguration& windowConfiguration) override;
+  void Destroy() override;
 
-  void UpdateSize();
-  void PollEvents() const;
+  void UpdateSize() override;
+  void PollEvents() const override;
 
-  void Close();
-  [[nodiscard]] b32 IsGoingToClose() const;
+  void Close() override;
+  [[nodiscard]] b32 IsGoingToClose() const override;
 
-  [[nodiscard]] b32 IsMinimized() const;
+  [[nodiscard]] b32 IsMinimized() const override;
 
 #ifdef WIN32
-  [[nodiscard]] HWND GetWin32Handle() const;
+  [[nodiscard]] HWND GetWin32Handle() const override;
 #endif
 
 private:

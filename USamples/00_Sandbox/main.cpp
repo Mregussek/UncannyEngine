@@ -19,9 +19,9 @@ public:
   }
 
   void Run() {
-    while(!m_Window.IsGoingToClose()) {
-      m_Window.UpdateSize();
-      m_Window.PollEvents();
+    while(!m_Window->IsGoingToClose()) {
+      m_Window->UpdateSize();
+      m_Window->PollEvents();
     }
   }
 
@@ -37,9 +37,10 @@ private:
     windowConfiguration.height = 900;
     windowConfiguration.name = "UncannyEngine";
 
-    m_Window.Create(windowConfiguration);
+    m_Window = std::make_shared<FWindowGLFW>();
+    m_Window->Create(windowConfiguration);
 
-    m_RHI.Create();
+    m_RHI.Create(m_Window);
 
     m_Renderer.Create(&m_RHI.GetLogicalDevice());
   }
@@ -47,11 +48,11 @@ private:
   void Destroy() {
     m_Renderer.Destroy();
     m_RHI.Destroy();
-    m_Window.Destroy();
+    m_Window->Destroy();
   }
 
 
-  FWindowGLFW m_Window{};
+  std::shared_ptr<IWindow> m_Window;
   FRenderHardwareInterfaceVulkan m_RHI{};
   FRendererVulkan m_Renderer{};
 
