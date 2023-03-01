@@ -10,11 +10,11 @@ namespace uncanny::vulkan {
 
 
 struct FSwapchainCreateAttributes {
-  std::vector<VkImageUsageFlags> imageUsageFlags{
+  std::array<VkImageUsageFlags, 2> imageUsageFlags{
       VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
   };
-  std::vector<VkFormatFeatureFlags> imageFormatFeatureFlags{
+  std::array<VkFormatFeatureFlags, 2> imageFormatFeatureFlags{
       VK_FORMAT_FEATURE_TRANSFER_DST_BIT,
       VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
   };
@@ -33,7 +33,7 @@ struct FSwapchainCreateAttributes {
 static b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca, const FWindowSurface* pWindowSurface);
 
 
-static VkImageUsageFlags CreateOneFlagFromVector(const std::vector<VkImageUsageFlags>& vec);
+static VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> vec);
 
 
 
@@ -158,7 +158,7 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
 }
 
 
-VkImageUsageFlags CreateOneFlagFromVector(const std::vector<VkImageUsageFlags>& vec) {
+VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> vec) {
   VkImageUsageFlags rtn{ 0 };
   std::ranges::for_each(vec, [&rtn](auto flag){
     rtn &= flag;

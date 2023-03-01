@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include <vector>
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Fence.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 
@@ -29,6 +30,8 @@ private:
 
 
   FFence m_Fence{};
+  std::vector<FSemaphore> m_ImageAvailableSemaphores{};
+  std::vector<FSemaphore> m_PresentableImagesReadySemaphores{};
   VkSwapchainKHR m_Swapchain{ VK_NULL_HANDLE };
   VkSwapchainKHR m_OldSwapchain{ VK_NULL_HANDLE };
   VkDevice m_Device{ nullptr };
