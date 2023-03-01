@@ -17,7 +17,6 @@ FRenderContextVulkan::~FRenderContextVulkan() {
 
 void FRenderContextVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
   m_pWindow = pWindow;
-  m_Destroyed = UFALSE;
 
   m_VolkHandler.Create();
 
@@ -54,7 +53,13 @@ void FRenderContextVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());
   }
 
-  m_WindowSurface.Create(m_pWindow.get(), m_Instance.GetHandle());
+  m_WindowSurface.Create(m_pWindow.get(), m_Instance.GetHandle(), m_PhysicalDevice.GetHandle());
+  if (!m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentQueueFamilyIndex())) {
+    vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
+  }
+  m_WindowSurface.UpdateCapabilities();
+  m_WindowSurface.UpdateFormats();
+  m_WindowSurface.UpdatePresentModes();
 }
 
 
