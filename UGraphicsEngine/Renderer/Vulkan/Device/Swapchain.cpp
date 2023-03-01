@@ -37,9 +37,19 @@ static VkImageUsageFlags CreateOneFlagFromVector(const std::vector<VkImageUsageF
 
 
 
-void FSwapchain::Create(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface) {
+void FSwapchain::Create(VkDevice vkDevice, const FWindowSurface* pWindowSurface) {
+  m_Device = vkDevice;
+  m_pWindowSurface = pWindowSurface;
+
+  CreateOnlySwapchain();
+
+  m_Fence.Create(vkDevice);
+}
+
+
+void FSwapchain::CreateOnlySwapchain() {
   FSwapchainCreateAttributes createAttributes{};
-  b8 replaced = ReplaceRequestedAttributesWithSupportedIfNeeded(createAttributes, pWindowSurface);
+  b8 replaced = ReplaceRequestedAttributesWithSupportedIfNeeded(createAttributes, m_pWindowSurface);
   if (not replaced) {
     AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Create attributes for swapchain are not supported!");
   }
@@ -48,11 +58,11 @@ void FSwapchain::Create(const FLogicalDevice* pLogicalDevice, const FWindowSurfa
   createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
   createInfo.pNext = nullptr;
   createInfo.flags = 0;
-  createInfo.surface = pWindowSurface->GetHandle();
+  createInfo.surface = m_pWindowSurface->GetHandle();
   createInfo.minImageCount = createAttributes.minImageCount;
   createInfo.imageFormat = createAttributes.surfaceFormat.format;
   createInfo.imageColorSpace = createAttributes.surfaceFormat.colorSpace;
-  createInfo.imageExtent = pWindowSurface->GetCapabilities().currentExtent;
+  createInfo.imageExtent = m_pWindowSurface->GetCapabilities().currentExtent;
   createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
   createInfo.imageUsage = CreateOneFlagFromVector(createAttributes.imageUsageFlags);
   createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
@@ -64,32 +74,32 @@ void FSwapchain::Create(const FLogicalDevice* pLogicalDevice, const FWindowSurfa
   createInfo.clipped = VK_TRUE; // clipping world that is beyond presented surface (not visible)
   createInfo.oldSwapchain = m_OldSwapchain;
 
-  VkResult result = vkCreateSwapchainKHR(pLogicalDevice->GetHandle(), &createInfo, nullptr, &m_Swapchain);
+  VkResult result = vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_Swapchain);
   AssertVkAndThrow(result);
 }
 
 
-void FSwapchain::Destroy(const FLogicalDevice* pLogicalDevice) {
+void FSwapchain::Destroy() {
   if (m_Swapchain != VK_NULL_HANDLE) {
-    vkDestroySwapchainKHR(pLogicalDevice->GetHandle(), m_Swapchain, nullptr);
+    vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
   }
   if (m_OldSwapchain != VK_NULL_HANDLE) {
-    vkDestroySwapchainKHR(pLogicalDevice->GetHandle(), m_OldSwapchain, nullptr);
+    vkDestroySwapchainKHR(m_Device, m_OldSwapchain, nullptr);
   }
+  m_Fence.Destroy();
 }
 
 
-void FSwapchain::Recreate(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface) {
-  // Swap swapchain before recreate...
+void FSwapchain::Recreate() {
   m_OldSwapchain = m_Swapchain;
   m_Swapchain = VK_NULL_HANDLE;
 
-  // Just Create Call (meh this comments)...
-  Create(pLogicalDevice, pWindowSurface);
+  CreateOnlySwapchain();
 
-  // Destroy the old one (I assume it is always no VK_NULL_HANDLE there, as Create() method does not destroy it
-  vkDestroySwapchainKHR(pLogicalDevice->GetHandle(), m_OldSwapchain, nullptr);
-  m_OldSwapchain = VK_NULL_HANDLE;
+  if (m_OldSwapchain != VK_NULL_HANDLE) {
+    vkDestroySwapchainKHR(m_Device, m_OldSwapchain, nullptr);
+    m_OldSwapchain = VK_NULL_HANDLE;
+  }
 }
 
 
