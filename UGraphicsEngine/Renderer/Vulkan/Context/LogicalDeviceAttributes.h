@@ -6,6 +6,7 @@
 #include <volk.h>
 #include <span>
 #include <vector>
+#include "Typedefs.h"
 #include "UTools/UTypes.h"
 
 
@@ -13,10 +14,6 @@ namespace uncanny::vulkan {
 
 
 class FPhysicalDeviceAttributes;
-
-
-typedef u32 FQueueFamilyIndex;
-typedef u32 FQueueIndex;
 
 
 class FLogicalDeviceAttributes {

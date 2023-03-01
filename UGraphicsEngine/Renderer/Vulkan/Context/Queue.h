@@ -4,7 +4,7 @@
 
 
 #include <volk.h>
-#include "LogicalDeviceAttributes.h"
+#include "Typedefs.h"
 
 
 namespace uncanny::vulkan {

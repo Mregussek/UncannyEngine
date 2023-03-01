@@ -1,9 +1,9 @@
 
 #include "RenderContextVulkan.h"
 #include "UGraphicsEngine/3rdparty/volk/volk.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/InstanceAttributes.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDeviceAttributes.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/PhysicalDeviceSelector.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/InstanceAttributes.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDeviceAttributes.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/PhysicalDeviceSelector.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 

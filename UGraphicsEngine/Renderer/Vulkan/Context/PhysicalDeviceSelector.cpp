@@ -8,6 +8,9 @@
 namespace uncanny::vulkan {
 
 
+typedef i32 FPhysicalDeviceScore;
+
+
 FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice) {
   FPhysicalDeviceScore score{ 0 };
 

@@ -6,12 +6,12 @@
   #define VK_USE_PLATFORM_WIN32_KHR 1
 #endif
 #include <memory>
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/VolkHandler.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/Instance.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/EXTDebugUtils.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/PhysicalDevice.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDevice.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/WindowSurface.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/VolkHandler.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/Instance.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/EXTDebugUtils.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/PhysicalDevice.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDevice.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/WindowSurface.h"
 #include "UTools/Window/IWindow.h"
 
 

@@ -3,16 +3,12 @@
 #define UNCANNYENGINE_PHYSICALDEVICESELECTOR_H
 
 
-#include "UGraphicsEngine/3rdparty/volk/volk.h"
-#include <vector>
+#include <volk.h>
 #include <span>
 #include "UTools/UTypes.h"
 
 
 namespace uncanny::vulkan {
-
-
-typedef i32 FPhysicalDeviceScore;
 
 
 /*

@@ -4,13 +4,15 @@
 
 
 #include <vector>
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDevice.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/WindowSurface.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
 
 
 namespace uncanny::vulkan {
+
+
+class FLogicalDevice;
+class FWindowSurface;
 
 
 class FRenderDevice {

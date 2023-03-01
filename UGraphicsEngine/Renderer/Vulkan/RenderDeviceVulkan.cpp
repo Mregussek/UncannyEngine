@@ -1,6 +1,8 @@
 
 #include "RenderDeviceVulkan.h"
 #include <algorithm>
+#include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDevice.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/WindowSurface.h"
 
 
 namespace uncanny::vulkan {

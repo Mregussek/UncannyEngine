@@ -15,13 +15,6 @@
 namespace uncanny::vulkan {
 
 
-class FInstance;
-class FPhysicalDevice;
-
-
-typedef i32 FQueueFamilyScore;
-
-
 class FQueueFamilySelector {
 public:
 

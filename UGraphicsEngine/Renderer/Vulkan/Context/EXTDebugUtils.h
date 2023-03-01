@@ -9,9 +9,6 @@
 namespace uncanny::vulkan {
 
 
-class FInstance;
-
-
 class FEXTDebugUtils {
 public:
 

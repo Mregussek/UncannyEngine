@@ -4,8 +4,9 @@
 
 
 #include <volk.h>
+#include <vector>
 #include "CommandBuffer.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDeviceAttributes.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/Typedefs.h"
 
 
 namespace uncanny::vulkan {

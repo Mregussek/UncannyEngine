@@ -8,6 +8,7 @@
 namespace uncanny::vulkan {
 
 
+typedef i32 FQueueFamilyScore;
 typedef std::function<FQueueFamilyScore(VkQueueFamilyProperties, u32, VkInstance, VkPhysicalDevice)> GetScoreFunctionObject;
 
 
