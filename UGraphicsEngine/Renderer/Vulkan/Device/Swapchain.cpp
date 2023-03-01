@@ -42,7 +42,7 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSur
   m_pWindowSurface = pWindowSurface;
   m_BackBufferCount = backBufferCount;
 
-  CreateOnlySwapchain();
+  CreateOnlySwapchain(VK_NULL_HANDLE);
 
   m_Fences.resize(m_BackBufferCount);
   m_ImageAvailableSemaphores.resize(m_BackBufferCount);
@@ -55,7 +55,7 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSur
 }
 
 
-void FSwapchain::CreateOnlySwapchain() {
+void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain) {
   FSwapchainCreateAttributes createAttributes{};
   createAttributes.minImageCount = m_BackBufferCount;
   b8 replaced = ReplaceRequestedAttributesWithSupportedIfNeeded(createAttributes, m_pWindowSurface);
@@ -81,7 +81,7 @@ void FSwapchain::CreateOnlySwapchain() {
   createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // no transparency with OS
   createInfo.presentMode = createAttributes.presentMode;
   createInfo.clipped = VK_TRUE; // clipping world that is beyond presented surface (not visible)
-  createInfo.oldSwapchain = m_OldSwapchain;
+  createInfo.oldSwapchain = oldSwapchain;
 
   VkResult result = vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_Swapchain);
   AssertVkAndThrow(result);
@@ -91,9 +91,6 @@ void FSwapchain::CreateOnlySwapchain() {
 void FSwapchain::Destroy() {
   if (m_Swapchain != VK_NULL_HANDLE) {
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
-  }
-  if (m_OldSwapchain != VK_NULL_HANDLE) {
-    vkDestroySwapchainKHR(m_Device, m_OldSwapchain, nullptr);
   }
   for(u32 i = 0; i < m_BackBufferCount; i++) {
     m_Fences[i].Destroy();
@@ -110,15 +107,12 @@ void FSwapchain::Destroy() {
 
 
 void FSwapchain::Recreate() {
-  m_OldSwapchain = m_Swapchain;
+  VkSwapchainKHR oldSwapchain = m_Swapchain;
   m_Swapchain = VK_NULL_HANDLE;
 
-  CreateOnlySwapchain();
+  CreateOnlySwapchain(oldSwapchain);
 
-  if (m_OldSwapchain != VK_NULL_HANDLE) {
-    vkDestroySwapchainKHR(m_Device, m_OldSwapchain, nullptr);
-    m_OldSwapchain = VK_NULL_HANDLE;
-  }
+  vkDestroySwapchainKHR(m_Device, oldSwapchain, nullptr);
 }
 
 

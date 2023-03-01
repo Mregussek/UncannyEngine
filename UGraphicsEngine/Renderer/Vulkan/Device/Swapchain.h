@@ -29,14 +29,13 @@ public:
 
 private:
 
-  void CreateOnlySwapchain();
+  void CreateOnlySwapchain(VkSwapchainKHR oldSwapchain);
 
 
   std::vector<FFence> m_Fences{};
   std::vector<FSemaphore> m_ImageAvailableSemaphores{};
   std::vector<FSemaphore> m_PresentableImagesReadySemaphores{};
   VkSwapchainKHR m_Swapchain{ VK_NULL_HANDLE };
-  VkSwapchainKHR m_OldSwapchain{ VK_NULL_HANDLE };
   VkDevice m_Device{ nullptr };
   const FWindowSurface* m_pWindowSurface{ nullptr };
   u32 m_BackBufferCount{ 0 };
