@@ -21,8 +21,6 @@ namespace uncanny::vulkan {
 class FRenderContext {
 public:
 
-  ~FRenderContext();
-
   void Create(const std::shared_ptr<IWindow>& pWindow);
   void Destroy();
 

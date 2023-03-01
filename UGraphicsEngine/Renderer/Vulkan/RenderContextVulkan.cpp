@@ -10,11 +10,6 @@
 namespace uncanny::vulkan {
 
 
-FRenderContext::~FRenderContext() {
-  Destroy();
-}
-
-
 void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow) {
   m_pWindow = pWindow;
 

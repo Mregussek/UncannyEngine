@@ -13,8 +13,13 @@ namespace uncanny {
 class IWindow;
 
 
+/*
+ * @brief RHI must be responsible for lifetime for RenderContext and RenderDevice
+ */
 class FRenderHardwareInterfaceVulkan {
 public:
+
+  ~FRenderHardwareInterfaceVulkan();
 
   void Create(const std::shared_ptr<IWindow>& pWindow);
   void Destroy();

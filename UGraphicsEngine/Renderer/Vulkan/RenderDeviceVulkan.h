@@ -16,8 +16,6 @@ namespace uncanny::vulkan {
 class FRenderDevice {
 public:
 
-  ~FRenderDevice();
-
   void Create(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface);
   void Destroy();
 

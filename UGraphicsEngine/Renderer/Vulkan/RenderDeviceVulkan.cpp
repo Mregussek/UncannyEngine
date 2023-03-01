@@ -6,11 +6,6 @@
 namespace uncanny::vulkan {
 
 
-FRenderDevice::~FRenderDevice() {
-  Destroy();
-}
-
-
 void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const vulkan::FWindowSurface* pWindowSurface) {
   m_pLogicalDevice = pLogicalDevice;
   m_pWindowSurface = pWindowSurface;
