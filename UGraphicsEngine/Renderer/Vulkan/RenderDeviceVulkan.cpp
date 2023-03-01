@@ -1,18 +1,17 @@
 
-#include "RendererVulkan.h"
+#include "RenderDeviceVulkan.h"
 #include <algorithm>
-#include <utility>
 
 
-namespace uncanny {
+namespace uncanny::vulkan {
 
 
-FRendererVulkan::~FRendererVulkan() {
+FRenderDevice::~FRenderDevice() {
   Destroy();
 }
 
 
-void FRendererVulkan::Create(const vulkan::FLogicalDevice* pLogicalDevice, const vulkan::FWindowSurface* pWindowSurface) {
+void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const vulkan::FWindowSurface* pWindowSurface) {
   m_pLogicalDevice = pLogicalDevice;
   m_pWindowSurface = pWindowSurface;
 
@@ -25,7 +24,7 @@ void FRendererVulkan::Create(const vulkan::FLogicalDevice* pLogicalDevice, const
 }
 
 
-void FRendererVulkan::Destroy() {
+void FRenderDevice::Destroy() {
   if (m_Destroyed) {
     return;
   }

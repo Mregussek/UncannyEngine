@@ -15,28 +15,28 @@
 #include "UTools/Window/IWindow.h"
 
 
-namespace uncanny {
+namespace uncanny::vulkan {
 
 
-class FRenderContextVulkan {
+class FRenderContext {
 public:
 
-  ~FRenderContextVulkan();
+  ~FRenderContext();
 
   void Create(const std::shared_ptr<IWindow>& pWindow);
   void Destroy();
 
-  [[nodiscard]] const vulkan::FLogicalDevice* GetLogicalDevice() const { return &m_LogicalDevice; }
-  [[nodiscard]] const vulkan::FWindowSurface* GetWindowSurface() const { return &m_WindowSurface; }
+  [[nodiscard]] const FLogicalDevice* GetLogicalDevice() const { return &m_LogicalDevice; }
+  [[nodiscard]] const FWindowSurface* GetWindowSurface() const { return &m_WindowSurface; }
 
 private:
 
-  vulkan::FInstance m_Instance{};
-  vulkan::FEXTDebugUtils m_DebugUtils{};
-  vulkan::FPhysicalDevice m_PhysicalDevice{};
-  vulkan::FVolkHandler m_VolkHandler{};
-  vulkan::FLogicalDevice m_LogicalDevice{};
-  vulkan::FWindowSurface m_WindowSurface{};
+  FInstance m_Instance{};
+  FEXTDebugUtils m_DebugUtils{};
+  FPhysicalDevice m_PhysicalDevice{};
+  FVolkHandler m_VolkHandler{};
+  FLogicalDevice m_LogicalDevice{};
+  FWindowSurface m_WindowSurface{};
   std::shared_ptr<IWindow> m_pWindow{};
   // @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };

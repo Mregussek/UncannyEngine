@@ -1,8 +1,7 @@
 
 #include <UTools/Logger/Log.h>
 #include <UTools/Window/WindowGLFW.h>
-#include <UGraphicsEngine/Renderer/RenderContextVulkan.h>
-#include <UGraphicsEngine/Renderer/RendererVulkan.h>
+#include "UGraphicsEngine/Renderer/Vulkan/RenderHardwareInterfaceVulkan.h"
 
 using namespace uncanny;
 
@@ -40,21 +39,17 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
-    m_Context.Create(m_Window);
-
-    m_Renderer.Create(m_Context.GetLogicalDevice(), m_Context.GetWindowSurface());
+    m_RHI.Create(m_Window);
   }
 
   void Destroy() {
-    m_Renderer.Destroy();
-    m_Context.Destroy();
+    m_RHI.Destroy();
     m_Window->Destroy();
   }
 
 
   std::shared_ptr<IWindow> m_Window;
-  FRenderContextVulkan m_Context{};
-  FRendererVulkan m_Renderer{};
+  FRenderHardwareInterfaceVulkan m_RHI{};
 
 };
 

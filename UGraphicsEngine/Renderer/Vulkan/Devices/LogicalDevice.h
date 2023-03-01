@@ -8,16 +8,13 @@
 #include "Queue.h"
 
 
-namespace uncanny {
-class FRenderContextVulkan;
-}
 namespace uncanny::vulkan {
 
 
 class FLogicalDevice {
 
   // I want only RenderContext to access Create() and Destroy() methods, not more! Only reason for friendship
-  friend class ::uncanny::FRenderContextVulkan;
+  friend class FRenderContext;
 
 public:
 

@@ -1,21 +1,21 @@
 
 #include "RenderContextVulkan.h"
-#include <volk.h>
+#include "UGraphicsEngine/3rdparty/volk/volk.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/InstanceAttributes.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDeviceAttributes.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/PhysicalDeviceSelector.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
-namespace uncanny {
+namespace uncanny::vulkan {
 
 
-FRenderContextVulkan::~FRenderContextVulkan() {
+FRenderContext::~FRenderContext() {
   Destroy();
 }
 
 
-void FRenderContextVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
+void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow) {
   m_pWindow = pWindow;
 
   m_VolkHandler.Create();
@@ -60,7 +60,7 @@ void FRenderContextVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
 }
 
 
-void FRenderContextVulkan::Destroy() {
+void FRenderContext::Destroy() {
   if (m_Destroyed) {
     return;
   }
