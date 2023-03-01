@@ -37,18 +37,27 @@ static VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> ve
 
 
 
-void FSwapchain::Create(VkDevice vkDevice, const FWindowSurface* pWindowSurface) {
+void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSurface* pWindowSurface) {
   m_Device = vkDevice;
   m_pWindowSurface = pWindowSurface;
+  m_BackBufferCount = backBufferCount;
 
   CreateOnlySwapchain();
 
-  m_Fence.Create(vkDevice);
+  m_Fences.resize(m_BackBufferCount);
+  m_ImageAvailableSemaphores.resize(m_BackBufferCount);
+  m_PresentableImagesReadySemaphores.resize(m_BackBufferCount);
+  for(u32 i = 0; i < m_BackBufferCount; i++) {
+    m_Fences[i].Create(m_Device);
+    m_ImageAvailableSemaphores[i].Create(m_Device);
+    m_PresentableImagesReadySemaphores[i].Create(m_Device);
+  }
 }
 
 
 void FSwapchain::CreateOnlySwapchain() {
   FSwapchainCreateAttributes createAttributes{};
+  createAttributes.minImageCount = m_BackBufferCount;
   b8 replaced = ReplaceRequestedAttributesWithSupportedIfNeeded(createAttributes, m_pWindowSurface);
   if (not replaced) {
     AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Create attributes for swapchain are not supported!");
@@ -86,7 +95,17 @@ void FSwapchain::Destroy() {
   if (m_OldSwapchain != VK_NULL_HANDLE) {
     vkDestroySwapchainKHR(m_Device, m_OldSwapchain, nullptr);
   }
-  m_Fence.Destroy();
+  for(u32 i = 0; i < m_BackBufferCount; i++) {
+    m_Fences[i].Destroy();
+    m_ImageAvailableSemaphores[i].Destroy();
+    m_PresentableImagesReadySemaphores[i].Destroy();
+  }
+  m_Fences.clear();
+  m_Fences.shrink_to_fit();
+  m_ImageAvailableSemaphores.clear();
+  m_ImageAvailableSemaphores.shrink_to_fit();
+  m_PresentableImagesReadySemaphores.clear();
+  m_PresentableImagesReadySemaphores.shrink_to_fit();
 }
 
 
@@ -100,6 +119,14 @@ void FSwapchain::Recreate() {
     vkDestroySwapchainKHR(m_Device, m_OldSwapchain, nullptr);
     m_OldSwapchain = VK_NULL_HANDLE;
   }
+}
+
+
+void FSwapchain::WaitForNextImage() {
+  //u64 timeout = std::numeric_limits<u64>::max();
+  //VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
+  //                                        m_ImageAvailableSemaphores[mCurrentFrame].GetHandle(),
+  //                                        VK_NULL_HANDLE, &mImagePresentableIndex);
 }
 
 
