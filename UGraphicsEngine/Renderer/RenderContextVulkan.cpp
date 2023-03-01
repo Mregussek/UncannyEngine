@@ -1,5 +1,5 @@
 
-#include "RenderHardwareInterfaceVulkan.h"
+#include "RenderContextVulkan.h"
 #include <volk.h>
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/InstanceAttributes.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDeviceAttributes.h"
@@ -10,12 +10,12 @@
 namespace uncanny {
 
 
-FRenderHardwareInterfaceVulkan::~FRenderHardwareInterfaceVulkan() {
+FRenderContextVulkan::~FRenderContextVulkan() {
   Destroy();
 }
 
 
-void FRenderHardwareInterfaceVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
+void FRenderContextVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
   m_pWindow = pWindow;
   m_Destroyed = UFALSE;
 
@@ -56,7 +56,7 @@ void FRenderHardwareInterfaceVulkan::Create(const std::shared_ptr<IWindow>& pWin
 }
 
 
-void FRenderHardwareInterfaceVulkan::Destroy() {
+void FRenderContextVulkan::Destroy() {
   if (m_Destroyed) {
     return;
   }

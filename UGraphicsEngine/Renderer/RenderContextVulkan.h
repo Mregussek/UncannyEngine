@@ -1,6 +1,6 @@
 
-#ifndef UNCANNYENGINE_RENDERHARDWAREINTERFACEVULKAN_H
-#define UNCANNYENGINE_RENDERHARDWAREINTERFACEVULKAN_H
+#ifndef UNCANNYENGINE_RENDERCONTEXTVULKAN_H
+#define UNCANNYENGINE_RENDERCONTEXTVULKAN_H
 
 #ifdef WIN32
   #define VK_USE_PLATFORM_WIN32_KHR 1
@@ -18,10 +18,10 @@
 namespace uncanny {
 
 
-class FRenderHardwareInterfaceVulkan {
+class FRenderContextVulkan {
 public:
 
-  ~FRenderHardwareInterfaceVulkan();
+  ~FRenderContextVulkan();
 
   void Create(const std::shared_ptr<IWindow>& pWindow);
   void Destroy();
@@ -45,4 +45,4 @@ private:
 }
 
 
-#endif //UNCANNYENGINE_RENDERHARDWAREINTERFACEVULKAN_H
+#endif //UNCANNYENGINE_RENDERCONTEXTVULKAN_H
