@@ -57,9 +57,6 @@ void FRenderContextVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
   if (!m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentQueueFamilyIndex())) {
     vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
   }
-  m_WindowSurface.UpdateCapabilities();
-  m_WindowSurface.UpdateFormats();
-  m_WindowSurface.UpdatePresentModes();
 }
 
 

@@ -30,34 +30,32 @@ void FWindowSurface::Destroy(VkInstance vkInstance) {
   if (m_Surface != VK_NULL_HANDLE) {
     vkDestroySurfaceKHR(vkInstance, m_Surface, nullptr);
   }
-  m_SupportedFormats.clear();
-  m_SupportedFormats.shrink_to_fit();
 }
 
 
-void FWindowSurface::UpdateCapabilities() {
-  VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Surface, &m_Capabilities);
+VkSurfaceCapabilitiesKHR FWindowSurface::GetCapabilities() const {
+  VkSurfaceCapabilitiesKHR capabilities{};
+  VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Surface, &capabilities);
   AssertVkAndThrow(result);
+  return capabilities;
 }
 
 
-void FWindowSurface::UpdateFormats() {
-  m_SupportedFormats.clear();
-
+std::vector<VkSurfaceFormatKHR> FWindowSurface::GetFormats() const {
   u32 count{ 0 };
   vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &count, nullptr);
-  m_SupportedFormats.resize(count);
-  vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &count, m_SupportedFormats.data());
+  std::vector<VkSurfaceFormatKHR> formats(count);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &count, formats.data());
+  return formats;
 }
 
 
-void FWindowSurface::UpdatePresentModes() {
-  m_SupportedPresentModes.clear();
-
+std::vector<VkPresentModeKHR> FWindowSurface::GetPresentModes() const {
   u32 count{ 0 };
   vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, m_Surface, &count, nullptr);
-  m_SupportedPresentModes.resize(count);
-  vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, m_Surface, &count, m_SupportedPresentModes.data());
+  std::vector<VkPresentModeKHR> modes(count);
+  vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, m_Surface, &count, modes.data());
+  return modes;
 }
 
 

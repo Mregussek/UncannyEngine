@@ -13,31 +13,31 @@
 
 namespace uncanny {
 class IWindow;
+class FRenderContextVulkan;
 }
 namespace uncanny::vulkan {
 
 
 class FWindowSurface {
+
+  // I want RenderContext to access Create() and Destroy() and to check presentation support with IsPresentationSupported()
+  friend class ::uncanny::FRenderContextVulkan;
+
 public:
+
+  [[nodiscard]] VkSurfaceCapabilitiesKHR GetCapabilities() const;
+  [[nodiscard]] std::vector<VkSurfaceFormatKHR> GetFormats() const;
+  [[nodiscard]] std::vector<VkPresentModeKHR> GetPresentModes() const;
+
+private:
 
   void Create(const uncanny::IWindow* pWindow, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
   void Destroy(VkInstance vkInstance);
 
-  void UpdateCapabilities();
-  void UpdateFormats();
-  void UpdatePresentModes();
-
   [[nodiscard]] b8 IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) const;
 
-private:
-
-  std::vector<VkSurfaceFormatKHR> m_SupportedFormats{};
-  std::vector<VkPresentModeKHR> m_SupportedPresentModes{};
   VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };
   VkSurfaceKHR m_Surface{ VK_NULL_HANDLE };
-  VkSurfaceCapabilitiesKHR m_Capabilities{};
-  VkSurfaceFormatKHR m_Format{ VK_FORMAT_UNDEFINED };
-  VkPresentModeKHR m_PresentMode{ VK_PRESENT_MODE_FIFO_KHR };
 
 };
 
