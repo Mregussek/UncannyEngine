@@ -14,6 +14,7 @@ namespace uncanny::vulkan {
  * @brief FInstance is wrapper class for VkInstance functionality. App is responsible for destruction
  * of VkInstance with vkDestroyInstance. FInstanceProperties delivers all required layers and extensions along
  * with API version during creation.
+ * Class should be used only inside RHI, so that it will be used properly. No exposure to the end user.
  */
 class FInstance {
 public:

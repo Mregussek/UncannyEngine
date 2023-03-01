@@ -1,7 +1,7 @@
 
 #include "RendererVulkan.h"
-#include "Vulkan/Devices/LogicalDevice.h"
 #include <algorithm>
+#include <utility>
 
 
 namespace uncanny {

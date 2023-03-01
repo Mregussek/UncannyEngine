@@ -26,15 +26,15 @@ public:
   void Create(const std::shared_ptr<IWindow>& pWindow);
   void Destroy();
 
-  [[nodiscard]] const vulkan::FLogicalDevice& GetLogicalDevice() const { return m_LogicalDevice; }
+  [[nodiscard]] const vulkan::FLogicalDevice* GetLogicalDevice() const { return &m_LogicalDevice; }
 
 private:
 
   vulkan::FInstance m_Instance{};
   vulkan::FEXTDebugUtils m_DebugUtils{};
   vulkan::FPhysicalDevice m_PhysicalDevice{};
-  vulkan::FLogicalDevice m_LogicalDevice{};
   vulkan::FVolkHandler m_VolkHandler{};
+  vulkan::FLogicalDevice m_LogicalDevice{};
   std::shared_ptr<IWindow> m_pWindow{};
   // @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };

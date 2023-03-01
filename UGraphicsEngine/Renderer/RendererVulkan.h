@@ -4,13 +4,11 @@
 
 
 #include <vector>
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
 
 
-namespace uncanny::vulkan {
-class FLogicalDevice;
-}
 namespace uncanny {
 
 

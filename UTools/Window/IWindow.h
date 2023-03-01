@@ -22,7 +22,7 @@ class IWindow {
 public:
 
   virtual ~IWindow() = default;
-  
+
   virtual void Create(const FWindowConfiguration& windowConfiguration) = 0;
   virtual void Destroy() = 0;
 

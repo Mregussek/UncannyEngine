@@ -9,14 +9,18 @@
 #include "Queue.h"
 
 
+namespace uncanny {
+class FRenderHardwareInterfaceVulkan;
+}
 namespace uncanny::vulkan {
 
 
 class FLogicalDevice {
-public:
 
-  void Create(const FLogicalDeviceAttributes& attributes, VkPhysicalDevice vkPhysicalDevice);
-  void Destroy();
+  // I want only RHI to access Create() and Destroy() methods, not more! Only reason for friendship
+  friend class ::uncanny::FRenderHardwareInterfaceVulkan;
+
+public:
 
   void Wait() const;
 
@@ -36,6 +40,8 @@ public:
 
 private:
 
+  void Create(const FLogicalDeviceAttributes& attributes, VkPhysicalDevice vkPhysicalDevice);
+  void Destroy();
   void InitializeQueues();
 
 

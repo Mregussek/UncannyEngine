@@ -12,8 +12,6 @@ namespace uncanny::vulkan {
 class FWindowSurface {
 public:
 
-
-
 private:
 
   VkSurfaceKHR m_Surface{ VK_NULL_HANDLE };

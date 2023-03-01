@@ -42,7 +42,7 @@ private:
 
     m_RHI.Create(m_Window);
 
-    m_Renderer.Create(&m_RHI.GetLogicalDevice());
+    m_Renderer.Create(m_RHI.GetLogicalDevice());
   }
 
   void Destroy() {
