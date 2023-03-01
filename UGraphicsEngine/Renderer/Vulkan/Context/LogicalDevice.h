@@ -11,6 +11,12 @@
 namespace uncanny::vulkan {
 
 
+/*
+ * @brief FLogicalDevice is general wrapper class for VkDevice handle.
+ * As this logical device travels across several classes in RenderDevice I decided to hide Create() and Destroy()
+ * methods from the end user and make friendship with RenderContext so that only RenderContext can manage
+ * its lifetime.
+ */
 class FLogicalDevice {
 
   // I want only RenderContext to access Create() and Destroy() methods, not more! Only reason for friendship

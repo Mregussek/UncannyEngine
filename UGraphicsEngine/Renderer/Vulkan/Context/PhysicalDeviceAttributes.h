@@ -11,6 +11,11 @@
 namespace uncanny::vulkan {
 
 
+/*
+ * @brief FPhysicalDeviceAttributes is a helper class for FPhysicalDevice. Also, it is used in FPhysicalDeviceSelector
+ * as it is written in a way that, it only retrieves information about physical device. It is used
+ * for retrieving information about device extensions, properties, queue families etc.
+ */
 class FPhysicalDeviceAttributes {
 public:
 

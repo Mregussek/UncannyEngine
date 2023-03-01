@@ -40,8 +40,8 @@ void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQu
 }
 
 
-void FLogicalDeviceAttributes::InitializeDeviceFeatures(const FPhysicalDeviceAttributes& physicalDeviceAttributes) {
-  m_DeviceFeatures = physicalDeviceAttributes.GetDeviceFeatures();
+void FLogicalDeviceAttributes::InitializeDeviceFeatures(const VkPhysicalDeviceFeatures& physicalDeviceFeatures) {
+  m_DeviceFeatures = physicalDeviceFeatures;
 }
 
 

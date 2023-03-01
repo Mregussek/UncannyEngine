@@ -16,6 +16,12 @@ namespace uncanny::vulkan {
 class FPhysicalDeviceAttributes;
 
 
+/*
+ * @brief FLogicalDeviceAttributes is a helper class for FLogicalDevice. It is responsible for querying
+ * queue families with some internal specification, selecting several device features and managing
+ * extensions that logical device will use.
+ * it has many getter methods for retrieval information during runtime for Render Device.
+ */
 class FLogicalDeviceAttributes {
 public:
 
@@ -23,7 +29,7 @@ public:
                                     VkInstance vkInstance,
                                     VkPhysicalDevice vkPhysicalDevice);
 
-  void InitializeDeviceFeatures(const FPhysicalDeviceAttributes& physicalDeviceAttributes);
+  void InitializeDeviceFeatures(const VkPhysicalDeviceFeatures& physicalDeviceFeatures);
 
   b8 AddExtensionName(const char* extensionName, const FPhysicalDeviceAttributes& physicalDeviceAttributes);
 

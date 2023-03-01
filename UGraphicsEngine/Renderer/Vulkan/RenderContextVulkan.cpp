@@ -44,6 +44,7 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow) {
                                                          m_Instance.GetHandle(),
                                                          m_PhysicalDevice.GetHandle());
     logicalDeviceAttributes.AddExtensionName(VK_KHR_SWAPCHAIN_EXTENSION_NAME, m_PhysicalDevice.GetAttributes());
+    logicalDeviceAttributes.InitializeDeviceFeatures(m_PhysicalDevice.GetAttributes().GetDeviceFeatures());
 
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());
   }

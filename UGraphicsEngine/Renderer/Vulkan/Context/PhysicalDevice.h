@@ -10,6 +10,11 @@
 namespace uncanny::vulkan {
 
 
+/*
+ * @brief FPhysicalDevice is a wrapper class for VkPhysicalDevice handle. It must be used only by
+ * Render Context. Initialize method is implemented because VkPhysicalDevice is rather "retrieved" from
+ * VkInstance than created and then destroyed.
+ */
 class FPhysicalDevice {
 public:
 

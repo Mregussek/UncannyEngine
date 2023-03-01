@@ -9,6 +9,10 @@
 namespace uncanny::vulkan {
 
 
+/*
+ * @brief FEXTDebugUtils is wrapper class for DebugUtilsMessenger handle in Vulkan.
+ * Must be used only in RenderContext. RenderContext is responsible for lifetime.
+ */
 class FEXTDebugUtils {
 public:
 
