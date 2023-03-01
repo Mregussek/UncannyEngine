@@ -17,7 +17,9 @@ class FSwapchain {
 public:
 
   void Create(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface);
-  void Destroy();
+  void Destroy(const FLogicalDevice* pLogicalDevice);
+
+  void Recreate(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface);
 
 private:
 

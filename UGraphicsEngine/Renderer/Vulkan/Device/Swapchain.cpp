@@ -63,13 +63,34 @@ void FSwapchain::Create(const FLogicalDevice* pLogicalDevice, const FWindowSurfa
   createInfo.presentMode = createAttributes.presentMode;
   createInfo.clipped = VK_TRUE; // clipping world that is beyond presented surface (not visible)
   createInfo.oldSwapchain = m_OldSwapchain;
+
+  VkResult result = vkCreateSwapchainKHR(pLogicalDevice->GetHandle(), &createInfo, nullptr, &m_Swapchain);
+  AssertVkAndThrow(result);
 }
 
 
-void FSwapchain::Destroy() {
-
+void FSwapchain::Destroy(const FLogicalDevice* pLogicalDevice) {
+  if (m_Swapchain != VK_NULL_HANDLE) {
+    vkDestroySwapchainKHR(pLogicalDevice->GetHandle(), m_Swapchain, nullptr);
+  }
+  if (m_OldSwapchain != VK_NULL_HANDLE) {
+    vkDestroySwapchainKHR(pLogicalDevice->GetHandle(), m_OldSwapchain, nullptr);
+  }
 }
 
+
+void FSwapchain::Recreate(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface) {
+  // Swap swapchain before recreate...
+  m_OldSwapchain = m_Swapchain;
+  m_Swapchain = VK_NULL_HANDLE;
+
+  // Just Create Call (meh this comments)...
+  Create(pLogicalDevice, pWindowSurface);
+
+  // Destroy the old one (I assume it is always no VK_NULL_HANDLE there, as Create() method does not destroy it
+  vkDestroySwapchainKHR(pLogicalDevice->GetHandle(), m_OldSwapchain, nullptr);
+  m_OldSwapchain = VK_NULL_HANDLE;
+}
 
 
 b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca, const FWindowSurface* pWindowSurface) {
