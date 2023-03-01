@@ -49,14 +49,17 @@ b8 AreCreateAttributesSupported(const FSwapchainCreateAttributes& createAttribut
   const VkSurfaceCapabilitiesKHR& surfaceCapabilities = pWindowSurface->GetCapabilities();
 
   // Validate surface capabilities...
+  // Validating min image count...
   if (not (surfaceCapabilities.minImageCount <= createAttributes.minImageCount and createAttributes.minImageCount <= surfaceCapabilities.maxImageCount)) {
     UERROR("Not supported min image count for surface capabilities!");
     return UFALSE;
   }
+  // Validating pre transform...
   if (not (surfaceCapabilities.supportedTransforms & createAttributes.preTransform)) {
     UERROR("Not supported pre transform for surface capabilities!");
     return UFALSE;
   }
+  // Validating if all requested image usage flags are supported...
   if (std::ranges::find_if(createAttributes.imageUsageFlags,[supportedFlags = surfaceCapabilities.supportedUsageFlags](auto flag)->bool{
     return supportedFlags & flag; }) == createAttributes.imageUsageFlags.end())
   {
@@ -66,6 +69,7 @@ b8 AreCreateAttributesSupported(const FSwapchainCreateAttributes& createAttribut
   // ... surface capabilities validated
 
   // Validate surface format...
+  // Validating if requested surface format is supported...
   auto formats = pWindowSurface->GetFormats();
   if (std::ranges::find_if(formats, [expectedFormat = createAttributes.surfaceFormat](auto surfaceFormat)->bool{
     return expectedFormat.format == surfaceFormat.format and expectedFormat.colorSpace == surfaceFormat.colorSpace; }) == formats.end())
@@ -73,7 +77,7 @@ b8 AreCreateAttributesSupported(const FSwapchainCreateAttributes& createAttribut
     UERROR("Not supported surface format!");
     return UFALSE;
   }
-
+  // Validating if requested surface format features are supported...
   VkFormatProperties formatProperties = pWindowSurface->GetFormatProperties(createAttributes.surfaceFormat.format);
   VkFormatFeatureFlags actualFormatFeatureFlags = createAttributes.imageTiling == VK_IMAGE_TILING_OPTIMAL ? formatProperties.optimalTilingFeatures : formatProperties.linearTilingFeatures;
   if (std::ranges::find_if(createAttributes.imageFormatFeatureFlags, [actualFormatFeatureFlags](VkFormatFeatureFlags flag)->bool{
