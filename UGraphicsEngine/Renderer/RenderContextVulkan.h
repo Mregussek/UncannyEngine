@@ -28,7 +28,7 @@ public:
 
   [[nodiscard]] const vulkan::FLogicalDevice* GetLogicalDevice() const { return &m_LogicalDevice; }
   [[nodiscard]] const vulkan::FWindowSurface* GetWindowSurface() const { return &m_WindowSurface; }
-  
+
 private:
 
   vulkan::FInstance m_Instance{};

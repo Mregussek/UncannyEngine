@@ -4,7 +4,8 @@
 
 
 #include <volk.h>
-#include "CommandPoolFactory.h"
+#include "CommandBuffer.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Devices/LogicalDeviceAttributes.h"
 
 
 namespace uncanny::vulkan {
@@ -13,18 +14,17 @@ namespace uncanny::vulkan {
 class FCommandPool {
 public:
 
-  FCommandPool() = delete;
-  FCommandPool(VkDevice vkDevice, VkCommandPool vkCommandPool);
-
+  void Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice);
   void Destroy();
 
   void Reset();
 
-  [[nodiscard]] const FCommandPoolFactory& GetFactory() const { return m_Factory; }
+  [[nodiscard]] std::vector<FCommandBuffer> AllocatePrimaryCommandBuffers(u32 count) const;
+
+  [[nodiscard]] FCommandBuffer AllocateAndBeginSingleUseCommandBuffer() const;
 
 private:
 
-  FCommandPoolFactory m_Factory{};
   VkDevice m_Device{ VK_NULL_HANDLE };
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
 

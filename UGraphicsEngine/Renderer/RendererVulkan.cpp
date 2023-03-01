@@ -12,16 +12,16 @@ FRendererVulkan::~FRendererVulkan() {
 }
 
 
-void FRendererVulkan::Create(const vulkan::FLogicalDevice* pLogicalDevice) {
+void FRendererVulkan::Create(const vulkan::FLogicalDevice* pLogicalDevice, const vulkan::FWindowSurface* pWindowSurface) {
   m_pLogicalDevice = pLogicalDevice;
+  m_pWindowSurface = pWindowSurface;
 
-  vulkan::FLogicalDeviceFactory logicalDeviceFactory = m_pLogicalDevice->GetFactory();
-  m_GraphicsCommandPool = logicalDeviceFactory.CreateCommandPool(m_pLogicalDevice->GetGraphicsQueueFamilyIndex());
-  m_TransferCommandPool = logicalDeviceFactory.CreateCommandPool(m_pLogicalDevice->GetTransferQueueFamilyIndex());
-  m_ComputeCommandPool = logicalDeviceFactory.CreateCommandPool(m_pLogicalDevice->GetComputeQueueFamilyIndex());
+  m_GraphicsCommandPool.Create(m_pLogicalDevice->GetGraphicsQueueFamilyIndex(), m_pLogicalDevice->GetHandle());
+  m_TransferCommandPool.Create(m_pLogicalDevice->GetTransferQueueFamilyIndex(), m_pLogicalDevice->GetHandle());
+  m_ComputeCommandPool.Create(m_pLogicalDevice->GetComputeQueueFamilyIndex(), m_pLogicalDevice->GetHandle());
 
-  m_RenderCommandBuffers = m_GraphicsCommandPool.GetFactory().AllocatePrimaryCommandBuffers(2);
-  m_TransferCommandBuffers = m_TransferCommandPool.GetFactory().AllocatePrimaryCommandBuffers(2);
+  m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(2);
+  m_TransferCommandBuffers = m_TransferCommandPool.AllocatePrimaryCommandBuffers(2);
 }
 
 

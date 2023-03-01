@@ -42,7 +42,7 @@ private:
 
     m_Context.Create(m_Window);
 
-    m_Renderer.Create(m_Context.GetLogicalDevice());
+    m_Renderer.Create(m_Context.GetLogicalDevice(), m_Context.GetWindowSurface());
   }
 
   void Destroy() {

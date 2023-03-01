@@ -5,7 +5,6 @@
 
 #include <volk.h>
 #include "LogicalDeviceAttributes.h"
-#include "LogicalDeviceFactory.h"
 #include "Queue.h"
 
 
@@ -34,7 +33,7 @@ public:
   [[nodiscard]] const FQueue& GetTransferQueue() const { return m_TransferQueue; }
   [[nodiscard]] const FQueue& GetComputeQueue() const { return m_ComputeQueue; }
 
-  [[nodiscard]] const FLogicalDeviceFactory& GetFactory() const { return m_Factory; }
+  [[nodiscard]] VkDevice GetHandle() const { return m_Device; }
 
   [[nodiscard]] b32 IsValid() const noexcept { return m_Device != VK_NULL_HANDLE; }
 
@@ -46,7 +45,6 @@ private:
 
 
   FLogicalDeviceAttributes m_Attributes{};
-  FLogicalDeviceFactory m_Factory{};
   FQueue m_GraphicsQueue{};
   FQueue m_PresentQueue{};
   FQueue m_TransferQueue{};

@@ -58,8 +58,6 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
   VkResult result = vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &m_Device);
   AssertVkAndThrow(result);
 
-  m_Factory.m_Device = m_Device;
-
   InitializeQueues();
 }
 
