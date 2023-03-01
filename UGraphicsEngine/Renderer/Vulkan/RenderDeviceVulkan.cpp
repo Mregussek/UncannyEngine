@@ -12,6 +12,8 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
   m_pLogicalDevice = pLogicalDevice;
   m_pWindowSurface = pWindowSurface;
 
+  m_Swapchain.Create(m_pLogicalDevice, m_pWindowSurface);
+
   m_GraphicsCommandPool.Create(m_pLogicalDevice->GetGraphicsQueueFamilyIndex(), m_pLogicalDevice->GetHandle());
   m_TransferCommandPool.Create(m_pLogicalDevice->GetTransferQueueFamilyIndex(), m_pLogicalDevice->GetHandle());
   m_ComputeCommandPool.Create(m_pLogicalDevice->GetComputeQueueFamilyIndex(), m_pLogicalDevice->GetHandle());
@@ -41,6 +43,8 @@ void FRenderDevice::Destroy() {
   m_GraphicsCommandPool.Destroy();
   m_TransferCommandPool.Destroy();
   m_ComputeCommandPool.Destroy();
+
+  m_Swapchain.Destroy();
 
   m_Destroyed = UTRUE;
 }

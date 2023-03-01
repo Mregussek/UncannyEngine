@@ -50,6 +50,13 @@ std::vector<VkSurfaceFormatKHR> FWindowSurface::GetFormats() const {
 }
 
 
+VkFormatProperties FWindowSurface::GetFormatProperties(VkFormat format) const {
+  VkFormatProperties properties{};
+  vkGetPhysicalDeviceFormatProperties(m_PhysicalDevice, format, &properties);
+  return properties;
+}
+
+
 std::vector<VkPresentModeKHR> FWindowSurface::GetPresentModes() const {
   u32 count{ 0 };
   vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, m_Surface, &count, nullptr);

@@ -6,6 +6,7 @@
 #include <vector>
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
 
 
 namespace uncanny::vulkan {
@@ -25,6 +26,7 @@ private:
 
   const FLogicalDevice* m_pLogicalDevice{ nullptr };
   const FWindowSurface* m_pWindowSurface{ nullptr };
+  FSwapchain m_Swapchain{};
   FCommandPool m_GraphicsCommandPool{};
   FCommandPool m_TransferCommandPool{};
   FCommandPool m_ComputeCommandPool{};
