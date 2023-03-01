@@ -3,7 +3,7 @@
 #define UNCANNYENGINE_LOGICALDEVICE_H
 
 
-#include "UGraphicsEngine/3rdparty/volk/volk.h"
+#include <volk.h>
 #include "LogicalDeviceAttributes.h"
 #include "LogicalDeviceFactory.h"
 #include "Queue.h"

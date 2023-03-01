@@ -3,14 +3,23 @@
 #define UNCANNYENGINE_WINDOWSURFACE_H
 
 
+#ifdef WIN32
+  #define VK_USE_PLATFORM_WIN32_KHR 1
+#endif
 #include <volk.h>
 
 
+namespace uncanny {
+class IWindow;
+}
 namespace uncanny::vulkan {
 
 
 class FWindowSurface {
 public:
+
+  void Create(const uncanny::IWindow* pWindow, VkInstance vkInstance);
+  void Destroy(VkInstance vkInstance);
 
 private:
 

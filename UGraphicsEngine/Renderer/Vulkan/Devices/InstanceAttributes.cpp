@@ -1,9 +1,7 @@
 
 #include "InstanceAttributes.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
-
 #include <algorithm>
-
+#include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UTools/Logger/Log.h"
 
 

@@ -3,7 +3,7 @@
 #define UNCANNYENGINE_INSTANCEATTRIBUTES_H
 
 
-#include "UGraphicsEngine/3rdparty/volk/volk.h"
+#include <volk.h>
 #include <vector>
 #include <string_view>
 #include "UTools/UTypes.h"

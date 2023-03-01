@@ -35,6 +35,7 @@ private:
   vulkan::FPhysicalDevice m_PhysicalDevice{};
   vulkan::FVolkHandler m_VolkHandler{};
   vulkan::FLogicalDevice m_LogicalDevice{};
+  vulkan::FWindowSurface m_WindowSurface{};
   std::shared_ptr<IWindow> m_pWindow{};
   // @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };

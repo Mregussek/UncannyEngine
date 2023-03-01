@@ -3,7 +3,7 @@
 #define UNCANNYENGINE_EXTDEBUGUTILS_H
 
 
-#include "UGraphicsEngine/3rdparty/volk/volk.h"
+#include <volk.h>
 
 
 namespace uncanny::vulkan {

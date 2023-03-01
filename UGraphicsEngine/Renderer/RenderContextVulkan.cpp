@@ -53,6 +53,8 @@ void FRenderContextVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
 
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());
   }
+
+  m_WindowSurface.Create(m_pWindow.get(), m_Instance.GetHandle());
 }
 
 
@@ -64,6 +66,7 @@ void FRenderContextVulkan::Destroy() {
     m_LogicalDevice.Wait();
   }
 
+  m_WindowSurface.Destroy(m_Instance.GetHandle());
   m_LogicalDevice.Destroy();
   m_DebugUtils.Destroy(m_Instance.GetHandle());
   m_Instance.Destroy();
