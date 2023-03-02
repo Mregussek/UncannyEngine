@@ -6,19 +6,20 @@
 #include <volk.h>
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
  * @brief FVolkHandler is a helper class for volk library. I have decided to create this class
  * for simple volkInitialize as it looks much better during Renderer.Initialize().
  */
-class FVolkHandler {
+class FVolkHandler
+{
 public:
 
-  void Create();
+  void Initialize();
   void LoadInstance(VkInstance vkInstance);
-  void Destroy();
 
 };
 

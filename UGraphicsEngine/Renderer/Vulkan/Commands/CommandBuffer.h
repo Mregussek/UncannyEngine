@@ -6,10 +6,12 @@
 #include <volk.h>
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FCommandBuffer {
+class FCommandBuffer
+{
 public:
 
   FCommandBuffer() = delete;

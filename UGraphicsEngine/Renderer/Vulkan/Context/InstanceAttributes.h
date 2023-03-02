@@ -8,7 +8,8 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
@@ -16,7 +17,8 @@ namespace uncanny::vulkan {
  * requested instance layers and extensions with actual available ones. Also, it queries API version that is
  * ready to use. Afterwards object of this class is handed to the FInstance.Create().
  */
-class FInstanceAttributes {
+class FInstanceAttributes
+{
 public:
 
   void Initialize();
@@ -26,9 +28,9 @@ public:
 
   [[nodiscard]] b8 IsVersionAvailable(u32 apiVersion) const;
 
-  [[nodiscard]] u32 GetVersion() const noexcept { return m_SupportedVersion; }
-  [[nodiscard]] const std::vector<const char*>& GetRequestedLayers() const noexcept { return m_RequestedLayers; }
-  [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const noexcept { return m_RequestExtensions; }
+  [[nodiscard]] u32 GetVersion() const { return m_SupportedVersion; }
+  [[nodiscard]] const std::vector<const char*>& GetRequestedLayers() const { return m_RequestedLayers; }
+  [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const { return m_RequestExtensions; }
 
 private:
 

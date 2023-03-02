@@ -3,10 +3,12 @@
 #include "UTools/Logger/Log.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-void FPhysicalDevice::Initialize(VkPhysicalDevice physicalDevice) {
+void FPhysicalDevice::Initialize(VkPhysicalDevice physicalDevice)
+{
   m_PhysicalDevice = physicalDevice;
 
   m_Attributes.Initialize(m_PhysicalDevice);

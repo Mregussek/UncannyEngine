@@ -4,10 +4,14 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-void FWindowSurface::Create(const ::uncanny::IWindow* pWindow, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice) {
+void FWindowSurface::Create(const ::uncanny::IWindow* pWindow,
+                            VkInstance vkInstance,
+                            VkPhysicalDevice vkPhysicalDevice)
+{
   m_PhysicalDevice = vkPhysicalDevice;
 
 #if defined(WIN32)
@@ -26,14 +30,17 @@ void FWindowSurface::Create(const ::uncanny::IWindow* pWindow, VkInstance vkInst
 }
 
 
-void FWindowSurface::Destroy(VkInstance vkInstance) {
-  if (m_Surface != VK_NULL_HANDLE) {
+void FWindowSurface::Destroy(VkInstance vkInstance)
+{
+  if (m_Surface != VK_NULL_HANDLE)
+  {
     vkDestroySurfaceKHR(vkInstance, m_Surface, nullptr);
   }
 }
 
 
-VkSurfaceCapabilitiesKHR FWindowSurface::GetCapabilities() const {
+VkSurfaceCapabilitiesKHR FWindowSurface::GetCapabilities() const
+{
   VkSurfaceCapabilitiesKHR capabilities{};
   VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Surface, &capabilities);
   AssertVkAndThrow(result);
@@ -41,7 +48,8 @@ VkSurfaceCapabilitiesKHR FWindowSurface::GetCapabilities() const {
 }
 
 
-std::vector<VkSurfaceFormatKHR> FWindowSurface::GetFormats() const {
+std::vector<VkSurfaceFormatKHR> FWindowSurface::GetFormats() const
+{
   u32 count{ 0 };
   vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &count, nullptr);
   std::vector<VkSurfaceFormatKHR> formats(count);
@@ -50,14 +58,16 @@ std::vector<VkSurfaceFormatKHR> FWindowSurface::GetFormats() const {
 }
 
 
-VkFormatProperties FWindowSurface::GetFormatProperties(VkFormat format) const {
+VkFormatProperties FWindowSurface::GetFormatProperties(VkFormat format) const
+{
   VkFormatProperties properties{};
   vkGetPhysicalDeviceFormatProperties(m_PhysicalDevice, format, &properties);
   return properties;
 }
 
 
-std::vector<VkPresentModeKHR> FWindowSurface::GetPresentModes() const {
+std::vector<VkPresentModeKHR> FWindowSurface::GetPresentModes() const
+{
   u32 count{ 0 };
   vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, m_Surface, &count, nullptr);
   std::vector<VkPresentModeKHR> modes(count);
@@ -66,7 +76,8 @@ std::vector<VkPresentModeKHR> FWindowSurface::GetPresentModes() const {
 }
 
 
-b8 FWindowSurface::IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) const {
+b8 FWindowSurface::IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) const
+{
   VkBool32 result{ VK_FALSE };
   vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, queueFamilyIndex, m_Surface, &result);
   return result ? UTRUE : UFALSE;

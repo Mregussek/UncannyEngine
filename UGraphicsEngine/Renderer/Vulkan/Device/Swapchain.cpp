@@ -6,15 +6,19 @@
 #include "UTools/Logger/Log.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-struct FSwapchainCreateAttributes {
-  std::array<VkImageUsageFlags, 2> imageUsageFlags{
+struct FSwapchainCreateAttributes
+{
+  std::array<VkImageUsageFlags, 2> imageUsageFlags
+  {
       VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
   };
-  std::array<VkFormatFeatureFlags, 2> imageFormatFeatureFlags{
+  std::array<VkFormatFeatureFlags, 2> imageFormatFeatureFlags
+  {
       VK_FORMAT_FEATURE_TRANSFER_DST_BIT,
       VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
   };
@@ -27,17 +31,19 @@ struct FSwapchainCreateAttributes {
 
 
 /*
- * @brief Function checks all attributes in FSwapchainCreateAttributes and replaces them if they are not supported.
- * @return Status of replace, if everything went fine True is returned, when sth cannot be replaced / is not supported failed is returned
+ * @brief Function checks all attributes and replaces them if they aren't supported.
+ * @return Status of replace, if everything went fine UTRUE is returned, UFALSE otherwise
  */
-static b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca, const FWindowSurface* pWindowSurface);
+static b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca,
+                                                          const FWindowSurface* pWindowSurface);
 
 
 static VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> vec);
 
 
 
-void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSurface* pWindowSurface) {
+void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSurface* pWindowSurface)
+{
   m_Device = vkDevice;
   m_pWindowSurface = pWindowSurface;
   m_BackBufferCount = backBufferCount;
@@ -47,7 +53,8 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSur
   m_Fences.resize(m_BackBufferCount);
   m_ImageAvailableSemaphores.resize(m_BackBufferCount);
   m_PresentableImagesReadySemaphores.resize(m_BackBufferCount);
-  for(u32 i = 0; i < m_BackBufferCount; i++) {
+  for(u32 i = 0; i < m_BackBufferCount; i++)
+  {
     m_Fences[i].Create(m_Device);
     m_ImageAvailableSemaphores[i].Create(m_Device);
     m_PresentableImagesReadySemaphores[i].Create(m_Device);
@@ -55,11 +62,13 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSur
 }
 
 
-void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain) {
+void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
+{
   FSwapchainCreateAttributes createAttributes{};
   createAttributes.minImageCount = m_BackBufferCount;
   b8 replaced = ReplaceRequestedAttributesWithSupportedIfNeeded(createAttributes, m_pWindowSurface);
-  if (not replaced) {
+  if (not replaced)
+  {
     AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Create attributes for swapchain are not supported!");
   }
 
@@ -88,11 +97,14 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain) {
 }
 
 
-void FSwapchain::Destroy() {
-  if (m_Swapchain != VK_NULL_HANDLE) {
+void FSwapchain::Destroy()
+{
+  if (m_Swapchain != VK_NULL_HANDLE)
+  {
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
   }
-  for(u32 i = 0; i < m_BackBufferCount; i++) {
+  for(u32 i = 0; i < m_BackBufferCount; i++)
+  {
     m_Fences[i].Destroy();
     m_ImageAvailableSemaphores[i].Destroy();
     m_PresentableImagesReadySemaphores[i].Destroy();
@@ -106,7 +118,8 @@ void FSwapchain::Destroy() {
 }
 
 
-void FSwapchain::Recreate() {
+void FSwapchain::Recreate()
+{
   VkSwapchainKHR oldSwapchain = m_Swapchain;
   m_Swapchain = VK_NULL_HANDLE;
 
@@ -116,7 +129,8 @@ void FSwapchain::Recreate() {
 }
 
 
-void FSwapchain::WaitForNextImage() {
+void FSwapchain::WaitForNextImage()
+{
   //u64 timeout = std::numeric_limits<u64>::max();
   //VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
   //                                        m_ImageAvailableSemaphores[mCurrentFrame].GetHandle(),
@@ -124,23 +138,29 @@ void FSwapchain::WaitForNextImage() {
 }
 
 
-b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca, const FWindowSurface* pWindowSurface) {
-  const VkSurfaceCapabilitiesKHR& surfaceCapabilities = pWindowSurface->GetCapabilities();
+b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca,
+                                                   const FWindowSurface* pWindowSurface)
+{
+  const VkSurfaceCapabilitiesKHR& surfaceCaps = pWindowSurface->GetCapabilities();
 
   // Validate surface capabilities...
   // Validating min image count...
-  if (not (surfaceCapabilities.minImageCount <= ca.minImageCount and ca.minImageCount <= surfaceCapabilities.maxImageCount)) {
+  if (not (surfaceCaps.minImageCount <= ca.minImageCount and ca.minImageCount <= surfaceCaps.maxImageCount))
+  {
     UERROR("Not supported min image count for surface capabilities!");
     return UFALSE;
   }
   // Validating pre transform...
-  if (not (surfaceCapabilities.supportedTransforms & ca.preTransform)) {
+  if (not (surfaceCaps.supportedTransforms & ca.preTransform))
+  {
     UERROR("Not supported pre transform for surface capabilities!");
     return UFALSE;
   }
   // Validating if all requested image usage flags are supported...
-  if (std::ranges::find_if(ca.imageUsageFlags,[supportedFlags = surfaceCapabilities.supportedUsageFlags](auto flag)->bool{
-    return supportedFlags & flag; }) == ca.imageUsageFlags.end())
+  if (std::ranges::find_if(ca.imageUsageFlags,[supportedFlags = surfaceCaps.supportedUsageFlags](auto flag)->bool
+  {
+    return supportedFlags & flag;
+  }) == ca.imageUsageFlags.end())
   {
     UERROR("Not supported image usage flag!");
     return UFALSE;
@@ -150,17 +170,29 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
   // Validate surface format...
   // Validating if requested surface format is supported...
   auto formats = pWindowSurface->GetFormats();
-  if (std::ranges::find_if(formats, [expectedFormat = ca.surfaceFormat](auto surfaceFormat)->bool{
-    return expectedFormat.format == surfaceFormat.format and expectedFormat.colorSpace == surfaceFormat.colorSpace; }) == formats.end())
+  if (std::ranges::find_if(formats, [expectedFormat = ca.surfaceFormat](auto surfaceFormat)->bool
+  {
+    return expectedFormat.format == surfaceFormat.format and expectedFormat.colorSpace == surfaceFormat.colorSpace;
+  }) == formats.end())
   {
     UWARN("Using 0-indexed surface format as requested one is not supported!");
     ca.surfaceFormat = formats[0];
   }
   // Validating if requested surface format features are supported...
   VkFormatProperties formatProperties = pWindowSurface->GetFormatProperties(ca.surfaceFormat.format);
-  VkFormatFeatureFlags actualFormatFeatureFlags = ca.imageTiling == VK_IMAGE_TILING_OPTIMAL ? formatProperties.optimalTilingFeatures : formatProperties.linearTilingFeatures;
-  if (std::ranges::find_if(ca.imageFormatFeatureFlags, [actualFormatFeatureFlags](VkFormatFeatureFlags flag)->bool{
-    return actualFormatFeatureFlags & flag; }) == ca.imageFormatFeatureFlags.end())
+  VkFormatFeatureFlags actualFormatFeatureFlags;
+  if (ca.imageTiling == VK_IMAGE_TILING_OPTIMAL)
+  {
+    actualFormatFeatureFlags = formatProperties.optimalTilingFeatures;
+  }
+  else
+  {
+    actualFormatFeatureFlags = formatProperties.linearTilingFeatures;
+  }
+  if (std::ranges::find_if(ca.imageFormatFeatureFlags, [actualFormatFeatureFlags](VkFormatFeatureFlags flag)->bool
+  {
+    return actualFormatFeatureFlags & flag;
+  }) == ca.imageFormatFeatureFlags.end())
   {
     UERROR("Not supported format feature flag!");
     return UFALSE;
@@ -169,7 +201,8 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
 
   // Validate present mode...
   auto presentModes = pWindowSurface->GetPresentModes();
-  if (std::ranges::find(presentModes, ca.presentMode) == presentModes.end()) {
+  if (std::ranges::find(presentModes, ca.presentMode) == presentModes.end())
+  {
     UWARN("Using default FIFO present mode as required one is not supported!");
     ca.presentMode = VK_PRESENT_MODE_FIFO_KHR;
   }
@@ -179,9 +212,11 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
 }
 
 
-VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> vec) {
+VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> vec)
+{
   VkImageUsageFlags rtn{ 0 };
-  std::ranges::for_each(vec, [&rtn](auto flag){
+  std::ranges::for_each(vec, [&rtn](auto flag)
+  {
     rtn &= flag;
   });
   return rtn;

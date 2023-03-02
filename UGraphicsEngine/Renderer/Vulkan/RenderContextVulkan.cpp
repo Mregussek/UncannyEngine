@@ -7,10 +7,12 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow) {
+void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
+{
   m_pWindow = pWindow;
 
   m_VolkHandler.Create();
@@ -18,7 +20,8 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow) {
   {
     vulkan::FInstanceAttributes instanceAttributes{};
     instanceAttributes.Initialize();
-    if (!instanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3)) {
+    if (!instanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3))
+    {
       vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
     }
     instanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");
@@ -50,17 +53,21 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow) {
   }
 
   m_WindowSurface.Create(m_pWindow.get(), m_Instance.GetHandle(), m_PhysicalDevice.GetHandle());
-  if (!m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentQueueFamilyIndex())) {
+  if (!m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentFamilyIndex()))
+  {
     vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
   }
 }
 
 
-void FRenderContext::Destroy() {
-  if (m_Destroyed) {
+void FRenderContext::Destroy()
+{
+  if (m_Destroyed)
+  {
     return;
   }
-  if (m_LogicalDevice.IsValid()) {
+  if (m_LogicalDevice.IsValid())
+  {
     m_LogicalDevice.Wait();
   }
 

@@ -15,10 +15,12 @@
 #include "UTools/Window/IWindow.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FRenderContext {
+class FRenderContext
+{
 public:
 
   void Create(const std::shared_ptr<IWindow>& pWindow);

@@ -12,25 +12,27 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FQueueFamilySelector {
+class FQueueFamilySelector
+{
 public:
 
-  [[nodiscard]] std::optional<u32> SelectGraphicsQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+  [[nodiscard]] std::optional<u32> SelectGraphicsQueueFamily(std::span<const VkQueueFamilyProperties> properties,
                                                              VkInstance vkInstance,
                                                              VkPhysicalDevice vkPhysicalDevice) const;
 
-  [[nodiscard]] std::optional<u32> SelectPresentQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+  [[nodiscard]] std::optional<u32> SelectPresentQueueFamily(std::span<const VkQueueFamilyProperties> properties,
                                                             VkInstance vkInstance,
                                                             VkPhysicalDevice vkPhysicalDevice) const;
 
-  [[nodiscard]] std::optional<u32> SelectTransferQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+  [[nodiscard]] std::optional<u32> SelectTransferQueueFamily(std::span<const VkQueueFamilyProperties> properties,
                                                              VkInstance vkInstance,
                                                              VkPhysicalDevice vkPhysicalDevice) const;
 
-  [[nodiscard]] std::optional<u32> SelectComputeQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+  [[nodiscard]] std::optional<u32> SelectComputeQueueFamily(std::span<const VkQueueFamilyProperties> properties,
                                                             VkInstance vkInstance,
                                                             VkPhysicalDevice vkPhysicalDevice) const;
 

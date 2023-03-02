@@ -10,7 +10,8 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 class FPhysicalDeviceAttributes;
@@ -22,10 +23,11 @@ class FPhysicalDeviceAttributes;
  * extensions that logical device will use.
  * it has many getter methods for retrieval information during runtime for Render Device.
  */
-class FLogicalDeviceAttributes {
+class FLogicalDeviceAttributes
+{
 public:
 
-  void InitializeQueueFamilyIndexes(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
+  void InitializeQueueFamilyIndexes(std::span<const VkQueueFamilyProperties> familyProperties,
                                     VkInstance vkInstance,
                                     VkPhysicalDevice vkPhysicalDevice);
 

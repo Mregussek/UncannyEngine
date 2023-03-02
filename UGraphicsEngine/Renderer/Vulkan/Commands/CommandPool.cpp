@@ -7,7 +7,8 @@
 namespace uncanny::vulkan {
 
 
-void FCommandPool::Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice) {
+void FCommandPool::Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice)
+{
   m_Device = vkDevice;
 
   VkCommandPoolCreateInfo createInfo{};
@@ -20,21 +21,25 @@ void FCommandPool::Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice)
 }
 
 
-void FCommandPool::Destroy() {
-  if (m_CommandPool != VK_NULL_HANDLE) {
+void FCommandPool::Destroy()
+{
+  if (m_CommandPool != VK_NULL_HANDLE)
+  {
     vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
   }
 }
 
 
-void FCommandPool::Reset() {
+void FCommandPool::Reset()
+{
   VkCommandPoolResetFlags flags = 0;
   VkResult result = vkResetCommandPool(m_Device, m_CommandPool, flags);
   AssertVkAndThrow(result);
 }
 
 
-std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 count) const {
+std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 count) const
+{
   VkCommandBufferAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocateInfo.pNext = nullptr;
@@ -47,14 +52,16 @@ std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 coun
   AssertVkAndThrow(result);
 
   std::vector<FCommandBuffer> rtnCommandBuffers{};
-  std::ranges::for_each(vkCommandBuffers, [vkDevice = m_Device, &rtnCommandBuffers](VkCommandBuffer vkCommandBuffer){
+  std::ranges::for_each(vkCommandBuffers, [vkDevice = m_Device, &rtnCommandBuffers](VkCommandBuffer vkCommandBuffer)
+  {
     rtnCommandBuffers.emplace_back(vkDevice, vkCommandBuffer);
   });
   return rtnCommandBuffers;
 }
 
 
-FCommandBuffer FCommandPool::AllocateAndBeginSingleUseCommandBuffer() const {
+FCommandBuffer FCommandPool::AllocateAndBeginSingleUseCommandBuffer() const
+{
   VkCommandBufferAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocateInfo.pNext = nullptr;

@@ -8,13 +8,15 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
  * @brief FPhysicalDeviceSelector is a helper class for selection of proper physical devices.
  */
-class FPhysicalDeviceSelector {
+class FPhysicalDeviceSelector
+{
 public:
 
   [[nodiscard]] VkPhysicalDevice Select(std::span<VkPhysicalDevice> availablePhysicalDevices) const;

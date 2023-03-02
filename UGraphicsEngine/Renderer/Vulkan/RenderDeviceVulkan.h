@@ -9,14 +9,16 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 class FLogicalDevice;
 class FWindowSurface;
 
 
-class FRenderDevice {
+class FRenderDevice
+{
 public:
 
   void Create(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface);

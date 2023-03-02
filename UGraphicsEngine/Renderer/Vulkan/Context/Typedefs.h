@@ -6,7 +6,8 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
 typedef u32 FQueueFamilyIndex;

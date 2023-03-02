@@ -7,10 +7,12 @@
 #include "Typedefs.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FQueue {
+class FQueue
+{
 public:
 
   void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);

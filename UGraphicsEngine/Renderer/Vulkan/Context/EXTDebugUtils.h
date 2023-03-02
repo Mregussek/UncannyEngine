@@ -6,14 +6,16 @@
 #include <volk.h>
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
  * @brief FEXTDebugUtils is wrapper class for DebugUtilsMessenger handle in Vulkan.
  * Must be used only in RenderContext. RenderContext is responsible for lifetime.
  */
-class FEXTDebugUtils {
+class FEXTDebugUtils
+{
 public:
 
   void Create(VkInstance vkInstance);

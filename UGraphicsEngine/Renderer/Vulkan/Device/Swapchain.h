@@ -10,14 +10,16 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 class FLogicalDevice;
 class FWindowSurface;
 
 
-class FSwapchain {
+class FSwapchain
+{
 public:
 
   void Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSurface* pWindowSurface);

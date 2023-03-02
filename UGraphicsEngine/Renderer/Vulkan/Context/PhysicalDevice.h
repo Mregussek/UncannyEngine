@@ -7,7 +7,8 @@
 #include "PhysicalDeviceAttributes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
@@ -15,7 +16,8 @@ namespace uncanny::vulkan {
  * Render Context. Initialize method is implemented because VkPhysicalDevice is rather "retrieved" from
  * VkInstance than created and then destroyed.
  */
-class FPhysicalDevice {
+class FPhysicalDevice
+{
 public:
 
   void Initialize(VkPhysicalDevice physicalDevice);

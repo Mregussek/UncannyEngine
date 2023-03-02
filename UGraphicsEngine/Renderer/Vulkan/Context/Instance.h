@@ -7,7 +7,8 @@
 #include "InstanceAttributes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
@@ -15,7 +16,8 @@ namespace uncanny::vulkan {
  * FInstanceProperties delivers all required layers and extensions along with API version during creation.
  * Class should be used only inside RenderContext. No exposure to the end user.
  */
-class FInstance {
+class FInstance
+{
 public:
 
   void Create(const FInstanceAttributes& attributes);

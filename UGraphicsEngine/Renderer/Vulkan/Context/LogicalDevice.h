@@ -8,16 +8,17 @@
 #include "Queue.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
- * @brief FLogicalDevice is general wrapper class for VkDevice handle.
- * As this logical device travels across several classes in RenderDevice I decided to hide Create() and Destroy()
- * methods from the end user and make friendship with RenderContext so that only RenderContext can manage
- * its lifetime.
+ * @brief FLogicalDevice is general wrapper class for VkDevice handle. As this logical device travels across
+ * several classes in RenderDevice I decided to hide Create() and Destroy() methods from the end user and
+ * make friendship with RenderContext so that only RenderContext can manage its lifetime.
  */
-class FLogicalDevice {
+class FLogicalDevice
+{
 
   // I want only RenderContext to access Create() and Destroy() methods, not more! Only reason for friendship
   friend class FRenderContext;
@@ -25,11 +26,6 @@ class FLogicalDevice {
 public:
 
   void Wait() const;
-
-  [[nodiscard]] FQueueFamilyIndex GetGraphicsQueueFamilyIndex() const { return m_Attributes.GetGraphicsQueueFamilyIndex(); }
-  [[nodiscard]] FQueueFamilyIndex GetPresentQueueFamilyIndex() const { return m_Attributes.GetPresentQueueFamilyIndex(); }
-  [[nodiscard]] FQueueFamilyIndex GetTransferQueueFamilyIndex() const { return m_Attributes.GetTransferQueueFamilyIndex(); }
-  [[nodiscard]] FQueueFamilyIndex GetComputeQueueFamilyIndex() const { return m_Attributes.GetComputeQueueFamilyIndex(); }
 
   [[nodiscard]] const FQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
   [[nodiscard]] const FQueue& GetPresentQueue() const { return m_PresentQueue; }
@@ -39,6 +35,11 @@ public:
   [[nodiscard]] VkDevice GetHandle() const { return m_Device; }
 
   [[nodiscard]] b32 IsValid() const noexcept { return m_Device != VK_NULL_HANDLE; }
+
+  [[nodiscard]] FQueueFamilyIndex GetGraphicsFamilyIndex() const { return m_Attributes.GetGraphicsQueueFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetPresentFamilyIndex() const { return m_Attributes.GetPresentQueueFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetTransferFamilyIndex() const { return m_Attributes.GetTransferQueueFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetComputeFamilyIndex() const { return m_Attributes.GetComputeQueueFamilyIndex(); }
 
 private:
 

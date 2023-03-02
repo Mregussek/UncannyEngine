@@ -4,11 +4,14 @@
 #include "UTools/Logger/Log.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-std::string GetStringForVkResult(VkResult result) {
-  switch (result) {
+std::string GetStringForVkResult(VkResult result)
+{
+  switch (result)
+  {
     case VK_SUCCESS:
       return "Success";
     case VK_NOT_READY:
@@ -63,8 +66,10 @@ std::string GetStringForVkResult(VkResult result) {
 }
 
 
-void AssertVkAndThrow(VkResult result) {
-  if (result == VK_SUCCESS) {
+void AssertVkAndThrow(VkResult result)
+{
+  if (result == VK_SUCCESS)
+  {
     return;
   }
   std::string failureString{ "Vulkan error: " + GetStringForVkResult(result) };
@@ -73,8 +78,10 @@ void AssertVkAndThrow(VkResult result) {
 }
 
 
-void AssertVkAndThrow(VkResult result, std::string_view specialMsg) {
-  if (result == VK_SUCCESS) {
+void AssertVkAndThrow(VkResult result, std::string_view specialMsg)
+{
+  if (result == VK_SUCCESS)
+  {
     return;
   }
   std::string failureString{ std::string(specialMsg) + "\nVulkan error: " + GetStringForVkResult(result) };

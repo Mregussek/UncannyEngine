@@ -4,10 +4,12 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-void FFence::Create(VkDevice vkDevice) {
+void FFence::Create(VkDevice vkDevice)
+{
   m_Device = vkDevice;
 
   VkFenceCreateInfo createInfo{};
@@ -20,8 +22,10 @@ void FFence::Create(VkDevice vkDevice) {
 }
 
 
-void FFence::Destroy() {
-  if (m_Fence != VK_NULL_HANDLE) {
+void FFence::Destroy()
+{
+  if (m_Fence != VK_NULL_HANDLE)
+  {
     vkDestroyFence(m_Device, m_Fence, nullptr);
   }
 }

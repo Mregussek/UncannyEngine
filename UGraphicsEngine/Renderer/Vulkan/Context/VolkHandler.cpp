@@ -6,22 +6,20 @@
 #include "VolkHandler.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-void FVolkHandler::Create() {
+void FVolkHandler::Initialize()
+{
   VkResult result = volkInitialize();
   AssertVkAndThrow(result, "Could not initialize volk library");
 }
 
 
-void FVolkHandler::LoadInstance(VkInstance vkInstance) {
+void FVolkHandler::LoadInstance(VkInstance vkInstance)
+{
   volkLoadInstance(vkInstance);
-}
-
-
-void FVolkHandler::Destroy() {
-
 }
 
 

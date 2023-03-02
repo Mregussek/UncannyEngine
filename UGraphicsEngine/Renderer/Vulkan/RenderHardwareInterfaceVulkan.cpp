@@ -2,21 +2,25 @@
 #include "RenderHardwareInterfaceVulkan.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
-FRenderHardwareInterfaceVulkan::~FRenderHardwareInterfaceVulkan() {
+FRenderHardwareInterfaceVulkan::~FRenderHardwareInterfaceVulkan()
+{
   Destroy();
 }
 
 
-void FRenderHardwareInterfaceVulkan::Create(const std::shared_ptr<IWindow>& pWindow) {
+void FRenderHardwareInterfaceVulkan::Create(const std::shared_ptr<IWindow>& pWindow)
+{
   m_Context.Create(pWindow);
   m_Device.Create(m_Context.GetLogicalDevice(), m_Context.GetWindowSurface());
 }
 
 
-void FRenderHardwareInterfaceVulkan::Destroy() {
+void FRenderHardwareInterfaceVulkan::Destroy()
+{
   m_Device.Destroy();
   m_Context.Destroy();
 }

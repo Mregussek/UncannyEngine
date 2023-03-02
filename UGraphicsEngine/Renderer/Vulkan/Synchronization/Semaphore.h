@@ -6,10 +6,12 @@
 #include <volk.h>
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FSemaphore {
+class FSemaphore
+{
 public:
 
   void Create(VkDevice vkDevice);

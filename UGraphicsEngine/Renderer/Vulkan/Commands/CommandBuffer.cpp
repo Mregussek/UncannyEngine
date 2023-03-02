@@ -2,23 +2,26 @@
 #include "CommandBuffer.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-FCommandBuffer::FCommandBuffer(VkDevice device, VkCommandBuffer commandBuffer) :
-  m_CommandBuffer(commandBuffer),
+FCommandBuffer::FCommandBuffer(VkDevice device, VkCommandBuffer commandBuffer)
+  : m_CommandBuffer(commandBuffer),
   m_Device(device)
 {
 
 }
 
 
-FCommandBuffer::~FCommandBuffer() {
+FCommandBuffer::~FCommandBuffer()
+{
 
 }
 
 
-void FCommandBuffer::Free() {
+void FCommandBuffer::Free()
+{
 
 }
 

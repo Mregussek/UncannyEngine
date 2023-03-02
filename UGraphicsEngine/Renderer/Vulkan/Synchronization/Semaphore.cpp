@@ -3,10 +3,12 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-void FSemaphore::Create(VkDevice vkDevice) {
+void FSemaphore::Create(VkDevice vkDevice)
+{
   m_Device = vkDevice;
 
   VkSemaphoreCreateInfo createInfo{};
@@ -19,8 +21,10 @@ void FSemaphore::Create(VkDevice vkDevice) {
 }
 
 
-void FSemaphore::Destroy() {
-  if (m_Semaphore != VK_NULL_HANDLE) {
+void FSemaphore::Destroy()
+{
+  if (m_Semaphore != VK_NULL_HANDLE)
+  {
     vkDestroySemaphore(m_Device, m_Semaphore, nullptr);
   }
 }

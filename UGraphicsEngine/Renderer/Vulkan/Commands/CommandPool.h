@@ -9,10 +9,12 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Context/Typedefs.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FCommandPool {
+class FCommandPool
+{
 public:
 
   void Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice);

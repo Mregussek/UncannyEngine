@@ -8,7 +8,8 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 /*
@@ -16,7 +17,8 @@ namespace uncanny::vulkan {
  * as it is written in a way that, it only retrieves information about physical device. It is used
  * for retrieving information about device extensions, properties, queue families etc.
  */
-class FPhysicalDeviceAttributes {
+class FPhysicalDeviceAttributes
+{
 public:
 
   void Initialize(VkPhysicalDevice vkPhysicalDevice);

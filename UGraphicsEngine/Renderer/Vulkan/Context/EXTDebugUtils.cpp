@@ -4,7 +4,8 @@
 #include "UTools/Logger/Log.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -13,10 +14,10 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(VkDebugUtilsMessageSeverityFlag
                                                  void* pUserData);
 
 
-void FEXTDebugUtils::Create(VkInstance vkInstance) {
+void FEXTDebugUtils::Create(VkInstance vkInstance)
+{
   auto vkCreateDebugUtilsMessengerEXT =
-      (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance,
-                                                                "vkCreateDebugUtilsMessengerEXT");
+      (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugUtilsMessengerEXT");
   VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
   debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
   debugInfo.pNext = nullptr;
@@ -34,8 +35,10 @@ void FEXTDebugUtils::Create(VkInstance vkInstance) {
 }
 
 
-void FEXTDebugUtils::Destroy(VkInstance vkInstance) {
-  if (m_DebugUtils == VK_NULL_HANDLE) {
+void FEXTDebugUtils::Destroy(VkInstance vkInstance)
+{
+  if (m_DebugUtils == VK_NULL_HANDLE)
+  {
     return;
   }
   auto vkDestroyDebugUtilsMessengerEXT =
@@ -47,26 +50,26 @@ void FEXTDebugUtils::Destroy(VkInstance vkInstance) {
 VkBool32 VKAPI_CALL debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                       VkDebugUtilsMessageTypeFlagsEXT messageType,
                                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                      void* pUserData) {
-  const auto error = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-  const auto warning = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-  const auto info = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
-  const auto verbose = messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
-  const auto performance = messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-
-  if (error) {
+                                      void* pUserData)
+{
+  if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+  {
     UERROR("{} : {}\n", "ERROR", pCallbackData->pMessage);
   }
-  else if (warning) {
+  else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+  {
     UERROR("{} : {}\n", "WARNING", pCallbackData->pMessage);
   }
-  else if (info) {
+  else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+  {
     UERROR("{} : {}\n", "INFO", pCallbackData->pMessage);
   }
-  else if (verbose) {
+  else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+  {
     UERROR("{} : {}\n", "VERBOSE", pCallbackData->pMessage);
   }
-  else if (performance) {
+  else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
+  {
     UERROR("{} : {}\n", "PERFORMANCE", pCallbackData->pMessage);
   }
 

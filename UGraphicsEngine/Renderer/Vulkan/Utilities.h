@@ -7,7 +7,8 @@
 #include <string>
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 std::string GetStringForVkResult(VkResult result);

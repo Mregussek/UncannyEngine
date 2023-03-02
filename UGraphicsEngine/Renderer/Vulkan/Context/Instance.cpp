@@ -3,10 +3,12 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-void FInstance::Create(const FInstanceAttributes& attributes) {
+void FInstance::Create(const FInstanceAttributes& attributes)
+{
   m_Attributes = attributes;
 
   VkApplicationInfo applicationInfo{};
@@ -32,15 +34,18 @@ void FInstance::Create(const FInstanceAttributes& attributes) {
 }
 
 
-void FInstance::Destroy() {
-  if (m_Instance == VK_NULL_HANDLE) {
+void FInstance::Destroy()
+{
+  if (m_Instance == VK_NULL_HANDLE)
+  {
     return;
   }
   vkDestroyInstance(m_Instance, nullptr);
 }
 
 
-std::vector<VkPhysicalDevice> FInstance::QueryAvailablePhysicalDevices() const {
+std::vector<VkPhysicalDevice> FInstance::QueryAvailablePhysicalDevices() const
+{
   u32 count{ 0 };
   VkResult result = vkEnumeratePhysicalDevices(m_Instance, &count, nullptr);
   AssertVkAndThrow(result);

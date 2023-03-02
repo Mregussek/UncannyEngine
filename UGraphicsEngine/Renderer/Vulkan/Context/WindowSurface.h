@@ -11,13 +11,16 @@
 #include "LogicalDeviceAttributes.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 class IWindow;
 }
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FWindowSurface {
+class FWindowSurface
+{
 
   // I want RenderContext to access Create() and Destroy() and to check presentation support with IsPresentationSupported()
   friend class FRenderContext;

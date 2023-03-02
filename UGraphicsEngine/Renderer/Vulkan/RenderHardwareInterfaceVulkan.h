@@ -7,7 +7,8 @@
 #include "RenderDeviceVulkan.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
 class IWindow;
@@ -16,7 +17,8 @@ class IWindow;
 /*
  * @brief RHI must be responsible for lifetime for RenderContext and RenderDevice
  */
-class FRenderHardwareInterfaceVulkan {
+class FRenderHardwareInterfaceVulkan
+{
 public:
 
   ~FRenderHardwareInterfaceVulkan();

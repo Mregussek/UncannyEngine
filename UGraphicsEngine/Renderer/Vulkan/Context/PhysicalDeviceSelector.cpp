@@ -5,19 +5,22 @@
 #include "PhysicalDeviceAttributes.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 typedef i32 FPhysicalDeviceScore;
 
 
-FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice) {
+FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice)
+{
   FPhysicalDeviceScore score{ 0 };
 
   FPhysicalDeviceAttributes attributes{};
   attributes.Initialize(physicalDevice);
 
-  switch (attributes.GetDeviceProperties().deviceType) {
+  switch (attributes.GetDeviceProperties().deviceType)
+  {
     case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
       score += 1000;
       break;
@@ -34,7 +37,8 @@ FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice) {
       break;
   }
 
-  if (attributes.IsExtensionPresent(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)) {
+  if (attributes.IsExtensionPresent(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME))
+  {
     score += 100;
   }
 
@@ -42,10 +46,12 @@ FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice) {
 }
 
 
-VkPhysicalDevice FPhysicalDeviceSelector::Select(std::span<VkPhysicalDevice> availablePhysicalDevices) const {
+VkPhysicalDevice FPhysicalDeviceSelector::Select(std::span<VkPhysicalDevice> availablePhysicalDevices) const
+{
   std::multimap<FPhysicalDeviceScore, VkPhysicalDevice> ratings;
 
-  std::ranges::for_each(availablePhysicalDevices, [&ratings](VkPhysicalDevice physicalDevice){
+  std::ranges::for_each(availablePhysicalDevices, [&ratings](VkPhysicalDevice physicalDevice)
+  {
     ratings.insert(std::make_pair(GetScore(physicalDevice), physicalDevice));
   });
 

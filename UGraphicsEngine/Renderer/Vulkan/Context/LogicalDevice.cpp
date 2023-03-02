@@ -3,15 +3,20 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
-class FLogicalDeviceQueueCreateInfoCreator {
+class FQueueCreateInfoCreator
+{
 public:
 
-  void AddQueueFamilyToDeviceQueueCreateInfo(FQueueFamilyIndex queueFamilyIndex, FQueueIndex queueIndex);
+  void AddQueueFamilyInfo(FQueueFamilyIndex queueFamilyIndex, FQueueIndex queueIndex);
 
-  [[nodiscard]] const std::vector<VkDeviceQueueCreateInfo>& GetDeviceQueueCreateInfoVector() const { return m_DeviceQueueCreateInfoVector; }
+  [[nodiscard]] const std::vector<VkDeviceQueueCreateInfo>& GetDeviceQueueCreateInfoVector() const
+  {
+    return m_DeviceQueueCreateInfoVector;
+  }
 
 private:
 
@@ -27,18 +32,15 @@ private:
 
 
 
-void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysicalDevice vkPhysicalDevice) {
+void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysicalDevice vkPhysicalDevice)
+{
   m_Attributes = attributes;
 
-  FLogicalDeviceQueueCreateInfoCreator creator{};
-  creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetGraphicsQueueFamilyIndex(),
-                                                m_Attributes.GetGraphicsQueueIndex());
-  creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetPresentQueueFamilyIndex(),
-                                                m_Attributes.GetPresentQueueIndex());
-  creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetTransferQueueFamilyIndex(),
-                                                m_Attributes.GetTransferQueueIndex());
-  creator.AddQueueFamilyToDeviceQueueCreateInfo(m_Attributes.GetComputeQueueFamilyIndex(),
-                                                m_Attributes.GetComputeQueueIndex());
+  FQueueCreateInfoCreator creator{};
+  creator.AddQueueFamilyInfo(m_Attributes.GetGraphicsQueueFamilyIndex(), m_Attributes.GetGraphicsQueueIndex());
+  creator.AddQueueFamilyInfo(m_Attributes.GetPresentQueueFamilyIndex(), m_Attributes.GetPresentQueueIndex());
+  creator.AddQueueFamilyInfo(m_Attributes.GetTransferQueueFamilyIndex(), m_Attributes.GetTransferQueueIndex());
+  creator.AddQueueFamilyInfo(m_Attributes.GetComputeQueueFamilyIndex(), m_Attributes.GetComputeQueueIndex());
 
   const auto& requiredExtensions = m_Attributes.GetRequiredExtensions();
   const auto& deviceQueueCreateInfo = creator.GetDeviceQueueCreateInfoVector();
@@ -62,20 +64,23 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
 }
 
 
-void FLogicalDevice::Destroy() {
-  if (m_Device != VK_NULL_HANDLE) {
-    vkDeviceWaitIdle(m_Device);
+void FLogicalDevice::Destroy()
+{
+  if (m_Device != VK_NULL_HANDLE)
+  {
     vkDestroyDevice(m_Device, nullptr);
   }
 }
 
 
-void FLogicalDevice::Wait() const {
+void FLogicalDevice::Wait() const
+{
   vkDeviceWaitIdle(m_Device);
 }
 
 
-void FLogicalDevice::InitializeQueues() {
+void FLogicalDevice::InitializeQueues()
+{
   VkQueue graphicsQueueHandle{ VK_NULL_HANDLE };
   vkGetDeviceQueue(m_Device, m_Attributes.GetGraphicsQueueFamilyIndex(), m_Attributes.GetGraphicsQueueIndex(),
                    &graphicsQueueHandle);
@@ -99,10 +104,11 @@ void FLogicalDevice::InitializeQueues() {
 
 
 
-void FLogicalDeviceQueueCreateInfoCreator::AddQueueFamilyToDeviceQueueCreateInfo(FQueueFamilyIndex queueFamilyIndex,
-                                                                                 FQueueIndex queueIndex) {
+void FQueueCreateInfoCreator::AddQueueFamilyInfo(FQueueFamilyIndex queueFamilyIndex, FQueueIndex queueIndex)
+{
   auto [isPresent, index] = IsQueueFamilyPresent(queueFamilyIndex);
-  if (!isPresent) {
+  if (!isPresent)
+  {
     VkDeviceQueueCreateInfo &createInfo = m_DeviceQueueCreateInfoVector.emplace_back();
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     createInfo.pNext = nullptr;
@@ -113,19 +119,24 @@ void FLogicalDeviceQueueCreateInfoCreator::AddQueueFamilyToDeviceQueueCreateInfo
     return;
   }
 
-  // If possible to increase queue count, do it
-  // I want to enable at graphics queue family usage for graphics queue_index = 0 and for presentation queue_index = 1
-  if (queueIndex > m_DeviceQueueCreateInfoVector.at(index).queueCount - 1) {
+  // If possible to increase queue count, do it, I want to enable at graphics queue family usage for graphics
+  // queue_index = 0 and for presentation queue_index = 1
+  if (queueIndex > m_DeviceQueueCreateInfoVector.at(index).queueCount - 1)
+  {
     m_DeviceQueueCreateInfoVector.at(index).queueCount += 1;
   }
 }
 
 
-std::pair<b32, u64> FLogicalDeviceQueueCreateInfoCreator::IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const {
-  auto it = std::ranges::find_if(m_DeviceQueueCreateInfoVector, [queueFamilyIndex](const VkDeviceQueueCreateInfo& createInfo) -> b32 {
+std::pair<b32, u64> FQueueCreateInfoCreator::IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const
+{
+  auto it = std::ranges::find_if(m_DeviceQueueCreateInfoVector,
+                                 [queueFamilyIndex](const VkDeviceQueueCreateInfo& createInfo) -> b32
+  {
     return queueFamilyIndex == createInfo.queueFamilyIndex;
   });
-  if (it != m_DeviceQueueCreateInfoVector.end()) {
+  if (it != m_DeviceQueueCreateInfoVector.end())
+  {
     return std::make_pair(UTRUE, std::distance(m_DeviceQueueCreateInfoVector.begin(), it));
   }
 
