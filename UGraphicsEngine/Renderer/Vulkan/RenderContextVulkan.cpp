@@ -15,7 +15,7 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
 {
   m_pWindow = pWindow;
 
-  m_VolkHandler.Create();
+  m_VolkHandler.Initialize();
 
   {
     vulkan::FInstanceAttributes instanceAttributes{};
@@ -75,7 +75,6 @@ void FRenderContext::Destroy()
   m_LogicalDevice.Destroy();
   m_DebugUtils.Destroy(m_Instance.GetHandle());
   m_Instance.Destroy();
-  m_VolkHandler.Destroy();
   m_Destroyed = UTRUE;
 }
 
