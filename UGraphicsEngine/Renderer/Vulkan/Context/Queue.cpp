@@ -1,5 +1,6 @@
 
 #include "Queue.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 
 namespace uncanny::vulkan

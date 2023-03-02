@@ -15,7 +15,8 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
   m_pWindowSurface = pWindowSurface;
 
   u32 backBufferCount{ 2 };
-  m_Swapchain.Create(backBufferCount, m_pLogicalDevice->GetHandle(), m_pWindowSurface);
+  m_Swapchain.Create(backBufferCount, m_pLogicalDevice->GetHandle(), &m_pLogicalDevice->GetPresentQueue(),
+                     m_pWindowSurface);
   m_Swapchain.Recreate();
 
   m_GraphicsCommandPool.Create(m_pLogicalDevice->GetGraphicsFamilyIndex(), m_pLogicalDevice->GetHandle());

@@ -22,7 +22,7 @@ namespace uncanny::vulkan
 class FWindowSurface
 {
 
-  // I want RenderContext to access Create() and Destroy() and to check presentation support with IsPresentationSupported()
+  // I want RenderContext to access Create() and Destroy() and to check presentation support
   friend class FRenderContext;
 
 public:

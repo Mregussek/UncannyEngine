@@ -17,6 +17,7 @@ public:
 
   void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);
 
+  [[nodiscard]] VkQueue GetHandle() const { return m_Queue; }
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_FamilyIndex; }
 
 private:

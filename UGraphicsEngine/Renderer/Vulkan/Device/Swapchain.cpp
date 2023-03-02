@@ -42,11 +42,13 @@ static VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> ve
 
 
 
-void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSurface* pWindowSurface)
+void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pQueue,
+                        const FWindowSurface* pWindowSurface)
 {
-  m_Device = vkDevice;
-  m_pWindowSurface = pWindowSurface;
   m_BackBufferCount = backBufferCount;
+  m_Device = vkDevice;
+  m_pPresentQueue = pQueue;
+  m_pWindowSurface = pWindowSurface;
 
   CreateOnlySwapchain(VK_NULL_HANDLE);
 
@@ -131,11 +133,39 @@ void FSwapchain::Recreate()
 
 void FSwapchain::WaitForNextImage()
 {
-  //u64 timeout = std::numeric_limits<u64>::max();
-  //VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
-  //                                        m_ImageAvailableSemaphores[mCurrentFrame].GetHandle(),
-  //                                        VK_NULL_HANDLE, &mImagePresentableIndex);
+  u64 timeout = std::numeric_limits<u64>::max();
+  VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
+                                          m_ImageAvailableSemaphores[m_CurrentFrame].GetHandle(),
+                                          VK_NULL_HANDLE, &m_ImageIndex);
+  AssertVkAndThrow(result);
+
+  m_CurrentFrame++;
+  if (m_CurrentFrame >= m_BackBufferCount)
+  {
+    m_CurrentFrame = 0;
+  }
+
+  m_Fences[m_CurrentFrame].WaitAndReset();
 }
+
+
+void FSwapchain::Present() const
+{
+  VkSemaphore waitSemaphore = m_PresentableImagesReadySemaphores[m_CurrentFrame].GetHandle();
+  VkPresentInfoKHR presentInfo{};
+  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+  presentInfo.pNext = nullptr;
+  presentInfo.waitSemaphoreCount = 1;
+  presentInfo.pWaitSemaphores = &waitSemaphore;
+  presentInfo.swapchainCount = 1;
+  presentInfo.pSwapchains = &m_Swapchain;
+  presentInfo.pImageIndices = &m_ImageIndex;
+  presentInfo.pResults = nullptr;
+
+  VkResult result = vkQueuePresentKHR(m_pPresentQueue->GetHandle(), &presentInfo);
+  AssertVkAndThrow(result);
+}
+
 
 
 b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca,

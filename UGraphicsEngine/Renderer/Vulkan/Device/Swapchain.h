@@ -16,18 +16,21 @@ namespace uncanny::vulkan
 
 class FLogicalDevice;
 class FWindowSurface;
+class FQueue;
 
 
 class FSwapchain
 {
 public:
 
-  void Create(u32 backBufferCount, VkDevice vkDevice, const FWindowSurface* pWindowSurface);
+  void Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pPresentQueue,
+              const FWindowSurface* pWindowSurface);
   void Destroy();
 
   void Recreate();
 
   void WaitForNextImage();
+  void Present() const;
 
 private:
 
@@ -39,8 +42,11 @@ private:
   std::vector<FSemaphore> m_PresentableImagesReadySemaphores{};
   VkSwapchainKHR m_Swapchain{ VK_NULL_HANDLE };
   VkDevice m_Device{ nullptr };
+  const FQueue* m_pPresentQueue{ nullptr };
   const FWindowSurface* m_pWindowSurface{ nullptr };
   u32 m_BackBufferCount{ 0 };
+  u32 m_CurrentFrame{ 0 };
+  u32 m_ImageIndex{ 0 };
 
 };
 
