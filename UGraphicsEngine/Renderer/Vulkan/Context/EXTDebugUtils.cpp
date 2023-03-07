@@ -47,7 +47,8 @@ void FEXTDebugUtils::Create(VkInstance vkInstance)
   VkDebugReportCallbackCreateInfoEXT reportInfo{};
   reportInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
   reportInfo.pNext = nullptr;
-  reportInfo.flags = VK_DEBUG_REPORT_WARNING_BIT_EXT |
+  reportInfo.flags =
+      VK_DEBUG_REPORT_WARNING_BIT_EXT |
       VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
       VK_DEBUG_REPORT_ERROR_BIT_EXT |
       VK_DEBUG_REPORT_DEBUG_BIT_EXT;
@@ -105,6 +106,7 @@ VkBool32 debugReportFunc(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT
                          size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage,
                          void* UserData)
 {
+  // Some performance warnings are silenced to make the debug output more readable
   if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
   {
     return VK_FALSE;

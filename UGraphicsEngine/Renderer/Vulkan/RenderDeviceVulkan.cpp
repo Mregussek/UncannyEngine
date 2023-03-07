@@ -23,6 +23,7 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
   m_TransferCommandPool.Create(m_pLogicalDevice->GetTransferFamilyIndex(), m_pLogicalDevice->GetHandle());
   m_ComputeCommandPool.Create(m_pLogicalDevice->GetComputeFamilyIndex(), m_pLogicalDevice->GetHandle());
 
+  // We want unique command buffer for every image...
   m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 }
 
@@ -58,10 +59,6 @@ void FRenderDevice::PrepareFrame()
 {
   m_Swapchain.WaitForNextImage();
 
-  u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
-  FCommandBuffer& renderCommandBuffer{ m_RenderCommandBuffers[frameIndex] };
-  VkImage image = m_Swapchain.GetImages()[frameIndex];
-
   VkImageSubresourceRange imageSubresourceRange{};
   imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   imageSubresourceRange.baseMipLevel = 0;
@@ -71,15 +68,21 @@ void FRenderDevice::PrepareFrame()
 
   VkClearColorValue clearColor = {{ 1.0f, 0.8f, 0.4f, 0.0f }};
 
-  renderCommandBuffer.BeginRecording();
-  renderCommandBuffer.ImageMemoryBarrierToStartTransfer(image);
-  vkCmdClearColorImage(renderCommandBuffer.GetHandle(),
-                       image,
-                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                       &clearColor,
-                       1, &imageSubresourceRange);
-  renderCommandBuffer.ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
-  renderCommandBuffer.EndRecording();
+  { // Recording command buffer...
+    u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
+    FCommandBuffer& renderCommandBuffer{ m_RenderCommandBuffers[frameIndex] };
+    VkImage image = m_Swapchain.GetImages()[frameIndex];
+
+    renderCommandBuffer.BeginRecording();
+    renderCommandBuffer.ImageMemoryBarrierToStartTransfer(image);
+    vkCmdClearColorImage(renderCommandBuffer.GetHandle(),
+                         image,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         &clearColor,
+                         1, &imageSubresourceRange);
+    renderCommandBuffer.ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
+    renderCommandBuffer.EndRecording();
+  }
 
   VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
   VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore() };
