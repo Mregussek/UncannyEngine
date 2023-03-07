@@ -13,31 +13,40 @@
 #include "IWindow.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
-struct GLFWwindowDeleter {
-  void operator()(GLFWwindow* pPointer) {
+struct GLFWwindowDeleter
+{
+  void operator()(GLFWwindow* pPointer)
+  {
     glfwDestroyWindow(pPointer);
   }
 };
 
 
-class FWindowGLFW : public IWindow {
+class FWindowGLFW : public IWindow
+{
 public:
-
-  ~FWindowGLFW() override;
 
   void Create(const FWindowConfiguration& windowConfiguration) override;
   void Destroy() override;
 
-  void UpdateSize() override;
+  void UpdateState() override;
   void PollEvents() const override;
 
   void Close() override;
+
   [[nodiscard]] b32 IsGoingToClose() const override;
 
-  [[nodiscard]] b32 IsMinimized() const override;
+  [[nodiscard]] FWindowSize GetSize() const override { return m_Configuration.size; }
+  [[nodiscard]] FMousePosition GetMousePosition() const override { return m_MousePosition; }
+  [[nodiscard]] FMouseButtonsPressed GetMouseButtonsPressed() const override { return m_MouseButtonsPressed; }
+  [[nodiscard]] const FKeyboardButtonsPressed& GetKeyboardButtonsPressed() const override
+  {
+    return m_KeyboardButtonsPressed;
+  }
 
 #ifdef WIN32
   [[nodiscard]] HWND GetWin32Handle() const override;
@@ -45,8 +54,11 @@ public:
 
 private:
 
-  FWindowConfiguration m_Configuration;
-  std::unique_ptr<GLFWwindow, GLFWwindowDeleter> m_pWindow;
+  FWindowConfiguration m_Configuration{};
+  std::unique_ptr<GLFWwindow, GLFWwindowDeleter> m_pWindow{};
+  FMousePosition m_MousePosition{};
+  FMouseButtonsPressed m_MouseButtonsPressed{};
+  FKeyboardButtonsPressed m_KeyboardButtonsPressed{};
 
 };
 

@@ -2,7 +2,8 @@
 #include "Log.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
 FLogImpl FLog::s_LoggerImpl{};

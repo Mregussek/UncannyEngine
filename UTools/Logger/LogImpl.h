@@ -9,7 +9,8 @@
 #include <memory>
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
 template<typename T>
@@ -20,45 +21,52 @@ template<typename T>
 concept ConceptCodeLine = std::is_arithmetic_v<T>;
 
 
-class FLogImpl {
+class FLogImpl
+{
 public:
 
   static void init(std::shared_ptr<spdlog::logger>& logger);
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void trace(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
-    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::trace,
-                     msg, std::forward<Args>(args)...);
+  static void trace(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
+    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::trace, msg,
+                     std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void debug(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
-    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::debug,
-                     msg, std::forward<Args>(args)...);
+  static void debug(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
+    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::debug, msg,
+                     std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void info(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
-    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::info,
-                     msg, std::forward<Args>(args)...);
+  static void info(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
+    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::info, msg,
+                     std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void warn(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
-    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::warn,
-                     msg, std::forward<Args>(args)...);
+  static void warn(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
+    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::warn, msg,
+                     std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void error(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
-    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::err,
-                     msg, std::forward<Args>(args)...);
+  static void error(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
+    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::err, msg,
+                     std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void critical(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
-    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::critical,
-                     msg, std::forward<Args>(args)...);
+  static void critical(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
+    s_LoggerPtr->log(spdlog::source_loc{filename, line, functionName}, spdlog::level::critical, msg,
+                     std::forward<Args>(args)...);
   }
 
   static std::shared_ptr<spdlog::logger> s_LoggerPtr;

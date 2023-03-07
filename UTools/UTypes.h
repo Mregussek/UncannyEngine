@@ -6,7 +6,8 @@
 #include <cstdint>
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
 using i8 = int_fast8_t;

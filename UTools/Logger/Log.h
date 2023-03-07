@@ -6,43 +6,52 @@
 #include "LogImpl.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
-class FLog {
+class FLog
+{
 public:
 
-  static void create() {
+  static void create()
+  {
     FLogImpl::init(uncanny::FLogImpl::s_LoggerPtr);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void trace(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
+  static void trace(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
     FLogImpl::trace(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void debug(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
+  static void debug(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
     FLogImpl::debug(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void info(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
+  static void info(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
     FLogImpl::info(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void warn(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
+  static void warn(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
     FLogImpl::warn(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void error(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
+  static void error(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
     FLogImpl::error(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
   template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void critical(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args) {
+  static void critical(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  {
     FLogImpl::critical(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
@@ -54,9 +63,9 @@ private:
 
 
 #ifndef U_FUNCTION_NAME
-  #ifdef WIN32   //WINDOWS
+  #ifdef WIN32   // WINDOWS
     #define U_FUNCTION_NAME   __FUNCTION__
-  #else          //*NIX
+  #else          // UNIX
     #define U_FUNCTION_NAME   __func__
   #endif
 #endif

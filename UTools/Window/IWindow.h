@@ -6,41 +6,78 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny {
+namespace uncanny
+{
 
 
-struct FWindowConfiguration {
-  u32 resizable{ UFALSE };
-  b32 fullscreen{ UFALSE };
+struct FWindowSize
+{
   i32 width{ 0 };
   i32 height{ 0 };
+};
+
+
+struct FMousePosition
+{
+  f64 posX{ 0.f };
+  f64 posY{ 0.f };
+};
+
+
+struct FMouseButtonsPressed
+{
+  b32 left{ UFALSE };
+  b32 right{ UFALSE };
+};
+
+
+struct FKeyboardButtonsPressed
+{
+  b32 escape{ UFALSE };
+  b32 w{ UFALSE };
+  b32 s{ UFALSE };
+  b32 a{ UFALSE };
+  b32 d{ UFALSE };
+  b32 num1{ UFALSE };
+  b32 num2{ UFALSE };
+  b32 leftShift{ UFALSE };
+  b32 space{ UFALSE };
+};
+
+
+struct FWindowConfiguration
+{
+  u32 resizable{ UFALSE };
+  b32 fullscreen{ UFALSE };
+  FWindowSize size{};
   const char* name{ "" };
 };
 
 
-class IWindow {
+class IWindow
+{
 public:
-
-  virtual ~IWindow() = default;
 
   virtual void Create(const FWindowConfiguration& windowConfiguration) = 0;
   virtual void Destroy() = 0;
 
-  virtual void UpdateSize() = 0;
+  virtual void UpdateState() = 0;
   virtual void PollEvents() const = 0;
 
   virtual void Close() = 0;
 
-  [[nodiscard]] virtual b32 IsGoingToClose() const = 0;
+  [[nodiscard]] virtual FWindowSize GetSize() const = 0;
+  [[nodiscard]] virtual FMousePosition GetMousePosition() const = 0;
+  [[nodiscard]] virtual FMouseButtonsPressed GetMouseButtonsPressed() const = 0;
+  [[nodiscard]] virtual const FKeyboardButtonsPressed& GetKeyboardButtonsPressed() const = 0;
 
-  [[nodiscard]] virtual b32 IsMinimized() const = 0;
+  [[nodiscard]] virtual b32 IsGoingToClose() const = 0;
 
 #ifdef WIN32
   [[nodiscard]] virtual HWND GetWin32Handle() const = 0;
 #endif
 
 };
-
 
 
 }

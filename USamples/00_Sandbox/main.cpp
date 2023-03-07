@@ -21,7 +21,7 @@ public:
     while(!m_Window->IsGoingToClose()) {
       m_RHI.Update();
 
-      m_Window->UpdateSize();
+      m_Window->UpdateState();
       m_Window->PollEvents();
     }
   }
@@ -34,8 +34,10 @@ private:
     FWindowConfiguration windowConfiguration;
     windowConfiguration.fullscreen = UFALSE;
     windowConfiguration.resizable = UTRUE;
-    windowConfiguration.width = 1600;
-    windowConfiguration.height = 900;
+    windowConfiguration.size = {
+        .width = 1600,
+        .height = 900
+    };
     windowConfiguration.name = "UncannyEngine";
 
     m_Window = std::make_shared<FWindowGLFW>();
