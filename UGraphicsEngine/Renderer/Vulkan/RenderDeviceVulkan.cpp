@@ -57,32 +57,37 @@ void FRenderDevice::Destroy()
 
 void FRenderDevice::PrepareFrame()
 {
+  m_Swapchain.WaitForNextImage();
+
+  u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
+  VkImage image = m_Swapchain.GetImages()[frameIndex];
+
+  VkImageSubresourceRange imageSubresourceRange{};
+  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  imageSubresourceRange.baseMipLevel = 0;
+  imageSubresourceRange.levelCount = 1;
+  imageSubresourceRange.baseArrayLayer = 0;
+  imageSubresourceRange.layerCount = 1;
+
+  VkClearColorValue clearColor = {{ 1.0f, 0.8f, 0.4f, 0.0f }};
+
+  m_RenderCommandBuffers[frameIndex].BeginRecording();
+
+  m_RenderCommandBuffers[frameIndex].ImageMemoryBarrierToStartTransfer(image);
+  vkCmdClearColorImage(m_RenderCommandBuffers[frameIndex].GetHandle(),
+                       image,
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       &clearColor,
+                       1, &imageSubresourceRange);
+  m_RenderCommandBuffers[frameIndex].ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
+
+  m_RenderCommandBuffers[frameIndex].EndRecording();
+  
   std::ranges::for_each(m_Swapchain.GetImages(), [this, idx = 0](VkImage image) mutable
   {
-    VkImageSubresourceRange imageSubresourceRange{};
-    imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    imageSubresourceRange.baseMipLevel = 0;
-    imageSubresourceRange.levelCount = 1;
-    imageSubresourceRange.baseArrayLayer = 0;
-    imageSubresourceRange.layerCount = 1;
 
-    VkClearColorValue clearColor = {{ 1.0f, 0.8f, 0.4f, 0.0f }};
-
-    m_RenderCommandBuffers[idx].BeginRecording();
-
-    m_RenderCommandBuffers[idx].ImageMemoryBarrierToStartTransfer(image);
-    vkCmdClearColorImage(m_RenderCommandBuffers[idx].GetHandle(),
-                         image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                         &clearColor,
-                         1, &imageSubresourceRange);
-    m_RenderCommandBuffers[idx].ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
-
-    m_RenderCommandBuffers[idx].EndRecording();
     idx++;
   });
-
-  m_Swapchain.WaitForNextImage();
 }
 
 

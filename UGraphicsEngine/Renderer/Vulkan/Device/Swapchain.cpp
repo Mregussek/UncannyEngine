@@ -61,9 +61,6 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pQ
     m_ImageAvailableSemaphores[i].Create(m_Device);
     m_PresentableImagesReadySemaphores[i].Create(m_Device);
   }
-
-  m_CurrentFrame = 0;
-  m_OutOfDate = UFALSE;
 }
 
 
@@ -108,6 +105,10 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
   m_Images.resize(count);
   result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, m_Images.data());
   AssertVkAndThrow(result);
+
+  m_CurrentFrame = 0;
+  m_ImageIndex = 0;
+  m_OutOfDate = UFALSE;
 }
 
 
@@ -143,16 +144,11 @@ void FSwapchain::Recreate()
   CreateOnlySwapchain(oldSwapchain);
 
   vkDestroySwapchainKHR(m_Device, oldSwapchain, nullptr);
-
-  m_CurrentFrame = 0;
-  m_OutOfDate = UFALSE;
 }
 
 
 void FSwapchain::WaitForNextImage()
 {
-  m_Fences[m_CurrentFrame].WaitAndReset();
-
   u64 timeout = std::numeric_limits<u64>::max();
   VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
                                           m_ImageAvailableSemaphores[m_CurrentFrame].GetHandle(),
@@ -169,6 +165,8 @@ void FSwapchain::WaitForNextImage()
     default:
       AssertVkAndThrow(result);
   }
+
+  m_Fences[m_CurrentFrame].WaitAndReset();
 }
 
 
