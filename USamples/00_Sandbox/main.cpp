@@ -33,7 +33,7 @@ private:
 
     FWindowConfiguration windowConfiguration;
     windowConfiguration.fullscreen = UFALSE;
-    windowConfiguration.resizable = UFALSE;
+    windowConfiguration.resizable = UTRUE;
     windowConfiguration.width = 1600;
     windowConfiguration.height = 900;
     windowConfiguration.name = "UncannyEngine";
