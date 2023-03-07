@@ -82,12 +82,6 @@ void FRenderDevice::PrepareFrame()
   m_RenderCommandBuffers[frameIndex].ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
 
   m_RenderCommandBuffers[frameIndex].EndRecording();
-  
-  std::ranges::for_each(m_Swapchain.GetImages(), [this, idx = 0](VkImage image) mutable
-  {
-
-    idx++;
-  });
 }
 
 
