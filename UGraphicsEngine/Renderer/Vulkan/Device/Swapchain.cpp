@@ -45,7 +45,8 @@ static VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> ve
 void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pQueue,
                         const FWindowSurface* pWindowSurface)
 {
-  m_BackBufferCount = backBufferCount;
+  // Make sure that we won't wait for the GPU to complete any operations -> one additional image
+  m_BackBufferCount = backBufferCount + 1;
   m_Device = vkDevice;
   m_pPresentQueue = pQueue;
   m_pWindowSurface = pWindowSurface;

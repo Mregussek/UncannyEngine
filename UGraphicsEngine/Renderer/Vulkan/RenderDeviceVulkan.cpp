@@ -18,7 +18,6 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
   u32 backBufferCount{ 2 };
   m_Swapchain.Create(backBufferCount, m_pLogicalDevice->GetHandle(), &m_pLogicalDevice->GetPresentQueue(),
                      m_pWindowSurface);
-  m_Swapchain.Recreate();
 
   m_GraphicsCommandPool.Create(m_pLogicalDevice->GetGraphicsFamilyIndex(), m_pLogicalDevice->GetHandle());
   m_TransferCommandPool.Create(m_pLogicalDevice->GetTransferFamilyIndex(), m_pLogicalDevice->GetHandle());
@@ -60,6 +59,7 @@ void FRenderDevice::PrepareFrame()
   m_Swapchain.WaitForNextImage();
 
   u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
+  FCommandBuffer& renderCommandBuffer{ m_RenderCommandBuffers[frameIndex] };
   VkImage image = m_Swapchain.GetImages()[frameIndex];
 
   VkImageSubresourceRange imageSubresourceRange{};
@@ -71,28 +71,23 @@ void FRenderDevice::PrepareFrame()
 
   VkClearColorValue clearColor = {{ 1.0f, 0.8f, 0.4f, 0.0f }};
 
-  m_RenderCommandBuffers[frameIndex].BeginRecording();
-
-  m_RenderCommandBuffers[frameIndex].ImageMemoryBarrierToStartTransfer(image);
-  vkCmdClearColorImage(m_RenderCommandBuffers[frameIndex].GetHandle(),
+  renderCommandBuffer.BeginRecording();
+  renderCommandBuffer.ImageMemoryBarrierToStartTransfer(image);
+  vkCmdClearColorImage(renderCommandBuffer.GetHandle(),
                        image,
                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        &clearColor,
                        1, &imageSubresourceRange);
-  m_RenderCommandBuffers[frameIndex].ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
+  renderCommandBuffer.ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
+  renderCommandBuffer.EndRecording();
 
-  m_RenderCommandBuffers[frameIndex].EndRecording();
-}
-
-
-void FRenderDevice::RenderFrame()
-{
   VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
   VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore() };
   VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore() };
   VkCommandBuffer commandBuffers[]{ m_RenderCommandBuffers[m_Swapchain.GetCurrentFrameIndex()].GetHandle() };
 
-  VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.pNext = nullptr;
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = waitSemaphores;
@@ -105,6 +100,12 @@ void FRenderDevice::RenderFrame()
   VkResult result = vkQueueSubmit(m_pLogicalDevice->GetGraphicsQueue().GetHandle(), 1, &submitInfo,
                                   m_Swapchain.GetFence());
   AssertVkAndThrow(result);
+}
+
+
+void FRenderDevice::RenderFrame()
+{
+
 }
 
 
