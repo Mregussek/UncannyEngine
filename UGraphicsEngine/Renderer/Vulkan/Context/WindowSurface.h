@@ -31,6 +31,7 @@ public:
   [[nodiscard]] std::vector<VkSurfaceFormatKHR> GetFormats() const;
   [[nodiscard]] VkFormatProperties GetFormatProperties(VkFormat format) const;
   [[nodiscard]] std::vector<VkPresentModeKHR> GetPresentModes() const;
+  [[nodiscard]] b8 IsMinimized() const;
   [[nodiscard]] VkSurfaceKHR GetHandle() const { return m_Surface; }
 
 private:

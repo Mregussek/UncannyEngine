@@ -28,6 +28,10 @@ void FRenderHardwareInterfaceVulkan::Destroy()
 
 void FRenderHardwareInterfaceVulkan::Update()
 {
+  if (m_Context.GetWindowSurface()->IsMinimized())
+  {
+    return;
+  }
   m_Device.PrepareFrame();
   m_Device.RenderFrame();
   m_Device.PresentFrame();

@@ -84,4 +84,15 @@ b8 FWindowSurface::IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) c
 }
 
 
+b8 FWindowSurface::IsMinimized() const
+{
+  auto capabilities = GetCapabilities();
+  if (capabilities.currentExtent.width == 0 and capabilities.currentExtent.height == 0)
+  {
+    return UTRUE;
+  }
+  return UFALSE;
+}
+
+
 }
