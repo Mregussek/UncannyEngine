@@ -24,6 +24,11 @@ public:
   void Create(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface);
   void Destroy();
 
+  void PrepareFrame();
+  void RenderFrame();
+  void PresentFrame();
+  void EndFrame();
+
 private:
 
   const FLogicalDevice* m_pLogicalDevice{ nullptr };
@@ -33,7 +38,6 @@ private:
   FCommandPool m_TransferCommandPool{};
   FCommandPool m_ComputeCommandPool{};
   std::vector<FCommandBuffer> m_RenderCommandBuffers{};
-  std::vector<FCommandBuffer> m_TransferCommandBuffers{};
   b8 m_Destroyed{ UFALSE };
 
 };

@@ -26,6 +26,8 @@ public:
   void Create(const std::shared_ptr<IWindow>& pWindow);
   void Destroy();
 
+  void Update();
+
 private:
 
   vulkan::FRenderContext m_Context{};

@@ -61,6 +61,9 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pQ
     m_ImageAvailableSemaphores[i].Create(m_Device);
     m_PresentableImagesReadySemaphores[i].Create(m_Device);
   }
+
+  m_CurrentFrame = 0;
+  m_OutOfDate = UFALSE;
 }
 
 
@@ -74,6 +77,8 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
     AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Create attributes for swapchain are not supported!");
   }
 
+  VkImageUsageFlags usageFlags{ CreateOneFlagFromVector(createAttributes.imageUsageFlags) };
+
   VkSwapchainCreateInfoKHR createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
   createInfo.pNext = nullptr;
@@ -84,7 +89,7 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
   createInfo.imageColorSpace = createAttributes.surfaceFormat.colorSpace;
   createInfo.imageExtent = m_pWindowSurface->GetCapabilities().currentExtent;
   createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
-  createInfo.imageUsage = CreateOneFlagFromVector(createAttributes.imageUsageFlags);
+  createInfo.imageUsage = usageFlags;
   createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
   createInfo.queueFamilyIndexCount = 0;                    // for exclusive sharing mode, param is ignored
   createInfo.pQueueFamilyIndices = nullptr;               // for exclusive sharing mode, param is ignored
@@ -96,6 +101,13 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
 
   VkResult result = vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_Swapchain);
   AssertVkAndThrow(result);
+
+  u32 count{ 0 };
+  result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, nullptr);
+  AssertVkAndThrow(result);
+  m_Images.resize(count);
+  result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, m_Images.data());
+  AssertVkAndThrow(result);
 }
 
 
@@ -105,6 +117,8 @@ void FSwapchain::Destroy()
   {
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
   }
+  m_Images.clear();
+  m_Images.shrink_to_fit();
   for(u32 i = 0; i < m_BackBufferCount; i++)
   {
     m_Fences[i].Destroy();
@@ -122,48 +136,74 @@ void FSwapchain::Destroy()
 
 void FSwapchain::Recreate()
 {
+  m_Images.clear();
   VkSwapchainKHR oldSwapchain = m_Swapchain;
   m_Swapchain = VK_NULL_HANDLE;
 
   CreateOnlySwapchain(oldSwapchain);
 
   vkDestroySwapchainKHR(m_Device, oldSwapchain, nullptr);
+
+  m_CurrentFrame = 0;
+  m_OutOfDate = UFALSE;
 }
 
 
 void FSwapchain::WaitForNextImage()
 {
+  m_Fences[m_CurrentFrame].WaitAndReset();
+
   u64 timeout = std::numeric_limits<u64>::max();
   VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
                                           m_ImageAvailableSemaphores[m_CurrentFrame].GetHandle(),
                                           VK_NULL_HANDLE, &m_ImageIndex);
-  AssertVkAndThrow(result);
-
-  m_CurrentFrame++;
-  if (m_CurrentFrame >= m_BackBufferCount)
+  switch(result)
   {
-    m_CurrentFrame = 0;
+    case VK_SUCCESS:
+      break;
+    case VK_SUBOPTIMAL_KHR:
+      [[fallthrough]];
+    case VK_ERROR_OUT_OF_DATE_KHR:
+      m_OutOfDate = UTRUE;
+      break;
+    default:
+      AssertVkAndThrow(result);
   }
-
-  m_Fences[m_CurrentFrame].WaitAndReset();
 }
 
 
-void FSwapchain::Present() const
+void FSwapchain::Present()
 {
-  VkSemaphore waitSemaphore = m_PresentableImagesReadySemaphores[m_CurrentFrame].GetHandle();
+  VkSemaphore waitSemaphores[]{ GetPresentableImageReadySemaphore() };
   VkPresentInfoKHR presentInfo{};
   presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
   presentInfo.pNext = nullptr;
   presentInfo.waitSemaphoreCount = 1;
-  presentInfo.pWaitSemaphores = &waitSemaphore;
+  presentInfo.pWaitSemaphores = waitSemaphores;
   presentInfo.swapchainCount = 1;
   presentInfo.pSwapchains = &m_Swapchain;
   presentInfo.pImageIndices = &m_ImageIndex;
   presentInfo.pResults = nullptr;
 
   VkResult result = vkQueuePresentKHR(m_pPresentQueue->GetHandle(), &presentInfo);
-  AssertVkAndThrow(result);
+  switch(result)
+  {
+    case VK_SUCCESS:
+      break;
+    case VK_SUBOPTIMAL_KHR:
+      [[fallthrough]];
+    case VK_ERROR_OUT_OF_DATE_KHR:
+      m_OutOfDate = UTRUE;
+      break;
+    default:
+      AssertVkAndThrow(result);
+  }
+
+  m_CurrentFrame++;
+  if (m_CurrentFrame >= m_BackBufferCount)
+  {
+    m_CurrentFrame = 0;
+  }
 }
 
 
@@ -247,7 +287,7 @@ VkImageUsageFlags CreateOneFlagFromVector(std::span<VkImageUsageFlags> vec)
   VkImageUsageFlags rtn{ 0 };
   std::ranges::for_each(vec, [&rtn](auto flag)
   {
-    rtn &= flag;
+    rtn |= flag;
   });
   return rtn;
 }

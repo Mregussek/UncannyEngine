@@ -36,11 +36,10 @@ void FInstance::Create(const FInstanceAttributes& attributes)
 
 void FInstance::Destroy()
 {
-  if (m_Instance == VK_NULL_HANDLE)
+  if (m_Instance != VK_NULL_HANDLE)
   {
-    return;
+    vkDestroyInstance(m_Instance, nullptr);
   }
-  vkDestroyInstance(m_Instance, nullptr);
 }
 
 

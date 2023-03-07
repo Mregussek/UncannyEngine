@@ -19,6 +19,8 @@ public:
 
   void WaitAndReset() const;
 
+  [[nodiscard]] VkFence GetHandle() const { return m_Fence; }
+
 private:
 
   VkFence m_Fence{ VK_NULL_HANDLE };

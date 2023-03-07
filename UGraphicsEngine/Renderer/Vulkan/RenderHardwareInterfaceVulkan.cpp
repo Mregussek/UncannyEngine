@@ -26,4 +26,13 @@ void FRenderHardwareInterfaceVulkan::Destroy()
 }
 
 
+void FRenderHardwareInterfaceVulkan::Update()
+{
+  m_Device.PrepareFrame();
+  m_Device.RenderFrame();
+  m_Device.PresentFrame();
+  m_Device.EndFrame();
+}
+
+
 }

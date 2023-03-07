@@ -52,10 +52,12 @@ std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 coun
   AssertVkAndThrow(result);
 
   std::vector<FCommandBuffer> rtnCommandBuffers{};
-  std::ranges::for_each(vkCommandBuffers, [vkDevice = m_Device, &rtnCommandBuffers](VkCommandBuffer vkCommandBuffer)
+  rtnCommandBuffers.reserve(allocateInfo.commandBufferCount);
+  for(VkCommandBuffer vcb : vkCommandBuffers)
   {
-    rtnCommandBuffers.emplace_back(vkDevice, vkCommandBuffer);
-  });
+    rtnCommandBuffers.emplace_back(m_Device, m_CommandPool, vcb);
+  }
+
   return rtnCommandBuffers;
 }
 
@@ -82,7 +84,7 @@ FCommandBuffer FCommandPool::AllocateAndBeginSingleUseCommandBuffer() const
   result = vkBeginCommandBuffer(vkCommandBuffer, &beginInfo);
   AssertVkAndThrow(result);
 
-  return { m_Device, vkCommandBuffer };
+  return { m_Device, m_CommandPool, vkCommandBuffer };
 }
 
 

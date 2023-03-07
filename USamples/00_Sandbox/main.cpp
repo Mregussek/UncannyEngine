@@ -19,6 +19,8 @@ public:
 
   void Run() {
     while(!m_Window->IsGoingToClose()) {
+      m_RHI.Update();
+
       m_Window->UpdateSize();
       m_Window->PollEvents();
     }

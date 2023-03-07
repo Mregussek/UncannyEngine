@@ -1,6 +1,7 @@
 
 #include "RenderDeviceVulkan.h"
 #include <algorithm>
+#include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/WindowSurface.h"
 
@@ -23,8 +24,7 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
   m_TransferCommandPool.Create(m_pLogicalDevice->GetTransferFamilyIndex(), m_pLogicalDevice->GetHandle());
   m_ComputeCommandPool.Create(m_pLogicalDevice->GetComputeFamilyIndex(), m_pLogicalDevice->GetHandle());
 
-  m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(2);
-  m_TransferCommandBuffers = m_TransferCommandPool.AllocatePrimaryCommandBuffers(2);
+  m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 }
 
 
@@ -44,11 +44,6 @@ void FRenderDevice::Destroy()
     commandBuffer.Free();
   });
   m_RenderCommandBuffers.clear();
-  std::ranges::for_each(m_TransferCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
-  {
-    commandBuffer.Free();
-  });
-  m_TransferCommandBuffers.clear();
 
   m_GraphicsCommandPool.Destroy();
   m_TransferCommandPool.Destroy();
@@ -57,6 +52,76 @@ void FRenderDevice::Destroy()
   m_Swapchain.Destroy();
 
   m_Destroyed = UTRUE;
+}
+
+
+void FRenderDevice::PrepareFrame()
+{
+  std::ranges::for_each(m_Swapchain.GetImages(), [this, idx = 0](VkImage image) mutable
+  {
+    VkImageSubresourceRange imageSubresourceRange{};
+    imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageSubresourceRange.baseMipLevel = 0;
+    imageSubresourceRange.levelCount = 1;
+    imageSubresourceRange.baseArrayLayer = 0;
+    imageSubresourceRange.layerCount = 1;
+
+    VkClearColorValue clearColor = {{ 1.0f, 0.8f, 0.4f, 0.0f }};
+
+    m_RenderCommandBuffers[idx].BeginRecording();
+
+    m_RenderCommandBuffers[idx].ImageMemoryBarrierToStartTransfer(image);
+    vkCmdClearColorImage(m_RenderCommandBuffers[idx].GetHandle(),
+                         image,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         &clearColor,
+                         1, &imageSubresourceRange);
+    m_RenderCommandBuffers[idx].ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
+
+    m_RenderCommandBuffers[idx].EndRecording();
+    idx++;
+  });
+
+  m_Swapchain.WaitForNextImage();
+}
+
+
+void FRenderDevice::RenderFrame()
+{
+  VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
+  VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore() };
+  VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore() };
+  VkCommandBuffer commandBuffers[]{ m_RenderCommandBuffers[m_Swapchain.GetCurrentFrameIndex()].GetHandle() };
+
+  VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+  submitInfo.pNext = nullptr;
+  submitInfo.waitSemaphoreCount = 1;
+  submitInfo.pWaitSemaphores = waitSemaphores;
+  submitInfo.pWaitDstStageMask = &waitDstStageMask;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = commandBuffers;
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = signalSemaphores;
+
+  VkResult result = vkQueueSubmit(m_pLogicalDevice->GetGraphicsQueue().GetHandle(), 1, &submitInfo,
+                                  m_Swapchain.GetFence());
+  AssertVkAndThrow(result);
+}
+
+
+void FRenderDevice::PresentFrame()
+{
+  m_Swapchain.Present();
+}
+
+
+void FRenderDevice::EndFrame()
+{
+  if (m_Swapchain.IsOutOfDate())
+  {
+    m_pLogicalDevice->Wait();
+    m_Swapchain.Recreate();
+  }
 }
 
 
