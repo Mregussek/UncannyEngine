@@ -15,13 +15,14 @@ void FWindowSurface::Create(const ::uncanny::IWindow* pWindow,
   m_PhysicalDevice = vkPhysicalDevice;
 
 #if defined(WIN32)
-  auto vkCreateWin32SurfaceKHR =
-      (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(vkInstance, "vkCreateWin32SurfaceKHR");
-  VkWin32SurfaceCreateInfoKHR createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-  createInfo.pNext = nullptr;
-  createInfo.hinstance = nullptr;
-  createInfo.hwnd = pWindow->GetWin32Handle();
+  auto vkCreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(vkInstance,
+                                                                                    "vkCreateWin32SurfaceKHR");
+  VkWin32SurfaceCreateInfoKHR createInfo{
+    .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+    .pNext = nullptr,
+    .hinstance = nullptr,
+    .hwnd = pWindow->GetWin32Handle()
+  };
   VkResult result = vkCreateWin32SurfaceKHR(vkInstance, &createInfo, nullptr, &m_Surface);
   AssertVkAndThrow(result);
 #else

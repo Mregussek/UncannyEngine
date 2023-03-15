@@ -77,26 +77,26 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
 
   VkImageUsageFlags usageFlags{ CreateOneFlagFromVector(createAttributes.imageUsageFlags) };
 
-  VkSwapchainCreateInfoKHR createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-  createInfo.pNext = nullptr;
-  createInfo.flags = 0;
-  createInfo.surface = m_pWindowSurface->GetHandle();
-  createInfo.minImageCount = createAttributes.minImageCount;
-  createInfo.imageFormat = createAttributes.surfaceFormat.format;
-  createInfo.imageColorSpace = createAttributes.surfaceFormat.colorSpace;
-  createInfo.imageExtent = m_pWindowSurface->GetCapabilities().currentExtent;
-  createInfo.imageArrayLayers = 1; // non-stereoscopic-3D app
-  createInfo.imageUsage = usageFlags;
-  createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; // images are exclusive to queue family
-  createInfo.queueFamilyIndexCount = 0;                    // for exclusive sharing mode, param is ignored
-  createInfo.pQueueFamilyIndices = nullptr;               // for exclusive sharing mode, param is ignored
-  createInfo.preTransform = createAttributes.preTransform;
-  createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // no transparency with OS
-  createInfo.presentMode = createAttributes.presentMode;
-  createInfo.clipped = VK_TRUE; // clipping world that is beyond presented surface (not visible)
-  createInfo.oldSwapchain = oldSwapchain;
-
+  VkSwapchainCreateInfoKHR createInfo{
+    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+    .pNext = nullptr,
+    .flags = 0,
+    .surface = m_pWindowSurface->GetHandle(),
+    .minImageCount = createAttributes.minImageCount,
+    .imageFormat = createAttributes.surfaceFormat.format,
+    .imageColorSpace = createAttributes.surfaceFormat.colorSpace,
+    .imageExtent = m_pWindowSurface->GetCapabilities().currentExtent,
+    .imageArrayLayers = 1, // non-stereoscopic-3D app
+    .imageUsage = usageFlags,
+    .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, // images are exclusive to queue family
+    .queueFamilyIndexCount = 0,                    // for exclusive sharing mode, param is ignored
+    .pQueueFamilyIndices = nullptr,               // for exclusive sharing mode, param is ignored
+    .preTransform = createAttributes.preTransform,
+    .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, // no transparency with OS
+    .presentMode = createAttributes.presentMode,
+    .clipped = VK_TRUE, // clipping world that is beyond presented surface (not visible)
+    .oldSwapchain = oldSwapchain
+  };
   VkResult result = vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_Swapchain);
   AssertVkAndThrow(result);
 
@@ -173,17 +173,17 @@ void FSwapchain::WaitForNextImage()
 
 void FSwapchain::Present()
 {
-  VkSemaphore waitSemaphores[]{ GetPresentableImageReadySemaphore() };
-  VkPresentInfoKHR presentInfo{};
-  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-  presentInfo.pNext = nullptr;
-  presentInfo.waitSemaphoreCount = 1;
-  presentInfo.pWaitSemaphores = waitSemaphores;
-  presentInfo.swapchainCount = 1;
-  presentInfo.pSwapchains = &m_Swapchain;
-  presentInfo.pImageIndices = &m_ImageIndex;
-  presentInfo.pResults = nullptr;
-
+  VkSemaphore waitSemaphores[]{ m_PresentableImagesReadySemaphores[m_CurrentFrame].GetHandle() };
+  VkPresentInfoKHR presentInfo{
+    .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+    .pNext = nullptr,
+    .waitSemaphoreCount = 1,
+    .pWaitSemaphores = waitSemaphores,
+    .swapchainCount = 1,
+    .pSwapchains = &m_Swapchain,
+    .pImageIndices = &m_ImageIndex,
+    .pResults = nullptr
+  };
   VkResult result = vkQueuePresentKHR(m_pPresentQueue->GetHandle(), &presentInfo);
   switch(result)
   {

@@ -11,24 +11,30 @@ void FInstance::Create(const FInstanceAttributes& attributes)
 {
   m_Attributes = attributes;
 
-  VkApplicationInfo applicationInfo{};
-  applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-  applicationInfo.pNext = nullptr;
-  applicationInfo.pApplicationName = "UncannyEngineApplication";
-  applicationInfo.applicationVersion = 1;
-  applicationInfo.pEngineName = "UGraphicsEngine";
-  applicationInfo.engineVersion = 1;
-  applicationInfo.apiVersion = m_Attributes.GetVersion();
+  VkApplicationInfo applicationInfo{
+    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+    .pNext = nullptr,
+    .pApplicationName = "UncannyEngineApplication",
+    .applicationVersion = 1,
+    .pEngineName = "UGraphicsEngine",
+    .engineVersion = 1,
+    .apiVersion = m_Attributes.GetVersion()
+  };
 
-  VkInstanceCreateInfo instanceInfo{};
-  instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-  instanceInfo.pNext = nullptr;
-  instanceInfo.flags = 0;
-  instanceInfo.pApplicationInfo = &applicationInfo;
-  instanceInfo.enabledLayerCount = m_Attributes.GetRequestedLayers().size();
-  instanceInfo.ppEnabledLayerNames = m_Attributes.GetRequestedLayers().data();
-  instanceInfo.enabledExtensionCount = m_Attributes.GetRequestedExtensions().size();
-  instanceInfo.ppEnabledExtensionNames = m_Attributes.GetRequestedExtensions().data();
+  const auto& requestedLayers = m_Attributes.GetRequestedLayers();
+  const auto& requestedExtensions = m_Attributes.GetRequestedExtensions();
+
+  VkInstanceCreateInfo instanceInfo{
+    .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0,
+    .pApplicationInfo = &applicationInfo,
+    .enabledLayerCount = static_cast<u32>(requestedLayers.size()),
+    .ppEnabledLayerNames = requestedLayers.data(),
+    .enabledExtensionCount = static_cast<u32>(requestedExtensions.size()),
+    .ppEnabledExtensionNames = requestedExtensions.data()
+  };
+
   VkResult result = vkCreateInstance(&instanceInfo, nullptr, &m_Instance);
   AssertVkAndThrow(result);
 }

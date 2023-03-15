@@ -93,26 +93,13 @@ void FRenderDevice::PrepareFrame()
 
 void FRenderDevice::RenderFrame()
 {
-  VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
-  VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore() };
-  VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore() };
-  VkCommandBuffer commandBuffers[]{ m_RenderCommandBuffers[m_Swapchain.GetCurrentFrameIndex()].GetHandle() };
+  u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
+  VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphores()[frameIndex].GetHandle() };
+  VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphores()[frameIndex].GetHandle() };
+  VkCommandBuffer cmdBuf[]{ m_RenderCommandBuffers[frameIndex].GetHandle() };
+  VkFence fence{ m_Swapchain.GetFences()[frameIndex].GetHandle() };
 
-  VkSubmitInfo submitInfo{
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .pNext = nullptr,
-      .waitSemaphoreCount = 1,
-      .pWaitSemaphores = waitSemaphores,
-      .pWaitDstStageMask = &waitDstStageMask,
-      .commandBufferCount = 1,
-      .pCommandBuffers = commandBuffers,
-      .signalSemaphoreCount = 1,
-      .pSignalSemaphores = signalSemaphores
-  };
-
-  VkResult result = vkQueueSubmit(m_pLogicalDevice->GetGraphicsQueue().GetHandle(), 1, &submitInfo,
-                                  m_Swapchain.GetFence());
-  AssertVkAndThrow(result);
+  m_pLogicalDevice->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores, VK_PIPELINE_STAGE_TRANSFER_BIT, fence);
 }
 
 

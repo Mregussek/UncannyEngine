@@ -12,11 +12,11 @@ void FFence::Create(VkDevice vkDevice)
 {
   m_Device = vkDevice;
 
-  VkFenceCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-  createInfo.pNext = nullptr;
-  createInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
+  VkFenceCreateInfo createInfo{
+    .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = VK_FENCE_CREATE_SIGNALED_BIT
+  };
   VkResult result = vkCreateFence(m_Device, &createInfo, nullptr, &m_Fence);
   AssertVkAndThrow(result);
 }

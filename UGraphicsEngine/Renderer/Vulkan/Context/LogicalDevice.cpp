@@ -46,16 +46,18 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
   const auto& deviceQueueCreateInfo = creator.GetDeviceQueueCreateInfoVector();
   const auto& deviceFeatures = m_Attributes.GetDeviceFeatures();
 
-  VkDeviceCreateInfo createInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-  createInfo.pNext = nullptr;
-  createInfo.flags = 0;
-  createInfo.queueCreateInfoCount = deviceQueueCreateInfo.size();
-  createInfo.pQueueCreateInfos = deviceQueueCreateInfo.data();
-  createInfo.enabledLayerCount = 0;             // deprecated!
-  createInfo.ppEnabledLayerNames = nullptr;    // deprecated!
-  createInfo.enabledExtensionCount = requiredExtensions.size();
-  createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-  createInfo.pEnabledFeatures = &deviceFeatures;
+  VkDeviceCreateInfo createInfo{
+    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0,
+    .queueCreateInfoCount = static_cast<u32>(deviceQueueCreateInfo.size()),
+    .pQueueCreateInfos = deviceQueueCreateInfo.data(),
+    .enabledLayerCount = 0,           // deprecated!
+    .ppEnabledLayerNames = nullptr,  // deprecated!
+    .enabledExtensionCount = static_cast<u32>(requiredExtensions.size()),
+    .ppEnabledExtensionNames = requiredExtensions.data(),
+    .pEnabledFeatures = &deviceFeatures
+  };
 
   VkResult result = vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &m_Device);
   AssertVkAndThrow(result);
@@ -109,13 +111,16 @@ void FQueueCreateInfoCreator::AddQueueFamilyInfo(FQueueFamilyIndex queueFamilyIn
   auto [isPresent, index] = IsQueueFamilyPresent(queueFamilyIndex);
   if (!isPresent)
   {
-    VkDeviceQueueCreateInfo &createInfo = m_DeviceQueueCreateInfoVector.emplace_back();
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    createInfo.pNext = nullptr;
-    createInfo.flags = 0;
-    createInfo.queueFamilyIndex = queueFamilyIndex;
-    createInfo.queueCount = 1;
-    createInfo.pQueuePriorities = &m_QueuePriority;
+    VkDeviceQueueCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .queueFamilyIndex = queueFamilyIndex,
+      .queueCount = 1,
+      .pQueuePriorities = &m_QueuePriority
+    };
+
+    m_DeviceQueueCreateInfoVector.push_back(createInfo);
     return;
   }
 
