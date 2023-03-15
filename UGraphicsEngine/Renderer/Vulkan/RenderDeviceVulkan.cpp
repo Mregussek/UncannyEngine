@@ -59,14 +59,15 @@ void FRenderDevice::PrepareFrame()
 {
   m_Swapchain.WaitForNextImage();
 
-  VkImageSubresourceRange imageSubresourceRange{};
-  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  imageSubresourceRange.baseMipLevel = 0;
-  imageSubresourceRange.levelCount = 1;
-  imageSubresourceRange.baseArrayLayer = 0;
-  imageSubresourceRange.layerCount = 1;
+  VkImageSubresourceRange imageSubresourceRange{
+    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+    .baseMipLevel = 0,
+    .levelCount = 1,
+    .baseArrayLayer = 0,
+    .layerCount = 1
+  };
 
-  VkClearColorValue clearColor = {{ 1.0f, 0.8f, 0.4f, 0.0f }};
+  VkClearColorValue clearColor{ 1.0f, 0.8f, 0.4f, 0.0f };
 
   { // Recording command buffer...
     u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
@@ -89,16 +90,17 @@ void FRenderDevice::PrepareFrame()
   VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore() };
   VkCommandBuffer commandBuffers[]{ m_RenderCommandBuffers[m_Swapchain.GetCurrentFrameIndex()].GetHandle() };
 
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  submitInfo.pNext = nullptr;
-  submitInfo.waitSemaphoreCount = 1;
-  submitInfo.pWaitSemaphores = waitSemaphores;
-  submitInfo.pWaitDstStageMask = &waitDstStageMask;
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = commandBuffers;
-  submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = signalSemaphores;
+  VkSubmitInfo submitInfo{
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .pNext = nullptr,
+    .waitSemaphoreCount = 1,
+    .pWaitSemaphores = waitSemaphores,
+    .pWaitDstStageMask = &waitDstStageMask,
+    .commandBufferCount = 1,
+    .pCommandBuffers = commandBuffers,
+    .signalSemaphoreCount = 1,
+    .pSignalSemaphores = signalSemaphores
+  };
 
   VkResult result = vkQueueSubmit(m_pLogicalDevice->GetGraphicsQueue().GetHandle(), 1, &submitInfo,
                                   m_Swapchain.GetFence());

@@ -31,15 +31,15 @@ private:
   void Start() {
     FLog::create();
 
-    FWindowConfiguration windowConfiguration;
-    windowConfiguration.fullscreen = UFALSE;
-    windowConfiguration.resizable = UTRUE;
-    windowConfiguration.size = {
-        .width = 1600,
-        .height = 900
+    FWindowConfiguration windowConfiguration{
+      .resizable = UTRUE,
+      .fullscreen = UFALSE,
+      .size = {
+          .width = 1600,
+          .height = 900
+      },
+      .name = "UncannyEngine"
     };
-    windowConfiguration.name = "UncannyEngine";
-
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
