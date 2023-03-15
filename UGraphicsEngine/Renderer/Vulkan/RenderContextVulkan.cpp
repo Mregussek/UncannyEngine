@@ -28,6 +28,7 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
     instanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     instanceAttributes.AddExtensionName(VK_KHR_SURFACE_EXTENSION_NAME);
     instanceAttributes.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    instanceAttributes.AddExtensionName(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
     m_Instance.Create(instanceAttributes);
   }

@@ -34,9 +34,9 @@ public:
 
 private:
 
+  VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
-  VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };
   b8 m_Recording{ UFALSE };
   b8 m_Freed{ UFALSE };
 

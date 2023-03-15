@@ -11,10 +11,11 @@ void FCommandPool::Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice)
 {
   m_Device = vkDevice;
 
-  VkCommandPoolCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  createInfo.queueFamilyIndex = queueFamilyIndex;
+  VkCommandPoolCreateInfo createInfo{
+    .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+    .queueFamilyIndex = queueFamilyIndex
+  };
 
   VkResult result = vkCreateCommandPool(m_Device, &createInfo, nullptr, &m_CommandPool);
   AssertVkAndThrow(result);
@@ -40,12 +41,13 @@ void FCommandPool::Reset()
 
 std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 count) const
 {
-  VkCommandBufferAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocateInfo.pNext = nullptr;
-  allocateInfo.commandPool = m_CommandPool;
-  allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocateInfo.commandBufferCount = count;
+  VkCommandBufferAllocateInfo allocateInfo{
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .pNext = nullptr,
+    .commandPool = m_CommandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = count
+  };
 
   std::vector<VkCommandBuffer> vkCommandBuffers(allocateInfo.commandBufferCount);
   VkResult result = vkAllocateCommandBuffers(m_Device, &allocateInfo, vkCommandBuffers.data());
@@ -64,12 +66,13 @@ std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 coun
 
 FCommandBuffer FCommandPool::AllocateAndBeginSingleUseCommandBuffer() const
 {
-  VkCommandBufferAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocateInfo.pNext = nullptr;
-  allocateInfo.commandPool = m_CommandPool;
-  allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocateInfo.commandBufferCount = 1;
+  VkCommandBufferAllocateInfo allocateInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .pNext = nullptr,
+      .commandPool = m_CommandPool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = 1
+  };
 
   VkCommandBuffer vkCommandBuffer{ VK_NULL_HANDLE };
   VkResult result = vkAllocateCommandBuffers(m_Device, &allocateInfo, &vkCommandBuffer);

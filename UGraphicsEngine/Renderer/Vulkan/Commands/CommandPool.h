@@ -28,9 +28,8 @@ public:
 
 private:
 
-  VkDevice m_Device{ VK_NULL_HANDLE };
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
-
+  VkDevice m_Device{ VK_NULL_HANDLE };
 
 };
 

@@ -26,34 +26,35 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportFunc(VkDebugReportFlagsEXT flag
 
 void FEXTDebugUtils::Create(VkInstance vkInstance)
 {
+  VkDebugUtilsMessengerCreateInfoEXT utilsInfo{
+    .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+    .pNext = nullptr,
+    .flags = 0,
+    .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+    .messageType =
+        VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+    .pfnUserCallback = debugCallbackFunc,
+    .pUserData = nullptr
+  };
+
   auto vkCreateDebugUtilsMessengerEXT =
       (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugUtilsMessengerEXT");
-  VkDebugUtilsMessengerCreateInfoEXT utilsInfo{};
-  utilsInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-  utilsInfo.pNext = nullptr;
-  utilsInfo.flags = 0;
-  utilsInfo.messageSeverity =
-      VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-      VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-  utilsInfo.messageType =
-      VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-  utilsInfo.pfnUserCallback = debugCallbackFunc;
-  utilsInfo.pUserData = nullptr;
   VkResult result = vkCreateDebugUtilsMessengerEXT(vkInstance, &utilsInfo, nullptr, &m_DebugUtils);
   AssertVkAndThrow(result);
 
-  VkDebugReportCallbackCreateInfoEXT reportInfo{};
-  reportInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-  reportInfo.pNext = nullptr;
-  reportInfo.flags =
-      VK_DEBUG_REPORT_WARNING_BIT_EXT |
-      VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
-      VK_DEBUG_REPORT_ERROR_BIT_EXT |
-      VK_DEBUG_REPORT_DEBUG_BIT_EXT;
-  reportInfo.pfnCallback = debugReportFunc;
-  reportInfo.pUserData = nullptr;
+  VkDebugReportCallbackCreateInfoEXT reportInfo{
+    .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+    .pNext = nullptr,
+    .flags =
+        VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+        VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT,
+    .pfnCallback = debugReportFunc,
+    .pUserData = nullptr
+  };
+
+  result = vkCreateDebugReportCallbackEXT(vkInstance, &reportInfo, nullptr, &m_DebugReport);
+  AssertVkAndThrow(result);
 }
 
 
