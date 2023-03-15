@@ -22,10 +22,13 @@ public:
   void Free();
 
   void BeginRecording();
+  void BeginOneTimeRecording();
   void EndRecording();
 
-  void ImageMemoryBarrierToStartTransfer(VkImage image) const;
-  void ImageMemoryBarrierToFinishTransferAndStartPresentation(VkImage image) const;
+  void ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, VkAccessFlags dstFlags, VkImageLayout oldLayout,
+                          VkImageLayout newLayout, VkImageSubresourceRange subresourceRange,
+                          VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
+  void ClearColorImage(VkImage image, VkClearColorValue clearValue, VkImageSubresourceRange subresourceRange);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
 

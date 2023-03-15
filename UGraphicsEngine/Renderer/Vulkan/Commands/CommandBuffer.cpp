@@ -46,11 +46,33 @@ void FCommandBuffer::BeginRecording()
   }
   m_Recording = UTRUE;
 
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.pNext = nullptr;
-  beginInfo.flags = 0;
-  beginInfo.pInheritanceInfo = nullptr;
+  VkCommandBufferBeginInfo beginInfo{
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .pNext = nullptr,
+    .flags = 0,
+    .pInheritanceInfo = nullptr
+  };
+
+  VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
+  AssertVkAndThrow(result);
+}
+
+
+void FCommandBuffer::BeginOneTimeRecording()
+{
+  if (m_Recording)
+  {
+    UWARN("Command buffer is during recording commands, returning...");
+    return;
+  }
+  m_Recording = UTRUE;
+
+  VkCommandBufferBeginInfo beginInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .pNext = nullptr,
+      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+      .pInheritanceInfo = nullptr
+  };
 
   VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
   AssertVkAndThrow(result);
@@ -66,65 +88,37 @@ void FCommandBuffer::EndRecording()
 }
 
 
-void FCommandBuffer::ImageMemoryBarrierToStartTransfer(VkImage image) const
+void FCommandBuffer::ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, VkAccessFlags dstFlags,
+                                        VkImageLayout oldLayout, VkImageLayout newLayout,
+                                        VkImageSubresourceRange subresourceRange,
+                                        VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 {
-  VkImageSubresourceRange imageSubresourceRange{};
-  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  imageSubresourceRange.baseMipLevel = 0;
-  imageSubresourceRange.levelCount = 1;
-  imageSubresourceRange.baseArrayLayer = 0;
-  imageSubresourceRange.layerCount = 1;
+  VkImageMemoryBarrier barrier{
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .pNext = nullptr,
+    .srcAccessMask = srcFlags,
+    .dstAccessMask = dstFlags,
+    .oldLayout = oldLayout,
+    .newLayout = newLayout,
+    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .image = image,
+    .subresourceRange = subresourceRange
+  };
 
-  VkImageMemoryBarrier barrier{};
-  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.pNext = nullptr;
-  barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-  barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.image = image;
-  barrier.subresourceRange = imageSubresourceRange;
-
-  vkCmdPipelineBarrier(m_CommandBuffer,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       VkDependencyFlags{ 0 },
-                       0, nullptr,
-                       0, nullptr,
-                       1, &barrier);
+  vkCmdPipelineBarrier(m_CommandBuffer, srcStage, dstStage, VkDependencyFlags{ 0 },
+                       0, nullptr, 0, nullptr, 1, &barrier);
 }
 
 
-void FCommandBuffer::ImageMemoryBarrierToFinishTransferAndStartPresentation(VkImage image) const
+void FCommandBuffer::ClearColorImage(VkImage image, VkClearColorValue clearValue,
+                                     VkImageSubresourceRange subresourceRange)
 {
-  VkImageSubresourceRange imageSubresourceRange{};
-  imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  imageSubresourceRange.baseMipLevel = 0;
-  imageSubresourceRange.levelCount = 1;
-  imageSubresourceRange.baseArrayLayer = 0;
-  imageSubresourceRange.layerCount = 1;
-
-  VkImageMemoryBarrier barrier{};
-  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.pNext = nullptr;
-  barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-  barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-  barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-  barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.image = image;
-  barrier.subresourceRange = imageSubresourceRange;
-
-  vkCmdPipelineBarrier(m_CommandBuffer,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                       VkDependencyFlags{ 0 },
-                       0, nullptr,
-                       0, nullptr,
-                       1, &barrier);
+  vkCmdClearColorImage(m_CommandBuffer,
+                       image,
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       &clearValue,
+                       1, &subresourceRange);
 }
 
 

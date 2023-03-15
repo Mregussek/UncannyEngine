@@ -75,16 +75,10 @@ FCommandBuffer FCommandPool::AllocateAndBeginSingleUseCommandBuffer() const
   VkResult result = vkAllocateCommandBuffers(m_Device, &allocateInfo, &vkCommandBuffer);
   AssertVkAndThrow(result);
 
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.pNext = nullptr;
-  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-  beginInfo.pInheritanceInfo = nullptr;
+  FCommandBuffer cmdBuf{ m_Device, m_CommandPool, vkCommandBuffer };
+  cmdBuf.BeginOneTimeRecording();
 
-  result = vkBeginCommandBuffer(vkCommandBuffer, &beginInfo);
-  AssertVkAndThrow(result);
-
-  return { m_Device, m_CommandPool, vkCommandBuffer };
+  return cmdBuf;
 }
 
 

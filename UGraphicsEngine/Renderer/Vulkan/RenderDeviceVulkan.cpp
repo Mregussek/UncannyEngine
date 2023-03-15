@@ -59,7 +59,7 @@ void FRenderDevice::PrepareFrame()
 {
   m_Swapchain.WaitForNextImage();
 
-  VkImageSubresourceRange imageSubresourceRange{
+  VkImageSubresourceRange subresourceRange{
     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
     .baseMipLevel = 0,
     .levelCount = 1,
@@ -74,43 +74,45 @@ void FRenderDevice::PrepareFrame()
     FCommandBuffer& renderCommandBuffer{ m_RenderCommandBuffers[frameIndex] };
     VkImage image = m_Swapchain.GetImages()[frameIndex];
 
-    renderCommandBuffer.BeginRecording();
-    renderCommandBuffer.ImageMemoryBarrierToStartTransfer(image);
-    vkCmdClearColorImage(renderCommandBuffer.GetHandle(),
-                         image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                         &clearColor,
-                         1, &imageSubresourceRange);
-    renderCommandBuffer.ImageMemoryBarrierToFinishTransferAndStartPresentation(image);
+    renderCommandBuffer.BeginOneTimeRecording();
+    renderCommandBuffer.ImageMemoryBarrier(image,
+                                           VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                           VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                           subresourceRange,
+                                           VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    renderCommandBuffer.ClearColorImage(image, clearColor, subresourceRange);
+    renderCommandBuffer.ImageMemoryBarrier(image,
+                                           VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
+                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                           subresourceRange,
+                                           VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
     renderCommandBuffer.EndRecording();
   }
+}
 
+
+void FRenderDevice::RenderFrame()
+{
   VkPipelineStageFlags waitDstStageMask{ VK_PIPELINE_STAGE_TRANSFER_BIT };
   VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore() };
   VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore() };
   VkCommandBuffer commandBuffers[]{ m_RenderCommandBuffers[m_Swapchain.GetCurrentFrameIndex()].GetHandle() };
 
   VkSubmitInfo submitInfo{
-    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-    .pNext = nullptr,
-    .waitSemaphoreCount = 1,
-    .pWaitSemaphores = waitSemaphores,
-    .pWaitDstStageMask = &waitDstStageMask,
-    .commandBufferCount = 1,
-    .pCommandBuffers = commandBuffers,
-    .signalSemaphoreCount = 1,
-    .pSignalSemaphores = signalSemaphores
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .pNext = nullptr,
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = waitSemaphores,
+      .pWaitDstStageMask = &waitDstStageMask,
+      .commandBufferCount = 1,
+      .pCommandBuffers = commandBuffers,
+      .signalSemaphoreCount = 1,
+      .pSignalSemaphores = signalSemaphores
   };
 
   VkResult result = vkQueueSubmit(m_pLogicalDevice->GetGraphicsQueue().GetHandle(), 1, &submitInfo,
                                   m_Swapchain.GetFence());
   AssertVkAndThrow(result);
-}
-
-
-void FRenderDevice::RenderFrame()
-{
-
 }
 
 
