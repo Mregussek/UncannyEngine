@@ -40,7 +40,7 @@ void FRenderDevice::Destroy()
     m_pLogicalDevice->Wait();
   }
 
-  std::ranges::for_each(m_SwapchainCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
+  std::ranges::for_each(m_SwapchainCommandBuffers, [](FCommandBuffer& commandBuffer)
   {
     commandBuffer.Free();
   });
@@ -106,7 +106,8 @@ void FRenderDevice::RenderFrame()
   VkCommandBuffer cmdBuf[]{ m_SwapchainCommandBuffers[frameIndex].GetHandle() };
   VkFence fence{ m_Swapchain.GetFences()[frameIndex].GetHandle() };
 
-  m_pLogicalDevice->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores, VK_PIPELINE_STAGE_TRANSFER_BIT, fence);
+  m_pLogicalDevice->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                              fence);
 }
 
 

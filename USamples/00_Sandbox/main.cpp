@@ -1,7 +1,8 @@
 
 #include <UTools/Logger/Log.h>
 #include <UTools/Window/WindowGLFW.h>
-#include "UGraphicsEngine/Renderer/Vulkan/RenderHardwareInterfaceVulkan.h"
+#include "UGraphicsEngine/Renderer/Vulkan/RenderContextVulkan.h"
+#include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceVulkan.h"
 
 using namespace uncanny;
 
@@ -19,7 +20,14 @@ public:
 
   void Run() {
     while(!m_Window->IsGoingToClose()) {
-      m_RHI.Update();
+      if (m_RenderContext.GetWindowSurface()->IsMinimized())
+      {
+        return;
+      }
+      m_RenderDevice.PrepareFrame();
+      m_RenderDevice.RenderFrame();
+      m_RenderDevice.PresentFrame();
+      m_RenderDevice.EndFrame();
 
       m_Window->UpdateState();
       m_Window->PollEvents();
@@ -43,17 +51,20 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
-    m_RHI.Create(m_Window);
+    m_RenderContext.Create(m_Window);
+    m_RenderDevice.Create(m_RenderContext.GetLogicalDevice(), m_RenderContext.GetWindowSurface());
   }
 
   void Destroy() {
-    m_RHI.Destroy();
+    m_RenderDevice.Destroy();
+    m_RenderContext.Destroy();
     m_Window->Destroy();
   }
 
 
   std::shared_ptr<IWindow> m_Window;
-  FRenderHardwareInterfaceVulkan m_RHI{};
+  vulkan::FRenderContext m_RenderContext{};
+  vulkan::FRenderDevice m_RenderDevice{};
 
 };
 
