@@ -1,10 +1,10 @@
 
 #include "CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
-#include <algorithm>
 
 
-namespace uncanny::vulkan {
+namespace uncanny::vulkan
+{
 
 
 void FCommandPool::Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice)

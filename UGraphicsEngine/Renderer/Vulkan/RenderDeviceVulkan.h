@@ -31,7 +31,7 @@ public:
 
 private:
 
-  static void RecordRenderCommandBuffer(FCommandBuffer& renderCommandBuffer, VkImage image);
+  static void RecordRenderCommandBuffers(std::vector<FCommandBuffer>& cmdBufs, const std::vector<VkImage>& images);
 
 
   const FLogicalDevice* m_pLogicalDevice{ nullptr };

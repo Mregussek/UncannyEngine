@@ -25,11 +25,7 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
 
   // We want unique command buffer for every image...
   m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
-  std::ranges::for_each(m_RenderCommandBuffers, [this, idx = 0](FCommandBuffer& cmdBuf) mutable
-  {
-    RecordRenderCommandBuffer(cmdBuf, m_Swapchain.GetImages()[idx]);
-    idx++;
-  });
+  RecordRenderCommandBuffers(m_RenderCommandBuffers, m_Swapchain.GetImages());
 }
 
 
@@ -60,7 +56,8 @@ void FRenderDevice::Destroy()
 }
 
 
-void FRenderDevice::RecordRenderCommandBuffer(FCommandBuffer& renderCommandBuffer, VkImage image)
+void FRenderDevice::RecordRenderCommandBuffers(std::vector<FCommandBuffer>& cmdBufs,
+                                               const std::vector<VkImage>& images)
 {
   VkImageSubresourceRange subresourceRange{
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -72,19 +69,25 @@ void FRenderDevice::RecordRenderCommandBuffer(FCommandBuffer& renderCommandBuffe
 
   VkClearColorValue clearColor{ 1.0f, 0.8f, 0.4f, 0.0f };
 
-  renderCommandBuffer.BeginRecording();
-  renderCommandBuffer.ImageMemoryBarrier(image,
-                                         VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                         subresourceRange,
-                                         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-  renderCommandBuffer.ClearColorImage(image, clearColor, subresourceRange);
-  renderCommandBuffer.ImageMemoryBarrier(image,
-                                         VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
-                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                         subresourceRange,
-                                         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
-  renderCommandBuffer.EndRecording();
+  std::ranges::for_each(cmdBufs, [images, idx = 0, &subresourceRange, clearColor](FCommandBuffer& cmdBuf) mutable
+  {
+    VkImage image = images[idx];
+
+    cmdBuf.BeginRecording();
+    cmdBuf.ImageMemoryBarrier(image,
+                              VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                              VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                              subresourceRange,
+                              VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    cmdBuf.ClearColorImage(image, clearColor, subresourceRange);
+    cmdBuf.ImageMemoryBarrier(image,
+                              VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
+                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                              subresourceRange,
+                              VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+    cmdBuf.EndRecording();
+    idx++;
+  });
 }
 
 
@@ -120,11 +123,7 @@ void FRenderDevice::EndFrame()
     m_Swapchain.Recreate();
 
     m_GraphicsCommandPool.Reset();
-    std::ranges::for_each(m_RenderCommandBuffers, [this, idx = 0](FCommandBuffer& cmdBuf) mutable
-    {
-      RecordRenderCommandBuffer(cmdBuf, m_Swapchain.GetImages()[idx]);
-      idx++;
-    });
+    RecordRenderCommandBuffers(m_RenderCommandBuffers, m_Swapchain.GetImages());
   }
 }
 
