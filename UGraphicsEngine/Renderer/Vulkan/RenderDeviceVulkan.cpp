@@ -119,6 +119,7 @@ void FRenderDevice::EndFrame()
     m_pLogicalDevice->Wait();
     m_Swapchain.Recreate();
 
+    m_GraphicsCommandPool.Reset();
     std::ranges::for_each(m_RenderCommandBuffers, [this, idx = 0](FCommandBuffer& cmdBuf) mutable
     {
       RecordRenderCommandBuffer(cmdBuf, m_Swapchain.GetImages()[idx]);
