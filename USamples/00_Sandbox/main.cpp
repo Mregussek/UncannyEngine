@@ -22,12 +22,17 @@ public:
     while(!m_Window->IsGoingToClose()) {
       if (m_RenderContext.GetWindowSurface()->IsMinimized())
       {
-        return;
+        continue;
       }
-      m_RenderDevice.PrepareFrame();
+
+      m_RenderDevice.WaitForNextAvailableFrame();
       m_RenderDevice.RenderFrame();
       m_RenderDevice.PresentFrame();
-      m_RenderDevice.EndFrame();
+
+      if (m_RenderDevice.IsOutOfDate())
+      {
+        m_RenderDevice.RecreateRenderingResources();
+      }
 
       m_Window->UpdateState();
       m_Window->PollEvents();
@@ -52,7 +57,15 @@ private:
     m_Window->Create(windowConfiguration);
 
     m_RenderContext.Create(m_Window);
-    m_RenderDevice.Create(m_RenderContext.GetLogicalDevice(), m_RenderContext.GetWindowSurface());
+
+    u32 backBufferCount{ 2 };
+    m_RenderDevice.SetSwapchainCommandBuffersRecordingFunc([this]()
+    {
+      m_RenderDevice.RecordClearColorImageCommands();
+    });
+    m_RenderDevice.Create(m_RenderContext.GetLogicalDevice(),
+                          m_RenderContext.GetWindowSurface(),
+                          backBufferCount);
   }
 
   void Destroy() {

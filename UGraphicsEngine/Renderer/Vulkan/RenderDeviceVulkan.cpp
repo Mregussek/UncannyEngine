@@ -10,12 +10,12 @@ namespace uncanny::vulkan
 {
 
 
-void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const vulkan::FWindowSurface* pWindowSurface)
+void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const vulkan::FWindowSurface* pWindowSurface,
+                           u32 backBufferCount)
 {
   m_pLogicalDevice = pLogicalDevice;
   m_pWindowSurface = pWindowSurface;
 
-  u32 backBufferCount{ 2 };
   m_Swapchain.Create(backBufferCount, m_pLogicalDevice->GetHandle(), &m_pLogicalDevice->GetPresentQueue(),
                      m_pWindowSurface);
 
@@ -25,7 +25,7 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
 
   // We want unique command buffer for every image...
   m_SwapchainCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
-  RecordSwapchainCommandBuffers(m_SwapchainCommandBuffers, m_Swapchain.GetImages());
+  m_RecordSwapchainCommandBuffersFunc();
 }
 
 
@@ -56,9 +56,58 @@ void FRenderDevice::Destroy()
 }
 
 
-void FRenderDevice::RecordSwapchainCommandBuffers(std::vector<FCommandBuffer>& cmdBufs,
-                                                  const std::vector<VkImage>& images)
+void FRenderDevice::SetSwapchainCommandBuffersRecordingFunc(RecordSwapchainCommandBufferFunc func)
 {
+  m_RecordSwapchainCommandBuffersFunc = func;
+}
+
+
+void FRenderDevice::WaitForNextAvailableFrame()
+{
+  m_Swapchain.WaitForNextImage();
+}
+
+
+void FRenderDevice::RenderFrame()
+{
+  u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
+  VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphores()[frameIndex].GetHandle() };
+  VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphores()[frameIndex].GetHandle() };
+  VkCommandBuffer cmdBuf[]{ m_SwapchainCommandBuffers[frameIndex].GetHandle() };
+  VkFence fence{ m_Swapchain.GetFences()[frameIndex].GetHandle() };
+
+  m_pLogicalDevice->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                              fence);
+}
+
+
+void FRenderDevice::PresentFrame()
+{
+  m_Swapchain.Present();
+}
+
+
+b8 FRenderDevice::IsOutOfDate() const
+{
+  return m_Swapchain.IsOutOfDate();
+}
+
+
+void FRenderDevice::RecreateRenderingResources()
+{
+  m_pLogicalDevice->Wait();
+  m_Swapchain.Recreate();
+
+  m_GraphicsCommandPool.Reset();
+  m_RecordSwapchainCommandBuffersFunc();
+}
+
+
+void FRenderDevice::RecordClearColorImageCommands()
+{
+  std::vector<FCommandBuffer>& cmdBufs = m_SwapchainCommandBuffers;
+  const std::vector<VkImage>& images = m_Swapchain.GetImages();
+
   VkImageSubresourceRange subresourceRange{
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
       .baseMipLevel = 0,
@@ -89,44 +138,6 @@ void FRenderDevice::RecordSwapchainCommandBuffers(std::vector<FCommandBuffer>& c
 
     idx++;
   });
-}
-
-
-void FRenderDevice::PrepareFrame()
-{
-  m_Swapchain.WaitForNextImage();
-}
-
-
-void FRenderDevice::RenderFrame()
-{
-  u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
-  VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphores()[frameIndex].GetHandle() };
-  VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphores()[frameIndex].GetHandle() };
-  VkCommandBuffer cmdBuf[]{ m_SwapchainCommandBuffers[frameIndex].GetHandle() };
-  VkFence fence{ m_Swapchain.GetFences()[frameIndex].GetHandle() };
-
-  m_pLogicalDevice->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                              fence);
-}
-
-
-void FRenderDevice::PresentFrame()
-{
-  m_Swapchain.Present();
-}
-
-
-void FRenderDevice::EndFrame()
-{
-  if (m_Swapchain.IsOutOfDate())
-  {
-    m_pLogicalDevice->Wait();
-    m_Swapchain.Recreate();
-
-    m_GraphicsCommandPool.Reset();
-    RecordSwapchainCommandBuffers(m_SwapchainCommandBuffers, m_Swapchain.GetImages());
-  }
 }
 
 
