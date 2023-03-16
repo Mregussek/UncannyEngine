@@ -31,7 +31,7 @@ public:
 
 private:
 
-  static void RecordRenderCommandBuffers(std::vector<FCommandBuffer>& cmdBufs, const std::vector<VkImage>& images);
+  static void RecordSwapchainCommandBuffers(std::vector<FCommandBuffer>& cmdBufs, const std::vector<VkImage>& images);
 
 
   const FLogicalDevice* m_pLogicalDevice{ nullptr };
@@ -40,7 +40,7 @@ private:
   FCommandPool m_GraphicsCommandPool{};
   FCommandPool m_TransferCommandPool{};
   FCommandPool m_ComputeCommandPool{};
-  std::vector<FCommandBuffer> m_RenderCommandBuffers{};
+  std::vector<FCommandBuffer> m_SwapchainCommandBuffers{};
   b8 m_Destroyed{ UFALSE };
 
 };

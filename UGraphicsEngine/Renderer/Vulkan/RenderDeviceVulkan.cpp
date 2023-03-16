@@ -24,8 +24,8 @@ void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const v
   m_ComputeCommandPool.Create(m_pLogicalDevice->GetComputeFamilyIndex(), m_pLogicalDevice->GetHandle());
 
   // We want unique command buffer for every image...
-  m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
-  RecordRenderCommandBuffers(m_RenderCommandBuffers, m_Swapchain.GetImages());
+  m_SwapchainCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
+  RecordSwapchainCommandBuffers(m_SwapchainCommandBuffers, m_Swapchain.GetImages());
 }
 
 
@@ -40,11 +40,11 @@ void FRenderDevice::Destroy()
     m_pLogicalDevice->Wait();
   }
 
-  std::ranges::for_each(m_RenderCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
+  std::ranges::for_each(m_SwapchainCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
   {
     commandBuffer.Free();
   });
-  m_RenderCommandBuffers.clear();
+  m_SwapchainCommandBuffers.clear();
 
   m_GraphicsCommandPool.Destroy();
   m_TransferCommandPool.Destroy();
@@ -56,8 +56,8 @@ void FRenderDevice::Destroy()
 }
 
 
-void FRenderDevice::RecordRenderCommandBuffers(std::vector<FCommandBuffer>& cmdBufs,
-                                               const std::vector<VkImage>& images)
+void FRenderDevice::RecordSwapchainCommandBuffers(std::vector<FCommandBuffer>& cmdBufs,
+                                                  const std::vector<VkImage>& images)
 {
   VkImageSubresourceRange subresourceRange{
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -86,6 +86,7 @@ void FRenderDevice::RecordRenderCommandBuffers(std::vector<FCommandBuffer>& cmdB
                               subresourceRange,
                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
     cmdBuf.EndRecording();
+
     idx++;
   });
 }
@@ -102,7 +103,7 @@ void FRenderDevice::RenderFrame()
   u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
   VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphores()[frameIndex].GetHandle() };
   VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphores()[frameIndex].GetHandle() };
-  VkCommandBuffer cmdBuf[]{ m_RenderCommandBuffers[frameIndex].GetHandle() };
+  VkCommandBuffer cmdBuf[]{ m_SwapchainCommandBuffers[frameIndex].GetHandle() };
   VkFence fence{ m_Swapchain.GetFences()[frameIndex].GetHandle() };
 
   m_pLogicalDevice->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores, VK_PIPELINE_STAGE_TRANSFER_BIT, fence);
@@ -123,7 +124,7 @@ void FRenderDevice::EndFrame()
     m_Swapchain.Recreate();
 
     m_GraphicsCommandPool.Reset();
-    RecordRenderCommandBuffers(m_RenderCommandBuffers, m_Swapchain.GetImages());
+    RecordSwapchainCommandBuffers(m_SwapchainCommandBuffers, m_Swapchain.GetImages());
   }
 }
 
