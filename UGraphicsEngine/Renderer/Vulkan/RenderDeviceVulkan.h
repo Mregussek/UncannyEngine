@@ -31,6 +31,9 @@ public:
 
 private:
 
+  static void RecordRenderCommandBuffer(FCommandBuffer& renderCommandBuffer, VkImage image);
+
+
   const FLogicalDevice* m_pLogicalDevice{ nullptr };
   const FWindowSurface* m_pWindowSurface{ nullptr };
   FSwapchain m_Swapchain{};
