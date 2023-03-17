@@ -1,5 +1,6 @@
 
 #include "Queue.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
 namespace uncanny::vulkan
@@ -13,18 +14,20 @@ void FQueue::Initialize(VkQueue queue, FQueueFamilyIndex familyIndex)
 }
 
 
-void FQueue::Submit(std::span<VkSemaphore> waitVkSemaphores, std::span<VkCommandBuffer> vkCommandBuffers,
-                    std::span<VkSemaphore> signalVkSemaphores, VkPipelineStageFlags waitStageFlag,
-                    VkFence vkFence) const
+void FQueue::Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffer& commandBuffer,
+                    std::span<VkSemaphore> signalVkSemaphores, VkFence vkFence) const
 {
+  VkPipelineStageFlags waitStageFlag = commandBuffer.GetLastPipelineStageFlag();
+  VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
+
   VkSubmitInfo submitInfo{
     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
     .pNext = nullptr,
     .waitSemaphoreCount = static_cast<u32>(waitVkSemaphores.size()),
     .pWaitSemaphores = waitVkSemaphores.data(),
     .pWaitDstStageMask = &waitStageFlag,
-    .commandBufferCount = static_cast<u32>(vkCommandBuffers.size()),
-    .pCommandBuffers = vkCommandBuffers.data(),
+    .commandBufferCount = 1,
+    .pCommandBuffers = &vkCmdBuf,
     .signalSemaphoreCount = static_cast<u32>(signalVkSemaphores.size()),
     .pSignalSemaphores = signalVkSemaphores.data()
   };

@@ -108,6 +108,8 @@ void FCommandBuffer::ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, V
 
   vkCmdPipelineBarrier(m_CommandBuffer, srcStage, dstStage, VkDependencyFlags{ 0 },
                        0, nullptr, 0, nullptr, 1, &barrier);
+
+  m_LastPipelineStageFlag = dstStage;
 }
 
 
@@ -119,6 +121,8 @@ void FCommandBuffer::ClearColorImage(VkImage image, VkClearColorValue clearValue
                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        &clearValue,
                        1, &subresourceRange);
+
+  m_LastPipelineStageFlag = VK_PIPELINE_STAGE_TRANSFER_BIT;
 }
 
 

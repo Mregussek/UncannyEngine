@@ -1,8 +1,8 @@
 
 #include <UTools/Logger/Log.h>
 #include <UTools/Window/WindowGLFW.h>
-#include "UGraphicsEngine/Renderer/Vulkan/RenderContextVulkan.h"
-#include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceVulkan.h"
+#include "UGraphicsEngine/Renderer/Vulkan/RenderDevice.h"
+#include "UGraphicsEngine/Renderer/Vulkan/RenderCommands.h"
 
 using namespace uncanny;
 
@@ -29,7 +29,16 @@ public:
       }
 
       m_RenderDevice.WaitForNextAvailableFrame();
-      m_RenderDevice.SubmitSwapchainCommandBuffers();
+
+      const vulkan::FSwapchain& swapchain = m_RenderDevice.GetSwapchain();
+
+      VkSemaphore waitSemaphores[]{ swapchain.GetImageAvailableSemaphore().GetHandle() };
+      VkSemaphore signalSemaphores[]{ swapchain.GetPresentableImageReadySemaphore().GetHandle() };
+      VkFence fence{ swapchain.GetFence().GetHandle() };
+      u32 frameIndex = swapchain.GetCurrentFrameIndex();
+      vulkan::FCommandBuffer& commandBuffer = m_SwapchainCommandBuffers[frameIndex];
+
+      m_RenderDevice.GetGraphicsQueue().Submit(waitSemaphores, commandBuffer, signalSemaphores, fence);
       m_RenderDevice.PresentFrame();
 
       if (m_RenderDevice.IsOutOfDate())
@@ -57,14 +66,28 @@ private:
     m_Window->Create(windowConfiguration);
 
     u32 backBufferCount{ 2 };
-    m_RenderDevice.SetSwapchainCommandBuffersRecordingFunc([this]()
-    {
-      m_RenderDevice.RecordClearColorImageCommands();
-    });
     m_RenderDevice.Create(m_Window, backBufferCount);
+    // We want unique command buffer for every image...
+    backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
+    m_SwapchainCommandBuffers = m_RenderDevice.GetGraphicsCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);
+    m_RenderDevice.SetRecordingCommandsFunc([this]()
+    {
+      VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
+      vulkan::FRenderCommands::RecordClearColorImage(m_SwapchainCommandBuffers,
+                                                     m_RenderDevice.GetSwapchain().GetImages(),
+                                                     clearColorValue);
+    });
   }
 
   void Destroy() {
+    m_RenderDevice.WaitIdle();
+
+    std::ranges::for_each(m_SwapchainCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
+    {
+      commandBuffer.Free();
+    });
+    m_SwapchainCommandBuffers.clear();
+
     m_RenderDevice.Destroy();
     m_Window->Destroy();
   }
@@ -72,6 +95,7 @@ private:
 
   std::shared_ptr<IWindow> m_Window;
   vulkan::FRenderDevice m_RenderDevice{};
+  std::vector<vulkan::FCommandBuffer> m_SwapchainCommandBuffers{};
 
 };
 

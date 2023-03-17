@@ -31,12 +31,14 @@ public:
   void ClearColorImage(VkImage image, VkClearColorValue clearValue, VkImageSubresourceRange subresourceRange);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
+  [[nodiscard]] VkPipelineStageFlags GetLastPipelineStageFlag() const { return m_LastPipelineStageFlag; }
 
 private:
 
   VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
+  VkPipelineStageFlags m_LastPipelineStageFlag{ VK_PIPELINE_STAGE_NONE };
   b8 m_Recording{ UFALSE };
   b8 m_Freed{ UFALSE };
 

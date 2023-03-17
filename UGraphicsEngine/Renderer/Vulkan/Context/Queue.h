@@ -12,14 +12,17 @@ namespace uncanny::vulkan
 {
 
 
+class FCommandBuffer;
+
+
 class FQueue
 {
 public:
 
   void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);
 
-  void Submit(std::span<VkSemaphore> waitVkSemaphores, std::span<VkCommandBuffer> vkCommandBuffers,
-              std::span<VkSemaphore> signalVkSemaphores, VkPipelineStageFlags waitStageFlag, VkFence vkFence) const;
+  void Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffer& commandBuffer,
+              std::span<VkSemaphore> signalVkSemaphores, VkFence vkFence) const;
 
   [[nodiscard]] VkQueue GetHandle() const { return m_Queue; }
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_FamilyIndex; }

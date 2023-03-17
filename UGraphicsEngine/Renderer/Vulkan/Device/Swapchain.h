@@ -37,9 +37,15 @@ public:
   [[nodiscard]] u32 GetBackBufferCount() const { return m_BackBufferCount; }
   [[nodiscard]] u32 GetCurrentFrameIndex() const { return m_CurrentFrame; }
 
-  [[nodiscard]] const std::vector<FFence>& GetFences() const { return m_Fences; }
-  [[nodiscard]] const std::vector<FSemaphore>& GetImageAvailableSemaphores() const { return m_ImageAvailableSemaphores; }
-  [[nodiscard]] const std::vector<FSemaphore>& GetPresentableImageReadySemaphores() const { return m_PresentableImagesReadySemaphores; }
+  [[nodiscard]] const FFence& GetFence() const { return m_Fences[m_CurrentFrame]; }
+  [[nodiscard]] const FSemaphore& GetImageAvailableSemaphore() const
+  {
+    return m_ImageAvailableSemaphores[m_CurrentFrame];
+  }
+  [[nodiscard]] const FSemaphore& GetPresentableImageReadySemaphore() const
+  {
+    return m_PresentableImagesReadySemaphores[m_CurrentFrame];
+  }
 
 private:
 
