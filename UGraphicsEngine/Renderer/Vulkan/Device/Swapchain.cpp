@@ -4,6 +4,11 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Context/WindowSurface.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UTools/Logger/Log.h"
+// remove stupid MSVC min/max macro definitions
+#ifdef WIN32
+  #undef min
+  #undef max
+#endif
 
 
 namespace uncanny::vulkan
@@ -27,6 +32,7 @@ struct FSwapchainCreateAttributes
   VkSurfaceTransformFlagBitsKHR preTransform{ VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };
   VkPresentModeKHR presentMode{ VK_PRESENT_MODE_MAILBOX_KHR };
+  VkExtent2D extent{ .width = 0, .height = 0 };
 };
 
 
@@ -85,7 +91,7 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
     .minImageCount = createAttributes.minImageCount,
     .imageFormat = createAttributes.surfaceFormat.format,
     .imageColorSpace = createAttributes.surfaceFormat.colorSpace,
-    .imageExtent = m_pWindowSurface->GetCapabilities().currentExtent,
+    .imageExtent = createAttributes.extent,
     .imageArrayLayers = 1, // non-stereoscopic-3D app
     .imageUsage = usageFlags,
     .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, // images are exclusive to queue family
@@ -138,6 +144,13 @@ void FSwapchain::Destroy()
 
 void FSwapchain::Recreate()
 {
+  VkExtent2D currentExtent = m_pWindowSurface->GetCapabilities().currentExtent;
+  if (currentExtent.width == 0 or currentExtent.height == 0)
+  {
+    UWARN("Cannot recreate swapchain, as current extent is ({}, {})", currentExtent.width, currentExtent.height);
+    return;
+  }
+
   m_Images.clear();
   VkSwapchainKHR oldSwapchain = m_Swapchain;
   m_Swapchain = VK_NULL_HANDLE;
@@ -232,6 +245,13 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
   }) == ca.imageUsageFlags.end())
   {
     UERROR("Not supported image usage flag!");
+    return UFALSE;
+  }
+  // validating extent...
+  ca.extent = surfaceCaps.currentExtent;
+  if (ca.extent.width == 0 or ca.extent.height == 0)
+  {
+    UERROR("Extent is ({}, {}), surface is minimized!", ca.extent.width, ca.extent.height);
     return UFALSE;
   }
   // ... surface capabilities validated

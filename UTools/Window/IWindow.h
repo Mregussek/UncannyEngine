@@ -4,6 +4,11 @@
 
 
 #include "UTools/UTypes.h"
+#ifdef WIN32
+#include <windows.h>
+#else
+#error unsupported platform
+#endif
 
 
 namespace uncanny
@@ -72,6 +77,8 @@ public:
   [[nodiscard]] virtual const FKeyboardButtonsPressed& GetKeyboardButtonsPressed() const = 0;
 
   [[nodiscard]] virtual b32 IsGoingToClose() const = 0;
+
+  [[nodiscard]] virtual b32 IsMinimized() const = 0;
 
 #ifdef WIN32
   [[nodiscard]] virtual HWND GetWin32Handle() const = 0;

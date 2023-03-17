@@ -40,6 +40,8 @@ public:
 
   [[nodiscard]] b32 IsGoingToClose() const override;
 
+  [[nodiscard]] b32 IsMinimized() const override;
+
   [[nodiscard]] FWindowSize GetSize() const override { return m_Configuration.size; }
   [[nodiscard]] FMousePosition GetMousePosition() const override { return m_MousePosition; }
   [[nodiscard]] FMouseButtonsPressed GetMouseButtonsPressed() const override { return m_MouseButtonsPressed; }

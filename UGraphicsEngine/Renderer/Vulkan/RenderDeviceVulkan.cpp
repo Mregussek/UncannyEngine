@@ -4,24 +4,25 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/WindowSurface.h"
+#include "UTools/Window/IWindow.h"
 
 
 namespace uncanny::vulkan
 {
 
 
-void FRenderDevice::Create(const vulkan::FLogicalDevice* pLogicalDevice, const vulkan::FWindowSurface* pWindowSurface,
-                           u32 backBufferCount)
+void FRenderDevice::Create(const std::shared_ptr<IWindow>& pWindow, u32 backBufferCount)
 {
-  m_pLogicalDevice = pLogicalDevice;
-  m_pWindowSurface = pWindowSurface;
+  m_Context.Create(pWindow);
+  const FLogicalDevice* pLogicalDevice = m_Context.GetLogicalDevice();
+  const FWindowSurface* pWindowSurface = m_Context.GetWindowSurface();
 
-  m_Swapchain.Create(backBufferCount, m_pLogicalDevice->GetHandle(), &m_pLogicalDevice->GetPresentQueue(),
-                     m_pWindowSurface);
+  m_Swapchain.Create(backBufferCount, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
+                     pWindowSurface);
 
-  m_GraphicsCommandPool.Create(m_pLogicalDevice->GetGraphicsFamilyIndex(), m_pLogicalDevice->GetHandle());
-  m_TransferCommandPool.Create(m_pLogicalDevice->GetTransferFamilyIndex(), m_pLogicalDevice->GetHandle());
-  m_ComputeCommandPool.Create(m_pLogicalDevice->GetComputeFamilyIndex(), m_pLogicalDevice->GetHandle());
+  m_GraphicsCommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(), pLogicalDevice->GetHandle());
+  m_TransferCommandPool.Create(pLogicalDevice->GetTransferFamilyIndex(), pLogicalDevice->GetHandle());
+  m_ComputeCommandPool.Create(pLogicalDevice->GetComputeFamilyIndex(), pLogicalDevice->GetHandle());
 
   // We want unique command buffer for every image...
   m_SwapchainCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
@@ -35,9 +36,9 @@ void FRenderDevice::Destroy()
   {
     return;
   }
-  if (m_pLogicalDevice->IsValid())
+  if (m_Context.GetLogicalDevice()->IsValid())
   {
-    m_pLogicalDevice->Wait();
+    m_Context.GetLogicalDevice()->Wait();
   }
 
   std::ranges::for_each(m_SwapchainCommandBuffers, [](FCommandBuffer& commandBuffer)
@@ -51,6 +52,8 @@ void FRenderDevice::Destroy()
   m_ComputeCommandPool.Destroy();
 
   m_Swapchain.Destroy();
+
+  m_Context.Destroy();
 
   m_Destroyed = UTRUE;
 }
@@ -68,7 +71,7 @@ void FRenderDevice::WaitForNextAvailableFrame()
 }
 
 
-void FRenderDevice::RenderFrame()
+void FRenderDevice::SubmitSwapchainCommandBuffers()
 {
   u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
   VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphores()[frameIndex].GetHandle() };
@@ -76,8 +79,8 @@ void FRenderDevice::RenderFrame()
   VkCommandBuffer cmdBuf[]{ m_SwapchainCommandBuffers[frameIndex].GetHandle() };
   VkFence fence{ m_Swapchain.GetFences()[frameIndex].GetHandle() };
 
-  m_pLogicalDevice->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                              fence);
+  m_Context.GetLogicalDevice()->GetGraphicsQueue().Submit(waitSemaphores, cmdBuf, signalSemaphores,
+                                                          VK_PIPELINE_STAGE_TRANSFER_BIT, fence);
 }
 
 
@@ -95,7 +98,7 @@ b8 FRenderDevice::IsOutOfDate() const
 
 void FRenderDevice::RecreateRenderingResources()
 {
-  m_pLogicalDevice->Wait();
+  m_Context.GetLogicalDevice()->Wait();
   m_Swapchain.Recreate();
 
   m_GraphicsCommandPool.Reset();

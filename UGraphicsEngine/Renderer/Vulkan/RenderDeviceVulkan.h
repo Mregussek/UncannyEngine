@@ -5,9 +5,10 @@
 
 #include <vector>
 #include <functional>
-#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
+#include "RenderContextVulkan.h"
+#include "Commands/CommandPool.h"
+#include "Commands/CommandBuffer.h"
+#include "Device/Swapchain.h"
 
 
 namespace uncanny::vulkan
@@ -25,13 +26,13 @@ class FRenderDevice
 {
 public:
 
-  void Create(const FLogicalDevice* pLogicalDevice, const FWindowSurface* pWindowSurface, u32 backBufferCount);
+  void Create(const std::shared_ptr<IWindow>& pWindow, u32 backBufferCount);
   void Destroy();
 
   void SetSwapchainCommandBuffersRecordingFunc(RecordSwapchainCommandBufferFunc func);
 
   void WaitForNextAvailableFrame();
-  void RenderFrame();
+  void SubmitSwapchainCommandBuffers();
   void PresentFrame();
 
   [[nodiscard]] b8 IsOutOfDate() const;
@@ -41,8 +42,7 @@ public:
 
 private:
 
-  const FLogicalDevice* m_pLogicalDevice{ nullptr };
-  const FWindowSurface* m_pWindowSurface{ nullptr };
+  FRenderContext m_Context{};
   FSwapchain m_Swapchain{};
   FCommandPool m_GraphicsCommandPool{};
   FCommandPool m_TransferCommandPool{};

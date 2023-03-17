@@ -14,14 +14,14 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallbackFunc(VkDebugUtilsMessageSever
                                                         void* pUserData);
 
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportFunc(VkDebugReportFlagsEXT flags,
-                                                      VkDebugReportObjectTypeEXT objectType,
-                                                      uint64_t object,
-                                                      size_t location,
-                                                      int32_t messageCode,
-                                                      const char* pLayerPrefix,
-                                                      const char* pMessage,
-                                                      void* UserData);
+// static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportFunc(VkDebugReportFlagsEXT flags,
+//                                                       VkDebugReportObjectTypeEXT objectType,
+//                                                       uint64_t object,
+//                                                       size_t location,
+//                                                       int32_t messageCode,
+//                                                       const char* pLayerPrefix,
+//                                                       const char* pMessage,
+//                                                       void* UserData);
 
 
 void FEXTDebugUtils::Create(VkInstance vkInstance)
@@ -43,18 +43,18 @@ void FEXTDebugUtils::Create(VkInstance vkInstance)
   VkResult result = vkCreateDebugUtilsMessengerEXT(vkInstance, &utilsInfo, nullptr, &m_DebugUtils);
   AssertVkAndThrow(result);
 
-  VkDebugReportCallbackCreateInfoEXT reportInfo{
-    .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
-    .pNext = nullptr,
-    .flags =
-        VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
-        VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT,
-    .pfnCallback = debugReportFunc,
-    .pUserData = nullptr
-  };
+  //VkDebugReportCallbackCreateInfoEXT reportInfo{
+  //  .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+  //  .pNext = nullptr,
+  //  .flags =
+  //      VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+  //      VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT,
+  //  .pfnCallback = debugReportFunc,
+  //  .pUserData = nullptr
+  //};
 
-  result = vkCreateDebugReportCallbackEXT(vkInstance, &reportInfo, nullptr, &m_DebugReport);
-  AssertVkAndThrow(result);
+  //result = vkCreateDebugReportCallbackEXT(vkInstance, &reportInfo, nullptr, &m_DebugReport);
+  //AssertVkAndThrow(result);
 }
 
 
@@ -66,10 +66,10 @@ void FEXTDebugUtils::Destroy(VkInstance vkInstance)
         (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugUtilsMessengerEXT");
     vkDestroyDebugUtilsMessengerEXT(vkInstance, m_DebugUtils, nullptr);
   }
-  if (m_DebugReport != VK_NULL_HANDLE)
-  {
-    vkDestroyDebugReportCallbackEXT(vkInstance, m_DebugReport, nullptr);
-  }
+  // if (m_DebugReport != VK_NULL_HANDLE)
+  // {
+  //   vkDestroyDebugReportCallbackEXT(vkInstance, m_DebugReport, nullptr);
+  // }
 }
 
 
@@ -103,19 +103,19 @@ VkBool32 debugCallbackFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverit
 }
 
 
-VkBool32 debugReportFunc(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
-                         size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage,
-                         void* UserData)
-{
-  // Some performance warnings are silenced to make the debug output more readable
-  if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
-  {
-    return VK_FALSE;
-  }
-
-  UERROR("DebugReport: {}: {}", pLayerPrefix, pMessage);
-  return VK_FALSE;
-}
+// VkBool32 debugReportFunc(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
+//                          size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage,
+//                          void* UserData)
+// {
+//   // Some performance warnings are silenced to make the debug output more readable
+//   if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+//   {
+//     return VK_FALSE;
+//   }
+//
+//   UERROR("DebugReport: {}: {}", pLayerPrefix, pMessage);
+//   return VK_FALSE;
+// }
 
 
 }

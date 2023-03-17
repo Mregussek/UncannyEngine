@@ -12,7 +12,6 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Context/PhysicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/WindowSurface.h"
-#include "UTools/Window/IWindow.h"
 
 
 namespace uncanny::vulkan

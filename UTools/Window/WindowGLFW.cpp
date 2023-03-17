@@ -130,6 +130,16 @@ b32 FWindowGLFW::IsGoingToClose() const
 }
 
 
+b32 FWindowGLFW::IsMinimized() const
+{
+  if (m_Configuration.size.width == 0 and m_Configuration.size.height == 0)
+  {
+    return UTRUE;
+  }
+  return UFALSE;
+}
+
+
 #ifdef WIN32
 HWND FWindowGLFW::GetWin32Handle() const
 {

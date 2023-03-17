@@ -24,7 +24,7 @@ public:
 private:
 
   VkDebugUtilsMessengerEXT m_DebugUtils{ VK_NULL_HANDLE };
-  VkDebugReportCallbackEXT m_DebugReport{ VK_NULL_HANDLE };
+  //VkDebugReportCallbackEXT m_DebugReport{ VK_NULL_HANDLE };
 
 };
 
