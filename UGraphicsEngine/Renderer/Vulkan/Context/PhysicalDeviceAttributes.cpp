@@ -25,6 +25,7 @@ void FPhysicalDeviceAttributes::Initialize(VkPhysicalDevice vkPhysicalDevice)
   vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, m_QueueFamilyProperties.data());
 
   vkGetPhysicalDeviceFeatures(vkPhysicalDevice, &m_Features);
+  vkGetPhysicalDeviceMemoryProperties(vkPhysicalDevice, &m_MemoryProperties);
 }
 
 

@@ -16,12 +16,6 @@ FCommandBuffer::FCommandBuffer(VkDevice vkDevice, VkCommandPool vkCommandPool, V
 }
 
 
-FCommandBuffer::~FCommandBuffer()
-{
-  Free();
-}
-
-
 void FCommandBuffer::Free()
 {
   if (m_Freed)

@@ -7,6 +7,7 @@
 #include <vector>
 #include <functional>
 #include "RenderContext.h"
+#include "RenderDeviceFactory.h"
 #include "Commands/CommandPool.h"
 #include "Commands/CommandBuffer.h"
 #include "Device/Swapchain.h"
@@ -40,6 +41,7 @@ public:
   [[nodiscard]] b8 IsOutOfDate() const;
   void RecreateRenderingResources();
 
+  [[nodiscard]] const FRenderDeviceFactory& GetFactory() const { return m_Factory; }
   [[nodiscard]] const FSwapchain& GetSwapchain() const { return m_Swapchain; }
   [[nodiscard]] const FCommandPool& GetGraphicsCommandPool() const { return m_GraphicsCommandPool; }
   [[nodiscard]] const FCommandPool& GetTransferCommandPool() const { return m_TransferCommandPool; }
@@ -55,6 +57,7 @@ private:
   FCommandPool m_GraphicsCommandPool{};
   FCommandPool m_TransferCommandPool{};
   FCommandPool m_ComputeCommandPool{};
+  FRenderDeviceFactory m_Factory{};
   FRecordCommandsFunc m_RecordCommandsFunc{};
   b8 m_Destroyed{ UFALSE };
 

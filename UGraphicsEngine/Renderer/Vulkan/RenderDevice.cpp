@@ -13,15 +13,19 @@ namespace uncanny::vulkan
 void FRenderDevice::Create(const std::shared_ptr<IWindow>& pWindow, u32 backBufferCount)
 {
   m_Context.Create(pWindow);
-  const FLogicalDevice* pLogicalDevice = m_Context.GetLogicalDevice();
-  const FWindowSurface* pWindowSurface = m_Context.GetWindowSurface();
+  m_Factory.Initialize(m_Context.GetPhysicalDevice(), m_Context.GetLogicalDevice());
 
-  m_Swapchain.Create(backBufferCount, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
-                     pWindowSurface);
+  {
+    const FLogicalDevice* pLogicalDevice = m_Context.GetLogicalDevice();
+    const FWindowSurface* pWindowSurface = m_Context.GetWindowSurface();
 
-  m_GraphicsCommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(), pLogicalDevice->GetHandle());
-  m_TransferCommandPool.Create(pLogicalDevice->GetTransferFamilyIndex(), pLogicalDevice->GetHandle());
-  m_ComputeCommandPool.Create(pLogicalDevice->GetComputeFamilyIndex(), pLogicalDevice->GetHandle());
+    m_Swapchain.Create(backBufferCount, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
+                       pWindowSurface);
+
+    m_GraphicsCommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(), pLogicalDevice->GetHandle());
+    m_TransferCommandPool.Create(pLogicalDevice->GetTransferFamilyIndex(), pLogicalDevice->GetHandle());
+    m_ComputeCommandPool.Create(pLogicalDevice->GetComputeFamilyIndex(), pLogicalDevice->GetHandle());
+  }
 }
 
 

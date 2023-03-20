@@ -27,6 +27,7 @@ public:
 
   [[nodiscard]] const VkPhysicalDeviceProperties& GetDeviceProperties() const { return m_Properties; }
   [[nodiscard]] const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_Features; }
+  [[nodiscard]] const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const { return m_MemoryProperties; }
   [[nodiscard]] const std::vector<VkExtensionProperties>& GetExtensionProperties() const { return m_ExtensionProperties; }
   [[nodiscard]] const std::vector<VkQueueFamilyProperties>& GetQueueFamilyProperties() const { return m_QueueFamilyProperties; }
 
@@ -34,6 +35,7 @@ private:
 
   VkPhysicalDeviceProperties m_Properties{};
   VkPhysicalDeviceFeatures m_Features{};
+  VkPhysicalDeviceMemoryProperties m_MemoryProperties{};
   std::vector<VkExtensionProperties> m_ExtensionProperties{};
   std::vector<VkQueueFamilyProperties> m_QueueFamilyProperties{};
 

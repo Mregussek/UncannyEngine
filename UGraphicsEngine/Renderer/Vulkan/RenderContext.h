@@ -25,6 +25,7 @@ public:
   void Create(const std::shared_ptr<IWindow>& pWindow);
   void Destroy();
 
+  [[nodiscard]] const FPhysicalDevice* GetPhysicalDevice() const { return &m_PhysicalDevice; }
   [[nodiscard]] const FLogicalDevice* GetLogicalDevice() const { return &m_LogicalDevice; }
   [[nodiscard]] const FWindowSurface* GetWindowSurface() const { return &m_WindowSurface; }
 

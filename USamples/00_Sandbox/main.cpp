@@ -3,6 +3,7 @@
 #include <UTools/Window/WindowGLFW.h>
 #include "UGraphicsEngine/Renderer/Vulkan/RenderDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderCommands.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 
 using namespace uncanny;
 
@@ -67,6 +68,10 @@ private:
 
     u32 backBufferCount{ 2 };
     m_RenderDevice.Create(m_Window, backBufferCount);
+
+    m_Buffer = m_RenderDevice.GetFactory().CreateBuffer();
+    m_Buffer.Allocate(16, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+
     // We want unique command buffer for every image...
     backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
     m_SwapchainCommandBuffers = m_RenderDevice.GetGraphicsCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);
@@ -88,6 +93,8 @@ private:
     });
     m_SwapchainCommandBuffers.clear();
 
+    m_Buffer.Free();
+
     m_RenderDevice.Destroy();
     m_Window->Destroy();
   }
@@ -96,6 +103,7 @@ private:
   std::shared_ptr<IWindow> m_Window;
   vulkan::FRenderDevice m_RenderDevice{};
   std::vector<vulkan::FCommandBuffer> m_SwapchainCommandBuffers{};
+  vulkan::FBuffer m_Buffer{};
 
 };
 
