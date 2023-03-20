@@ -38,17 +38,15 @@ void FCommandBuffer::BeginRecording()
     UWARN("Command buffer is during recording commands, returning...");
     return;
   }
-  m_Recording = UTRUE;
-
   VkCommandBufferBeginInfo beginInfo{
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     .pNext = nullptr,
     .flags = 0,
     .pInheritanceInfo = nullptr
   };
-
   VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
   AssertVkAndThrow(result);
+  m_Recording = UTRUE;
 }
 
 
@@ -59,26 +57,28 @@ void FCommandBuffer::BeginOneTimeRecording()
     UWARN("Command buffer is during recording commands, returning...");
     return;
   }
-  m_Recording = UTRUE;
-
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .pNext = nullptr,
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
       .pInheritanceInfo = nullptr
   };
-
   VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
   AssertVkAndThrow(result);
+  m_Recording = UTRUE;
 }
 
 
 void FCommandBuffer::EndRecording()
 {
-  m_Recording = UFALSE;
-
+  if (not m_Recording)
+  {
+    UWARN("Command buffer is not during recording, returing...");
+    return;
+  }
   VkResult result = vkEndCommandBuffer(m_CommandBuffer);
   AssertVkAndThrow(result);
+  m_Recording = UFALSE;
 }
 
 

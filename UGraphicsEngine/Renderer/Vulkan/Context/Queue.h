@@ -24,6 +24,8 @@ public:
   void Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffer& commandBuffer,
               std::span<VkSemaphore> signalVkSemaphores, VkFence vkFence) const;
 
+  void WaitIdle() const;
+
   [[nodiscard]] VkQueue GetHandle() const { return m_Queue; }
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_FamilyIndex; }
 

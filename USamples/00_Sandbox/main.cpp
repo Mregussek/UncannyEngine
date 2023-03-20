@@ -71,7 +71,7 @@ private:
 
     m_Buffer = m_RenderDevice.GetFactory().CreateBuffer();
     m_Buffer.Allocate(16, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
+    // m_Buffer.Fill();
     // We want unique command buffer for every image...
     backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
     m_SwapchainCommandBuffers = m_RenderDevice.GetGraphicsCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);

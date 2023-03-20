@@ -4,6 +4,9 @@
 
 
 #include "Memory.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/Queue.h"
+#include "UTools/UTypes.h"
 
 
 namespace uncanny::vulkan
@@ -13,6 +16,10 @@ namespace uncanny::vulkan
 class FPhysicalDeviceAttributes;
 
 
+/*
+ * @brief
+ * If it will be used as device local don't forget about TRANSFER_DST buffer usage flag
+ */
 class FBuffer
 {
 
@@ -21,9 +28,14 @@ class FBuffer
 public:
 
   FBuffer() = default;
+  ~FBuffer();
 
   void Allocate(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags);
   void Free();
+
+  void Fill(void* pData, VkDeviceSize dataSize);
+  void FillStaged(void* pData, VkDeviceSize dataSize, const FCommandPool& transferCommandPool,
+                  const FQueue& transferQueue);
 
 private:
 
@@ -34,6 +46,9 @@ private:
   const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
   VkDevice m_Device{ VK_NULL_HANDLE };
   VkBuffer m_Buffer{ VK_NULL_HANDLE };
+  VkDeviceSize m_Size{ 0 };
+  VkMemoryPropertyFlags m_Flags{ 0 };
+  b8 m_Freed{ UFALSE };
 
 };
 

@@ -37,4 +37,10 @@ void FQueue::Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffe
 }
 
 
+void FQueue::WaitIdle() const
+{
+  vkQueueWaitIdle(m_Queue);
+}
+
+
 }

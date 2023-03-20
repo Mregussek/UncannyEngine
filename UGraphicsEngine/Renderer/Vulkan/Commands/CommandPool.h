@@ -22,9 +22,9 @@ public:
 
   void Reset();
 
-  [[nodiscard]] std::vector<FCommandBuffer> AllocatePrimaryCommandBuffers(u32 count) const;
+  [[nodiscard]] FCommandBuffer AllocateCommandBuffer() const;
 
-  [[nodiscard]] FCommandBuffer AllocateAndBeginSingleUseCommandBuffer() const;
+  [[nodiscard]] std::vector<FCommandBuffer> AllocatePrimaryCommandBuffers(u32 count) const;
 
 private:
 

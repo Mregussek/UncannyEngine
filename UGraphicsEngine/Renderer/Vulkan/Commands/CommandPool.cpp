@@ -64,7 +64,7 @@ std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 coun
 }
 
 
-FCommandBuffer FCommandPool::AllocateAndBeginSingleUseCommandBuffer() const
+FCommandBuffer FCommandPool::AllocateCommandBuffer() const
 {
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -78,10 +78,7 @@ FCommandBuffer FCommandPool::AllocateAndBeginSingleUseCommandBuffer() const
   VkResult result = vkAllocateCommandBuffers(m_Device, &allocateInfo, &vkCommandBuffer);
   AssertVkAndThrow(result);
 
-  FCommandBuffer cmdBuf{ m_Device, m_CommandPool, vkCommandBuffer };
-  cmdBuf.BeginOneTimeRecording();
-
-  return cmdBuf;
+  return { m_Device, m_CommandPool, vkCommandBuffer };
 }
 
 

@@ -22,7 +22,7 @@ class FRenderDeviceFactory
 
 public:
 
-  FBuffer CreateBuffer() const;
+  [[nodiscard]] FBuffer CreateBuffer() const;
 
 private:
 
