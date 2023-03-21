@@ -2,6 +2,7 @@
 #include "RenderDeviceFactory.h"
 #include "Context/PhysicalDevice.h"
 #include "Context/LogicalDevice.h"
+#include <algorithm>
 
 
 namespace uncanny::vulkan
@@ -23,6 +24,17 @@ std::vector<FImage> FRenderDeviceFactory::CreateImages(u32 count) const
     images.push_back({&m_pPhysicalDevice->GetAttributes(), m_pLogicalDevice->GetHandle()});
   }
   return images;
+}
+
+
+std::vector<FSemaphore> FRenderDeviceFactory::CreateSemaphores(u32 count) const
+{
+  std::vector<FSemaphore> semaphores(count);
+  std::ranges::for_each(semaphores, [this](FSemaphore& semaphore)
+  {
+    semaphore.Create(m_pLogicalDevice->GetHandle());
+  });
+  return semaphores;
 }
 
 

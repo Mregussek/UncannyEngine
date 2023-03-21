@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include <vector>
 #include "UTools/UTypes.h"
 
 
@@ -29,15 +30,23 @@ public:
                           VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
   void ClearColorImage(VkImage image, VkClearColorValue clearValue, VkImageSubresourceRange subresourceRange);
 
+  void CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubresourceLayers subresourceLayers, VkExtent2D extent);
+
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
-  [[nodiscard]] VkPipelineStageFlags GetLastPipelineStageFlag() const { return m_LastPipelineStageFlag; }
+  [[nodiscard]] const std::vector<VkPipelineStageFlags>& GetWaitPipelineStages() const
+  {
+    return m_WaitPipelineStages;
+  }
 
 private:
+
+  void AddPipelineStage(VkPipelineStageFlags stageFlags);
+
 
   VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
-  VkPipelineStageFlags m_LastPipelineStageFlag{ VK_PIPELINE_STAGE_NONE };
+  std::vector<VkPipelineStageFlags> m_WaitPipelineStages{};
   b8 m_Recording{ UFALSE };
   b8 m_Freed{ UFALSE };
 

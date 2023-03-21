@@ -92,7 +92,8 @@ private:
     VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
     vulkan::FRenderCommands::RecordClearColorImage(m_SwapchainCommandBuffers,
                                                    m_RenderDevice.GetSwapchain().GetImages(),
-                                                   clearColorValue);
+                                                   clearColorValue,
+                                                   VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
   }
 
 

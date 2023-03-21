@@ -6,6 +6,7 @@
 #include <volk.h>
 #include "Resources/Buffer.h"
 #include "Resources/Image.h"
+#include "Synchronization/Semaphore.h"
 
 
 namespace uncanny::vulkan
@@ -26,6 +27,8 @@ public:
   [[nodiscard]] FBuffer CreateBuffer() const;
 
   [[nodiscard]] std::vector<FImage> CreateImages(u32 count) const;
+
+  [[nodiscard]] std::vector<FSemaphore> CreateSemaphores(u32 count) const;
 
 private:
 

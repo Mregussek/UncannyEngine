@@ -144,15 +144,20 @@ void FSwapchain::Destroy()
 }
 
 
-void FSwapchain::Recreate()
+b8 FSwapchain::IsRecreatePossible()
 {
   m_CurrentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
   if (m_CurrentExtent.width == 0 or m_CurrentExtent.height == 0)
   {
     UWARN("Cannot recreate swapchain, as current extent is ({}, {})", m_CurrentExtent.width, m_CurrentExtent.height);
-    return;
+    return UFALSE;
   }
+  return UTRUE;
+}
 
+
+void FSwapchain::Recreate()
+{
   m_Images.clear();
   VkSwapchainKHR oldSwapchain = m_Swapchain;
   m_Swapchain = VK_NULL_HANDLE;

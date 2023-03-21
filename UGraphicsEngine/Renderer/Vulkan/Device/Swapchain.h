@@ -5,6 +5,7 @@
 
 #include <volk.h>
 #include <vector>
+#include <span>
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Fence.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 #include "UTools/UTypes.h"
@@ -27,13 +28,14 @@ public:
               const FWindowSurface* pWindowSurface);
   void Destroy();
 
+  [[nodiscard]] b8 IsRecreatePossible();
   void Recreate();
 
   void WaitForNextImage();
   void Present();
 
   [[nodiscard]] b8 IsOutOfDate() const { return m_OutOfDate; }
-  [[nodiscard]] const std::vector<VkImage>& GetImages() const { return m_Images; }
+  [[nodiscard]] std::span<const VkImage> GetImages() const { return m_Images; }
   [[nodiscard]] u32 GetBackBufferCount() const { return m_BackBufferCount; }
   [[nodiscard]] u32 GetCurrentFrameIndex() const { return m_CurrentFrame; }
   [[nodiscard]] VkExtent2D GetCurrentExtent() const { return m_CurrentExtent; }

@@ -30,6 +30,8 @@ public:
 
   void Recreate(VkExtent2D extent);
 
+  [[nodiscard]] VkImage GetHandle() const { return m_Image; }
+
 private:
 
   FImage(const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, VkDevice vkDevice);

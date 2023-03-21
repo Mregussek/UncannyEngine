@@ -85,9 +85,18 @@ b8 FRenderDevice::IsOutOfDate() const
 void FRenderDevice::RecreateRenderingResources()
 {
   WaitIdle();
+
+  if (not m_Swapchain.IsRecreatePossible())
+  {
+    return;
+  }
+
   m_Swapchain.Recreate();
 
   m_GraphicsCommandPool.Reset();
+  m_TransferCommandPool.Reset();
+  m_ComputeCommandPool.Reset();
+
   m_RecreateRenderResourcesCallback();
 }
 
