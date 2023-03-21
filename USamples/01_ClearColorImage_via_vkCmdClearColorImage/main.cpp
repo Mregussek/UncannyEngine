@@ -67,16 +67,11 @@ private:
 
     u32 backBufferCount{ 2 };
     m_RenderDevice.Create(m_Window, backBufferCount);
-    // We want unique command buffer for every image...
+    m_RenderDevice.SetRecreateRenderingResourcesCallback([this](){ RecordCommands(); });
+
     backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
     m_SwapchainCommandBuffers = m_RenderDevice.GetGraphicsCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);
-    m_RenderDevice.SetRecordingCommandsFunc([this]()
-    {
-      VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
-      vulkan::FRenderCommands::RecordClearColorImage(m_SwapchainCommandBuffers,
-                                                     m_RenderDevice.GetSwapchain().GetImages(),
-                                                     clearColorValue);
-    });
+    RecordCommands();
   }
 
   void Destroy() {
@@ -90,6 +85,14 @@ private:
 
     m_RenderDevice.Destroy();
     m_Window->Destroy();
+  }
+
+  void RecordCommands()
+  {
+    VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
+    vulkan::FRenderCommands::RecordClearColorImage(m_SwapchainCommandBuffers,
+                                                   m_RenderDevice.GetSwapchain().GetImages(),
+                                                   clearColorValue);
   }
 
 

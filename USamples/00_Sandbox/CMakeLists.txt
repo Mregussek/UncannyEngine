@@ -1,23 +1,23 @@
 
-add_executable(Sandbox main.cpp)
-target_include_directories(Sandbox
+add_executable(00_Sandbox main.cpp)
+target_include_directories(00_Sandbox
         PUBLIC
         ${PROJECT_SOURCE_DIR}
         )
-target_link_directories(Sandbox
+target_link_directories(00_Sandbox
         PUBLIC
         ${PROJECT_SOURCE_DIR}
         )
-target_link_libraries(Sandbox
+target_link_libraries(00_Sandbox
         PUBLIC
         UncannyGraphicsEngine
         UncannyTools
         )
-target_compile_features(Sandbox
+target_compile_features(00_Sandbox
         PUBLIC
         cxx_std_20
         )
-target_compile_options(Sandbox
+target_compile_options(00_Sandbox
         PRIVATE
         /NODEFAULTLIB
         )
