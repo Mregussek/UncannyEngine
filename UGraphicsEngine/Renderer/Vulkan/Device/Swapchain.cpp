@@ -144,7 +144,7 @@ void FSwapchain::Destroy()
 
 void FSwapchain::Recreate()
 {
-  VkExtent2D currentExtent = m_pWindowSurface->GetCapabilities().currentExtent;
+  VkExtent2D currentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
   if (currentExtent.width == 0 or currentExtent.height == 0)
   {
     UWARN("Cannot recreate swapchain, as current extent is ({}, {})", currentExtent.width, currentExtent.height);
@@ -223,7 +223,7 @@ void FSwapchain::Present()
 b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& ca,
                                                    const FWindowSurface* pWindowSurface)
 {
-  const VkSurfaceCapabilitiesKHR& surfaceCaps = pWindowSurface->GetCapabilities();
+  const VkSurfaceCapabilitiesKHR& surfaceCaps = pWindowSurface->QueryCapabilities();
 
   // Validate surface capabilities...
   // Validating min image count...
@@ -258,7 +258,7 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
 
   // Validate surface format...
   // Validating if requested surface format is supported...
-  auto formats = pWindowSurface->GetFormats();
+  auto formats = pWindowSurface->QueryFormats();
   if (std::ranges::find_if(formats, [expectedFormat = ca.surfaceFormat](auto surfaceFormat)->bool
   {
     return expectedFormat.format == surfaceFormat.format and expectedFormat.colorSpace == surfaceFormat.colorSpace;
@@ -268,7 +268,7 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
     ca.surfaceFormat = formats[0];
   }
   // Validating if requested surface format features are supported...
-  VkFormatProperties formatProperties = pWindowSurface->GetFormatProperties(ca.surfaceFormat.format);
+  VkFormatProperties formatProperties = pWindowSurface->QueryFormatProperties(ca.surfaceFormat.format);
   VkFormatFeatureFlags actualFormatFeatureFlags;
   if (ca.imageTiling == VK_IMAGE_TILING_OPTIMAL)
   {
@@ -289,7 +289,7 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
   // ... surface format validated
 
   // Validate present mode...
-  auto presentModes = pWindowSurface->GetPresentModes();
+  auto presentModes = pWindowSurface->QueryPresentModes();
   if (std::ranges::find(presentModes, ca.presentMode) == presentModes.end())
   {
     UWARN("Using default FIFO present mode as required one is not supported!");

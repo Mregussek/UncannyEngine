@@ -13,8 +13,6 @@ namespace uncanny::vulkan
 
 void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
 {
-  m_pWindow = pWindow;
-
   m_VolkHandler.Initialize();
 
   {
@@ -52,7 +50,7 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());
   }
 
-  m_WindowSurface.Create(m_pWindow.get(), m_Instance.GetHandle(), m_PhysicalDevice.GetHandle());
+  m_WindowSurface.Create(pWindow.get(), m_Instance.GetHandle(), m_PhysicalDevice.GetHandle());
   if (!m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentFamilyIndex()))
   {
     vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");

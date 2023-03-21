@@ -40,7 +40,7 @@ void FWindowSurface::Destroy(VkInstance vkInstance)
 }
 
 
-VkSurfaceCapabilitiesKHR FWindowSurface::GetCapabilities() const
+VkSurfaceCapabilitiesKHR FWindowSurface::QueryCapabilities() const
 {
   VkSurfaceCapabilitiesKHR capabilities{};
   VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Surface, &capabilities);
@@ -49,7 +49,7 @@ VkSurfaceCapabilitiesKHR FWindowSurface::GetCapabilities() const
 }
 
 
-std::vector<VkSurfaceFormatKHR> FWindowSurface::GetFormats() const
+std::vector<VkSurfaceFormatKHR> FWindowSurface::QueryFormats() const
 {
   u32 count{ 0 };
   vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &count, nullptr);
@@ -59,7 +59,7 @@ std::vector<VkSurfaceFormatKHR> FWindowSurface::GetFormats() const
 }
 
 
-VkFormatProperties FWindowSurface::GetFormatProperties(VkFormat format) const
+VkFormatProperties FWindowSurface::QueryFormatProperties(VkFormat format) const
 {
   VkFormatProperties properties{};
   vkGetPhysicalDeviceFormatProperties(m_PhysicalDevice, format, &properties);
@@ -67,7 +67,7 @@ VkFormatProperties FWindowSurface::GetFormatProperties(VkFormat format) const
 }
 
 
-std::vector<VkPresentModeKHR> FWindowSurface::GetPresentModes() const
+std::vector<VkPresentModeKHR> FWindowSurface::QueryPresentModes() const
 {
   u32 count{ 0 };
   vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, m_Surface, &count, nullptr);

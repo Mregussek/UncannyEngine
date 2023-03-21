@@ -18,11 +18,22 @@ namespace uncanny::vulkan
 {
 
 
+/// @brief FRenderContext is a class describing the most important parts for initialization of Vulkan API
+/// in the engine.
+/// @details It creates Instance, chooses physical device, creates logical device and windows surface.
+/// Also it is responsible for their destruction. It must not be exposed to the end user. Only FRenderDevice
+/// should use it only for creation / destruction and handles retrieval.
 class FRenderContext
 {
 public:
 
+  /// @brief Creates context
+  /// @details Chooses proper Vulkan API version, adds required layers and extensions, chooses physical
+  /// device and then creates logical device along with window surface.
+  /// @param pWindow pointer to window interface (needed for window surface creation)
   void Create(const std::shared_ptr<IWindow>& pWindow);
+
+  /// @brief Destroys whole FRenderContext object (closes Vulkan API)
   void Destroy();
 
   [[nodiscard]] const FPhysicalDevice* GetPhysicalDevice() const { return &m_PhysicalDevice; }
@@ -37,8 +48,7 @@ private:
   FVolkHandler m_VolkHandler{};
   FLogicalDevice m_LogicalDevice{};
   FWindowSurface m_WindowSurface{};
-  std::shared_ptr<IWindow> m_pWindow{};
-  // @brief boolean guard for Destroy() method in destructor
+  /// @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };
 
 };
