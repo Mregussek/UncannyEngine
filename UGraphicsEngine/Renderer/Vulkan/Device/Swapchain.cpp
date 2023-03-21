@@ -56,6 +56,7 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pQ
   m_Device = vkDevice;
   m_pPresentQueue = pQueue;
   m_pWindowSurface = pWindowSurface;
+  m_CurrentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
 
   CreateOnlySwapchain(VK_NULL_HANDLE);
 
@@ -75,6 +76,7 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
 {
   FSwapchainCreateAttributes createAttributes{};
   createAttributes.minImageCount = m_BackBufferCount;
+  createAttributes.extent = m_CurrentExtent;
   b8 replaced = ReplaceRequestedAttributesWithSupportedIfNeeded(createAttributes, m_pWindowSurface);
   if (not replaced)
   {
@@ -144,10 +146,10 @@ void FSwapchain::Destroy()
 
 void FSwapchain::Recreate()
 {
-  VkExtent2D currentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
-  if (currentExtent.width == 0 or currentExtent.height == 0)
+  m_CurrentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
+  if (m_CurrentExtent.width == 0 or m_CurrentExtent.height == 0)
   {
-    UWARN("Cannot recreate swapchain, as current extent is ({}, {})", currentExtent.width, currentExtent.height);
+    UWARN("Cannot recreate swapchain, as current extent is ({}, {})", m_CurrentExtent.width, m_CurrentExtent.height);
     return;
   }
 
@@ -248,7 +250,10 @@ b8 ReplaceRequestedAttributesWithSupportedIfNeeded(FSwapchainCreateAttributes& c
     return UFALSE;
   }
   // validating extent...
-  ca.extent = surfaceCaps.currentExtent;
+  if (surfaceCaps.currentExtent.width != ca.extent.width or surfaceCaps.currentExtent.height != ca.extent.height)
+  {
+    ca.extent = surfaceCaps.currentExtent;
+  }
   if (ca.extent.width == 0 or ca.extent.height == 0)
   {
     UERROR("Extent is ({}, {}), surface is minimized!", ca.extent.width, ca.extent.height);

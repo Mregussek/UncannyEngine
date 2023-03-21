@@ -21,7 +21,7 @@ class FLogicalDevice;
 class FWindowSurface;
 
 
-typedef std::function<void()> FRecordCommandsFunc;
+typedef std::function<void()> FRenderDeviceCallbackFunc;
 
 
 class FRenderDevice
@@ -31,7 +31,7 @@ public:
   void Create(const std::shared_ptr<IWindow>& pWindow, u32 backBufferCount);
   void Destroy();
 
-  void SetRecordingCommandsFunc(FRecordCommandsFunc func);
+  void SetRecreateRenderingResourcesCallback(FRenderDeviceCallbackFunc func);
 
   void WaitIdle() const;
 
@@ -58,7 +58,7 @@ private:
   FCommandPool m_TransferCommandPool{};
   FCommandPool m_ComputeCommandPool{};
   FRenderDeviceFactory m_Factory{};
-  FRecordCommandsFunc m_RecordCommandsFunc{};
+  FRenderDeviceCallbackFunc m_RecreateRenderResourcesCallback{};
   b8 m_Destroyed{ UFALSE };
 
 };

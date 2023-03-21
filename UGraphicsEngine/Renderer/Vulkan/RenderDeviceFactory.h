@@ -5,6 +5,7 @@
 
 #include <volk.h>
 #include "Resources/Buffer.h"
+#include "Resources/Image.h"
 
 
 namespace uncanny::vulkan
@@ -23,6 +24,8 @@ class FRenderDeviceFactory
 public:
 
   [[nodiscard]] FBuffer CreateBuffer() const;
+
+  [[nodiscard]] std::vector<FImage> CreateImages(u32 count) const;
 
 private:
 

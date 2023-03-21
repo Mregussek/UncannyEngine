@@ -47,7 +47,7 @@ private:
   VkDevice m_Device{ VK_NULL_HANDLE };
   VkBuffer m_Buffer{ VK_NULL_HANDLE };
   VkDeviceSize m_Size{ 0 };
-  VkMemoryPropertyFlags m_Flags{ 0 };
+  VkMemoryPropertyFlags m_MemoryFlags{ 0 };
   b8 m_Freed{ UFALSE };
 
 };

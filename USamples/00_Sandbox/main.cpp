@@ -4,6 +4,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/RenderDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderCommands.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 
 using namespace uncanny;
 
@@ -66,32 +67,51 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
-    u32 backBufferCount{ 2 };
-    m_RenderDevice.Create(m_Window, backBufferCount);
+    m_RenderDevice.Create(m_Window, 2);
+    m_RenderDevice.SetRecreateRenderingResourcesCallback([this]()
+    {
+      VkExtent2D currentExtent = m_RenderDevice.GetSwapchain().GetCurrentExtent();
+      std::ranges::for_each(m_RenderTargetImages, [currentExtent](vulkan::FImage& image)
+      {
+        image.Recreate(currentExtent);
+      });
+      RecordCommands();
+    });
 
+    u32 backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
+
+    // Creating buffers...
     m_Buffer = m_RenderDevice.GetFactory().CreateBuffer();
     m_Buffer.Allocate(16, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     // m_Buffer.Fill();
-    // We want unique command buffer for every image...
-    backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
-    m_SwapchainCommandBuffers = m_RenderDevice.GetGraphicsCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);
-    m_RenderDevice.SetRecordingCommandsFunc([this]()
+
+    // Creating render target images...
+    m_RenderTargetImages = m_RenderDevice.GetFactory().CreateImages(backBufferCount);
+    std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
     {
-      VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
-      vulkan::FRenderCommands::RecordClearColorImage(m_SwapchainCommandBuffers,
-                                                     m_RenderDevice.GetSwapchain().GetImages(),
-                                                     clearColorValue);
+      AllocateRenderTargetImage(image, m_RenderDevice.GetSwapchain().GetCurrentExtent());
     });
+
+    // Creating swapchain command buffers...
+    m_SwapchainCommandBuffers = m_RenderDevice.GetGraphicsCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);
+    RecordCommands();
   }
 
-  void Destroy() {
+  void Destroy()
+  {
     m_RenderDevice.WaitIdle();
 
+    // Closing render target images...
+    std::ranges::for_each(m_RenderTargetImages, [](vulkan::FImage& image)
+    {
+      image.Free();
+    });
+
+    // Closing swapchain command buffers...
     std::ranges::for_each(m_SwapchainCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
     {
       commandBuffer.Free();
     });
-    m_SwapchainCommandBuffers.clear();
 
     m_Buffer.Free();
 
@@ -99,9 +119,29 @@ private:
     m_Window->Destroy();
   }
 
+  static void AllocateRenderTargetImage(vulkan::FImage& renderTargetImage, VkExtent2D extent)
+  {
+    VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
+    VkImageUsageFlags usage =
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+    VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    renderTargetImage.Allocate(format, extent, usage, initialLayout, memoryFlags);
+  }
+
+  void RecordCommands()
+  {
+    VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
+    vulkan::FRenderCommands::RecordClearColorImage(m_SwapchainCommandBuffers,
+                                                   m_RenderDevice.GetSwapchain().GetImages(),
+                                                   clearColorValue);
+  }
+
 
   std::shared_ptr<IWindow> m_Window;
   vulkan::FRenderDevice m_RenderDevice{};
+  std::vector<vulkan::FImage> m_RenderTargetImages{};
   std::vector<vulkan::FCommandBuffer> m_SwapchainCommandBuffers{};
   vulkan::FBuffer m_Buffer{};
 

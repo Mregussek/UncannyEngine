@@ -2,7 +2,6 @@
 #include "Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/PhysicalDeviceAttributes.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
-#include "UTools/Logger/Log.h"
 
 
 namespace uncanny::vulkan
@@ -24,7 +23,7 @@ FBuffer::~FBuffer()
 
 void FBuffer::Allocate(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags)
 {
-  m_Flags = memoryFlags;
+  m_MemoryFlags = memoryFlags;
   m_Size = size;
 
   VkBufferCreateInfo createInfo{
@@ -44,7 +43,7 @@ void FBuffer::Allocate(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProp
   VkMemoryRequirements memoryRequirements{};
   vkGetBufferMemoryRequirements(m_Device, m_Buffer, &memoryRequirements);
 
-  m_Memory.Allocate(m_Device, m_pPhysicalDeviceAttributes->GetMemoryProperties(), memoryRequirements, m_Flags);
+  m_Memory.Allocate(m_Device, m_pPhysicalDeviceAttributes->GetMemoryProperties(), memoryRequirements, m_MemoryFlags);
 
   VkDeviceSize memoryOffset{ 0 };
   vkBindBufferMemory(m_Device, m_Buffer, m_Memory.GetHandle(), memoryOffset);

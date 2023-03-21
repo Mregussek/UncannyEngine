@@ -52,10 +52,9 @@ void FRenderDevice::Destroy()
 }
 
 
-void FRenderDevice::SetRecordingCommandsFunc(FRecordCommandsFunc func)
+void FRenderDevice::SetRecreateRenderingResourcesCallback(FRenderDeviceCallbackFunc func)
 {
-  m_RecordCommandsFunc = std::move(func);
-  m_RecordCommandsFunc();
+  m_RecreateRenderResourcesCallback = std::move(func);
 }
 
 
@@ -89,7 +88,7 @@ void FRenderDevice::RecreateRenderingResources()
   m_Swapchain.Recreate();
 
   m_GraphicsCommandPool.Reset();
-  m_RecordCommandsFunc();
+  m_RecreateRenderResourcesCallback();
 }
 
 
