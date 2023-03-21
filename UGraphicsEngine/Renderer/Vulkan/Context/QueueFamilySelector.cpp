@@ -10,7 +10,8 @@ namespace uncanny::vulkan
 
 
 typedef i32 FQueueFamilyScore;
-typedef std::function<FQueueFamilyScore(VkQueueFamilyProperties, u32, VkInstance, VkPhysicalDevice)> GetScoreFuncObject;
+typedef std::function<FQueueFamilyScore(VkQueueFamilyProperties, FQueueFamilyIndex, VkInstance, VkPhysicalDevice)>
+    GetScoreFuncObject;
 
 
 static std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,
@@ -19,19 +20,19 @@ static std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyPropert
                                             VkPhysicalDevice vkPhysicalDevice);
 
 
-static FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties, u32 queueFamilyIndex,
+static FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
                                           VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
 
 
-static FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties, u32 queueFamilyIndex,
+static FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
                                          VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
 
 
-static FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties, u32 queueFamilyIndex,
+static FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
                                           VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
 
 
-static FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties, u32 queueFamilyIndex,
+static FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
                                          VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
 
 
@@ -55,8 +56,8 @@ std::optional<u32> FQueueFamilySelector::SelectPresent(std::span<const VkQueueFa
 
 
 std::optional<u32> FQueueFamilySelector::SelectTransfer(std::span<const VkQueueFamilyProperties> properties,
-                                                                   VkInstance vkInstance,
-                                                                   VkPhysicalDevice vkPhysicalDevice)
+                                                        VkInstance vkInstance,
+                                                        VkPhysicalDevice vkPhysicalDevice)
 {
   GetScoreFuncObject getScoreFuncObj = GetTransferScore;
   return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
@@ -64,8 +65,8 @@ std::optional<u32> FQueueFamilySelector::SelectTransfer(std::span<const VkQueueF
 
 
 std::optional<u32> FQueueFamilySelector::SelectCompute(std::span<const VkQueueFamilyProperties> properties,
-                                                                  VkInstance vkInstance,
-                                                                  VkPhysicalDevice vkPhysicalDevice)
+                                                       VkInstance vkInstance,
+                                                       VkPhysicalDevice vkPhysicalDevice)
 {
   GetScoreFuncObject getScoreFuncObj = GetComputeScore;
   return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
@@ -96,7 +97,7 @@ std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> qu
 
 
 FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties,
-                                   u32 queueFamilyIndex,
+                                   FQueueFamilyIndex queueFamilyIndex,
                                    VkInstance vkInstance,
                                    VkPhysicalDevice vkPhysicalDevice)
 {
@@ -110,7 +111,7 @@ FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties,
 
 
 FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
-                                  u32 queueFamilyIndex,
+                                  FQueueFamilyIndex queueFamilyIndex,
                                   VkInstance vkInstance,
                                   VkPhysicalDevice vkPhysicalDevice)
 {
@@ -138,7 +139,7 @@ FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
 
 
 FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
-                                   u32 queueFamilyIndex,
+                                   FQueueFamilyIndex queueFamilyIndex,
                                    VkInstance vkInstance,
                                    VkPhysicalDevice vkPhysicalDevice)
 {
@@ -160,7 +161,7 @@ FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
 
 
 FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties,
-                                  u32 queueFamilyIndex,
+                                  FQueueFamilyIndex queueFamilyIndex,
                                   VkInstance vkInstance,
                                   VkPhysicalDevice vkPhysicalDevice)
 {
