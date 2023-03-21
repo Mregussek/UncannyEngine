@@ -13,7 +13,7 @@ void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQu
                                                             VkPhysicalDevice vkPhysicalDevice)
 {
   std::optional<FQueueFamilyIndex> graphicsQueueFamily =
-      vulkan::FQueueFamilySelector().SelectGraphicsQueueFamily(familyProperties, vkInstance, vkPhysicalDevice);
+      vulkan::FQueueFamilySelector::SelectGraphics(familyProperties, vkInstance, vkPhysicalDevice);
   if (graphicsQueueFamily.has_value())
   {
     m_GraphicsQueueFamilyIndex = graphicsQueueFamily.value();
@@ -21,7 +21,7 @@ void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQu
   }
 
   std::optional<FQueueFamilyIndex> presentQueueFamily =
-      vulkan::FQueueFamilySelector().SelectPresentQueueFamily(familyProperties, vkInstance, vkPhysicalDevice);
+      vulkan::FQueueFamilySelector::SelectPresent(familyProperties, vkInstance, vkPhysicalDevice);
   if (presentQueueFamily.has_value())
   {
     m_PresentQueueFamilyIndex = presentQueueFamily.value();
@@ -29,7 +29,7 @@ void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQu
   }
 
   std::optional<FQueueFamilyIndex> transferQueueFamily =
-      vulkan::FQueueFamilySelector().SelectTransferQueueFamily(familyProperties, vkInstance, vkPhysicalDevice);
+      vulkan::FQueueFamilySelector::SelectTransfer(familyProperties, vkInstance, vkPhysicalDevice);
   if (transferQueueFamily.has_value())
   {
     m_TransferQueueFamilyIndex = transferQueueFamily.value();
@@ -37,7 +37,7 @@ void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQu
   }
 
   std::optional<FQueueFamilyIndex> computeQueueFamily =
-      vulkan::FQueueFamilySelector().SelectComputeQueueFamily(familyProperties, vkInstance, vkPhysicalDevice);
+      vulkan::FQueueFamilySelector::SelectCompute(familyProperties, vkInstance, vkPhysicalDevice);
   if (computeQueueFamily.has_value())
   {
     m_ComputeQueueFamilyIndex = computeQueueFamily.value();

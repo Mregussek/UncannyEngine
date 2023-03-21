@@ -17,9 +17,10 @@ class FCommandBuffer;
 
 class FQueue
 {
-public:
 
-  void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);
+  friend class FLogicalDevice;
+
+public:
 
   void Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffer& commandBuffer,
               std::span<VkSemaphore> signalVkSemaphores, VkFence vkFence) const;
@@ -30,6 +31,9 @@ public:
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_FamilyIndex; }
 
 private:
+
+  void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);
+
 
   VkQueue m_Queue{ VK_NULL_HANDLE };
   FQueueFamilyIndex m_FamilyIndex{ UUNUSED };

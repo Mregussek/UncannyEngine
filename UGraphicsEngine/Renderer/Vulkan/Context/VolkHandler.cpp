@@ -10,14 +10,14 @@ namespace uncanny::vulkan
 {
 
 
-void FVolkHandler::Initialize()
+void FVolkHandler::Initialize() const
 {
   VkResult result = volkInitialize();
   AssertVkAndThrow(result, "Could not initialize volk library");
 }
 
 
-void FVolkHandler::LoadInstance(VkInstance vkInstance)
+void FVolkHandler::LoadInstance(VkInstance vkInstance) const
 {
   volkLoadInstance(vkInstance);
 }

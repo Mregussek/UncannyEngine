@@ -37,7 +37,7 @@ void FRenderDevice::Destroy()
   }
   if (m_Context.GetLogicalDevice()->IsValid())
   {
-    m_Context.GetLogicalDevice()->Wait();
+    m_Context.GetLogicalDevice()->WaitIdle();
   }
 
   m_GraphicsCommandPool.Destroy();
@@ -61,7 +61,7 @@ void FRenderDevice::SetRecordingCommandsFunc(FRecordCommandsFunc func)
 
 void FRenderDevice::WaitIdle() const
 {
-  m_Context.GetLogicalDevice()->Wait();
+  m_Context.GetLogicalDevice()->WaitIdle();
 }
 
 

@@ -35,40 +35,42 @@ static FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties, u32
                                          VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
 
 
-std::optional<u32> FQueueFamilySelector::SelectGraphicsQueueFamily(std::span<const VkQueueFamilyProperties> properties,
-                                                                   VkInstance vkInstance,
-                                                                   VkPhysicalDevice vkPhysicalDevice) const
+
+std::optional<u32> FQueueFamilySelector::SelectGraphics(std::span<const VkQueueFamilyProperties> properties,
+                                                        VkInstance vkInstance,
+                                                        VkPhysicalDevice vkPhysicalDevice)
 {
   GetScoreFuncObject getScoreFuncObj = GetGraphicsScore;
   return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
 
 
-std::optional<u32> FQueueFamilySelector::SelectPresentQueueFamily(std::span<const VkQueueFamilyProperties> properties,
-                                                                  VkInstance vkInstance,
-                                                                  VkPhysicalDevice vkPhysicalDevice) const
+std::optional<u32> FQueueFamilySelector::SelectPresent(std::span<const VkQueueFamilyProperties> properties,
+                                                       VkInstance vkInstance,
+                                                       VkPhysicalDevice vkPhysicalDevice)
 {
   GetScoreFuncObject getScoreFuncObj = GetPresentScore;
   return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
 
 
-std::optional<u32> FQueueFamilySelector::SelectTransferQueueFamily(std::span<const VkQueueFamilyProperties> properties,
+std::optional<u32> FQueueFamilySelector::SelectTransfer(std::span<const VkQueueFamilyProperties> properties,
                                                                    VkInstance vkInstance,
-                                                                   VkPhysicalDevice vkPhysicalDevice) const
+                                                                   VkPhysicalDevice vkPhysicalDevice)
 {
   GetScoreFuncObject getScoreFuncObj = GetTransferScore;
   return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
 
 
-std::optional<u32> FQueueFamilySelector::SelectComputeQueueFamily(std::span<const VkQueueFamilyProperties> properties,
+std::optional<u32> FQueueFamilySelector::SelectCompute(std::span<const VkQueueFamilyProperties> properties,
                                                                   VkInstance vkInstance,
-                                                                  VkPhysicalDevice vkPhysicalDevice) const
+                                                                  VkPhysicalDevice vkPhysicalDevice)
 {
   GetScoreFuncObject getScoreFuncObj = GetComputeScore;
   return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
 }
+
 
 
 std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> queueFamilyProperties,

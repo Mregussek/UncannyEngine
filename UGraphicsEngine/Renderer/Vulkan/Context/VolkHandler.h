@@ -10,16 +10,14 @@ namespace uncanny::vulkan
 {
 
 
-/*
- * @brief FVolkHandler is a helper class for volk library. I have decided to create this class
- * for simple volkInitialize as it looks much better during Renderer.Initialize().
- */
+/// @brief FVolkHandler is a helper class for volk library. I have decided to create this class
+/// for simple volkInitialize as it looks much better during call stack.
 class FVolkHandler
 {
 public:
 
-  void Initialize();
-  void LoadInstance(VkInstance vkInstance);
+  void Initialize() const;
+  void LoadInstance(VkInstance vkInstance) const;
 
 };
 

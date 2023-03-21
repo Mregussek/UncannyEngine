@@ -37,10 +37,10 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
   m_Attributes = attributes;
 
   FQueueCreateInfoCreator creator{};
-  creator.AddQueueFamilyInfo(m_Attributes.GetGraphicsQueueFamilyIndex(), m_Attributes.GetGraphicsQueueIndex());
-  creator.AddQueueFamilyInfo(m_Attributes.GetPresentQueueFamilyIndex(), m_Attributes.GetPresentQueueIndex());
-  creator.AddQueueFamilyInfo(m_Attributes.GetTransferQueueFamilyIndex(), m_Attributes.GetTransferQueueIndex());
-  creator.AddQueueFamilyInfo(m_Attributes.GetComputeQueueFamilyIndex(), m_Attributes.GetComputeQueueIndex());
+  creator.AddQueueFamilyInfo(m_Attributes.GetGraphicsFamilyIndex(), m_Attributes.GetGraphicsQueueIndex());
+  creator.AddQueueFamilyInfo(m_Attributes.GetPresentFamilyIndex(), m_Attributes.GetPresentQueueIndex());
+  creator.AddQueueFamilyInfo(m_Attributes.GetTransferFamilyIndex(), m_Attributes.GetTransferQueueIndex());
+  creator.AddQueueFamilyInfo(m_Attributes.GetComputeFamilyIndex(), m_Attributes.GetComputeQueueIndex());
 
   const auto& requiredExtensions = m_Attributes.GetRequiredExtensions();
   const auto& deviceQueueCreateInfo = creator.GetDeviceQueueCreateInfoVector();
@@ -75,7 +75,7 @@ void FLogicalDevice::Destroy()
 }
 
 
-void FLogicalDevice::Wait() const
+void FLogicalDevice::WaitIdle() const
 {
   vkDeviceWaitIdle(m_Device);
 }
@@ -84,24 +84,24 @@ void FLogicalDevice::Wait() const
 void FLogicalDevice::InitializeQueues()
 {
   VkQueue graphicsQueueHandle{ VK_NULL_HANDLE };
-  vkGetDeviceQueue(m_Device, m_Attributes.GetGraphicsQueueFamilyIndex(), m_Attributes.GetGraphicsQueueIndex(),
+  vkGetDeviceQueue(m_Device, m_Attributes.GetGraphicsFamilyIndex(), m_Attributes.GetGraphicsQueueIndex(),
                    &graphicsQueueHandle);
-  m_GraphicsQueue.Initialize(graphicsQueueHandle, m_Attributes.GetGraphicsQueueFamilyIndex());
+  m_GraphicsQueue.Initialize(graphicsQueueHandle, m_Attributes.GetGraphicsFamilyIndex());
 
   VkQueue presentQueueHandle{ VK_NULL_HANDLE };
-  vkGetDeviceQueue(m_Device, m_Attributes.GetPresentQueueFamilyIndex(), m_Attributes.GetPresentQueueIndex(),
+  vkGetDeviceQueue(m_Device, m_Attributes.GetPresentFamilyIndex(), m_Attributes.GetPresentQueueIndex(),
                    &presentQueueHandle);
-  m_PresentQueue.Initialize(presentQueueHandle, m_Attributes.GetPresentQueueFamilyIndex());
+  m_PresentQueue.Initialize(presentQueueHandle, m_Attributes.GetPresentFamilyIndex());
 
   VkQueue transferQueueHandle{ VK_NULL_HANDLE };
-  vkGetDeviceQueue(m_Device, m_Attributes.GetTransferQueueFamilyIndex(), m_Attributes.GetTransferQueueIndex(),
+  vkGetDeviceQueue(m_Device, m_Attributes.GetTransferFamilyIndex(), m_Attributes.GetTransferQueueIndex(),
                    &transferQueueHandle);
-  m_TransferQueue.Initialize(transferQueueHandle, m_Attributes.GetTransferQueueFamilyIndex());
+  m_TransferQueue.Initialize(transferQueueHandle, m_Attributes.GetTransferFamilyIndex());
 
   VkQueue computeQueueHandle{ VK_NULL_HANDLE };
-  vkGetDeviceQueue(m_Device, m_Attributes.GetComputeQueueFamilyIndex(), m_Attributes.GetComputeQueueIndex(),
+  vkGetDeviceQueue(m_Device, m_Attributes.GetComputeFamilyIndex(), m_Attributes.GetComputeQueueIndex(),
                    &computeQueueHandle);
-  m_ComputeQueue.Initialize(computeQueueHandle, m_Attributes.GetComputeQueueFamilyIndex());
+  m_ComputeQueue.Initialize(computeQueueHandle, m_Attributes.GetComputeFamilyIndex());
 }
 
 

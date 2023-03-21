@@ -11,21 +11,28 @@ namespace uncanny::vulkan
 {
 
 
-/*
- * @brief FPhysicalDevice is a wrapper class for VkPhysicalDevice handle. It must be used only by
- * Render Context. Initialize method is implemented because VkPhysicalDevice is rather "retrieved" from
- * VkInstance than created and then destroyed.
- */
+/// @brief FPhysicalDevice wrapper class for vulkan handle.
+/// @details Initialize method is implemented because VkPhysicalDevice is rather "retrieved" from
+/// VkInstance than created and then destroyed. Even I don't like those GetHandle() methods I have decided
+/// to put it there, so that every VkPhysicalDevice-dependent wrapper class can store and use it for its
+/// creation / destruction. Other operations must not be allowed! Remember about single responsibility rule!
+/// @friend As this physical  device travels across several classes in RenderDevice I decided to hide
+/// Initialize() method from the end user and make friendship with RenderContext so that only RenderContext
+/// can manage its lifetime.
 class FPhysicalDevice
 {
-public:
+  // I want only RenderContext to access Initialize() method, not more! Only reason for friendship
+  friend class FRenderContext;
 
-  void Initialize(VkPhysicalDevice physicalDevice);
+public:
 
   [[nodiscard]] VkPhysicalDevice GetHandle() const { return m_PhysicalDevice; }
   [[nodiscard]] const FPhysicalDeviceAttributes& GetAttributes() const { return m_Attributes; }
 
 private:
+
+  void Initialize(VkPhysicalDevice physicalDevice);
+
 
   FPhysicalDeviceAttributes m_Attributes{};
   VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };

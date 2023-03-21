@@ -12,11 +12,14 @@ namespace uncanny::vulkan
 {
 
 
-/*
- * @brief FLogicalDevice is general wrapper class for VkDevice handle. As this logical device travels across
- * several classes in RenderDevice I decided to hide Create() and Destroy() methods from the end user and
- * make friendship with RenderContext so that only RenderContext can manage its lifetime.
- */
+/// @brief FLogicalDevice is general wrapper class for VkDevice handle.
+/// @details This class should expose Queues, Queue Families to the end user as VkDevice is actually a owner
+/// of those. Even I don't like those GetHandle() methods I have decided to put it there, so that every
+/// VkDevice-dependent wrapper class can store and use it for its creation / destruction. Other operations
+/// must not be allowed! Remember about single responsibility rule!
+/// @friend As this logical device travels across several classes in RenderDevice I decided to hide Create()
+/// and Destroy() methods from the end user and make friendship with RenderContext so that only RenderContext
+/// can manage its lifetime.
 class FLogicalDevice
 {
 
@@ -25,21 +28,24 @@ class FLogicalDevice
 
 public:
 
-  void Wait() const;
+  /// @brief Waits for a device to become idle
+  void WaitIdle() const;
+
+  /// @brief Validates if logical device is valid (if it is created)
+  /// @returns boolean information, true for valid logical device, false otherwise
+  [[nodiscard]] b32 IsValid() const noexcept { return m_Device != VK_NULL_HANDLE; }
+
+  [[nodiscard]] VkDevice GetHandle() const { return m_Device; }
 
   [[nodiscard]] const FQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
   [[nodiscard]] const FQueue& GetPresentQueue() const { return m_PresentQueue; }
   [[nodiscard]] const FQueue& GetTransferQueue() const { return m_TransferQueue; }
   [[nodiscard]] const FQueue& GetComputeQueue() const { return m_ComputeQueue; }
 
-  [[nodiscard]] VkDevice GetHandle() const { return m_Device; }
-
-  [[nodiscard]] b32 IsValid() const noexcept { return m_Device != VK_NULL_HANDLE; }
-
-  [[nodiscard]] FQueueFamilyIndex GetGraphicsFamilyIndex() const { return m_Attributes.GetGraphicsQueueFamilyIndex(); }
-  [[nodiscard]] FQueueFamilyIndex GetPresentFamilyIndex() const { return m_Attributes.GetPresentQueueFamilyIndex(); }
-  [[nodiscard]] FQueueFamilyIndex GetTransferFamilyIndex() const { return m_Attributes.GetTransferQueueFamilyIndex(); }
-  [[nodiscard]] FQueueFamilyIndex GetComputeFamilyIndex() const { return m_Attributes.GetComputeQueueFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetGraphicsFamilyIndex() const { return m_Attributes.GetGraphicsFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetPresentFamilyIndex() const { return m_Attributes.GetPresentFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetTransferFamilyIndex() const { return m_Attributes.GetTransferFamilyIndex(); }
+  [[nodiscard]] FQueueFamilyIndex GetComputeFamilyIndex() const { return m_Attributes.GetComputeFamilyIndex(); }
 
 private:
 

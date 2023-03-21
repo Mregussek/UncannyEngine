@@ -12,14 +12,15 @@ namespace uncanny::vulkan
 {
 
 
-/*
- * @brief FPhysicalDeviceSelector is a helper class for selection of proper physical devices.
- */
+/// @brief FPhysicalDeviceSelector is a helper class for selection of proper physical devices.
 class FPhysicalDeviceSelector
 {
 public:
 
-  [[nodiscard]] VkPhysicalDevice Select(std::span<VkPhysicalDevice> availablePhysicalDevices) const;
+  /// @brief Selects physical device that gets the best score in its own validation.
+  /// @param availablePhysicalDevices view array of all available physical devices
+  /// @return best physical device
+  [[nodiscard]] static VkPhysicalDevice Select(std::span<VkPhysicalDevice> availablePhysicalDevices);
 
 };
 

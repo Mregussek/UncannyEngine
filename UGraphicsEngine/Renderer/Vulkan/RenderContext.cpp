@@ -28,7 +28,6 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
     instanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     instanceAttributes.AddExtensionName(VK_KHR_SURFACE_EXTENSION_NAME);
     instanceAttributes.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    instanceAttributes.AddExtensionName(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
     m_Instance.Create(instanceAttributes);
   }
@@ -38,7 +37,7 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
 
   {
     auto availablePhysicalDevices = m_Instance.QueryAvailablePhysicalDevices();
-    VkPhysicalDevice selectedPhysicalDevice = vulkan::FPhysicalDeviceSelector().Select(availablePhysicalDevices);
+    VkPhysicalDevice selectedPhysicalDevice = vulkan::FPhysicalDeviceSelector::Select(availablePhysicalDevices);
     m_PhysicalDevice.Initialize(selectedPhysicalDevice);
   }
 
@@ -69,7 +68,7 @@ void FRenderContext::Destroy()
   }
   if (m_LogicalDevice.IsValid())
   {
-    m_LogicalDevice.Wait();
+    m_LogicalDevice.WaitIdle();
   }
 
   m_WindowSurface.Destroy(m_Instance.GetHandle());

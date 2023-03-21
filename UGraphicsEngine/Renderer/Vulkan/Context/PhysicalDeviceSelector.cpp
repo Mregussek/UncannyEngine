@@ -46,7 +46,7 @@ FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice)
 }
 
 
-VkPhysicalDevice FPhysicalDeviceSelector::Select(std::span<VkPhysicalDevice> availablePhysicalDevices) const
+VkPhysicalDevice FPhysicalDeviceSelector::Select(std::span<VkPhysicalDevice> availablePhysicalDevices)
 {
   std::multimap<FPhysicalDeviceScore, VkPhysicalDevice> ratings;
 

@@ -12,17 +12,22 @@ namespace uncanny::vulkan
 {
 
 
-/*
- * @brief FPhysicalDeviceAttributes is a helper class for FPhysicalDevice. Also, it is used in
- * FPhysicalDeviceSelector as it is written in a way that, it only retrieves information about physical
- * device. It is used for retrieving information about device extensions, properties, queue families etc.
- */
+/// @brief FPhysicalDeviceAttributes is a helper class for FPhysicalDevice. It acquires all necessary
+/// information about device and provides getter methods for those. Also it validates extension availability.
+/// @details It is used also  in FPhysicalDeviceSelector as it is written in a way that, it only retrieves
+/// information about physical device. It is used for retrieving information about device extensions,
+/// properties, queue families etc.
 class FPhysicalDeviceAttributes
 {
 public:
 
+  /// @brief Initializes whole attributes class and collects all necessary information
+  /// @param vkPhysicalDevice physical device for what this information is needed
   void Initialize(VkPhysicalDevice vkPhysicalDevice);
 
+  /// @brief Validates if extension name is available on the physical device
+  /// @param extensionName extension name, like VK_KHR_SWAPCHAIN_EXTENSION_NAME
+  /// @returns boolean information if extension is available
   b8 IsExtensionPresent(const char* extensionName) const;
 
   [[nodiscard]] const VkPhysicalDeviceProperties& GetDeviceProperties() const { return m_Properties; }
