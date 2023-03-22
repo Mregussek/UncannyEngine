@@ -9,12 +9,13 @@ namespace uncanny::vulkan
 
 void FCommandPool::Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice)
 {
+  m_QueueFamilyIndex = queueFamilyIndex;
   m_Device = vkDevice;
 
   VkCommandPoolCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
     .flags = 0,
-    .queueFamilyIndex = queueFamilyIndex
+    .queueFamilyIndex = m_QueueFamilyIndex
   };
 
   VkResult result = vkCreateCommandPool(m_Device, &createInfo, nullptr, &m_CommandPool);

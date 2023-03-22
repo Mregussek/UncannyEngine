@@ -22,8 +22,8 @@ class FQueue
 
 public:
 
-  void Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffer& commandBuffer,
-              std::span<VkSemaphore> signalVkSemaphores, VkFence vkFence) const;
+  void Submit(std::span<VkSemaphore> waitVkSemaphores, std::span<VkPipelineStageFlags> waitStageFlags,
+              const FCommandBuffer& commandBuffer, std::span<VkSemaphore> signalVkSemaphores, VkFence vkFence) const;
 
   void WaitIdle() const;
 

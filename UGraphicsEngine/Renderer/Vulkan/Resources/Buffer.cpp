@@ -96,7 +96,7 @@ void FBuffer::FillStaged(void* pData, VkDeviceSize dataSize, const FCommandPool&
 
   commandBuffer.EndRecording();
 
-  transferQueue.Submit({}, commandBuffer, {}, VK_NULL_HANDLE);
+  transferQueue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);
   transferQueue.WaitIdle();
 
   commandBuffer.Free();

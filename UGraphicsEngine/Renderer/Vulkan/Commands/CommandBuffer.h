@@ -33,20 +33,14 @@ public:
   void CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubresourceLayers subresourceLayers, VkExtent2D extent);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
-  [[nodiscard]] const std::vector<VkPipelineStageFlags>& GetWaitPipelineStages() const
-  {
-    return m_WaitPipelineStages;
-  }
+  [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }
 
 private:
-
-  void AddPipelineStage(VkPipelineStageFlags stageFlags);
-
 
   VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
-  std::vector<VkPipelineStageFlags> m_WaitPipelineStages{};
+  VkPipelineStageFlags m_LastWaitStageFlag{ VK_PIPELINE_STAGE_NONE };
   b8 m_Recording{ UFALSE };
   b8 m_Freed{ UFALSE };
 

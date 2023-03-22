@@ -14,8 +14,9 @@ void FQueue::Initialize(VkQueue queue, FQueueFamilyIndex familyIndex)
 }
 
 
-void FQueue::Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffer& commandBuffer,
-                    std::span<VkSemaphore> signalVkSemaphores, VkFence vkFence) const
+void FQueue::Submit(std::span<VkSemaphore> waitVkSemaphores, std::span<VkPipelineStageFlags> waitStageFlags,
+                    const FCommandBuffer& commandBuffer, std::span<VkSemaphore> signalVkSemaphores,
+                    VkFence vkFence) const
 {
   VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
 
@@ -24,7 +25,7 @@ void FQueue::Submit(std::span<VkSemaphore> waitVkSemaphores, const FCommandBuffe
     .pNext = nullptr,
     .waitSemaphoreCount = static_cast<u32>(waitVkSemaphores.size()),
     .pWaitSemaphores = waitVkSemaphores.data(),
-    .pWaitDstStageMask = commandBuffer.GetWaitPipelineStages().data(),
+    .pWaitDstStageMask = waitStageFlags.data(),
     .commandBufferCount = 1,
     .pCommandBuffers = &vkCmdBuf,
     .signalSemaphoreCount = static_cast<u32>(signalVkSemaphores.size()),

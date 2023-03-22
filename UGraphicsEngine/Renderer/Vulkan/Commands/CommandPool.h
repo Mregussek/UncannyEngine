@@ -26,10 +26,13 @@ public:
 
   [[nodiscard]] std::vector<FCommandBuffer> AllocatePrimaryCommandBuffers(u32 count) const;
 
+  [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_QueueFamilyIndex; }
+
 private:
 
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
+  FQueueFamilyIndex m_QueueFamilyIndex{ UUNUSED };
 
 };
 

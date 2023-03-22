@@ -23,7 +23,7 @@ FImage::~FImage()
 
 
 void FImage::Allocate(VkFormat format, VkExtent2D extent2D, VkImageUsageFlags usage, VkImageLayout initialLayout,
-                      VkMemoryPropertyFlags memoryFlags)
+                      VkMemoryPropertyFlags memoryFlags, std::span<FQueueFamilyIndex> queueFamilies)
 {
   m_MemoryFlags = memoryFlags;
 
@@ -44,6 +44,15 @@ void FImage::Allocate(VkFormat format, VkExtent2D extent2D, VkImageUsageFlags us
     .pQueueFamilyIndices = nullptr,
     .initialLayout = initialLayout
   };
+
+  if (queueFamilies.size() > 1)
+  {
+    m_QueueFamilies.assign(queueFamilies.begin(), queueFamilies.end());
+    createInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+    createInfo.queueFamilyIndexCount = m_QueueFamilies.size();
+    createInfo.pQueueFamilyIndices = m_QueueFamilies.data();
+  }
+
   m_CreateInfo = createInfo;
 
   ActualAllocate();

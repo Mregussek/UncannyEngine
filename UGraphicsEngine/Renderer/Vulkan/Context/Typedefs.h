@@ -6,7 +6,7 @@
 #include "UTools/UTypes.h"
 
 
-namespace uncanny
+namespace uncanny::vulkan
 {
 
 

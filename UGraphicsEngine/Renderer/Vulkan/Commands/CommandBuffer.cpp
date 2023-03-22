@@ -38,7 +38,6 @@ void FCommandBuffer::BeginRecording()
     UWARN("Command buffer is during recording commands, returning...");
     return;
   }
-  m_WaitPipelineStages.clear();
   VkCommandBufferBeginInfo beginInfo{
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     .pNext = nullptr,
@@ -58,7 +57,6 @@ void FCommandBuffer::BeginOneTimeRecording()
     UWARN("Command buffer is during recording commands, returning...");
     return;
   }
-  m_WaitPipelineStages.clear();
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .pNext = nullptr,
@@ -84,16 +82,6 @@ void FCommandBuffer::EndRecording()
 }
 
 
-void FCommandBuffer::AddPipelineStage(VkPipelineStageFlags stageFlags)
-{
-  auto it = std::ranges::find(m_WaitPipelineStages, stageFlags);
-  if (it != m_WaitPipelineStages.end())
-  {
-    m_WaitPipelineStages.push_back(stageFlags);
-  }
-}
-
-
 void FCommandBuffer::ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, VkAccessFlags dstFlags,
                                         VkImageLayout oldLayout, VkImageLayout newLayout,
                                         VkImageSubresourceRange subresourceRange,
@@ -115,7 +103,7 @@ void FCommandBuffer::ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, V
   vkCmdPipelineBarrier(m_CommandBuffer, srcStage, dstStage, VkDependencyFlags{ 0 },
                        0, nullptr, 0, nullptr, 1, &barrier);
 
-  AddPipelineStage(dstStage);
+  m_LastWaitStageFlag = dstStage;
 }
 
 
@@ -128,26 +116,27 @@ void FCommandBuffer::ClearColorImage(VkImage image, VkClearColorValue clearValue
                        &clearValue,
                        1, &subresourceRange);
 
-  AddPipelineStage(VK_PIPELINE_STAGE_TRANSFER_BIT);
+  m_LastWaitStageFlag = VK_PIPELINE_STAGE_TRANSFER_BIT;
 }
 
 
 void FCommandBuffer::CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubresourceLayers subresourceLayers,
                                VkExtent2D extent)
 {
-  VkImageCopy copyRegion{};
-  copyRegion.srcSubresource = subresourceLayers;
-  copyRegion.srcOffset = { 0, 0, 0 };
-  copyRegion.dstSubresource = subresourceLayers;
-  copyRegion.dstOffset = { 0, 0, 0 };
-  copyRegion.extent = { .width = extent.width, .height = extent.height, .depth = 1 };
+  VkImageCopy copyRegion{
+    .srcSubresource = subresourceLayers,
+    .srcOffset = { .x = 0, .y = 0, .z = 0 },
+    .dstSubresource = subresourceLayers,
+    .dstOffset = { .x = 0, .y = 0, .z = 0 },
+    .extent = { .width = extent.width, .height = extent.height, .depth = 1 }
+  };
 
   vkCmdCopyImage(m_CommandBuffer,
                  srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                  dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                  1, &copyRegion);
 
-  AddPipelineStage(VK_PIPELINE_STAGE_TRANSFER_BIT);
+  m_LastWaitStageFlag = VK_PIPELINE_STAGE_TRANSFER_BIT;
 }
 
 

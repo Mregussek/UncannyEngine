@@ -3,7 +3,10 @@
 #define UNCANNYENGINE_IMAGE_H
 
 
+#include <span>
+#include <vector>
 #include "Memory.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Context/Typedefs.h"
 #include "UTools/UTypes.h"
 
 
@@ -25,7 +28,7 @@ public:
   ~FImage();
 
   void Allocate(VkFormat format, VkExtent2D extent2D, VkImageUsageFlags usage, VkImageLayout initialLayout,
-                VkMemoryPropertyFlags memoryFlags);
+                VkMemoryPropertyFlags memoryFlags, std::span<FQueueFamilyIndex> queueFamilies);
   void Free();
 
   void Recreate(VkExtent2D extent);
@@ -45,6 +48,7 @@ private:
   VkImage m_Image{ VK_NULL_HANDLE };
   VkImageCreateInfo m_CreateInfo{};
   VkMemoryPropertyFlags m_MemoryFlags{ 0 };
+  std::vector<FQueueFamilyIndex> m_QueueFamilies{};
   b8 m_Freed{ UFALSE };
 
 };
