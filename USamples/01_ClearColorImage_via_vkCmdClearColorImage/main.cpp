@@ -32,13 +32,14 @@ public:
 
       const vulkan::FSwapchain& swapchain = m_RenderDevice.GetSwapchain();
 
-      VkSemaphore waitSemaphores[]{ swapchain.GetImageAvailableSemaphore().GetHandle() };
-      VkSemaphore signalSemaphores[]{ swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-      VkFence fence{ swapchain.GetFence().GetHandle() };
       u32 frameIndex = swapchain.GetCurrentFrameIndex();
       vulkan::FCommandBuffer& commandBuffer = m_SwapchainCommandBuffers[frameIndex];
+      VkSemaphore waitSemaphores[]{ swapchain.GetImageAvailableSemaphore().GetHandle() };
+      VkPipelineStageFlags waitStageFlags[]{ commandBuffer.GetLastWaitPipelineStage()  };
+      VkSemaphore signalSemaphores[]{ swapchain.GetPresentableImageReadySemaphore().GetHandle() };
+      VkFence fence{ swapchain.GetFence().GetHandle() };
 
-      m_RenderDevice.GetGraphicsQueue().Submit(waitSemaphores, commandBuffer, signalSemaphores, fence);
+      m_RenderDevice.GetGraphicsQueue().Submit(waitSemaphores, waitStageFlags, commandBuffer, signalSemaphores, fence);
       m_RenderDevice.PresentFrame();
 
       if (m_RenderDevice.IsOutOfDate())

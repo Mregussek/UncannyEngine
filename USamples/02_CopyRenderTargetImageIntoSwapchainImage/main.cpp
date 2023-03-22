@@ -3,7 +3,6 @@
 #include <UTools/Window/WindowGLFW.h>
 #include "UGraphicsEngine/Renderer/Vulkan/RenderDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderCommands.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 
@@ -93,10 +92,6 @@ private:
 
     u32 backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
 
-    // Creating buffers...
-    m_Buffer = m_RenderDevice.GetFactory().CreateBuffer();
-    m_Buffer.Allocate(16, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
     // Creating render target images...
     m_RenderTargetImages = m_RenderDevice.GetFactory().CreateImages(backBufferCount);
     std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
@@ -139,8 +134,6 @@ private:
       semaphore.Destroy();
     });
 
-    m_Buffer.Free();
-
     m_RenderDevice.Destroy();
     m_Window->Destroy();
   }
@@ -181,7 +174,6 @@ private:
   std::vector<vulkan::FCommandBuffer> m_RenderCommandBuffers{};
   std::vector<vulkan::FSemaphore> m_RenderSemaphores{};
   std::vector<vulkan::FCommandBuffer> m_SwapchainTransferCommandBuffers{};
-  vulkan::FBuffer m_Buffer{};
 
 };
 
