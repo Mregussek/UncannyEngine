@@ -47,6 +47,7 @@ void FImage::Allocate(VkFormat format, VkExtent2D extent2D, VkImageUsageFlags us
 
   if (queueFamilies.size() > 1)
   {
+    m_QueueFamilies.clear();
     m_QueueFamilies.assign(queueFamilies.begin(), queueFamilies.end());
     createInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
     createInfo.queueFamilyIndexCount = m_QueueFamilies.size();

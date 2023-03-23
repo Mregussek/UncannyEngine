@@ -33,6 +33,8 @@ public:
 
   [[nodiscard]] VkInstance GetHandle() const { return m_Instance; }
 
+  [[nodiscard]] const FInstanceAttributes& GetAttributes() const { return m_Attributes; }
+
 private:
 
   FInstanceAttributes m_Attributes{};

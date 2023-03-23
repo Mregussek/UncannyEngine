@@ -93,26 +93,37 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
-    m_RenderContext.Create(m_Window);
+    vulkan::FRenderContextAttributes renderContextAttributes{
+      .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
+      .instanceExtensions = {VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+                             VK_KHR_SURFACE_EXTENSION_NAME,
+                             VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
+      .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME },
+      .apiVersion = VK_API_VERSION_1_3
+    };
+
+    m_RenderContext.Create(renderContextAttributes, m_Window);
+    const vulkan::FRenderDeviceFactory& deviceFactory = m_RenderContext.GetFactory();
+    const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
     m_Swapchain.Create(2,
-                       m_RenderContext.GetLogicalDevice()->GetHandle(),
-                       &m_RenderContext.GetLogicalDevice()->GetPresentQueue(),
+                       pLogicalDevice->GetHandle(),
+                       &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
     u32 backBufferCount = m_Swapchain.GetBackBufferCount();
 
     // Creating command pools
-    m_GraphicsCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetGraphicsFamilyIndex(),
-                                 m_RenderContext.GetLogicalDevice()->GetHandle());
-    m_TransferCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetTransferFamilyIndex(),
-                                 m_RenderContext.GetLogicalDevice()->GetHandle());
+    m_GraphicsCommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
+                                 pLogicalDevice->GetHandle());
+    m_TransferCommandPool.Create(pLogicalDevice->GetTransferFamilyIndex(),
+                                 pLogicalDevice->GetHandle());
 
     // Creating buffers...
-    m_Buffer = m_RenderContext.GetFactory().CreateBuffer();
+    m_Buffer = deviceFactory.CreateBuffer();
     m_Buffer.Allocate(16, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
     // Creating render target images...
-    m_RenderTargetImages = m_RenderContext.GetFactory().CreateImages(backBufferCount);
+    m_RenderTargetImages = deviceFactory.CreateImages(backBufferCount);
     std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
     {
       VkExtent2D extent = m_Swapchain.GetCurrentExtent();
@@ -128,7 +139,7 @@ private:
     });
 
     // Creating synchronization objects...
-    m_RenderSemaphores = m_RenderContext.GetFactory().CreateSemaphores(backBufferCount);
+    m_RenderSemaphores = deviceFactory.CreateSemaphores(backBufferCount);
 
     // Creating command buffers...
     m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);

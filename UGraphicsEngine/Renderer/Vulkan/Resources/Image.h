@@ -20,6 +20,7 @@ class FPhysicalDeviceAttributes;
 class FImage
 {
 
+  // I want factory to access this specific constructor for phys dev attributes and passing logical device
   friend class FRenderDeviceFactory;
 
 public:

@@ -5,33 +5,41 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDeviceAttributes.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/PhysicalDeviceSelector.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
+#include <algorithm>
 
 
 namespace uncanny::vulkan
 {
 
 
-void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
+void FRenderContext::Create(FRenderContextAttributes attributes, const std::shared_ptr<IWindow>& pWindow)
 {
   m_VolkHandler.Initialize();
 
   {
     vulkan::FInstanceAttributes instanceAttributes{};
     instanceAttributes.Initialize();
-    if (!instanceAttributes.IsVersionAvailable(VK_API_VERSION_1_3))
+    if (!instanceAttributes.IsVersionAvailable(attributes.apiVersion))
     {
       vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
     }
-    instanceAttributes.AddLayerName("VK_LAYER_KHRONOS_validation");
-    instanceAttributes.AddExtensionName(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-    instanceAttributes.AddExtensionName(VK_KHR_SURFACE_EXTENSION_NAME);
-    instanceAttributes.AddExtensionName(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
+    std::ranges::for_each(attributes.instanceLayers, [&instanceAttributes](const char* name)
+    {
+      instanceAttributes.AddLayerName(name);
+    });
+    std::ranges::for_each(attributes.instanceExtensions, [&instanceAttributes](const char* name)
+    {
+      instanceAttributes.AddExtensionName(name);
+    });
     m_Instance.Create(instanceAttributes);
   }
 
   m_VolkHandler.LoadInstance(m_Instance.GetHandle());
-  m_DebugUtils.Create(m_Instance.GetHandle());
+
+  if (m_Instance.GetAttributes().IsExtensionRequested(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+  {
+    m_DebugUtils.Create(m_Instance.GetHandle());
+  }
 
   {
     auto availablePhysicalDevices = m_Instance.QueryAvailablePhysicalDevices();
@@ -44,7 +52,10 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
     logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
                                                          m_Instance.GetHandle(),
                                                          m_PhysicalDevice.GetHandle());
-    logicalDeviceAttributes.AddExtensionName(VK_KHR_SWAPCHAIN_EXTENSION_NAME, m_PhysicalDevice.GetAttributes());
+    std::ranges::for_each(attributes.deviceExtensions, [&logicalDeviceAttributes, this](const char*name)
+    {
+      logicalDeviceAttributes.AddExtensionName(name, m_PhysicalDevice.GetAttributes());
+    });
     logicalDeviceAttributes.InitializeDeviceFeatures(m_PhysicalDevice.GetAttributes().GetDeviceFeatures());
 
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());

@@ -40,8 +40,15 @@ public:
   /// @returns supported Vulkan API version
   [[nodiscard]] u32 GetVersion() const { return m_SupportedVersion; }
 
+  /// @brief Checks whether given extension name is in requested ones
+  /// @param extensionName extension to validate if it is requested by the user
+  /// @returns boolean result, UTRUE if is passed extensionName is requested
+  [[nodiscard]] b8 IsExtensionRequested(const char* extensionName) const;
+
   [[nodiscard]] const std::vector<const char*>& GetRequestedLayers() const { return m_RequestedLayers; }
-  [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const { return m_RequestExtensions; }
+  [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const { return m_RequestedExtensions; }
+
+
 
 private:
 
@@ -57,7 +64,7 @@ private:
   std::vector<VkExtensionProperties> m_AvailableExtensionsProperties{};
 
   std::vector<const char*> m_RequestedLayers{};
-  std::vector<const char*> m_RequestExtensions{};
+  std::vector<const char*> m_RequestedExtensions{};
 
   u32 m_SupportedVersion{ UVERSION_UNDEFINED };
 

@@ -33,7 +33,7 @@ b8 FInstanceAttributes::AddExtensionName(const char* extensionName)
 {
   if (IsExtensionAvailable(extensionName))
   {
-    m_RequestExtensions.push_back(extensionName);
+    m_RequestedExtensions.push_back(extensionName);
     return UTRUE;
   }
 
@@ -49,6 +49,21 @@ b8 FInstanceAttributes::IsVersionAvailable(u32 apiVersion) const
     return UTRUE;
   }
 
+  return UFALSE;
+}
+
+
+b8 FInstanceAttributes::IsExtensionRequested(const char* extensionName) const
+{
+  auto found = std::ranges::find_if(m_RequestedExtensions,
+                                    [extensionName](const char* requestedExtension) -> b32
+  {
+    return std::strcmp(extensionName, requestedExtension) == 0;
+  });
+  if (found != m_RequestedExtensions.end())
+  {
+    return UTRUE;
+  }
   return UFALSE;
 }
 

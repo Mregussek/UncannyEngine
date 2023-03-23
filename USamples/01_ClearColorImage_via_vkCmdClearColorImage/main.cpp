@@ -76,7 +76,16 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
-    m_RenderContext.Create(m_Window);
+    vulkan::FRenderContextAttributes renderContextAttributes{
+      .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
+      .instanceExtensions = { VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+                              VK_KHR_SURFACE_EXTENSION_NAME,
+                              VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
+      .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME },
+      .apiVersion = VK_API_VERSION_1_3
+    };
+
+    m_RenderContext.Create(renderContextAttributes, m_Window);
 
     m_Swapchain.Create(2,
                        m_RenderContext.GetLogicalDevice()->GetHandle(),
