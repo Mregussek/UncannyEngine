@@ -20,7 +20,7 @@ class FLogicalDevice;
 class FRenderDeviceFactory
 {
 
-  friend class FRenderDevice;
+  friend class FRenderContext;
 
 public:
 

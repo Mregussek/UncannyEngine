@@ -55,6 +55,8 @@ void FRenderContext::Create(const std::shared_ptr<IWindow>& pWindow)
   {
     vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
   }
+
+  m_DeviceFactory.Initialize(GetPhysicalDevice(), GetLogicalDevice());
 }
 
 

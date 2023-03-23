@@ -1,8 +1,9 @@
 
 #include <UTools/Logger/Log.h>
 #include <UTools/Window/WindowGLFW.h>
-#include "UGraphicsEngine/Renderer/Vulkan/RenderDevice.h"
-#include "UGraphicsEngine/Renderer/Vulkan/RenderCommands.h"
+#include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 
@@ -30,34 +31,47 @@ public:
         continue;
       }
 
-      m_RenderDevice.WaitForNextAvailableFrame();
-
-      const vulkan::FSwapchain& swapchain = m_RenderDevice.GetSwapchain();
-      u32 frameIndex = swapchain.GetCurrentFrameIndex();
+      m_Swapchain.WaitForNextImage();
+      u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
       { // Submit work for rendering
-        VkSemaphore signalSemaphores[]{ m_RenderSemaphores[frameIndex].GetHandle() };
+        const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
         vulkan::FCommandBuffer& renderCommandBuffer = m_RenderCommandBuffers[frameIndex];
-        m_RenderDevice.GetGraphicsQueue().Submit({}, {}, renderCommandBuffer, signalSemaphores, VK_NULL_HANDLE);
+        VkSemaphore signalSemaphores[]{ m_RenderSemaphores[frameIndex].GetHandle() };
+        graphicsQueue.Submit({}, {}, renderCommandBuffer, signalSemaphores, VK_NULL_HANDLE);
       }
 
       { // Submit work for copying render target into swapchain presentable image
-        vulkan::FCommandBuffer& transferCommandBuffer = m_SwapchainTransferCommandBuffers[frameIndex];
+        const vulkan::FQueue& transferQueue = m_RenderContext.GetLogicalDevice()->GetTransferQueue();
+        vulkan::FCommandBuffer& transferCommandBuffer = m_TransferCommandBuffers[frameIndex];
         VkSemaphore waitSemaphores[]{ m_RenderSemaphores[frameIndex].GetHandle(),
-                                      swapchain.GetImageAvailableSemaphore().GetHandle() };
+                                      m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
         VkPipelineStageFlags waitStageFlags[]{ m_RenderCommandBuffers[frameIndex].GetLastWaitPipelineStage(),
                                                transferCommandBuffer.GetLastWaitPipelineStage() };
-        VkSemaphore signalSemaphores[]{ swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-        VkFence fence{ swapchain.GetFence().GetHandle() };
-        m_RenderDevice.GetTransferQueue().Submit(waitSemaphores, waitStageFlags, transferCommandBuffer,
-                                                 signalSemaphores, fence);
+        VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
+        VkFence fence{ m_Swapchain.GetFence().GetHandle() };
+        transferQueue.Submit(waitSemaphores, waitStageFlags, transferCommandBuffer, signalSemaphores, fence);
       }
 
-      m_RenderDevice.PresentFrame();
+      m_Swapchain.Present();
 
-      if (m_RenderDevice.IsOutOfDate())
+      if (m_Swapchain.IsOutOfDate() and m_Swapchain.IsRecreatePossible())
       {
-        m_RenderDevice.RecreateRenderingResources();
+        m_RenderContext.GetLogicalDevice()->WaitIdle();
+
+        m_Swapchain.Recreate();
+
+        m_GraphicsCommandPool.Reset();
+        m_TransferCommandPool.Reset();
+
+        VkExtent2D currentExtent = m_Swapchain.GetCurrentExtent();
+        std::ranges::for_each(m_RenderTargetImages, [currentExtent](vulkan::FImage& image)
+        {
+          image.Recreate(currentExtent);
+        });
+
+        RecordRenderCommands();
+        RecordTransferCommands();
       }
     }
   }
@@ -79,38 +93,52 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
-    m_RenderDevice.Create(m_Window, 2);
-    m_RenderDevice.SetRecreateRenderingResourcesCallback([this]()
-                                                         {
-                                                           VkExtent2D currentExtent = m_RenderDevice.GetSwapchain().GetCurrentExtent();
-                                                           std::ranges::for_each(m_RenderTargetImages, [currentExtent](vulkan::FImage& image)
-                                                           {
-                                                             image.Recreate(currentExtent);
-                                                           });
-                                                           RecordCommands();
-                                                         });
+    m_RenderContext.Create(m_Window);
 
-    u32 backBufferCount = m_RenderDevice.GetSwapchain().GetBackBufferCount();
+    m_Swapchain.Create(2,
+                       m_RenderContext.GetLogicalDevice()->GetHandle(),
+                       &m_RenderContext.GetLogicalDevice()->GetPresentQueue(),
+                       m_RenderContext.GetWindowSurface());
+    u32 backBufferCount = m_Swapchain.GetBackBufferCount();
 
+    // Creating command pools
+    m_GraphicsCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetGraphicsFamilyIndex(),
+                                 m_RenderContext.GetLogicalDevice()->GetHandle());
+    m_TransferCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetTransferFamilyIndex(),
+                                 m_RenderContext.GetLogicalDevice()->GetHandle());
+    
     // Creating render target images...
-    m_RenderTargetImages = m_RenderDevice.GetFactory().CreateImages(backBufferCount);
+    m_RenderTargetImages = m_RenderContext.GetFactory().CreateImages(backBufferCount);
     std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
     {
-      AllocateRenderTargetImage(image, m_RenderDevice.GetSwapchain().GetCurrentExtent());
+      VkExtent2D extent = m_Swapchain.GetCurrentExtent();
+      VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
+      VkImageUsageFlags usage =
+          VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+      VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+      VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+      vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
+                                                 m_TransferCommandPool.GetFamilyIndex() };
+      image.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
     });
 
     // Creating synchronization objects...
-    m_RenderSemaphores = m_RenderDevice.GetFactory().CreateSemaphores(backBufferCount);
+    m_RenderSemaphores = m_RenderContext.GetFactory().CreateSemaphores(backBufferCount);
 
     // Creating command buffers...
-    m_RenderCommandBuffers = m_RenderDevice.GetGraphicsCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);
-    m_SwapchainTransferCommandBuffers = m_RenderDevice.GetTransferCommandPool().AllocatePrimaryCommandBuffers(backBufferCount);
-    RecordCommands();
+    m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+    m_TransferCommandBuffers = m_TransferCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+    RecordRenderCommands();
+    RecordTransferCommands();
   }
 
   void Destroy()
   {
-    m_RenderDevice.WaitIdle();
+    if (m_RenderContext.GetLogicalDevice()->IsValid())
+    {
+      m_RenderContext.GetLogicalDevice()->WaitIdle();
+    }
 
     // Closing render target images...
     std::ranges::for_each(m_RenderTargetImages, [](vulkan::FImage& image)
@@ -123,10 +151,14 @@ private:
     {
       commandBuffer.Free();
     });
-    std::ranges::for_each(m_SwapchainTransferCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
+    std::ranges::for_each(m_TransferCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
     {
       commandBuffer.Free();
     });
+
+    // Closing Command Pools...
+    m_GraphicsCommandPool.Destroy();
+    m_TransferCommandPool.Destroy();
 
     // Closing synchronization objects...
     std::ranges::for_each(m_RenderSemaphores, [](vulkan::FSemaphore& semaphore)
@@ -134,46 +166,92 @@ private:
       semaphore.Destroy();
     });
 
-    m_RenderDevice.Destroy();
+    m_Swapchain.Destroy();
+    m_RenderContext.Destroy();
     m_Window->Destroy();
   }
 
-  void AllocateRenderTargetImage(vulkan::FImage& renderTargetImage, VkExtent2D extent)
+  void RecordRenderCommands()
   {
-    VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
-    VkImageUsageFlags usage =
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-    VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    vulkan::FQueueFamilyIndex queueFamilies[]{ m_RenderDevice.GetGraphicsCommandPool().GetFamilyIndex(),
-                                               m_RenderDevice.GetTransferCommandPool().GetFamilyIndex() };
-    renderTargetImage.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
+    VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
+    for (u32 i = 0; i < m_RenderCommandBuffers.size(); i++)
+    {
+      VkImage image = m_RenderTargetImages[i].GetHandle();
+      vulkan::FCommandBuffer& renderCmdBuf = m_RenderCommandBuffers[i];
+
+      VkImageSubresourceRange subresourceRange{
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+      };
+
+      renderCmdBuf.BeginRecording();
+      renderCmdBuf.ImageMemoryBarrier(image,
+                                      VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                      subresourceRange,
+                                      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      renderCmdBuf.ClearColorImage(image, clearColorValue, subresourceRange);
+      renderCmdBuf.ImageMemoryBarrier(image,
+                                      VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
+                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                      subresourceRange,
+                                      VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+      renderCmdBuf.EndRecording();
+    }
   }
 
-  void RecordCommands()
+  void RecordTransferCommands()
   {
-    std::vector<VkImage> vkRenderTargetImages(m_RenderTargetImages.size());
-    std::transform(m_RenderTargetImages.begin(), m_RenderTargetImages.end(), vkRenderTargetImages.begin(),
-                   [](vulkan::FImage& image) -> VkImage { return image.GetHandle(); });
+    for (u32 i = 0; i < m_TransferCommandBuffers.size(); i++)
+    {
+      vulkan::FCommandBuffer& transferCmdBuf = m_TransferCommandBuffers[i];
+      VkImage srcImage = m_RenderTargetImages[i].GetHandle();
+      VkImage dstImage = m_Swapchain.GetImages()[i];
+      VkExtent2D extent = m_Swapchain.GetCurrentExtent();
 
-    VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
-    vulkan::FRenderCommands::RecordClearColorImage(m_RenderCommandBuffers, vkRenderTargetImages, clearColorValue,
-                                                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      VkImageSubresourceRange subresourceRange{
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+      };
+      VkImageSubresourceLayers subresourceLayers{
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .mipLevel = 0,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+      };
 
-    const vulkan::FSwapchain& swapchain = m_RenderDevice.GetSwapchain();
-    vulkan::FRenderCommands::RecordCopyImage(m_SwapchainTransferCommandBuffers, vkRenderTargetImages,
-                                             swapchain.GetImages(), swapchain.GetCurrentExtent(),
-                                             VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      transferCmdBuf.BeginRecording();
+      transferCmdBuf.ImageMemoryBarrier(dstImage,
+                                        VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                        subresourceRange,
+                                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      transferCmdBuf.CopyImage(srcImage, dstImage, subresourceLayers, extent);
+      transferCmdBuf.ImageMemoryBarrier(dstImage,
+                                        VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
+                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                        subresourceRange,
+                                        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+      transferCmdBuf.EndRecording();
+    }
   }
 
 
   std::shared_ptr<IWindow> m_Window;
-  vulkan::FRenderDevice m_RenderDevice{};
-  std::vector<vulkan::FImage> m_RenderTargetImages{};
+  vulkan::FRenderContext m_RenderContext{};
+  vulkan::FSwapchain m_Swapchain{};
+  vulkan::FCommandPool m_GraphicsCommandPool{};
+  vulkan::FCommandPool m_TransferCommandPool{};
   std::vector<vulkan::FCommandBuffer> m_RenderCommandBuffers{};
+  std::vector<vulkan::FCommandBuffer> m_TransferCommandBuffers{};
+  std::vector<vulkan::FImage> m_RenderTargetImages{};
   std::vector<vulkan::FSemaphore> m_RenderSemaphores{};
-  std::vector<vulkan::FCommandBuffer> m_SwapchainTransferCommandBuffers{};
 
 };
 
