@@ -46,9 +46,46 @@ void FLogicalDeviceAttributes::InitializeQueueFamilyIndexes(std::span<const VkQu
 }
 
 
-void FLogicalDeviceAttributes::InitializeDeviceFeatures(const VkPhysicalDeviceFeatures& physicalDeviceFeatures)
+void FLogicalDeviceAttributes::InitializeDeviceFeatures(const FPhysicalDeviceAttributes& physicalDeviceAttributes)
 {
-  m_DeviceFeatures = physicalDeviceFeatures;
+  m_DeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  m_DeviceFeatures2.features = physicalDeviceAttributes.GetDeviceFeatures();
+
+  m_Vulkan11Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+  physicalDeviceAttributes.QueryFeatures2(&m_Vulkan11Features);
+  m_DeviceFeatures2.pNext = &m_Vulkan11Features;
+
+  m_Vulkan12Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+  physicalDeviceAttributes.QueryFeatures2(&m_Vulkan12Features);
+  m_Vulkan11Features.pNext = &m_Vulkan12Features;
+
+  m_Vulkan13Features = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+  physicalDeviceAttributes.QueryFeatures2(&m_Vulkan13Features);
+  m_Vulkan12Features.pNext = &m_Vulkan13Features;
+
+  void** pFeaturesChain{ &m_Vulkan13Features.pNext };
+
+  if (physicalDeviceAttributes.IsExtensionPresent(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME))
+  {
+    m_RayTracingPipelineFeatures = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
+    physicalDeviceAttributes.QueryFeatures2(&m_RayTracingPipelineFeatures);
+    *pFeaturesChain = &m_RayTracingPipelineFeatures;
+    pFeaturesChain = &m_RayTracingPipelineFeatures.pNext;
+  }
+  if (physicalDeviceAttributes.IsExtensionPresent(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME))
+  {
+    m_AccelerationStructureFeatures = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+    physicalDeviceAttributes.QueryFeatures2(&m_AccelerationStructureFeatures);
+    *pFeaturesChain = &m_AccelerationStructureFeatures;
+    pFeaturesChain = &m_AccelerationStructureFeatures.pNext;
+  }
+  if (physicalDeviceAttributes.IsExtensionPresent(VK_KHR_RAY_QUERY_EXTENSION_NAME))
+  {
+    m_RayQueryFeatures = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR };
+    physicalDeviceAttributes.QueryFeatures2(&m_RayQueryFeatures);
+    *pFeaturesChain = &m_RayQueryFeatures;
+    pFeaturesChain = &m_RayQueryFeatures.pNext;
+  }
 }
 
 

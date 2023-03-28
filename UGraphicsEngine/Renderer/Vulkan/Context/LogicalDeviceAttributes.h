@@ -35,10 +35,6 @@ public:
                                     VkInstance vkInstance,
                                     VkPhysicalDevice vkPhysicalDevice);
 
-  /// @brief Just sets physical device features member value
-  /// @param physicalDeviceFeatures physical device features retrieved from physical device
-  void InitializeDeviceFeatures(const VkPhysicalDeviceFeatures& physicalDeviceFeatures);
-
   /// @brief Adds requested extension if it is available. FPhysicalDeviceAttributes is needed for
   /// availability validation.
   /// @param extensionName requested extension name, like VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -46,8 +42,12 @@ public:
   /// @returns boolean information, if requested extension is added properly
   b8 AddExtensionName(const char* extensionName, const FPhysicalDeviceAttributes& physicalDeviceAttributes);
 
+  /// @brief Just sets physical device features member value, must be called after added all extensions
+  /// @param physicalDeviceAttributes physical device attributes
+  void InitializeDeviceFeatures(const FPhysicalDeviceAttributes& physicalDeviceAttributes);
+
   [[nodiscard]] const std::vector<const char*>& GetRequiredExtensions() const { return m_RequestedExtensions; }
-  [[nodiscard]] const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_DeviceFeatures; }
+  [[nodiscard]] const VkPhysicalDeviceFeatures2& GetDeviceFeatures() const { return m_DeviceFeatures2; }
 
   [[nodiscard]] FQueueFamilyIndex GetGraphicsFamilyIndex() const noexcept { return m_GraphicsQueueFamilyIndex; }
   [[nodiscard]] FQueueFamilyIndex GetPresentFamilyIndex() const noexcept { return m_PresentQueueFamilyIndex; }
@@ -62,7 +62,13 @@ public:
 private:
 
   std::vector<const char*> m_RequestedExtensions{};
-  VkPhysicalDeviceFeatures m_DeviceFeatures{};
+  VkPhysicalDeviceFeatures2 m_DeviceFeatures2{};
+  VkPhysicalDeviceVulkan11Features m_Vulkan11Features{};
+  VkPhysicalDeviceVulkan12Features m_Vulkan12Features{};
+  VkPhysicalDeviceVulkan13Features m_Vulkan13Features{};
+  VkPhysicalDeviceRayTracingPipelineFeaturesKHR m_RayTracingPipelineFeatures{};
+  VkPhysicalDeviceAccelerationStructureFeaturesKHR m_AccelerationStructureFeatures{};
+  VkPhysicalDeviceRayQueryFeaturesKHR m_RayQueryFeatures{};
 
   // Those are queue family indexes
   FQueueFamilyIndex m_GraphicsQueueFamilyIndex{ UUNUSED };

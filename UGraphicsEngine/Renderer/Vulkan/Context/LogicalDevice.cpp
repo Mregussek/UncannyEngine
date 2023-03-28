@@ -1,6 +1,8 @@
 
 #include "LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
+#include <any>
+#include <algorithm>
 
 
 namespace uncanny::vulkan
@@ -48,7 +50,7 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
 
   VkDeviceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-    .pNext = nullptr,
+    .pNext = &deviceFeatures,
     .flags = 0,
     .queueCreateInfoCount = static_cast<u32>(deviceQueueCreateInfo.size()),
     .pQueueCreateInfos = deviceQueueCreateInfo.data(),
@@ -56,7 +58,7 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
     .ppEnabledLayerNames = nullptr,  // deprecated!
     .enabledExtensionCount = static_cast<u32>(requiredExtensions.size()),
     .ppEnabledExtensionNames = requiredExtensions.data(),
-    .pEnabledFeatures = &deviceFeatures
+    .pEnabledFeatures = nullptr
   };
 
   VkResult result = vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &m_Device);

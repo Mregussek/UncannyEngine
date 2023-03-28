@@ -56,7 +56,7 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
     {
       logicalDeviceAttributes.AddExtensionName(name, m_PhysicalDevice.GetAttributes());
     });
-    logicalDeviceAttributes.InitializeDeviceFeatures(m_PhysicalDevice.GetAttributes().GetDeviceFeatures());
+    logicalDeviceAttributes.InitializeDeviceFeatures(m_PhysicalDevice.GetAttributes());
 
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());
   }

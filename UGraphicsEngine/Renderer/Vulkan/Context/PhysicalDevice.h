@@ -16,7 +16,7 @@ namespace uncanny::vulkan
 /// VkInstance than created and then destroyed. Even I don't like those GetHandle() methods I have decided
 /// to put it there, so that every VkPhysicalDevice-dependent wrapper class can store and use it for its
 /// creation / destruction. Other operations must not be allowed! Remember about single responsibility rule!
-/// @friend As this physical  device travels across several classes in RenderDevice I decided to hide
+/// @friend As this physical device travels across several classes in RenderDevice I decided to hide
 /// Initialize() method from the end user and make friendship with RenderContext so that only RenderContext
 /// can manage its lifetime.
 class FPhysicalDevice

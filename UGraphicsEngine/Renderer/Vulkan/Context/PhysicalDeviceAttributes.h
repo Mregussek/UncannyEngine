@@ -36,8 +36,29 @@ public:
   [[nodiscard]] const std::vector<VkExtensionProperties>& GetExtensionProperties() const { return m_ExtensionProperties; }
   [[nodiscard]] const std::vector<VkQueueFamilyProperties>& GetQueueFamilyProperties() const { return m_QueueFamilyProperties; }
 
+  template<typename TProperties>
+  void QueryProperties2(TProperties* pProperties) const
+  {
+    VkPhysicalDeviceProperties2 deviceProperties2{
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+      .pNext = static_cast<void*>(pProperties),
+    };
+    vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &deviceProperties2);
+  }
+
+  template<typename TFeatures>
+  void QueryFeatures2(TFeatures* pFeatures) const
+  {
+    VkPhysicalDeviceFeatures2 deviceFeatures2{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = static_cast<void*>(pFeatures),
+    };
+    vkGetPhysicalDeviceFeatures2(m_PhysicalDevice, &deviceFeatures2);
+  }
+
 private:
 
+  VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };
   VkPhysicalDeviceProperties m_Properties{};
   VkPhysicalDeviceFeatures m_Features{};
   VkPhysicalDeviceMemoryProperties m_MemoryProperties{};
