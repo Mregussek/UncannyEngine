@@ -44,20 +44,21 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
   creator.AddQueueFamilyInfo(m_Attributes.GetTransferFamilyIndex(), m_Attributes.GetTransferQueueIndex());
   creator.AddQueueFamilyInfo(m_Attributes.GetComputeFamilyIndex(), m_Attributes.GetComputeQueueIndex());
 
-  const auto& requiredExtensions = m_Attributes.GetRequiredExtensions();
-  const auto& deviceQueueCreateInfo = creator.GetDeviceQueueCreateInfoVector();
-  const auto& deviceFeatures = m_Attributes.GetDeviceFeatures();
+  const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos = creator.GetDeviceQueueCreateInfoVector();
+
+  const std::vector<const char*>& extensions = m_Attributes.GetRequiredExtensions();
+  const VkPhysicalDeviceFeatures2& deviceFeatures2 = m_Attributes.GetDeviceFeatures2();
 
   VkDeviceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-    .pNext = &deviceFeatures,
+    .pNext = &deviceFeatures2,
     .flags = 0,
-    .queueCreateInfoCount = static_cast<u32>(deviceQueueCreateInfo.size()),
-    .pQueueCreateInfos = deviceQueueCreateInfo.data(),
+    .queueCreateInfoCount = static_cast<u32>(queueCreateInfos.size()),
+    .pQueueCreateInfos = queueCreateInfos.data(),
     .enabledLayerCount = 0,           // deprecated!
     .ppEnabledLayerNames = nullptr,  // deprecated!
-    .enabledExtensionCount = static_cast<u32>(requiredExtensions.size()),
-    .ppEnabledExtensionNames = requiredExtensions.data(),
+    .enabledExtensionCount = static_cast<u32>(extensions.size()),
+    .ppEnabledExtensionNames = extensions.data(),
     .pEnabledFeatures = nullptr
   };
 

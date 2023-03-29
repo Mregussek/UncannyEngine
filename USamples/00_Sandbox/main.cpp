@@ -3,6 +3,8 @@
 #include <UTools/Window/WindowGLFW.h>
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/BottomAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
@@ -126,9 +128,17 @@ private:
     m_TransferCommandPool.Create(pLogicalDevice->GetTransferFamilyIndex(),
                                  pLogicalDevice->GetHandle());
 
-    // Creating buffers...
-    m_Buffer = deviceFactory.CreateBuffer();
-    m_Buffer.Allocate(16, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    // Creating buffers and acceleration structures...
+    std::vector<vulkan::FVertex> vertices{
+      { .position = { .x = 1.f, .y = 1.f, .z = 0.f } },
+      { .position = { .x = -1.f, .y = 1.f, .z = 0.f } },
+      { .position = { .x = 0.f, .y = -1.f, .z = 0.f } },
+    };
+    std::vector<u32> indices{ 0, 1, 2 };
+
+    m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
+    m_BottomLevelAS.Build(vertices, indices, m_GraphicsCommandPool,
+                          m_RenderContext.GetLogicalDevice()->GetGraphicsQueue());
 
     // Creating render target images...
     m_RenderTargetImages = deviceFactory.CreateImages(backBufferCount);
@@ -189,7 +199,8 @@ private:
       semaphore.Destroy();
     });
 
-    m_Buffer.Free();
+    // Destroying rendering resources...
+    m_BottomLevelAS.Destroy();
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
@@ -277,7 +288,7 @@ private:
   std::vector<vulkan::FCommandBuffer> m_TransferCommandBuffers{};
   std::vector<vulkan::FImage> m_RenderTargetImages{};
   std::vector<vulkan::FSemaphore> m_RenderSemaphores{};
-  vulkan::FBuffer m_Buffer{};
+  vulkan::FBottomAS m_BottomLevelAS{};
 
 };
 

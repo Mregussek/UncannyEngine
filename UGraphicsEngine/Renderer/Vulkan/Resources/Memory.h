@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include "UTools/UTypes.h"
 
 
 namespace uncanny::vulkan
@@ -17,8 +18,8 @@ class FMemory
 {
 public:
 
-  void Allocate(VkDevice vkDevice, VkPhysicalDeviceMemoryProperties memoryProperties,
-                VkMemoryRequirements requirements, VkMemoryPropertyFlags memoryFlags);
+  void Allocate(VkDevice vkDevice, VkPhysicalDeviceMemoryProperties memoryProperties, VkMemoryRequirements requirements,
+                VkMemoryPropertyFlags memoryFlags, b8 useDeviceAddress);
   void Free();
 
   [[nodiscard]] VkDeviceMemory GetHandle() const { return m_DeviceMemory; }

@@ -68,7 +68,8 @@ void FImage::ActualAllocate()
   VkMemoryRequirements memoryRequirements{};
   vkGetImageMemoryRequirements(m_Device, m_Image, &memoryRequirements);
 
-  m_Memory.Allocate(m_Device, m_pPhysicalDeviceAttributes->GetMemoryProperties(), memoryRequirements, m_MemoryFlags);
+  m_Memory.Allocate(m_Device, m_pPhysicalDeviceAttributes->GetMemoryProperties(), memoryRequirements, m_MemoryFlags,
+                    UFALSE);
 
   VkDeviceSize memoryOffset{ 0 };
   vkBindImageMemory(m_Device, m_Image, m_Memory.GetHandle(), memoryOffset);

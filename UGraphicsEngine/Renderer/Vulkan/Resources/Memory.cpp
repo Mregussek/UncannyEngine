@@ -20,7 +20,7 @@ static FMemoryTypeIndexResult FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperti
 
 
 void FMemory::Allocate(VkDevice vkDevice, VkPhysicalDeviceMemoryProperties memoryProperties,
-                       VkMemoryRequirements requirements, VkMemoryPropertyFlags memoryFlags)
+                       VkMemoryRequirements requirements, VkMemoryPropertyFlags memoryFlags, b8 useDeviceAddress)
 {
   m_Device = vkDevice;
 
@@ -37,6 +37,18 @@ void FMemory::Allocate(VkDevice vkDevice, VkPhysicalDeviceMemoryProperties memor
     .allocationSize = requirements.size,
     .memoryTypeIndex = memoryTypeIndexResult.index
   };
+
+  VkMemoryAllocateFlagsInfo memoryAllocateFlagsInfo{
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
+      .pNext = nullptr,
+      .flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR,
+      .deviceMask = 0
+  };
+
+  if (useDeviceAddress)
+  {
+    memoryAllocateInfo.pNext = &memoryAllocateFlagsInfo;
+  }
 
   VkResult result = vkAllocateMemory(m_Device, &memoryAllocateInfo, nullptr, &m_DeviceMemory);
   AssertVkAndThrow(result);

@@ -15,6 +15,12 @@ FBuffer FRenderDeviceFactory::CreateBuffer() const
 }
 
 
+FBottomAS FRenderDeviceFactory::CreateBottomLevelAS() const
+{
+  return FBottomAS{ this,  m_pLogicalDevice->GetHandle() };
+}
+
+
 std::vector<FImage> FRenderDeviceFactory::CreateImages(u32 count) const
 {
   std::vector<FImage> images{};

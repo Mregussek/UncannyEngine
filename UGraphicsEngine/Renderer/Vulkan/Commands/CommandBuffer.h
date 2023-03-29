@@ -32,6 +32,9 @@ public:
 
   void CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubresourceLayers subresourceLayers, VkExtent2D extent);
 
+  void BuildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR* pBuildGeometryInfo,
+                                  const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos);
+
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }
 

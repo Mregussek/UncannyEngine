@@ -65,12 +65,20 @@ void FLogicalDeviceAttributes::InitializeDeviceFeatures(const FPhysicalDeviceAtt
 
   void** pFeaturesChain{ &m_Vulkan13Features.pNext };
 
+  // I was thinking that here we don't have info whether user want to enable ray tracing and so that
+  // its properties and features shouldn't be queried. But I realized that, it doesn't matter if those
+  // extensions are used, we can just activate those features in logical device but they don't have to be
+  // used of course
+
   if (physicalDeviceAttributes.IsExtensionPresent(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME))
   {
     m_RayTracingPipelineFeatures = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
     physicalDeviceAttributes.QueryFeatures2(&m_RayTracingPipelineFeatures);
     *pFeaturesChain = &m_RayTracingPipelineFeatures;
     pFeaturesChain = &m_RayTracingPipelineFeatures.pNext;
+
+    m_RayTracingPipelineProperties = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
+    physicalDeviceAttributes.QueryProperties2(&m_RayTracingPipelineProperties);
   }
   if (physicalDeviceAttributes.IsExtensionPresent(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME))
   {
@@ -78,6 +86,9 @@ void FLogicalDeviceAttributes::InitializeDeviceFeatures(const FPhysicalDeviceAtt
     physicalDeviceAttributes.QueryFeatures2(&m_AccelerationStructureFeatures);
     *pFeaturesChain = &m_AccelerationStructureFeatures;
     pFeaturesChain = &m_AccelerationStructureFeatures.pNext;
+
+    m_AccelerationStructureProperties = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR };
+    physicalDeviceAttributes.QueryProperties2(&m_AccelerationStructureProperties);
   }
   if (physicalDeviceAttributes.IsExtensionPresent(VK_KHR_RAY_QUERY_EXTENSION_NAME))
   {

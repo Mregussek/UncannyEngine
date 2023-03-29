@@ -140,4 +140,11 @@ void FCommandBuffer::CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubres
 }
 
 
+void FCommandBuffer::BuildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR* pBuildGeometryInfo,
+                                                const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
+{
+  vkCmdBuildAccelerationStructuresKHR(m_CommandBuffer, 1, pBuildGeometryInfo, ppBuildRangeInfos);
+}
+
+
 }

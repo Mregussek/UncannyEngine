@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include "Device/BottomAS.h"
 #include "Resources/Buffer.h"
 #include "Resources/Image.h"
 #include "Synchronization/Semaphore.h"
@@ -25,6 +26,8 @@ class FRenderDeviceFactory
 public:
 
   [[nodiscard]] FBuffer CreateBuffer() const;
+
+  [[nodiscard]] FBottomAS CreateBottomLevelAS() const;
 
   [[nodiscard]] std::vector<FImage> CreateImages(u32 count) const;
 

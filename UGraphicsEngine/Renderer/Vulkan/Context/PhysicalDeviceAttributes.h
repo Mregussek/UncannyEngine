@@ -14,7 +14,7 @@ namespace uncanny::vulkan
 
 /// @brief FPhysicalDeviceAttributes is a helper class for FPhysicalDevice. It acquires all necessary
 /// information about device and provides getter methods for those. Also it validates extension availability.
-/// @details It is used also  in FPhysicalDeviceSelector as it is written in a way that, it only retrieves
+/// @details It is used also in FPhysicalDeviceSelector as it is written in a way that, it only retrieves
 /// information about physical device. It is used for retrieving information about device extensions,
 /// properties, queue families etc.
 class FPhysicalDeviceAttributes
@@ -36,8 +36,10 @@ public:
   [[nodiscard]] const std::vector<VkExtensionProperties>& GetExtensionProperties() const { return m_ExtensionProperties; }
   [[nodiscard]] const std::vector<VkQueueFamilyProperties>& GetQueueFamilyProperties() const { return m_QueueFamilyProperties; }
 
-  template<typename TProperties>
-  void QueryProperties2(TProperties* pProperties) const
+  /// @brief Queries specific properties like VkPhysicalDeviceRayTracingPipelinePropertiesKHR
+  /// @tparam TProperties queried Vulkan structure
+  /// @param pProperties pointer to queried vulkan structure, where result will be stored
+  template<typename TProperties> void QueryProperties2(TProperties* pProperties) const
   {
     VkPhysicalDeviceProperties2 deviceProperties2{
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
@@ -46,8 +48,10 @@ public:
     vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &deviceProperties2);
   }
 
-  template<typename TFeatures>
-  void QueryFeatures2(TFeatures* pFeatures) const
+  /// @brief Queries specific features like VkPhysicalDeviceRayTracingPipelineFeaturesKHR
+  /// @tparam TProperties queried Vulkan structure
+  /// @param pProperties pointer to queried vulkan structure, where result will be stored
+  template<typename TFeatures> void QueryFeatures2(TFeatures* pFeatures) const
   {
     VkPhysicalDeviceFeatures2 deviceFeatures2{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,

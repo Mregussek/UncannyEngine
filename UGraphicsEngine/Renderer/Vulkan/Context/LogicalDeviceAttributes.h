@@ -19,7 +19,7 @@ class FPhysicalDeviceAttributes;
 
 /// @brief FLogicalDeviceAttributes is a helper class for FLogicalDevice.
 /// @details It is responsible for querying queue families with some internal specification, selecting
-/// several device features and managing  extensions that logical device will use.
+/// several device features and managing extensions that logical device will use.
 class FLogicalDeviceAttributes
 {
 public:
@@ -47,7 +47,7 @@ public:
   void InitializeDeviceFeatures(const FPhysicalDeviceAttributes& physicalDeviceAttributes);
 
   [[nodiscard]] const std::vector<const char*>& GetRequiredExtensions() const { return m_RequestedExtensions; }
-  [[nodiscard]] const VkPhysicalDeviceFeatures2& GetDeviceFeatures() const { return m_DeviceFeatures2; }
+  [[nodiscard]] const VkPhysicalDeviceFeatures2& GetDeviceFeatures2() const { return m_DeviceFeatures2; }
 
   [[nodiscard]] FQueueFamilyIndex GetGraphicsFamilyIndex() const noexcept { return m_GraphicsQueueFamilyIndex; }
   [[nodiscard]] FQueueFamilyIndex GetPresentFamilyIndex() const noexcept { return m_PresentQueueFamilyIndex; }
@@ -61,7 +61,10 @@ public:
 
 private:
 
+  // required extensions...
   std::vector<const char*> m_RequestedExtensions{};
+
+  // Device features...
   VkPhysicalDeviceFeatures2 m_DeviceFeatures2{};
   VkPhysicalDeviceVulkan11Features m_Vulkan11Features{};
   VkPhysicalDeviceVulkan12Features m_Vulkan12Features{};
@@ -69,6 +72,10 @@ private:
   VkPhysicalDeviceRayTracingPipelineFeaturesKHR m_RayTracingPipelineFeatures{};
   VkPhysicalDeviceAccelerationStructureFeaturesKHR m_AccelerationStructureFeatures{};
   VkPhysicalDeviceRayQueryFeaturesKHR m_RayQueryFeatures{};
+
+  // Device properties...
+  VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_RayTracingPipelineProperties{};
+  VkPhysicalDeviceAccelerationStructurePropertiesKHR m_AccelerationStructureProperties{};
 
   // Those are queue family indexes
   FQueueFamilyIndex m_GraphicsQueueFamilyIndex{ UUNUSED };
