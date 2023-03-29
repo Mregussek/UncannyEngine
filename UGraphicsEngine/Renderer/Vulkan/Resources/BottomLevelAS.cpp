@@ -1,7 +1,7 @@
 
 #include <array>
 #include "BottomLevelAS.h"
-#include "Mesh.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceFactory.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 

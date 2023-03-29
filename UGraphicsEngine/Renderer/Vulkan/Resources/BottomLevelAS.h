@@ -5,7 +5,7 @@
 
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/Queue.h"
-#include "Mesh.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include <span>
 
 

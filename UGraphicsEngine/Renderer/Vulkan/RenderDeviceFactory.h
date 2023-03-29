@@ -4,8 +4,8 @@
 
 
 #include <volk.h>
-#include "Device/BottomLevelAS.h"
-#include "Device/TopLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
 #include "Resources/Buffer.h"
 #include "Resources/Image.h"
 #include "Synchronization/Semaphore.h"

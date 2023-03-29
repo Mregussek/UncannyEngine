@@ -3,8 +3,8 @@
 #include <UTools/Window/WindowGLFW.h>
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Device/BottomLevelAS.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Device/TopLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
@@ -117,9 +117,7 @@ private:
     const vulkan::FRenderDeviceFactory& deviceFactory = m_RenderContext.GetFactory();
     const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
-    m_Swapchain.Create(2,
-                       pLogicalDevice->GetHandle(),
-                       &pLogicalDevice->GetPresentQueue(),
+    m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
     u32 backBufferCount = m_Swapchain.GetBackBufferCount();
 
