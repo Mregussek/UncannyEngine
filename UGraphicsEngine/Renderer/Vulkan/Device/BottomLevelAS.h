@@ -3,7 +3,6 @@
 #define UNCANNYENGINE_BOTTOMLEVELAS_H
 
 
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/Queue.h"
 #include "Mesh.h"
@@ -27,6 +26,8 @@ public:
              const FQueue& queue);
 
   void Destroy();
+
+  [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
 
 private:
 

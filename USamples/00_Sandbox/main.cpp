@@ -138,8 +138,10 @@ private:
     std::vector<u32> indices{ 0, 1, 2 };
 
     m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(vertices, indices, m_GraphicsCommandPool,
-                          m_RenderContext.GetLogicalDevice()->GetGraphicsQueue());
+    m_BottomLevelAS.Build(vertices, indices, m_GraphicsCommandPool, pLogicalDevice->GetGraphicsQueue());
+
+    m_TopLevelAS = deviceFactory.CreateTopLevelAS();
+    m_TopLevelAS.Build(m_BottomLevelAS, m_GraphicsCommandPool, pLogicalDevice->GetGraphicsQueue());
 
     // Creating render target images...
     m_RenderTargetImages = deviceFactory.CreateImages(backBufferCount);
@@ -202,6 +204,7 @@ private:
 
     // Destroying rendering resources...
     m_BottomLevelAS.Destroy();
+    m_TopLevelAS.Destroy();
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();

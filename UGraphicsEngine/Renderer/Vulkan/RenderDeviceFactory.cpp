@@ -21,6 +21,12 @@ FBottomLevelAS FRenderDeviceFactory::CreateBottomLevelAS() const
 }
 
 
+FTopLevelAS FRenderDeviceFactory::CreateTopLevelAS() const
+{
+  return FTopLevelAS{ this,  m_pLogicalDevice->GetHandle() };
+}
+
+
 std::vector<FImage> FRenderDeviceFactory::CreateImages(u32 count) const
 {
   std::vector<FImage> images{};
