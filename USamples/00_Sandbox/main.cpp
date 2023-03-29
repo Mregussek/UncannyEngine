@@ -157,6 +157,7 @@ private:
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
                                                  m_TransferCommandPool.GetFamilyIndex() };
       image.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
+      image.CreateView();
     });
 
     // Creating synchronization objects...

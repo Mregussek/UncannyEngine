@@ -32,6 +32,8 @@ public:
                 VkMemoryPropertyFlags memoryFlags, std::span<FQueueFamilyIndex> queueFamilies);
   void Free();
 
+  void CreateView();
+
   void Recreate(VkExtent2D extent);
 
   [[nodiscard]] VkImage GetHandle() const { return m_Image; }
@@ -47,10 +49,12 @@ private:
   const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
   VkDevice m_Device{ VK_NULL_HANDLE };
   VkImage m_Image{ VK_NULL_HANDLE };
+  VkImageView m_ImageView{ VK_NULL_HANDLE };
   VkImageCreateInfo m_CreateInfo{};
   VkMemoryPropertyFlags m_MemoryFlags{ 0 };
   std::vector<FQueueFamilyIndex> m_QueueFamilies{};
   b8 m_Freed{ UFALSE };
+  b8 m_UsingView{ UFALSE };
 
 };
 

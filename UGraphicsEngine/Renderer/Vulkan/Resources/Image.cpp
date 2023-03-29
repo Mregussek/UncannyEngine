@@ -78,6 +78,37 @@ void FImage::ActualAllocate()
 }
 
 
+void FImage::CreateView()
+{
+  VkImageViewCreateInfo createInfo{
+    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0,
+    .image = m_Image,
+    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    .format = m_CreateInfo.format,
+    .components = {
+        .r = VK_COMPONENT_SWIZZLE_R,
+        .g = VK_COMPONENT_SWIZZLE_G,
+        .b = VK_COMPONENT_SWIZZLE_B,
+        .a = VK_COMPONENT_SWIZZLE_A
+    },
+    .subresourceRange = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+    }
+  };
+
+  VkResult result = vkCreateImageView(m_Device, &createInfo, nullptr, &m_ImageView);
+  AssertVkAndThrow(result);
+
+  m_UsingView = UTRUE;
+}
+
+
 void FImage::Free()
 {
   if (m_Freed)
@@ -87,6 +118,10 @@ void FImage::Free()
   if (m_Image != VK_NULL_HANDLE)
   {
     vkDestroyImage(m_Device, m_Image, nullptr);
+  }
+  if (m_ImageView != VK_NULL_HANDLE)
+  {
+    vkDestroyImageView(m_Device, m_ImageView, nullptr);
   }
   m_Memory.Free();
   m_Freed = UTRUE;
@@ -104,6 +139,10 @@ void FImage::Recreate(VkExtent2D extent)
   m_CreateInfo.extent = { .width = extent.width, .height = extent.height, .depth = 1 };
   Free();
   ActualAllocate();
+  if (m_UsingView)
+  {
+    CreateView();
+  }
 }
 
 
