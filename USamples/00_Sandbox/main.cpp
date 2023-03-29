@@ -3,7 +3,8 @@
 #include <UTools/Window/WindowGLFW.h>
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Device/BottomAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/BottomLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/TopLevelAS.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
@@ -288,7 +289,8 @@ private:
   std::vector<vulkan::FCommandBuffer> m_TransferCommandBuffers{};
   std::vector<vulkan::FImage> m_RenderTargetImages{};
   std::vector<vulkan::FSemaphore> m_RenderSemaphores{};
-  vulkan::FBottomAS m_BottomLevelAS{};
+  vulkan::FBottomLevelAS m_BottomLevelAS{};
+  vulkan::FTopLevelAS m_TopLevelAS{};
 
 };
 

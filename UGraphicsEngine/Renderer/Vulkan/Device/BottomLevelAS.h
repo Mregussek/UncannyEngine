@@ -1,6 +1,6 @@
 
-#ifndef UNCANNYENGINE_BOTTOMAS_H
-#define UNCANNYENGINE_BOTTOMAS_H
+#ifndef UNCANNYENGINE_BOTTOMLEVELAS_H
+#define UNCANNYENGINE_BOTTOMLEVELAS_H
 
 
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
@@ -14,14 +14,14 @@ namespace uncanny::vulkan
 {
 
 
-class FBottomAS
+class FBottomLevelAS
 {
 
   friend class FRenderDeviceFactory;
 
 public:
 
-  FBottomAS() = default;
+  FBottomLevelAS() = default;
 
   void Build(std::span<FVertex> vertices, std::span<u32> indices, const FCommandPool& commandPool,
              const FQueue& queue);
@@ -30,7 +30,7 @@ public:
 
 private:
 
-  FBottomAS(const FRenderDeviceFactory* pFactory, VkDevice vkDevice);
+  FBottomLevelAS(const FRenderDeviceFactory* pFactory, VkDevice vkDevice);
 
 
   VkAccelerationStructureKHR m_AccelerationStructure{ VK_NULL_HANDLE };
@@ -44,4 +44,4 @@ private:
 }
 
 
-#endif //UNCANNYENGINE_BOTTOMAS_H
+#endif //UNCANNYENGINE_BOTTOMLEVELAS_H

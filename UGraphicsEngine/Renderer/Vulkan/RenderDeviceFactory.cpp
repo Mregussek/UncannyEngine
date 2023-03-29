@@ -15,9 +15,9 @@ FBuffer FRenderDeviceFactory::CreateBuffer() const
 }
 
 
-FBottomAS FRenderDeviceFactory::CreateBottomLevelAS() const
+FBottomLevelAS FRenderDeviceFactory::CreateBottomLevelAS() const
 {
-  return FBottomAS{ this,  m_pLogicalDevice->GetHandle() };
+  return FBottomLevelAS{ this,  m_pLogicalDevice->GetHandle() };
 }
 
 

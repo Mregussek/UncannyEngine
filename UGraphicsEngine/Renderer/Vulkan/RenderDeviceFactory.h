@@ -4,7 +4,7 @@
 
 
 #include <volk.h>
-#include "Device/BottomAS.h"
+#include "Device/BottomLevelAS.h"
 #include "Resources/Buffer.h"
 #include "Resources/Image.h"
 #include "Synchronization/Semaphore.h"
@@ -27,7 +27,7 @@ public:
 
   [[nodiscard]] FBuffer CreateBuffer() const;
 
-  [[nodiscard]] FBottomAS CreateBottomLevelAS() const;
+  [[nodiscard]] FBottomLevelAS CreateBottomLevelAS() const;
 
   [[nodiscard]] std::vector<FImage> CreateImages(u32 count) const;
 

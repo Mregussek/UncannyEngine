@@ -1,6 +1,6 @@
 
 #include <array>
-#include "BottomAS.h"
+#include "BottomLevelAS.h"
 #include "Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceFactory.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
@@ -10,15 +10,15 @@ namespace uncanny::vulkan
 {
 
 
-FBottomAS::FBottomAS(const FRenderDeviceFactory* pFactory, VkDevice vkDevice)
+FBottomLevelAS::FBottomLevelAS(const FRenderDeviceFactory* pFactory, VkDevice vkDevice)
   : m_pRenderDeviceFactory(pFactory),
   m_Device(vkDevice)
 {
 }
 
 
-void FBottomAS::Build(std::span<FVertex> vertices, std::span<u32> indices, const FCommandPool& commandPool,
-                      const FQueue& queue)
+void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, const FCommandPool& commandPool,
+                           const FQueue& queue)
 {
   VkBufferUsageFlags bufferUsageFlags =
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
@@ -149,7 +149,7 @@ void FBottomAS::Build(std::span<FVertex> vertices, std::span<u32> indices, const
 }
 
 
-void FBottomAS::Destroy()
+void FBottomLevelAS::Destroy()
 {
   if (m_AccelerationStructure != VK_NULL_HANDLE)
   {
