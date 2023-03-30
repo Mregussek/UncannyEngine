@@ -150,10 +150,10 @@ private:
     std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
     {
       VkExtent2D extent = m_Swapchain.GetCurrentExtent();
-      VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
+      VkFormat format = VK_FORMAT_B8G8R8A8_UNORM;
       VkImageUsageFlags usage =
-          VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+          VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+          VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
       VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
       VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
@@ -181,7 +181,17 @@ private:
     m_DescriptorSetLayout.Create();
 
     m_DescriptorPool = deviceFactory.CreateDescriptorPool();
-    m_DescriptorPool.Create(m_DescriptorSetLayout, backBufferCount);
+    m_DescriptorPool.Create(&m_DescriptorSetLayout, backBufferCount+1);
+    m_DescriptorPool.AllocateDescriptorSets(backBufferCount);
+
+    {
+      u32 dstBinding = m_DescriptorSetLayout.GetBindings()[0].binding;
+      m_DescriptorPool.WriteTopLevelAsToDescriptorSets(m_TopLevelAS.GetHandle(), dstBinding);
+    }
+    {
+      u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
+      m_DescriptorPool.WriteStorageImagesToDescriptorSets(m_RenderTargetImages, dstBinding);
+    }
 
     // Creating synchronization objects...
     m_RenderSemaphores = deviceFactory.CreateSemaphores(backBufferCount);

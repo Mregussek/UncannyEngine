@@ -37,6 +37,7 @@ public:
   void Recreate(VkExtent2D extent);
 
   [[nodiscard]] VkImage GetHandle() const { return m_Image; }
+  [[nodiscard]] VkImageView GetHandleView() const { return m_ImageView; }
 
 private:
 

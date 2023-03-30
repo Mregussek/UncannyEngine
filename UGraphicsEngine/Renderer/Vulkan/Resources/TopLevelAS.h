@@ -27,6 +27,8 @@ public:
 
   void Destroy();
 
+  [[nodiscard]] VkAccelerationStructureKHR GetHandle() const { return m_AccelerationStructure; }
+
 private:
 
   FTopLevelAS(const FRenderDeviceFactory* pFactory, VkDevice vkDevice);

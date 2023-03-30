@@ -28,6 +28,8 @@ public:
 
   void Destroy();
 
+  [[nodiscard]] VkDescriptorSetLayout GetHandle() const { return m_DescriptorSetLayout; }
+
   [[nodiscard]] const std::vector<VkDescriptorSetLayoutBinding>& GetBindings() const { return m_Bindings; }
 
 private:
