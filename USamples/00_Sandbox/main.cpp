@@ -123,9 +123,11 @@ private:
 
     // Creating command pools
     m_GraphicsCommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
-                                 pLogicalDevice->GetHandle());
+                                 pLogicalDevice->GetHandle(),
+                                 VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     m_TransferCommandPool.Create(pLogicalDevice->GetTransferFamilyIndex(),
-                                 pLogicalDevice->GetHandle());
+                                 pLogicalDevice->GetHandle(),
+                                 VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
     // Creating buffers and acceleration structures...
     std::vector<vulkan::FVertex> vertices{

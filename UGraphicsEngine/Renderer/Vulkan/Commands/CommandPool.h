@@ -17,7 +17,7 @@ class FCommandPool
 {
 public:
 
-  void Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice);
+  void Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice, VkCommandPoolCreateFlags flags);
   void Destroy();
 
   void Reset();
