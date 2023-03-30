@@ -170,6 +170,8 @@ void FSwapchain::Recreate()
 
 void FSwapchain::WaitForNextImage()
 {
+  m_Fences[m_CurrentFrame].WaitAndReset();
+
   u64 timeout = std::numeric_limits<u64>::max();
   VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
                                           m_ImageAvailableSemaphores[m_CurrentFrame].GetHandle(),
@@ -186,8 +188,6 @@ void FSwapchain::WaitForNextImage()
     default:
       AssertVkAndThrow(result);
   }
-
-  m_Fences[m_CurrentFrame].WaitAndReset();
 }
 
 

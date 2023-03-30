@@ -37,6 +37,9 @@ public:
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
+      RecordRenderCommands(frameIndex);
+      RecordTransferCommands(frameIndex);
+
       { // Submit work for rendering
         const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
         vulkan::FCommandBuffer& renderCommandBuffer = m_RenderCommandBuffers[frameIndex];
@@ -72,9 +75,6 @@ public:
         {
           image.Recreate(currentExtent);
         });
-
-        RecordRenderCommands();
-        RecordTransferCommands();
       }
     }
   }
@@ -164,8 +164,6 @@ private:
     // Creating command buffers...
     m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
     m_TransferCommandBuffers = m_TransferCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
-    RecordRenderCommands();
-    RecordTransferCommands();
   }
 
   void Destroy()
@@ -210,75 +208,69 @@ private:
     m_Window->Destroy();
   }
 
-  void RecordRenderCommands()
+  void RecordRenderCommands(u32 frameIndex)
   {
     VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
-    for (u32 i = 0; i < m_RenderCommandBuffers.size(); i++)
-    {
-      VkImage image = m_RenderTargetImages[i].GetHandle();
-      vulkan::FCommandBuffer& renderCmdBuf = m_RenderCommandBuffers[i];
+    VkImage image = m_RenderTargetImages[frameIndex].GetHandle();
+    vulkan::FCommandBuffer& renderCmdBuf = m_RenderCommandBuffers[frameIndex];
 
-      VkImageSubresourceRange subresourceRange{
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-          .baseMipLevel = 0,
-          .levelCount = 1,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-      };
+    VkImageSubresourceRange subresourceRange{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+    };
 
-      renderCmdBuf.BeginRecording();
-      renderCmdBuf.ImageMemoryBarrier(image,
+    renderCmdBuf.BeginRecording();
+    renderCmdBuf.ImageMemoryBarrier(image,
+                                    VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    subresourceRange,
+                                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    renderCmdBuf.ClearColorImage(image, clearColorValue, subresourceRange);
+    renderCmdBuf.ImageMemoryBarrier(image,
+                                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                    subresourceRange,
+                                    VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+    renderCmdBuf.EndRecording();
+  }
+
+  void RecordTransferCommands(u32 frameIndex)
+  {
+    vulkan::FCommandBuffer& transferCmdBuf = m_TransferCommandBuffers[frameIndex];
+    VkImage srcImage = m_RenderTargetImages[frameIndex].GetHandle();
+    VkImage dstImage = m_Swapchain.GetImages()[frameIndex];
+    VkExtent2D extent = m_Swapchain.GetCurrentExtent();
+
+    VkImageSubresourceRange subresourceRange{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+    };
+    VkImageSubresourceLayers subresourceLayers{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+    };
+
+    transferCmdBuf.BeginRecording();
+    transferCmdBuf.ImageMemoryBarrier(dstImage,
                                       VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
                                       VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                       subresourceRange,
                                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-      renderCmdBuf.ClearColorImage(image, clearColorValue, subresourceRange);
-      renderCmdBuf.ImageMemoryBarrier(image,
+    transferCmdBuf.CopyImage(srcImage, dstImage, subresourceLayers, extent);
+    transferCmdBuf.ImageMemoryBarrier(dstImage,
                                       VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
-                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                                       subresourceRange,
                                       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
-      renderCmdBuf.EndRecording();
-    }
-  }
-
-  void RecordTransferCommands()
-  {
-    for (u32 i = 0; i < m_TransferCommandBuffers.size(); i++)
-    {
-      vulkan::FCommandBuffer& transferCmdBuf = m_TransferCommandBuffers[i];
-      VkImage srcImage = m_RenderTargetImages[i].GetHandle();
-      VkImage dstImage = m_Swapchain.GetImages()[i];
-      VkExtent2D extent = m_Swapchain.GetCurrentExtent();
-
-      VkImageSubresourceRange subresourceRange{
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-          .baseMipLevel = 0,
-          .levelCount = 1,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-      };
-      VkImageSubresourceLayers subresourceLayers{
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-          .mipLevel = 0,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-      };
-
-      transferCmdBuf.BeginRecording();
-      transferCmdBuf.ImageMemoryBarrier(dstImage,
-                                        VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                        subresourceRange,
-                                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-      transferCmdBuf.CopyImage(srcImage, dstImage, subresourceLayers, extent);
-      transferCmdBuf.ImageMemoryBarrier(dstImage,
-                                        VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
-                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                        subresourceRange,
-                                        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
-      transferCmdBuf.EndRecording();
-    }
+    transferCmdBuf.EndRecording();
   }
 
 
