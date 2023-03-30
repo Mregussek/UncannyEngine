@@ -4,3 +4,6 @@
 [submodule "UGraphicsEngine/3rdparty/volk"]
 	path = UGraphicsEngine/3rdparty/volk
 	url = https://github.com/zeux/volk.git
+[submodule "UGraphicsEngine/3rdparty/glslang"]
+	path = UGraphicsEngine/3rdparty/glslang
+	url = https://github.com/KhronosGroup/glslang.git

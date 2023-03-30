@@ -72,6 +72,10 @@ void FInstanceAttributes::GatherAvailableVersion()
 {
   VkResult result{ vkEnumerateInstanceVersion(&m_SupportedVersion) };
   AssertVkAndThrow(result);
+
+  u32 major = VK_API_VERSION_MAJOR(m_SupportedVersion);
+  u32 minor = VK_API_VERSION_MINOR(m_SupportedVersion);
+  m_FullApiVersion = VK_MAKE_API_VERSION(0, major, minor, 0);
 }
 
 

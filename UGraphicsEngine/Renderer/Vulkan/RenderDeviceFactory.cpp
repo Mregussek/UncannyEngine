@@ -1,6 +1,7 @@
 
 #include "RenderDeviceFactory.h"
-#include "Context/PhysicalDevice.h"
+#include "Context/InstanceAttributes.h"
+#include "Context/PhysicalDeviceAttributes.h"
 #include "Context/LogicalDevice.h"
 #include <algorithm>
 
@@ -11,7 +12,7 @@ namespace uncanny::vulkan
 
 FBuffer FRenderDeviceFactory::CreateBuffer() const
 {
-  return FBuffer{ &m_pPhysicalDevice->GetAttributes(), m_pLogicalDevice->GetHandle() };
+  return FBuffer{ m_pPhysicalDeviceAttributes, m_pLogicalDevice->GetHandle() };
 }
 
 
@@ -33,7 +34,7 @@ std::vector<FImage> FRenderDeviceFactory::CreateImages(u32 count) const
   images.reserve(count);
   for(u32 i = 0; i < count; i++)
   {
-    images.push_back({&m_pPhysicalDevice->GetAttributes(), m_pLogicalDevice->GetHandle()});
+    images.push_back({m_pPhysicalDeviceAttributes, m_pLogicalDevice->GetHandle()});
   }
   return images;
 }
@@ -50,9 +51,22 @@ std::vector<FSemaphore> FRenderDeviceFactory::CreateSemaphores(u32 count) const
 }
 
 
-void FRenderDeviceFactory::Initialize(const FPhysicalDevice* pPhysicalDevice, const FLogicalDevice* pLogicalDevice)
+FGLSLShaderCompiler FRenderDeviceFactory::CreateGlslShaderCompiler() const
 {
-  m_pPhysicalDevice = pPhysicalDevice;
+  b8 spirv14Supported = UFALSE;
+  if (m_pPhysicalDeviceAttributes->IsExtensionPresent(VK_KHR_SPIRV_1_4_EXTENSION_NAME))
+  {
+    spirv14Supported = UTRUE;
+  }
+  return FGLSLShaderCompiler{ m_pInstanceAttributes->GetFullVersion(), spirv14Supported };
+}
+
+
+void FRenderDeviceFactory::Initialize(const FInstanceAttributes* pInstanceAttributes,
+                                      const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, const FLogicalDevice* pLogicalDevice)
+{
+  m_pInstanceAttributes = pInstanceAttributes;
+  m_pPhysicalDeviceAttributes = pPhysicalDeviceAttributes;
   m_pLogicalDevice = pLogicalDevice;
 }
 

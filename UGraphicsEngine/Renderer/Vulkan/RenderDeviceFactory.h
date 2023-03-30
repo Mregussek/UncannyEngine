@@ -4,10 +4,11 @@
 
 
 #include <volk.h>
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
+#include "Resources/BottomLevelAS.h"
+#include "Resources/TopLevelAS.h"
 #include "Resources/Buffer.h"
 #include "Resources/Image.h"
+#include "Device/GlslShaderCompiler.h"
 #include "Synchronization/Semaphore.h"
 
 
@@ -15,7 +16,8 @@ namespace uncanny::vulkan
 {
 
 
-class FPhysicalDevice;
+class FInstanceAttributes;
+class FPhysicalDeviceAttributes;
 class FLogicalDevice;
 
 
@@ -36,12 +38,16 @@ public:
 
   [[nodiscard]] std::vector<FSemaphore> CreateSemaphores(u32 count) const;
 
+  [[nodiscard]] FGLSLShaderCompiler CreateGlslShaderCompiler() const;
+
 private:
 
-  void Initialize(const FPhysicalDevice* pPhysicalDevice, const FLogicalDevice* pLogicalDevice);
+  void Initialize(const FInstanceAttributes* pInstanceAttributes,
+                  const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, const FLogicalDevice* pLogicalDevice);
 
 
-  const FPhysicalDevice* m_pPhysicalDevice{ nullptr };
+  const FInstanceAttributes* m_pInstanceAttributes{ nullptr };
+  const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
   const FLogicalDevice* m_pLogicalDevice{ nullptr };
 
 };

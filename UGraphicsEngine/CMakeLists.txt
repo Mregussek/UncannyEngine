@@ -8,6 +8,11 @@ find_package(Vulkan REQUIRED)
 set(ENV{VOLK_3RDPARTY_DIR} "${UGRAPHICSENGINE_PATH}/3rdparty/volk")
 add_subdirectory($ENV{VOLK_3RDPARTY_DIR})
 
+# glslang
+set(ENV{GLSLANG_3RDPARTY_DIR} "${UGRAPHICSENGINE_PATH}/3rdparty/glslang")
+add_subdirectory($ENV{GLSLANG_3RDPARTY_DIR})
+set(GLSLANG_3RDPARTY_LIBS glslang SPIRV)
+
 # OpenGL
 find_package(OpenGL REQUIRED)
 
@@ -32,6 +37,7 @@ target_include_directories(UncannyGraphicsEngine
         ${OPENGL_INCLUDE_DIR}
         ${OPENGL_INCLUDE_DIRS}
         $ENV{VOLK_3RDPARTY_DIR}
+        $ENV{GLSLANG_3RDPARTY_DIR}
         $ENV{VULKAN_SDK}/include
         )
 target_link_libraries(UncannyGraphicsEngine
@@ -39,6 +45,7 @@ target_link_libraries(UncannyGraphicsEngine
         ${OPENGL_LIBRARIES}
         volk_headers
         UncannyTools
+        ${GLSLANG_3RDPARTY_LIBS}
         )
 target_compile_features(UncannyGraphicsEngine
         PUBLIC

@@ -67,7 +67,7 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
     vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
   }
 
-  m_DeviceFactory.Initialize(GetPhysicalDevice(), GetLogicalDevice());
+  m_DeviceFactory.Initialize(&m_Instance.GetAttributes(), &(GetPhysicalDevice()->GetAttributes()), GetLogicalDevice());
 }
 
 

@@ -40,6 +40,11 @@ public:
   /// @returns supported Vulkan API version
   [[nodiscard]] u32 GetVersion() const { return m_SupportedVersion; }
 
+  /// @brief Getter method for full supported version
+  /// @details Version without variant and path, equal to VK_API_VERSION_1_3 for example
+  /// @returns supported vulkan api version
+  [[nodiscard]] u32 GetFullVersion() const { return m_FullApiVersion; }
+
   /// @brief Checks whether given extension name is in requested ones
   /// @param extensionName extension to validate if it is requested by the user
   /// @returns boolean result, UTRUE if is passed extensionName is requested
@@ -47,8 +52,6 @@ public:
 
   [[nodiscard]] const std::vector<const char*>& GetRequestedLayers() const { return m_RequestedLayers; }
   [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const { return m_RequestedExtensions; }
-
-
 
 private:
 
@@ -66,7 +69,10 @@ private:
   std::vector<const char*> m_RequestedLayers{};
   std::vector<const char*> m_RequestedExtensions{};
 
+  // This version is the one retrieved from vkEnumerateInstanceVersion
   u32 m_SupportedVersion{ UVERSION_UNDEFINED };
+  // This version is without patch and variant pats, only major na minor
+  u32 m_FullApiVersion{ UVERSION_UNDEFINED };
 
 };
 
