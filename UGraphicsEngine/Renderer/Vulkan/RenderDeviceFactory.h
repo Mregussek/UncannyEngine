@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include "Descriptors/DescriptorSetLayout.h"
 #include "Resources/BottomLevelAS.h"
 #include "Resources/TopLevelAS.h"
 #include "Resources/Buffer.h"
@@ -39,6 +40,8 @@ public:
   [[nodiscard]] std::vector<FSemaphore> CreateSemaphores(u32 count) const;
 
   [[nodiscard]] FGLSLShaderCompiler CreateGlslShaderCompiler() const;
+
+  [[nodiscard]] FDescriptorSetLayout CreateDescriptorSetLayout() const;
 
 private:
 

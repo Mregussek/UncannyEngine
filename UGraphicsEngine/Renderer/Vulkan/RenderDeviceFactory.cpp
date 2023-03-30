@@ -62,6 +62,12 @@ FGLSLShaderCompiler FRenderDeviceFactory::CreateGlslShaderCompiler() const
 }
 
 
+FDescriptorSetLayout FRenderDeviceFactory::CreateDescriptorSetLayout() const
+{
+  return FDescriptorSetLayout{ m_pLogicalDevice->GetHandle() };
+}
+
+
 void FRenderDeviceFactory::Initialize(const FInstanceAttributes* pInstanceAttributes,
                                       const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, const FLogicalDevice* pLogicalDevice)
 {

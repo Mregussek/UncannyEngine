@@ -3,9 +3,10 @@
 #include <UTools/Window/WindowGLFW.h>
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
@@ -36,9 +37,6 @@ public:
 
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
-
-      RecordRenderCommands(frameIndex);
-      RecordTransferCommands(frameIndex);
 
       { // Submit work for rendering
         const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
@@ -75,6 +73,9 @@ public:
         {
           image.Recreate(currentExtent);
         });
+
+        RecordRenderCommands();
+        RecordTransferCommands();
       }
     }
   }
@@ -160,12 +161,34 @@ private:
       image.CreateView();
     });
 
+    // Creating descriptors...
+    m_DescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
+    {
+      u32 binding = 0;
+      VkDescriptorType type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+      u32 count = 1;
+      VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+      m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
+    }
+    {
+      u32 binding = 1;
+      VkDescriptorType type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      u32 count = 1;
+      VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+      m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
+    }
+    m_DescriptorSetLayout.Create();
+
     // Creating synchronization objects...
     m_RenderSemaphores = deviceFactory.CreateSemaphores(backBufferCount);
 
     // Creating command buffers...
     m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
     m_TransferCommandBuffers = m_TransferCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+
+    // Recording commands
+    RecordRenderCommands();
+    RecordTransferCommands();
   }
 
   void Destroy()
@@ -205,16 +228,27 @@ private:
     m_BottomLevelAS.Destroy();
     m_TopLevelAS.Destroy();
 
+    // Destroying descriptors...
+    m_DescriptorSetLayout.Destroy();
+
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
     m_Window->Destroy();
   }
 
-  void RecordRenderCommands(u32 frameIndex)
+  void RecordRenderCommands()
+  {
+    for (u32 i = 0; i < m_RenderCommandBuffers.size(); i++)
+    {
+      RecordRenderCommands(i);
+    }
+  }
+
+  void RecordRenderCommands(u32 index)
   {
     VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
-    VkImage image = m_RenderTargetImages[frameIndex].GetHandle();
-    vulkan::FCommandBuffer& renderCmdBuf = m_RenderCommandBuffers[frameIndex];
+    VkImage image = m_RenderTargetImages[index].GetHandle();
+    vulkan::FCommandBuffer& renderCmdBuf = m_RenderCommandBuffers[index];
 
     VkImageSubresourceRange subresourceRange{
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -239,11 +273,19 @@ private:
     renderCmdBuf.EndRecording();
   }
 
-  void RecordTransferCommands(u32 frameIndex)
+  void RecordTransferCommands()
   {
-    vulkan::FCommandBuffer& transferCmdBuf = m_TransferCommandBuffers[frameIndex];
-    VkImage srcImage = m_RenderTargetImages[frameIndex].GetHandle();
-    VkImage dstImage = m_Swapchain.GetImages()[frameIndex];
+    for (u32 i = 0; i < m_TransferCommandBuffers.size(); i++)
+    {
+      RecordTransferCommands(i);
+    }
+  }
+
+  void RecordTransferCommands(u32 index)
+  {
+    vulkan::FCommandBuffer& transferCmdBuf = m_TransferCommandBuffers[index];
+    VkImage srcImage = m_RenderTargetImages[index].GetHandle();
+    VkImage dstImage = m_Swapchain.GetImages()[index];
     VkExtent2D extent = m_Swapchain.GetCurrentExtent();
 
     VkImageSubresourceRange subresourceRange{
@@ -287,6 +329,7 @@ private:
   std::vector<vulkan::FSemaphore> m_RenderSemaphores{};
   vulkan::FBottomLevelAS m_BottomLevelAS{};
   vulkan::FTopLevelAS m_TopLevelAS{};
+  vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
 
 };
 
