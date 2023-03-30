@@ -5,6 +5,7 @@
 
 #include <volk.h>
 #include "Descriptors/DescriptorSetLayout.h"
+#include "Descriptors/DescriptorPool.h"
 #include "Resources/BottomLevelAS.h"
 #include "Resources/TopLevelAS.h"
 #include "Resources/Buffer.h"
@@ -42,6 +43,8 @@ public:
   [[nodiscard]] FGLSLShaderCompiler CreateGlslShaderCompiler() const;
 
   [[nodiscard]] FDescriptorSetLayout CreateDescriptorSetLayout() const;
+
+  [[nodiscard]] FDescriptorPool CreateDescriptorPool() const;
 
 private:
 

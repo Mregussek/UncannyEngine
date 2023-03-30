@@ -28,6 +28,8 @@ public:
 
   void Destroy();
 
+  [[nodiscard]] const std::vector<VkDescriptorSetLayoutBinding>& GetBindings() const { return m_Bindings; }
+
 private:
 
   explicit FDescriptorSetLayout(VkDevice vkDevice);

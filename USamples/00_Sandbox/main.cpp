@@ -5,6 +5,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
@@ -179,6 +180,9 @@ private:
     }
     m_DescriptorSetLayout.Create();
 
+    m_DescriptorPool = deviceFactory.CreateDescriptorPool();
+    m_DescriptorPool.Create(m_DescriptorSetLayout, backBufferCount);
+
     // Creating synchronization objects...
     m_RenderSemaphores = deviceFactory.CreateSemaphores(backBufferCount);
 
@@ -230,6 +234,7 @@ private:
 
     // Destroying descriptors...
     m_DescriptorSetLayout.Destroy();
+    m_DescriptorPool.Destroy();
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
@@ -330,6 +335,7 @@ private:
   vulkan::FBottomLevelAS m_BottomLevelAS{};
   vulkan::FTopLevelAS m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
+  vulkan::FDescriptorPool m_DescriptorPool{};
 
 };
 
