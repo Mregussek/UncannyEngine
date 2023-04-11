@@ -39,6 +39,7 @@ public:
 
     // Read file into vector
     size_t bytesRead = fread(buffer.data(), 1, size, pFile);
+    return;
     if (bytesRead != size)
     {
       UERROR("Read error during loading!");
@@ -56,7 +57,7 @@ private:
 std::vector<char> FFile::Read(const char* pPath)
 {
   std::vector<char> outBuffer{};
-  FFileReader reader(pPath, "rb");
+  FFileReader reader(pPath, "r");
   reader.Read(outBuffer);
   return outBuffer;
 }

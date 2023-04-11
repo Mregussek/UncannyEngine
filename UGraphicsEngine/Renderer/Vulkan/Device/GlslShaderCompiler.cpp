@@ -2,6 +2,7 @@
 #include "GlslShaderCompiler.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UTools/Logger/Log.h"
+#include <glslang/Include/ResourceLimits.h>
 
 
 namespace uncanny::vulkan
@@ -47,6 +48,7 @@ struct glslang_program_raii_wrapper
 };
 
 
+
 FGLSLShaderCompiler::FGLSLShaderCompiler(u32 targetVulkanVersion, b8 spirv14Supported)
 {
   switch (targetVulkanVersion)
@@ -73,6 +75,19 @@ FGLSLShaderCompiler::FGLSLShaderCompiler(u32 targetVulkanVersion, b8 spirv14Supp
   {
     m_TargetSpirvVersion = GLSLANG_TARGET_SPV_1_3;
   }
+  m_TargetSpirvVersion = GLSLANG_TARGET_SPV_1_5;
+}
+
+
+FGLSLShaderCompiler::~FGLSLShaderCompiler()
+{
+  glslang_finalize_process();
+}
+
+
+void FGLSLShaderCompiler::Initialize()
+{
+  glslang_initialize_process();
 }
 
 
@@ -80,6 +95,7 @@ std::vector<u32> FGLSLShaderCompiler::Compile(const char* glslSource, EShaderCom
 {
   glslang_stage_t shaderStage = TranslateShaderStage(stage);
 
+  TBuiltInResource builtInResource{};
   const glslang_input_t input{
     .language = GLSLANG_SOURCE_GLSL,
     .stage = shaderStage,
@@ -93,7 +109,7 @@ std::vector<u32> FGLSLShaderCompiler::Compile(const char* glslSource, EShaderCom
     .force_default_version_and_profile = UFALSE,
     .forward_compatible = UFALSE,
     .messages = GLSLANG_MSG_DEFAULT_BIT,
-    .resource = nullptr
+    .resource = reinterpret_cast<const glslang_resource_t*>(&builtInResource)
   };
 
   glslang_shader_raii_wrapper shaderRaiiWrapper(&input);

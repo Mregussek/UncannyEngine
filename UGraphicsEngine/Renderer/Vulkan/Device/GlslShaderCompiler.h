@@ -26,6 +26,10 @@ class FGLSLShaderCompiler
 
 public:
 
+  ~FGLSLShaderCompiler();
+
+  void Initialize();
+
   std::vector<u32> Compile(const char* glslSource, EShaderCompilerStage stage) const;
 
 private:

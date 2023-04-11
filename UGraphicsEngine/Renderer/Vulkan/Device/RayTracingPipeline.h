@@ -11,11 +11,17 @@ namespace uncanny::vulkan
 {
 
 
+class FGLSLShaderCompiler;
+class FPipelineLayout;
+
+
 struct FRayTracingPipelineSpecification
 {
   FPath rayClosestHitPath{ "" };
   FPath rayGenerationPath{ "" };
   FPath rayMissPath{ "" };
+  FGLSLShaderCompiler* pGlslCompiler{ nullptr };
+  FPipelineLayout* pPipelineLayout{};
 };
 
 
@@ -37,6 +43,7 @@ private:
   explicit FRayTracingPipeline(VkDevice vkDevice);
 
 
+  VkPipeline m_Pipeline{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
 
 };

@@ -206,10 +206,14 @@ private:
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders" });
     m_RayTracingPipeline = deviceFactory.CreateRayTracingPipeline();
+    vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
+    glslCompiler.Initialize();
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
-      .rayClosestHitPath = FPath::Append(shadersPath, "default.rayclosesthit.glsl"),
-      .rayGenerationPath = FPath::Append(shadersPath, "default.raygen.glsl"),
-      .rayMissPath =  FPath::Append(shadersPath, "default.raymiss.glsl")
+      .rayClosestHitPath = FPath::Append(shadersPath, "default.rchit"),
+      .rayGenerationPath = FPath::Append(shadersPath, "default.rgen"),
+      .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
+      .pGlslCompiler = &glslCompiler,
+      .pPipelineLayout = &m_RayTracingPipelineLayout
     };
     m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
 

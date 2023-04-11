@@ -24,6 +24,8 @@ public:
 
   void Destroy();
 
+  [[nodiscard]] VkPipelineLayout GetHandle() const { return m_PipelineLayout; }
+
 private:
 
   explicit FPipelineLayout(VkDevice vkDevice);
