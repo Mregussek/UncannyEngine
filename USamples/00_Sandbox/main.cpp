@@ -1,10 +1,14 @@
 
 #include <UTools/Logger/Log.h>
 #include <UTools/Window/WindowGLFW.h>
+#include <UTools/Filesystem/Path.h>
+#include <UTools/Filesystem/File.h>
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/GlslShaderCompiler.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/PipelineLayout.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
@@ -199,6 +203,16 @@ private:
     VkDescriptorSetLayout setLayouts[]{ m_DescriptorSetLayout.GetHandle() };
     m_RayTracingPipelineLayout.Create(setLayouts);
 
+    FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
+                                                                       "Shaders" });
+    m_RayTracingPipeline = deviceFactory.CreateRayTracingPipeline();
+    vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
+      .rayClosestHitPath = FPath::Append(shadersPath, "default.rayclosesthit.glsl"),
+      .rayGenerationPath = FPath::Append(shadersPath, "default.raygen.glsl"),
+      .rayMissPath =  FPath::Append(shadersPath, "default.raymiss.glsl")
+    };
+    m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
+
     // Creating synchronization objects...
     m_RenderSemaphores = deviceFactory.CreateSemaphores(backBufferCount);
 
@@ -254,6 +268,7 @@ private:
 
     // Destroying pipelines...
     m_RayTracingPipelineLayout.Destroy();
+    m_RayTracingPipeline.Destroy();
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
@@ -356,6 +371,7 @@ private:
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
   vulkan::FDescriptorPool m_DescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
+  vulkan::FRayTracingPipeline m_RayTracingPipeline{};
 
 };
 

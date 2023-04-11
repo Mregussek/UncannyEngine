@@ -12,6 +12,7 @@
 #include "Resources/Image.h"
 #include "Device/GlslShaderCompiler.h"
 #include "Device/PipelineLayout.h"
+#include "Device/RayTracingPipeline.h"
 #include "Synchronization/Semaphore.h"
 
 
@@ -48,6 +49,8 @@ public:
   [[nodiscard]] FDescriptorPool CreateDescriptorPool() const;
 
   [[nodiscard]] FPipelineLayout CreatePipelineLayout() const;
+
+  [[nodiscard]] FRayTracingPipeline CreateRayTracingPipeline() const;
 
 private:
 
