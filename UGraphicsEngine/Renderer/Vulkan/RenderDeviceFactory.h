@@ -11,6 +11,7 @@
 #include "Resources/Buffer.h"
 #include "Resources/Image.h"
 #include "Device/GlslShaderCompiler.h"
+#include "Device/PipelineLayout.h"
 #include "Synchronization/Semaphore.h"
 
 
@@ -45,6 +46,8 @@ public:
   [[nodiscard]] FDescriptorSetLayout CreateDescriptorSetLayout() const;
 
   [[nodiscard]] FDescriptorPool CreateDescriptorPool() const;
+
+  [[nodiscard]] FPipelineLayout CreatePipelineLayout() const;
 
 private:
 

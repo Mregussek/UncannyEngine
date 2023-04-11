@@ -74,6 +74,12 @@ FDescriptorPool FRenderDeviceFactory::CreateDescriptorPool() const
 }
 
 
+FPipelineLayout FRenderDeviceFactory::CreatePipelineLayout() const
+{
+  return FPipelineLayout{ m_pLogicalDevice->GetHandle() };
+}
+
+
 void FRenderDeviceFactory::Initialize(const FInstanceAttributes* pInstanceAttributes,
                                       const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, const FLogicalDevice* pLogicalDevice)
 {

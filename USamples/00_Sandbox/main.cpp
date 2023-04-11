@@ -4,6 +4,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/PipelineLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
@@ -193,6 +194,11 @@ private:
       m_DescriptorPool.WriteStorageImagesToDescriptorSets(m_RenderTargetImages, dstBinding);
     }
 
+    // Creating pipeline...
+    m_RayTracingPipelineLayout = deviceFactory.CreatePipelineLayout();
+    VkDescriptorSetLayout setLayouts[]{ m_DescriptorSetLayout.GetHandle() };
+    m_RayTracingPipelineLayout.Create(setLayouts);
+
     // Creating synchronization objects...
     m_RenderSemaphores = deviceFactory.CreateSemaphores(backBufferCount);
 
@@ -245,6 +251,9 @@ private:
     // Destroying descriptors...
     m_DescriptorSetLayout.Destroy();
     m_DescriptorPool.Destroy();
+
+    // Destroying pipelines...
+    m_RayTracingPipelineLayout.Destroy();
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
@@ -346,6 +355,7 @@ private:
   vulkan::FTopLevelAS m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
   vulkan::FDescriptorPool m_DescriptorPool{};
+  vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
 
 };
 
