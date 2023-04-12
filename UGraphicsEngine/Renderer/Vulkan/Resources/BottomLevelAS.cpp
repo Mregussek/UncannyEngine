@@ -32,7 +32,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
   FBuffer indexBuffer = m_pRenderDeviceFactory->CreateBuffer();
   indexBuffer.Allocate(vertices.size() * sizeof(u32), bufferUsageFlags,
                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  indexBuffer.Fill(vertices.data(), sizeof(u32), vertices.size());
+  indexBuffer.Fill(indices.data(), sizeof(u32), indices.size());
 
   VkAccelerationStructureGeometryKHR geometryInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
