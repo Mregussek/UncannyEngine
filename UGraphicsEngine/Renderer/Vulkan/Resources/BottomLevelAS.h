@@ -38,7 +38,6 @@ private:
   FBuffer m_VertexBuffer{};
   FBuffer m_IndexBuffer{};
   FBuffer m_AccelerationMemoryBuffer{};
-  FBuffer m_ScratchBuffer{};
   VkAccelerationStructureKHR m_AccelerationStructure{ VK_NULL_HANDLE };
   u64 m_DeviceAddress{ UUNUSED };
   VkDevice m_Device{ VK_NULL_HANDLE };
