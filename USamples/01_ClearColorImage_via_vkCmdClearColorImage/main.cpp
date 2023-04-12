@@ -95,7 +95,8 @@ private:
 
     // Creating command pools
     m_GraphicsCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetGraphicsFamilyIndex(),
-                                 m_RenderContext.GetLogicalDevice()->GetHandle());
+                                 m_RenderContext.GetLogicalDevice()->GetHandle(),
+                                 0);
 
     // Creating command buffers...
     m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);

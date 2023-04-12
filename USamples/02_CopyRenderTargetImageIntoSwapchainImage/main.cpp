@@ -112,9 +112,11 @@ private:
 
     // Creating command pools
     m_GraphicsCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetGraphicsFamilyIndex(),
-                                 m_RenderContext.GetLogicalDevice()->GetHandle());
+                                 m_RenderContext.GetLogicalDevice()->GetHandle(),
+                                 0);
     m_TransferCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetTransferFamilyIndex(),
-                                 m_RenderContext.GetLogicalDevice()->GetHandle());
+                                 m_RenderContext.GetLogicalDevice()->GetHandle(),
+                                 0);
 
     // Creating render target images...
     m_RenderTargetImages = m_RenderContext.GetFactory().CreateImages(backBufferCount);
