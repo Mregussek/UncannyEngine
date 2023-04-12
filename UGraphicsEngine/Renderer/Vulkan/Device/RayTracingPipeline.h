@@ -40,6 +40,11 @@ public:
 
   void Destroy();
 
+  [[nodiscard]] VkPipeline GetHandle() const { return m_Pipeline; }
+  [[nodiscard]] const FBuffer& GetRayGenBuffer() const { return m_RayGenBuffer; }
+  [[nodiscard]] const FBuffer& GetRayClosestHitBuffer() const { return m_RayClosestHitBuffer; }
+  [[nodiscard]] const FBuffer& GetRayMissBuffer() const { return m_RayMissBuffer; }
+
 private:
 
   FRayTracingPipeline(const FRenderDeviceFactory* pFactory, VkDevice vkDevice,
@@ -56,6 +61,7 @@ private:
   VkPipeline m_Pipeline{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
   const FRenderDeviceFactory* m_pFactory{ nullptr };
+  u32 m_ShaderGroupCount{ 0 };
 
 };
 

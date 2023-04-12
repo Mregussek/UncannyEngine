@@ -72,7 +72,7 @@ void FDescriptorPool::AllocateDescriptorSets(u32 count)
     .pSetLayouts = setLayouts.data()
   };
 
-  m_DescriptorSets.reserve(count);
+  m_DescriptorSets.resize(count);
   VkResult result = vkAllocateDescriptorSets(m_Device, &allocateInfo, m_DescriptorSets.data());
   AssertVkAndThrow(result);
 }
@@ -114,14 +114,12 @@ void FDescriptorPool::WriteTopLevelAsToDescriptorSets(VkAccelerationStructureKHR
 
 void FDescriptorPool::WriteStorageImagesToDescriptorSets(const std::vector<FImage>& images, u32 dstBinding) const
 {
-  std::vector<VkWriteDescriptorSet> writeVector;
-  writeVector.reserve(m_DescriptorSets.size());
   for (u32 i = 0; i < m_DescriptorSets.size(); i++)
   {
     VkDescriptorImageInfo writeImage{
         .sampler = VK_NULL_HANDLE,
         .imageView = images[i].GetHandleView(),
-        .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL
     };
 
     VkWriteDescriptorSet writeDescriptorSet{
@@ -136,10 +134,9 @@ void FDescriptorPool::WriteStorageImagesToDescriptorSets(const std::vector<FImag
         .pBufferInfo = nullptr,
         .pTexelBufferView = nullptr
     };
-    writeVector.push_back(writeDescriptorSet);
-  }
 
-  vkUpdateDescriptorSets(m_Device, writeVector.size(), writeVector.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
+  }
 }
 
 

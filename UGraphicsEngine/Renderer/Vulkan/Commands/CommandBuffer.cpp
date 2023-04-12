@@ -1,6 +1,7 @@
 
 #include "CommandBuffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UTools/Logger/Log.h"
 
 
@@ -144,6 +145,55 @@ void FCommandBuffer::BuildAccelerationStructure(const VkAccelerationStructureBui
                                                 const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
 {
   vkCmdBuildAccelerationStructuresKHR(m_CommandBuffer, 1, pBuildGeometryInfo, ppBuildRangeInfos);
+}
+
+
+void FCommandBuffer::BindPipeline(VkPipelineBindPoint bindPoint, VkPipeline pipeline)
+{
+  vkCmdBindPipeline(m_CommandBuffer, bindPoint, pipeline);
+}
+
+
+void FCommandBuffer::BindDescriptorSet(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
+                                       VkDescriptorSet descriptorSet)
+{
+  constexpr u32 firstSet = 0;
+  constexpr u32 descriptorsCount = 1;
+  constexpr u32 dynamicOffsetCount = 0;
+  constexpr u32* pDynamicOffsets = nullptr;
+  vkCmdBindDescriptorSets(m_CommandBuffer, bindPoint, pipelineLayout,
+                          firstSet, descriptorsCount, &descriptorSet,
+                          dynamicOffsetCount, pDynamicOffsets);
+}
+
+
+void FCommandBuffer::TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D)
+{
+  const FBuffer& rayGenBuffer = pRayTracingPipeline->GetRayGenBuffer();
+  VkStridedDeviceAddressRegionKHR rayGenSBT{
+    .deviceAddress = rayGenBuffer.GetDeviceAddress(),
+    .stride = rayGenBuffer.GetElementsCount(),
+    .size = rayGenBuffer.GetElementsCount() * rayGenBuffer.GetStride()
+  };
+
+  const FBuffer& rayMissBuffer = pRayTracingPipeline->GetRayMissBuffer();
+  VkStridedDeviceAddressRegionKHR rayMissSBT{
+    .deviceAddress = rayMissBuffer.GetDeviceAddress(),
+    .stride = rayMissBuffer.GetElementsCount(),
+    .size = rayMissBuffer.GetElementsCount() * rayMissBuffer.GetStride()
+  };
+
+  const FBuffer& rayClosestHitBuffer = pRayTracingPipeline->GetRayClosestHitBuffer();
+  VkStridedDeviceAddressRegionKHR rayHitSBT{
+    .deviceAddress = rayClosestHitBuffer.GetDeviceAddress(),
+    .stride = rayClosestHitBuffer.GetElementsCount(),
+    .size = rayClosestHitBuffer.GetElementsCount() * rayClosestHitBuffer.GetStride()
+  };
+
+  VkStridedDeviceAddressRegionKHR rayCallableSBT{};
+
+  vkCmdTraceRaysKHR(m_CommandBuffer, &rayGenSBT, &rayMissSBT, &rayHitSBT, &rayCallableSBT,
+                    extent3D.width, extent3D.height, extent3D.depth);
 }
 
 

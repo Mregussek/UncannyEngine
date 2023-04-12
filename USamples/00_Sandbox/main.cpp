@@ -157,8 +157,7 @@ private:
       VkExtent2D extent = m_Swapchain.GetCurrentExtent();
       VkFormat format = VK_FORMAT_B8G8R8A8_UNORM;
       VkImageUsageFlags usage =
-          VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-          VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+          VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
       VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
       VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
@@ -290,6 +289,7 @@ private:
   void RecordRenderCommands(u32 index)
   {
     VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
+    VkExtent3D imageExtent = m_RenderTargetImages[index].GetExtent3D();
     VkImage image = m_RenderTargetImages[index].GetHandle();
     vulkan::FCommandBuffer& renderCmdBuf = m_RenderCommandBuffers[index];
 
@@ -303,16 +303,19 @@ private:
 
     renderCmdBuf.BeginRecording();
     renderCmdBuf.ImageMemoryBarrier(image,
-                                    VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT,
+                                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
                                     subresourceRange,
-                                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    renderCmdBuf.ClearColorImage(image, clearColorValue, subresourceRange);
+                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+    renderCmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipeline.GetHandle());
+    renderCmdBuf.BindDescriptorSet(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
+                                   m_DescriptorPool.GetDescriptorSet(index));
+    renderCmdBuf.TraceRays(&m_RayTracingPipeline, imageExtent);
     renderCmdBuf.ImageMemoryBarrier(image,
-                                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
-                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                    VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                    VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                                     subresourceRange,
-                                    VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
     renderCmdBuf.EndRecording();
   }
 

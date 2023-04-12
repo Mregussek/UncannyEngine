@@ -27,7 +27,7 @@ struct FSwapchainCreateAttributes
       VK_FORMAT_FEATURE_TRANSFER_DST_BIT,
       VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
   };
-  VkSurfaceFormatKHR surfaceFormat{ VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+  VkSurfaceFormatKHR surfaceFormat{ VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
   u32 minImageCount{ 2 };
   VkSurfaceTransformFlagBitsKHR preTransform{ VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR };
   VkImageTiling imageTiling{ VK_IMAGE_TILING_OPTIMAL };

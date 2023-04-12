@@ -38,6 +38,7 @@ public:
 
   [[nodiscard]] VkImage GetHandle() const { return m_Image; }
   [[nodiscard]] VkImageView GetHandleView() const { return m_ImageView; }
+  [[nodiscard]] VkExtent3D GetExtent3D() const { return m_CreateInfo.extent; }
 
 private:
 

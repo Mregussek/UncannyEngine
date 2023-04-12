@@ -12,6 +12,9 @@ namespace uncanny::vulkan
 {
 
 
+class FRayTracingPipeline;
+
+
 class FCommandBuffer
 {
 public:
@@ -34,6 +37,12 @@ public:
 
   void BuildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR* pBuildGeometryInfo,
                                   const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos);
+
+  void BindPipeline(VkPipelineBindPoint bindPoint, VkPipeline pipeline);
+
+  void BindDescriptorSet(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet);
+
+  void TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }

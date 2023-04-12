@@ -52,7 +52,7 @@ void FBuffer::Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemo
   m_Memory.Allocate(m_Device, m_pPhysicalDeviceAttributes->GetMemoryProperties(), memoryRequirements, m_MemoryFlags,
                     useDeviceAddress);
 
-  VkDeviceSize memoryOffset{ 0 };
+  constexpr VkDeviceSize memoryOffset{ 0 };
   vkBindBufferMemory(m_Device, m_Buffer, m_Memory.GetHandle(), memoryOffset);
 
   if (useDeviceAddress)

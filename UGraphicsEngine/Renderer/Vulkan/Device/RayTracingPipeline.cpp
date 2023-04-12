@@ -106,6 +106,7 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
       .pShaderGroupCaptureReplayHandle = nullptr
   };
   VkRayTracingShaderGroupCreateInfoKHR shaderGroupCreateInfos[]{ rayGenGroupInfo, rayMissGroupInfo, rayHitGroupInfo };
+  m_ShaderGroupCount = sizeof(shaderGroupCreateInfos) / sizeof(shaderGroupCreateInfos[0]);
 
   VkRayTracingPipelineCreateInfoKHR createInfo{
     .sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
@@ -113,7 +114,7 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
     .flags = 0,
     .stageCount = sizeof(shaderStageCreateInfos) / sizeof(shaderStageCreateInfos[0]),
     .pStages = shaderStageCreateInfos,
-    .groupCount = sizeof(shaderGroupCreateInfos) / sizeof(shaderGroupCreateInfos[0]),
+    .groupCount = m_ShaderGroupCount,
     .pGroups = shaderGroupCreateInfos,
     .maxPipelineRayRecursionDepth = 1,
     .pLibraryInfo = nullptr,
@@ -140,11 +141,10 @@ void FRayTracingPipeline::CreateShaderBindingTable()
   u32 sbtHandleSize = m_Properties.shaderGroupHandleSize;
   u32 sbtHandleAlignment = m_Properties.shaderGroupHandleAlignment;
   u32 sbtHandleSizeAligned = alignTo(sbtHandleSize, sbtHandleAlignment);
-  u32 shaderGroupCount = 3; // 3 because 3 shaders group during pipeline creation
-  u32 sbtSize = shaderGroupCount * sbtHandleSizeAligned;
+  u32 sbtSize = m_ShaderGroupCount * sbtHandleSizeAligned;
 
   std::vector<u8> sbtResults(sbtSize);
-  VkResult result = vkGetRayTracingShaderGroupHandlesKHR(m_Device, m_Pipeline, 0, shaderGroupCount, sbtSize,
+  VkResult result = vkGetRayTracingShaderGroupHandlesKHR(m_Device, m_Pipeline, 0, m_ShaderGroupCount, sbtSize,
                                                          sbtResults.data());
   AssertVkAndThrow(result);
 
@@ -153,15 +153,15 @@ void FRayTracingPipeline::CreateShaderBindingTable()
 
   m_RayGenBuffer = m_pFactory->CreateBuffer();
   m_RayGenBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  m_RayGenBuffer.Fill(sbtResults.data(), sizeof(u8), sbtResults.size());
+  m_RayGenBuffer.Fill(sbtResults.data(), sizeof(u8), sbtHandleSize);
 
   m_RayMissBuffer = m_pFactory->CreateBuffer();
   m_RayMissBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  m_RayMissBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned, sizeof(u8), sbtResults.size());
+  m_RayMissBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned, sizeof(u8), sbtHandleSize);
 
   m_RayClosestHitBuffer = m_pFactory->CreateBuffer();
   m_RayClosestHitBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  m_RayClosestHitBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned * 2, sizeof(u8), sbtResults.size());
+  m_RayClosestHitBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned * 2, sizeof(u8), sbtHandleSize);
 }
 
 
