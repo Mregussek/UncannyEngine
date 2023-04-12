@@ -5,19 +5,31 @@
 #include "GlslShaderCompiler.h"
 #include "PipelineLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
+#include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceFactory.h"
 
 
 namespace uncanny::vulkan
 {
 
 
-FRayTracingPipeline::FRayTracingPipeline(VkDevice vkDevice)
-  : m_Device(vkDevice)
+FRayTracingPipeline::FRayTracingPipeline(const FRenderDeviceFactory* pFactory,
+                                         VkDevice vkDevice,
+                                         const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& properties)
+  : m_Device(vkDevice),
+    m_Properties(properties),
+    m_pFactory(pFactory)
 {
 }
 
 
 void FRayTracingPipeline::Create(const FRayTracingPipelineSpecification& specification)
+{
+  CreatePipeline(specification);
+  CreateShaderBindingTable();
+}
+
+
+void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification& specification)
 {
   auto CompileLoadAndCreateModule =
       [pCompiler = specification.pGlslCompiler](FShader& shaderModule, const FPath& path, EShaderCompilerStage stage)
@@ -118,12 +130,51 @@ void FRayTracingPipeline::Create(const FRayTracingPipelineSpecification& specifi
 }
 
 
+void FRayTracingPipeline::CreateShaderBindingTable()
+{
+  auto alignTo = [](u32 value, u32 alignment) -> u32
+  {
+    return (value + alignment - 1) & ~(alignment - 1);
+  };
+
+  u32 sbtHandleSize = m_Properties.shaderGroupHandleSize;
+  u32 sbtHandleAlignment = m_Properties.shaderGroupHandleAlignment;
+  u32 sbtHandleSizeAligned = alignTo(sbtHandleSize, sbtHandleAlignment);
+  u32 shaderGroupCount = 3; // 3 because 3 shaders group during pipeline creation
+  u32 sbtSize = shaderGroupCount * sbtHandleSizeAligned;
+
+  std::vector<u8> sbtResults(sbtSize);
+  VkResult result = vkGetRayTracingShaderGroupHandlesKHR(m_Device, m_Pipeline, 0, shaderGroupCount, sbtSize,
+                                                         sbtResults.data());
+  AssertVkAndThrow(result);
+
+  VkBufferUsageFlags bufferUsageFlags =
+      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
+
+  m_RayGenBuffer = m_pFactory->CreateBuffer();
+  m_RayGenBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  m_RayGenBuffer.Fill(sbtResults.data(), sizeof(u8), sbtResults.size());
+
+  m_RayMissBuffer = m_pFactory->CreateBuffer();
+  m_RayMissBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  m_RayMissBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned, sizeof(u8), sbtResults.size());
+
+  m_RayClosestHitBuffer = m_pFactory->CreateBuffer();
+  m_RayClosestHitBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  m_RayClosestHitBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned * 2, sizeof(u8), sbtResults.size());
+}
+
+
 void FRayTracingPipeline::Destroy()
 {
   if (m_Pipeline != VK_NULL_HANDLE)
   {
     vkDestroyPipeline(m_Device, m_Pipeline, nullptr);
   }
+
+  m_RayGenBuffer.Free();
+  m_RayMissBuffer.Free();
+  m_RayClosestHitBuffer.Free();
 }
 
 

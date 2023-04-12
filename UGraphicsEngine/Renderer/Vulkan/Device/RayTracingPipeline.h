@@ -5,12 +5,14 @@
 
 #include <volk.h>
 #include "UTools/Filesystem/Path.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 
 
 namespace uncanny::vulkan
 {
 
 
+class FRenderDeviceFactory;
 class FGLSLShaderCompiler;
 class FPipelineLayout;
 
@@ -40,11 +42,20 @@ public:
 
 private:
 
-  explicit FRayTracingPipeline(VkDevice vkDevice);
+  FRayTracingPipeline(const FRenderDeviceFactory* pFactory, VkDevice vkDevice,
+                      const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& properties);
+
+  void CreatePipeline(const FRayTracingPipelineSpecification& specification);
+  void CreateShaderBindingTable();
 
 
+  VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_Properties{};
+  FBuffer m_RayGenBuffer{};
+  FBuffer m_RayMissBuffer{};
+  FBuffer m_RayClosestHitBuffer{};
   VkPipeline m_Pipeline{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
+  const FRenderDeviceFactory* m_pFactory{ nullptr };
 
 };
 

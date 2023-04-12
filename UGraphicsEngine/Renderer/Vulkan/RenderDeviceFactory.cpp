@@ -82,7 +82,9 @@ FPipelineLayout FRenderDeviceFactory::CreatePipelineLayout() const
 
 FRayTracingPipeline FRenderDeviceFactory::CreateRayTracingPipeline() const
 {
-  return FRayTracingPipeline{ m_pLogicalDevice->GetHandle() };
+  return FRayTracingPipeline{ this,
+                              m_pLogicalDevice->GetHandle(),
+                              m_pLogicalDevice->GetAttributes().GetRayTracingProperties() };
 }
 
 

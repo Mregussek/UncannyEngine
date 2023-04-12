@@ -59,6 +59,11 @@ public:
   [[nodiscard]] FQueueIndex GetTransferQueueIndex() const noexcept { return m_TransferQueueIndex; }
   [[nodiscard]] FQueueIndex GetComputeQueueIndex() const noexcept { return m_ComputeQueueIndex; }
 
+  [[nodiscard]] const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& GetRayTracingProperties() const
+  {
+    return m_RayTracingPipelineProperties;
+  }
+
 private:
 
   // required extensions...

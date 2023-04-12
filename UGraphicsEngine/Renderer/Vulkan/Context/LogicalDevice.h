@@ -37,6 +37,8 @@ public:
 
   [[nodiscard]] VkDevice GetHandle() const { return m_Device; }
 
+  [[nodiscard]] const FLogicalDeviceAttributes& GetAttributes() const { return m_Attributes; }
+
   [[nodiscard]] const FQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }
   [[nodiscard]] const FQueue& GetPresentQueue() const { return m_PresentQueue; }
   [[nodiscard]] const FQueue& GetTransferQueue() const { return m_TransferQueue; }
