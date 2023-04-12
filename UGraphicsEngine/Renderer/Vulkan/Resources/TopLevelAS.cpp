@@ -39,8 +39,12 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
       VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
   FBuffer instanceBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  instanceBuffer.Allocate(sizeof(decltype(instance)), usageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  instanceBuffer.Fill(&instance, sizeof(decltype(instance)), 1);
+  instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR), usageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  instanceBuffer.Fill(&instance, sizeof(VkAccelerationStructureInstanceKHR), 1);
+
+  VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{
+    .deviceAddress = instanceBuffer.GetDeviceAddress()
+  };
 
   VkAccelerationStructureGeometryKHR geometryInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
@@ -51,7 +55,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
             .pNext = nullptr,
             .arrayOfPointers = VK_FALSE,
-            .data = { .deviceAddress = instanceBuffer.GetDeviceAddress() }
+            .data = instanceDataDeviceAddress
         }
     },
     .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
@@ -73,7 +77,11 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
 
   // acquire size to build acceleration structure
   VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo{
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
+    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
+    .pNext = nullptr,
+    .accelerationStructureSize = 0,
+    .updateScratchSize = 0,
+    .buildScratchSize = 0
   };
   u32 primitiveCount = instanceBuffer.GetElementsCount();
   vkGetAccelerationStructureBuildSizesKHR(m_Device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
@@ -81,8 +89,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
 
   // reserve memory to hold the acceleration structure
   VkBufferUsageFlags accelerationUsageFlags =
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
   FBuffer accelerationMemoryBuffer = m_pRenderDeviceFactory->CreateBuffer();
   accelerationMemoryBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationUsageFlags,
                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -101,12 +108,14 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
   AssertVkAndThrow(result);
 
   // reserve memory to build acceleration structure
-  VkBufferUsageFlags accelerationBuildUsageFlags =
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-  FBuffer accelerationBuildMemoryBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  accelerationBuildMemoryBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationBuildUsageFlags,
-                                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  VkBufferUsageFlags scratchUsageFlags =
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+  FBuffer scratchBuffer = m_pRenderDeviceFactory->CreateBuffer();
+  scratchBuffer.Allocate(buildSizesInfo.accelerationStructureSize, scratchUsageFlags,
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  VkDeviceOrHostAddressKHR scratchDeviceAddress{
+      .deviceAddress = scratchBuffer.GetDeviceAddress()
+  };
 
   VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo{
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
@@ -119,7 +128,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
       .geometryCount = 1,
       .pGeometries = &geometryInfo,
       .ppGeometries = nullptr,
-      .scratchData = { .deviceAddress = accelerationBuildMemoryBuffer.GetDeviceAddress() }
+      .scratchData = scratchDeviceAddress
   };
 
   VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo{
@@ -128,11 +137,11 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
       .firstVertex = 0,
       .transformOffset = 0
   };
-  std::array<VkAccelerationStructureBuildRangeInfoKHR*, 1> buildRangeInfos{ &buildRangeInfo };
+  VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfos[]{ &buildRangeInfo };
 
   FCommandBuffer commandBuffer = commandPool.AllocatePrimaryCommandBuffer();
   commandBuffer.BeginOneTimeRecording();
-  commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos.data());
+  commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos);
   commandBuffer.EndRecording();
 
   queue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);

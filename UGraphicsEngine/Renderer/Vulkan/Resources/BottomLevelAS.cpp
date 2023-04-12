@@ -21,8 +21,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
                            const FQueue& queue)
 {
   VkBufferUsageFlags bufferUsageFlags =
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
   FBuffer vertexBuffer = m_pRenderDeviceFactory->CreateBuffer();
   vertexBuffer.Allocate(vertices.size() * sizeof(vulkan::FVertex), bufferUsageFlags,
@@ -34,6 +33,13 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
   indexBuffer.Fill(indices.data(), sizeof(u32), indices.size());
 
+  VkDeviceOrHostAddressConstKHR vertexBufferDeviceAddress{
+    .deviceAddress = vertexBuffer.GetDeviceAddress()
+  };
+  VkDeviceOrHostAddressConstKHR indexBufferDeviceAddress{
+    .deviceAddress = indexBuffer.GetDeviceAddress()
+  };
+
   VkAccelerationStructureGeometryKHR geometryInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
     .pNext = nullptr,
@@ -43,11 +49,11 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
           .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
           .pNext = nullptr,
           .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
-          .vertexData = { .deviceAddress = vertexBuffer.GetDeviceAddress() },
+          .vertexData = vertexBufferDeviceAddress,
           .vertexStride = vertexBuffer.GetStride(),
           .maxVertex = vertexBuffer.GetElementsCount(),
           .indexType = VK_INDEX_TYPE_UINT32,
-          .indexData = { .deviceAddress = indexBuffer.GetDeviceAddress() },
+          .indexData = indexBufferDeviceAddress,
           .transformData = {}
       }
     },
@@ -70,16 +76,19 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
 
   // acquire size to build acceleration structure
   VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo{
-    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
+    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
+    .pNext = nullptr,
+    .accelerationStructureSize = 0,
+    .updateScratchSize = 0,
+    .buildScratchSize = 0
   };
-  u32 primitiveCount = vertexBuffer.GetElementsCount();
+  u32 primitiveCount = vertexBuffer.GetElementsCount() / 3;
   vkGetAccelerationStructureBuildSizesKHR(m_Device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                                           &buildSizeGeometryInfo, &primitiveCount, &buildSizesInfo);
 
   // reserve memory to hold the acceleration structure
   VkBufferUsageFlags accelerationUsageFlags =
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
   FBuffer accelerationMemoryBuffer = m_pRenderDeviceFactory->CreateBuffer();
   accelerationMemoryBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationUsageFlags,
                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -99,11 +108,13 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
 
   // reserve memory to build acceleration structure
   VkBufferUsageFlags accelerationBuildUsageFlags =
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-  FBuffer accelerationBuildMemoryBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  accelerationBuildMemoryBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationBuildUsageFlags,
-                                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+  FBuffer scratchBuffer = m_pRenderDeviceFactory->CreateBuffer();
+  scratchBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationBuildUsageFlags,
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  VkDeviceOrHostAddressKHR scratchDeviceAddress{
+      .deviceAddress = scratchBuffer.GetDeviceAddress()
+  };
 
   VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
@@ -116,7 +127,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
     .geometryCount = 1,
     .pGeometries = &geometryInfo,
     .ppGeometries = nullptr,
-    .scratchData = { .deviceAddress = accelerationBuildMemoryBuffer.GetDeviceAddress() }
+    .scratchData = scratchDeviceAddress
   };
 
   VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo{
@@ -125,11 +136,11 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
     .firstVertex = 0,
     .transformOffset = 0
   };
-  std::array<VkAccelerationStructureBuildRangeInfoKHR*, 1> buildRangeInfos{ &buildRangeInfo };
+  VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfos[]{ &buildRangeInfo };
 
   FCommandBuffer commandBuffer = commandPool.AllocatePrimaryCommandBuffer();
   commandBuffer.BeginOneTimeRecording();
-  commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos.data());
+  commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos);
   commandBuffer.EndRecording();
 
   queue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);

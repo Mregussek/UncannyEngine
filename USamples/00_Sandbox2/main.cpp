@@ -137,8 +137,7 @@ private:
     {
       VkExtent2D extent = m_Swapchain.GetCurrentExtent();
       VkFormat format = VK_FORMAT_B8G8R8A8_UNORM;
-      VkImageUsageFlags usage =
-          VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+      VkImageUsageFlags usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
       VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
       VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
