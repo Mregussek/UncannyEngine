@@ -112,20 +112,20 @@ void FDescriptorPool::WriteTopLevelAsToDescriptorSets(VkAccelerationStructureKHR
 }
 
 
-void FDescriptorPool::WriteStorageImagesToDescriptorSets(const std::vector<FImage>& images, u32 dstBinding) const
+void FDescriptorPool::WriteStorageImageToDescriptorSets(const FImage& image, u32 dstBinding) const
 {
-  for (u32 i = 0; i < m_DescriptorSets.size(); i++)
+  for (VkDescriptorSet descriptorSet : m_DescriptorSets)
   {
     VkDescriptorImageInfo writeImage{
         .sampler = VK_NULL_HANDLE,
-        .imageView = images[i].GetHandleView(),
+        .imageView = image.GetHandleView(),
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL
     };
 
     VkWriteDescriptorSet writeDescriptorSet{
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
         .pNext = nullptr,
-        .dstSet = m_DescriptorSets[i],
+        .dstSet = descriptorSet,
         .dstBinding = dstBinding,
         .dstArrayElement = 0,
         .descriptorCount = 1,

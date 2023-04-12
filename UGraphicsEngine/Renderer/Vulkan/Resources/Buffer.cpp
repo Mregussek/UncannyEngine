@@ -106,7 +106,7 @@ void FBuffer::FillStaged(void* pData, u32 elementSizeof, u32 elementsCount, cons
   stagingBuffer.Allocate(dataSizeof, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
   stagingBuffer.Fill(pData, elementSizeof, elementsCount);
 
-  FCommandBuffer commandBuffer = transferCommandPool.AllocateCommandBuffer();
+  FCommandBuffer commandBuffer = transferCommandPool.AllocatePrimaryCommandBuffer();
   commandBuffer.BeginOneTimeRecording();
 
   VkBufferCopy copyRegion{

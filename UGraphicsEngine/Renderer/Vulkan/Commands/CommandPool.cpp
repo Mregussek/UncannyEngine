@@ -65,7 +65,7 @@ std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 coun
 }
 
 
-FCommandBuffer FCommandPool::AllocateCommandBuffer() const
+FCommandBuffer FCommandPool::AllocatePrimaryCommandBuffer() const
 {
   VkCommandBufferAllocateInfo allocateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,

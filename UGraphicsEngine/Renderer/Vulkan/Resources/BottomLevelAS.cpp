@@ -127,7 +127,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
   };
   std::array<VkAccelerationStructureBuildRangeInfoKHR*, 1> buildRangeInfos{ &buildRangeInfo };
 
-  FCommandBuffer commandBuffer = commandPool.AllocateCommandBuffer();
+  FCommandBuffer commandBuffer = commandPool.AllocatePrimaryCommandBuffer();
   commandBuffer.BeginOneTimeRecording();
   commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos.data());
   commandBuffer.EndRecording();

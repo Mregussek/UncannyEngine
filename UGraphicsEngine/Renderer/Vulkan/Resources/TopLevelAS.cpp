@@ -130,7 +130,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
   };
   std::array<VkAccelerationStructureBuildRangeInfoKHR*, 1> buildRangeInfos{ &buildRangeInfo };
 
-  FCommandBuffer commandBuffer = commandPool.AllocateCommandBuffer();
+  FCommandBuffer commandBuffer = commandPool.AllocatePrimaryCommandBuffer();
   commandBuffer.BeginOneTimeRecording();
   commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos.data());
   commandBuffer.EndRecording();

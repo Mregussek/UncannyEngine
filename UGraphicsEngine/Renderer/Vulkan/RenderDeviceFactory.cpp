@@ -28,25 +28,40 @@ FTopLevelAS FRenderDeviceFactory::CreateTopLevelAS() const
 }
 
 
+FImage FRenderDeviceFactory::CreateImage() const
+{
+  return FImage{ m_pPhysicalDeviceAttributes, m_pLogicalDevice->GetHandle() };
+}
+
+
 std::vector<FImage> FRenderDeviceFactory::CreateImages(u32 count) const
 {
   std::vector<FImage> images{};
   images.reserve(count);
   for(u32 i = 0; i < count; i++)
   {
-    images.push_back({m_pPhysicalDeviceAttributes, m_pLogicalDevice->GetHandle()});
+    images.push_back(CreateImage());
   }
   return images;
 }
 
 
+FSemaphore FRenderDeviceFactory::CreateSemaphore() const
+{
+  FSemaphore semaphore{};
+  semaphore.Create(m_pLogicalDevice->GetHandle());
+  return semaphore;
+}
+
+
 std::vector<FSemaphore> FRenderDeviceFactory::CreateSemaphores(u32 count) const
 {
-  std::vector<FSemaphore> semaphores(count);
-  std::ranges::for_each(semaphores, [this](FSemaphore& semaphore)
+  std::vector<FSemaphore> semaphores{};
+  semaphores.reserve(count);
+  for (u32 i = 0; i < count; i++)
   {
-    semaphore.Create(m_pLogicalDevice->GetHandle());
-  });
+    semaphores.push_back(CreateSemaphore());
+  }
   return semaphores;
 }
 

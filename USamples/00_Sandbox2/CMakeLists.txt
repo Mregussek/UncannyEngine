@@ -1,0 +1,36 @@
+
+add_executable(00_Sandbox2 main.cpp)
+target_include_directories(00_Sandbox
+        PUBLIC
+        ${PROJECT_SOURCE_DIR}
+        )
+target_link_directories(00_Sandbox2
+        PUBLIC
+        ${PROJECT_SOURCE_DIR}
+        )
+target_link_libraries(00_Sandbox2
+        PUBLIC
+        UncannyGraphicsEngine
+        UncannyTools
+        )
+target_compile_features(00_Sandbox2
+        PUBLIC
+        cxx_std_20
+        )
+target_compile_options(00_Sandbox2
+        PRIVATE
+        /NODEFAULTLIB
+        )
+
+function(CopyDirToBuildDirectory TargetName AbsoluteDirPath DirName)
+    add_custom_command(
+            TARGET ${TargetName} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${AbsoluteDirPath} $<TARGET_FILE_DIR:${TargetName}>/${DirName}
+            COMMENT "Copying ${AbsoluteDirPath} => $<TARGET_FILE_DIR:${TargetName}>/${DirName}"
+    )
+endfunction()
+
+#set(SHADERS_DIR ${PROJECT_SOURCE_DIR}/Engine/renderer/vulkan/vulkan_renderer/graphics_pipelines/shaders)
+#set(SHADERS_DIR_NAME shaders)
+
+#CopyDirToBuildDirectory(Sandbox ${SHADERS_DIR} ${SHADERS_DIR_NAME})

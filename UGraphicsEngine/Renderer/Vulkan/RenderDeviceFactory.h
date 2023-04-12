@@ -38,7 +38,11 @@ public:
 
   [[nodiscard]] FTopLevelAS CreateTopLevelAS() const;
 
+  [[nodiscard]] FImage CreateImage() const;
+
   [[nodiscard]] std::vector<FImage> CreateImages(u32 count) const;
+
+  [[nodiscard]] FSemaphore CreateSemaphore() const;
 
   [[nodiscard]] std::vector<FSemaphore> CreateSemaphores(u32 count) const;
 

@@ -1,4 +1,5 @@
 
 add_subdirectory(00_Sandbox)
+add_subdirectory(00_Sandbox2)
 add_subdirectory(01_ClearColorImage_via_vkCmdClearColorImage)
 add_subdirectory(02_CopyRenderTargetImageIntoSwapchainImage)
