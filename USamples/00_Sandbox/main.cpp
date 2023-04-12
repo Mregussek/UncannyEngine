@@ -199,8 +199,7 @@ private:
 
     // Creating pipeline...
     m_RayTracingPipelineLayout = deviceFactory.CreatePipelineLayout();
-    VkDescriptorSetLayout setLayouts[]{ m_DescriptorSetLayout.GetHandle() };
-    m_RayTracingPipelineLayout.Create(setLayouts);
+    m_RayTracingPipelineLayout.Create(m_DescriptorSetLayout.GetHandle());
 
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders" });
