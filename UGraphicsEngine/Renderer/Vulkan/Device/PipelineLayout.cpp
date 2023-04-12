@@ -14,14 +14,14 @@ FPipelineLayout::FPipelineLayout(VkDevice vkDevice)
 }
 
 
-void FPipelineLayout::Create(std::span<VkDescriptorSetLayout> setLayouts)
+void FPipelineLayout::Create(VkDescriptorSetLayout setLayout)
 {
   VkPipelineLayoutCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .setLayoutCount = static_cast<u32>(setLayouts.size()),
-    .pSetLayouts = setLayouts.data(),
+    .setLayoutCount = 1,
+    .pSetLayouts = &setLayout,
     .pushConstantRangeCount = 0,
     .pPushConstantRanges = nullptr
   };

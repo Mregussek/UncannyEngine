@@ -16,7 +16,7 @@ FDescriptorSetLayout::FDescriptorSetLayout(VkDevice vkDevice)
 void FDescriptorSetLayout::AddBinding(u32 binding, VkDescriptorType type, u32 count, VkShaderStageFlags stageFlags,
                                       const VkSampler* pImmutableSamplers)
 {
-  m_Bindings.push_back(VkDescriptorSetLayoutBinding{
+  m_Bindings.push_back({
     .binding = binding,
     .descriptorType = type,
     .descriptorCount = count,

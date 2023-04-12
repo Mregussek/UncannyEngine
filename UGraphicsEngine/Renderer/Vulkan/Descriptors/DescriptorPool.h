@@ -29,15 +29,13 @@ public:
 
   void Destroy();
 
-  void AllocateDescriptorSets(u32 count);
+  void AllocateDescriptorSet();
 
-  void WriteTopLevelAsToDescriptorSets(VkAccelerationStructureKHR topLevelAS, u32 dstBinding) const;
+  void WriteTopLevelAsToDescriptorSet(VkAccelerationStructureKHR topLevelAS, u32 dstBinding) const;
 
-  void WriteStorageImageToDescriptorSets(const FImage& image, u32 dstBinding) const;
+  void WriteStorageImageToDescriptorSet(const FImage& image, u32 dstBinding) const;
 
-  void WriteStorageImagesToDescriptorSets(const std::vector<FImage>& images, u32 dstBinding) const;
-
-  [[nodiscard]] VkDescriptorSet GetDescriptorSet(u32 index) const { return m_DescriptorSets.at(index); }
+  [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
 private:
 
@@ -46,7 +44,7 @@ private:
 
   const FDescriptorSetLayout* m_pSetLayout{ nullptr };
   VkDescriptorPool m_DescriptorPool{ VK_NULL_HANDLE };
-  std::vector<VkDescriptorSet> m_DescriptorSets{};
+  VkDescriptorSet m_DescriptorSet{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
 
 };

@@ -23,12 +23,11 @@ void FDescriptorPool::Create(const FDescriptorSetLayout* pSetLayout, u32 maxSets
 
   std::vector<VkDescriptorPoolSize> poolSizes{};
   poolSizes.reserve(bindings.size());
-
   std::ranges::for_each(bindings, [&poolSizes, maxSetsCount](const VkDescriptorSetLayoutBinding& binding)
   {
     poolSizes.push_back(VkDescriptorPoolSize{
       .type = binding.descriptorType,
-      .descriptorCount = binding.descriptorCount + maxSetsCount
+      .descriptorCount = binding.descriptorCount
     });
   });
 
@@ -55,30 +54,23 @@ void FDescriptorPool::Destroy()
 }
 
 
-void FDescriptorPool::AllocateDescriptorSets(u32 count)
+void FDescriptorPool::AllocateDescriptorSet()
 {
-  std::vector<VkDescriptorSetLayout> setLayouts;
-  setLayouts.reserve(count);
-  for (u32 i = 0; i < count; i++)
-  {
-    setLayouts.push_back(m_pSetLayout->GetHandle());
-  }
-
+  VkDescriptorSetLayout setLayout = m_pSetLayout->GetHandle();
   VkDescriptorSetAllocateInfo allocateInfo{
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .pNext = nullptr,
     .descriptorPool = m_DescriptorPool,
-    .descriptorSetCount = count,
-    .pSetLayouts = setLayouts.data()
+    .descriptorSetCount = 1,
+    .pSetLayouts = &setLayout
   };
 
-  m_DescriptorSets.resize(count);
-  VkResult result = vkAllocateDescriptorSets(m_Device, &allocateInfo, m_DescriptorSets.data());
+  VkResult result = vkAllocateDescriptorSets(m_Device, &allocateInfo, &m_DescriptorSet);
   AssertVkAndThrow(result);
 }
 
 
-void FDescriptorPool::WriteTopLevelAsToDescriptorSets(VkAccelerationStructureKHR topLevelAS, u32 dstBinding) const
+void FDescriptorPool::WriteTopLevelAsToDescriptorSet(VkAccelerationStructureKHR topLevelAS, u32 dstBinding) const
 {
   VkWriteDescriptorSetAccelerationStructureKHR writeStructure{
     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
@@ -90,7 +82,7 @@ void FDescriptorPool::WriteTopLevelAsToDescriptorSets(VkAccelerationStructureKHR
   VkWriteDescriptorSet writeDescriptorSet{
     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
     .pNext = &writeStructure,
-    .dstSet = VK_NULL_HANDLE, // will be filled later
+    .dstSet = m_DescriptorSet,
     .dstBinding = dstBinding,
     .dstArrayElement = 0,
     .descriptorCount = 1,
@@ -100,74 +92,32 @@ void FDescriptorPool::WriteTopLevelAsToDescriptorSets(VkAccelerationStructureKHR
     .pTexelBufferView = nullptr
   };
 
-  std::vector<VkWriteDescriptorSet> writeVector;
-  writeVector.reserve(m_DescriptorSets.size());
-  for (VkDescriptorSet m_DescriptorSet : m_DescriptorSets)
-  {
-    writeDescriptorSet.dstSet = m_DescriptorSet;
-    writeVector.push_back(writeDescriptorSet);
-  }
-
-  vkUpdateDescriptorSets(m_Device, writeVector.size(), writeVector.data(), 0, nullptr);
+  vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
 }
 
 
-void FDescriptorPool::WriteStorageImageToDescriptorSets(const FImage& image, u32 dstBinding) const
+void FDescriptorPool::WriteStorageImageToDescriptorSet(const FImage& image, u32 dstBinding) const
 {
-  for (VkDescriptorSet descriptorSet : m_DescriptorSets)
-  {
-    VkDescriptorImageInfo writeImage{
-        .sampler = VK_NULL_HANDLE,
-        .imageView = image.GetHandleView(),
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL
-    };
+  VkDescriptorImageInfo writeImage{
+      .sampler = VK_NULL_HANDLE,
+      .imageView = image.GetHandleView(),
+      .imageLayout = VK_IMAGE_LAYOUT_GENERAL
+  };
 
-    VkWriteDescriptorSet writeDescriptorSet{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = nullptr,
-        .dstSet = descriptorSet,
-        .dstBinding = dstBinding,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-        .pImageInfo = &writeImage,
-        .pBufferInfo = nullptr,
-        .pTexelBufferView = nullptr
-    };
+  VkWriteDescriptorSet writeDescriptorSet{
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .pNext = nullptr,
+      .dstSet = m_DescriptorSet,
+      .dstBinding = dstBinding,
+      .dstArrayElement = 0,
+      .descriptorCount = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+      .pImageInfo = &writeImage,
+      .pBufferInfo = nullptr,
+      .pTexelBufferView = nullptr
+  };
 
-    vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
-  }
-}
-
-
-void FDescriptorPool::WriteStorageImagesToDescriptorSets(const std::vector<FImage>& images, u32 dstBinding) const
-{
-  for (u32 i = 0; i < m_DescriptorSets.size(); i++)
-  {
-    VkImageView imageView = images[i].GetHandleView();
-    VkDescriptorSet descriptorSet = m_DescriptorSets[i];
-
-    VkDescriptorImageInfo writeImage{
-        .sampler = VK_NULL_HANDLE,
-        .imageView = imageView,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL
-    };
-
-    VkWriteDescriptorSet writeDescriptorSet{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = nullptr,
-        .dstSet = descriptorSet,
-        .dstBinding = dstBinding,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-        .pImageInfo = &writeImage,
-        .pBufferInfo = nullptr,
-        .pTexelBufferView = nullptr
-    };
-
-    vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
-  }
+  vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
 }
 
 

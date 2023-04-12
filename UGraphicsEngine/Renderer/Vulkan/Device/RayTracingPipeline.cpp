@@ -39,19 +39,19 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
     shaderModule.Create(spvSource);
   };
 
-  FShader closestHitModule(m_Device);
-  CompileLoadAndCreateModule(closestHitModule, specification.rayClosestHitPath, EShaderCompilerStage::CLOSESTHIT);
-  FShader generationModule(m_Device);
-  CompileLoadAndCreateModule(generationModule, specification.rayGenerationPath, EShaderCompilerStage::RAYGEN);
-  FShader missModule(m_Device);
-  CompileLoadAndCreateModule(missModule, specification.rayMissPath, EShaderCompilerStage::MISS);
+  FShader rayGenerationModule(m_Device);
+  CompileLoadAndCreateModule(rayGenerationModule, specification.rayGenerationPath, EShaderCompilerStage::RAYGEN);
+  FShader rayMissModule(m_Device);
+  CompileLoadAndCreateModule(rayMissModule, specification.rayMissPath, EShaderCompilerStage::MISS);
+  FShader rayClosestHitModule(m_Device);
+  CompileLoadAndCreateModule(rayClosestHitModule, specification.rayClosestHitPath, EShaderCompilerStage::CLOSESTHIT);
 
   VkPipelineShaderStageCreateInfo rayGenStageInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
       .pNext = nullptr,
       .flags = 0,
       .stage = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
-      .module = generationModule.GetHandle(),
+      .module = rayGenerationModule.GetHandle(),
       .pName = "main",
       .pSpecializationInfo = nullptr
   };
@@ -60,7 +60,7 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
       .pNext = nullptr,
       .flags = 0,
       .stage = VK_SHADER_STAGE_MISS_BIT_KHR,
-      .module = missModule.GetHandle(),
+      .module = rayMissModule.GetHandle(),
       .pName = "main",
       .pSpecializationInfo = nullptr
   };
@@ -69,7 +69,7 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
       .pNext = nullptr,
       .flags = 0,
       .stage = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
-      .module = closestHitModule.GetHandle(),
+      .module = rayClosestHitModule.GetHandle(),
       .pName = "main",
       .pSpecializationInfo = nullptr
   };
@@ -149,7 +149,7 @@ void FRayTracingPipeline::CreateShaderBindingTable()
   AssertVkAndThrow(result);
 
   VkBufferUsageFlags bufferUsageFlags =
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
+      VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 
   m_RayGenBuffer = m_pFactory->CreateBuffer();
   m_RayGenBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
