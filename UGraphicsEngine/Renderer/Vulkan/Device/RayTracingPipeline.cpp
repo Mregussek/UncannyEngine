@@ -133,6 +133,16 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
 
 void FRayTracingPipeline::CreateShaderBindingTable()
 {
+  /*
+    SBT Layout used in this sample:
+    /-----------\
+    | raygen    |
+    |-----------|
+    | miss      |
+    |-----------|
+    | hit       |
+    \-----------/
+   */
   auto alignTo = [](u32 value, u32 alignment) -> u32
   {
     return (value + alignment - 1) & ~(alignment - 1);
