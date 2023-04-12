@@ -95,8 +95,8 @@ private:
       .resizable = UTRUE,
       .fullscreen = UFALSE,
       .size = {
-          .width = 1600,
-          .height = 900
+          .width = 640,
+          .height = 480
       },
       .name = "UncannyEngine"
     };

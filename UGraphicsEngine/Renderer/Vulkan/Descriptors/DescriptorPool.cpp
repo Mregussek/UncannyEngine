@@ -140,4 +140,35 @@ void FDescriptorPool::WriteStorageImageToDescriptorSets(const FImage& image, u32
 }
 
 
+void FDescriptorPool::WriteStorageImagesToDescriptorSets(const std::vector<FImage>& images, u32 dstBinding) const
+{
+  for (u32 i = 0; i < m_DescriptorSets.size(); i++)
+  {
+    VkImageView imageView = images[i].GetHandleView();
+    VkDescriptorSet descriptorSet = m_DescriptorSets[i];
+
+    VkDescriptorImageInfo writeImage{
+        .sampler = VK_NULL_HANDLE,
+        .imageView = imageView,
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL
+    };
+
+    VkWriteDescriptorSet writeDescriptorSet{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = nullptr,
+        .dstSet = descriptorSet,
+        .dstBinding = dstBinding,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .pImageInfo = &writeImage,
+        .pBufferInfo = nullptr,
+        .pTexelBufferView = nullptr
+    };
+
+    vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
+  }
+}
+
+
 }

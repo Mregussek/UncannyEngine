@@ -35,6 +35,8 @@ public:
 
   void WriteStorageImageToDescriptorSets(const FImage& image, u32 dstBinding) const;
 
+  void WriteStorageImagesToDescriptorSets(const std::vector<FImage>& images, u32 dstBinding) const;
+
   [[nodiscard]] VkDescriptorSet GetDescriptorSet(u32 index) const { return m_DescriptorSets.at(index); }
 
 private:
