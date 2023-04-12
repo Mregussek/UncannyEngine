@@ -3,6 +3,7 @@
 #define UNCANNYENGINE_BOTTOMLEVELAS_H
 
 
+#include "Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/Queue.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
@@ -34,6 +35,10 @@ private:
   FBottomLevelAS(const FRenderDeviceFactory* pFactory, VkDevice vkDevice);
 
 
+  FBuffer m_VertexBuffer{};
+  FBuffer m_IndexBuffer{};
+  FBuffer m_AccelerationMemoryBuffer{};
+  FBuffer m_ScratchBuffer{};
   VkAccelerationStructureKHR m_AccelerationStructure{ VK_NULL_HANDLE };
   u64 m_DeviceAddress{ UUNUSED };
   VkDevice m_Device{ VK_NULL_HANDLE };
