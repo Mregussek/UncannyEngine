@@ -44,24 +44,12 @@ public:
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
-      { // Submit work for rendering
-        const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
-        vulkan::FCommandBuffer& renderCommandBuffer = m_RenderCommandBuffers[frameIndex];
-        VkSemaphore signalSemaphores[]{ m_RenderSemaphores[frameIndex].GetHandle() };
-        graphicsQueue.Submit({}, {}, renderCommandBuffer, signalSemaphores, VK_NULL_HANDLE);
-      }
-
-      { // Submit work for copying render target into swapchain presentable image
-        const vulkan::FQueue& transferQueue = m_RenderContext.GetLogicalDevice()->GetTransferQueue();
-        vulkan::FCommandBuffer& transferCommandBuffer = m_TransferCommandBuffers[frameIndex];
-        VkSemaphore waitSemaphores[]{ m_RenderSemaphores[frameIndex].GetHandle(),
-                                      m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
-        VkPipelineStageFlags waitStageFlags[]{ m_RenderCommandBuffers[frameIndex].GetLastWaitPipelineStage(),
-                                               transferCommandBuffer.GetLastWaitPipelineStage() };
-        VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-        VkFence fence{ m_Swapchain.GetFence().GetHandle() };
-        transferQueue.Submit(waitSemaphores, waitStageFlags, transferCommandBuffer, signalSemaphores, fence);
-      }
+      const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
+      VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
+      VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+      VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
+      VkFence fence{ m_Swapchain.GetFence().GetHandle() };
+      graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores, fence);
 
       m_Swapchain.Present();
 
@@ -71,17 +59,14 @@ public:
 
         m_Swapchain.Recreate();
 
-        m_GraphicsCommandPool.Reset();
-        m_TransferCommandPool.Reset();
+        m_CommandPool.Reset();
 
-        VkExtent2D currentExtent = m_Swapchain.GetCurrentExtent();
-        std::ranges::for_each(m_RenderTargetImages, [currentExtent](vulkan::FImage& image)
-        {
-          image.Recreate(currentExtent);
-        });
+        m_OffscreenImage.Recreate(m_Swapchain.GetCurrentExtent());
 
-        RecordRenderCommands();
-        RecordTransferCommands();
+        u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
+        m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage, dstBinding);
+
+        RecordCommands();
       }
     }
   }
@@ -92,32 +77,32 @@ private:
     FLog::create();
 
     FWindowConfiguration windowConfiguration{
-      .resizable = UTRUE,
-      .fullscreen = UFALSE,
-      .size = {
-          .width = 640,
-          .height = 480
-      },
-      .name = "UncannyEngine"
+        .resizable = UTRUE,
+        .fullscreen = UFALSE,
+        .size = {
+            .width = 1600,
+            .height = 900
+        },
+        .name = "UncannyEngine"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
     vulkan::FRenderContextAttributes renderContextAttributes{
-      .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
-      .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
-                             VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-                             VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-                             VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
-      .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                            VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-                            VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-                            VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-                            VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-                            VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-                            VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-                            VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME },
-      .apiVersion = VK_API_VERSION_1_3
+        .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
+        .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
+                               VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+                               VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+                               VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
+        .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                              VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+                              VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+                              VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+                              VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+                              VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+                              VK_KHR_SPIRV_1_4_EXTENSION_NAME,
+                              VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME },
+        .apiVersion = VK_API_VERSION_1_3
     };
 
     m_RenderContext.Create(renderContextAttributes, m_Window);
@@ -129,42 +114,39 @@ private:
     u32 backBufferCount = m_Swapchain.GetBackBufferCount();
 
     // Creating command pools
-    m_GraphicsCommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
-                                 pLogicalDevice->GetHandle(),
-                                 VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-    m_TransferCommandPool.Create(pLogicalDevice->GetTransferFamilyIndex(),
-                                 pLogicalDevice->GetHandle(),
-                                 VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    m_CommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
+                         pLogicalDevice->GetHandle(),
+                         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+
+    // Creating command buffers...
+    m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
 
     // Creating buffers and acceleration structures...
     std::vector<vulkan::FVertex> vertices{
-      { .position = { .x = 1.f, .y = 1.f, .z = 0.f } },
-      { .position = { .x = -1.f, .y = 1.f, .z = 0.f } },
-      { .position = { .x = 0.f, .y = -1.f, .z = 0.f } },
+        { .position = { .x = 1.f, .y = 1.f, .z = 0.f } },
+        { .position = { .x = -1.f, .y = 1.f, .z = 0.f } },
+        { .position = { .x = 0.f, .y = -1.f, .z = 0.f } },
     };
     std::vector<u32> indices{ 0, 1, 2 };
 
     m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(vertices, indices, m_GraphicsCommandPool, pLogicalDevice->GetGraphicsQueue());
+    m_BottomLevelAS.Build(vertices, indices, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
-    m_TopLevelAS.Build(m_BottomLevelAS, m_GraphicsCommandPool, pLogicalDevice->GetGraphicsQueue());
+    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
     // Creating render target images...
-    m_RenderTargetImages = deviceFactory.CreateImages(backBufferCount);
-    std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
+    m_OffscreenImage = deviceFactory.CreateImage();
     {
       VkExtent2D extent = m_Swapchain.GetCurrentExtent();
       VkFormat format = VK_FORMAT_B8G8R8A8_UNORM;
-      VkImageUsageFlags usage =
-          VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+      VkImageUsageFlags usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
       VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
       VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-      vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
-                                                 m_TransferCommandPool.GetFamilyIndex() };
-      image.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
-      image.CreateView();
-    });
+      vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
+      m_OffscreenImage.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
+    }
+    m_OffscreenImage.CreateView();
 
     // Creating descriptors...
     m_DescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
@@ -185,16 +167,16 @@ private:
     m_DescriptorSetLayout.Create();
 
     m_DescriptorPool = deviceFactory.CreateDescriptorPool();
-    m_DescriptorPool.Create(&m_DescriptorSetLayout, backBufferCount+1);
-    m_DescriptorPool.AllocateDescriptorSets(backBufferCount);
+    m_DescriptorPool.Create(&m_DescriptorSetLayout, 1);
+    m_DescriptorPool.AllocateDescriptorSet();
 
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[0].binding;
-      m_DescriptorPool.WriteTopLevelAsToDescriptorSets(m_TopLevelAS.GetHandle(), dstBinding);
+      m_DescriptorPool.WriteTopLevelAsToDescriptorSet(m_TopLevelAS.GetHandle(), dstBinding);
     }
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-      m_DescriptorPool.WriteStorageImagesToDescriptorSets(m_RenderTargetImages, dstBinding);
+      m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage, dstBinding);
     }
 
     // Creating pipeline...
@@ -207,24 +189,16 @@ private:
     vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
     glslCompiler.Initialize();
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
-      .rayClosestHitPath = FPath::Append(shadersPath, "default.rchit"),
-      .rayGenerationPath = FPath::Append(shadersPath, "default.rgen"),
-      .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
-      .pGlslCompiler = &glslCompiler,
-      .pPipelineLayout = &m_RayTracingPipelineLayout
+        .rayClosestHitPath = FPath::Append(shadersPath, "default.rchit"),
+        .rayGenerationPath = FPath::Append(shadersPath, "default.rgen"),
+        .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
+        .pGlslCompiler = &glslCompiler,
+        .pPipelineLayout = &m_RayTracingPipelineLayout
     };
     m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
 
-    // Creating synchronization objects...
-    m_RenderSemaphores = deviceFactory.CreateSemaphores(backBufferCount);
-
-    // Creating command buffers...
-    m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
-    m_TransferCommandBuffers = m_TransferCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
-
     // Recording commands
-    RecordRenderCommands();
-    RecordTransferCommands();
+    RecordCommands();
   }
 
   void Destroy()
@@ -235,30 +209,16 @@ private:
     }
 
     // Closing render target images...
-    std::ranges::for_each(m_RenderTargetImages, [](vulkan::FImage& image)
-    {
-      image.Free();
-    });
+    m_OffscreenImage.Free();
 
     // Closing command buffers...
-    std::ranges::for_each(m_RenderCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
+    std::ranges::for_each(m_CommandBuffers, [](vulkan::FCommandBuffer& cmdBuf)
     {
-      commandBuffer.Free();
-    });
-    std::ranges::for_each(m_TransferCommandBuffers, [](vulkan::FCommandBuffer& commandBuffer)
-    {
-      commandBuffer.Free();
+      cmdBuf.Free();
     });
 
     // Closing Command Pools...
-    m_GraphicsCommandPool.Destroy();
-    m_TransferCommandPool.Destroy();
-
-    // Closing synchronization objects...
-    std::ranges::for_each(m_RenderSemaphores, [](vulkan::FSemaphore& semaphore)
-    {
-      semaphore.Destroy();
-    });
+    m_CommandPool.Destroy();
 
     // Destroying rendering resources...
     m_BottomLevelAS.Destroy();
@@ -277,61 +237,11 @@ private:
     m_Window->Destroy();
   }
 
-  void RecordRenderCommands()
-  {
-    for (u32 i = 0; i < m_RenderCommandBuffers.size(); i++)
-    {
-      RecordRenderCommands(i);
-    }
-  }
-
-  void RecordRenderCommands(u32 index)
+  void RecordCommands()
   {
     VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
-    VkExtent3D imageExtent = m_RenderTargetImages[index].GetExtent3D();
-    VkImage image = m_RenderTargetImages[index].GetHandle();
-    vulkan::FCommandBuffer& renderCmdBuf = m_RenderCommandBuffers[index];
-
-    VkImageSubresourceRange subresourceRange{
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-    };
-
-    renderCmdBuf.BeginRecording();
-    renderCmdBuf.ImageMemoryBarrier(image,
-                                    VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT,
-                                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
-                                    subresourceRange,
-                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
-    renderCmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipeline.GetHandle());
-    renderCmdBuf.BindDescriptorSet(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
-                                   m_DescriptorPool.GetDescriptorSet(index));
-    renderCmdBuf.TraceRays(&m_RayTracingPipeline, imageExtent);
-    renderCmdBuf.ImageMemoryBarrier(image,
-                                    VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
-                                    VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                                    subresourceRange,
-                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
-    renderCmdBuf.EndRecording();
-  }
-
-  void RecordTransferCommands()
-  {
-    for (u32 i = 0; i < m_TransferCommandBuffers.size(); i++)
-    {
-      RecordTransferCommands(i);
-    }
-  }
-
-  void RecordTransferCommands(u32 index)
-  {
-    vulkan::FCommandBuffer& transferCmdBuf = m_TransferCommandBuffers[index];
-    VkImage srcImage = m_RenderTargetImages[index].GetHandle();
-    VkImage dstImage = m_Swapchain.GetImages()[index];
-    VkExtent2D extent = m_Swapchain.GetCurrentExtent();
+    VkExtent3D offscreenExtent = m_OffscreenImage.GetExtent3D();
+    VkImage offscreenImage = m_OffscreenImage.GetHandle();
 
     VkImageSubresourceRange subresourceRange{
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -347,31 +257,50 @@ private:
         .layerCount = 1
     };
 
-    transferCmdBuf.BeginRecording();
-    transferCmdBuf.ImageMemoryBarrier(dstImage,
-                                      VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                      subresourceRange,
-                                      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    transferCmdBuf.CopyImage(srcImage, dstImage, subresourceLayers, extent);
-    transferCmdBuf.ImageMemoryBarrier(dstImage,
-                                      VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
-                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                                      subresourceRange,
-                                      VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
-    transferCmdBuf.EndRecording();
+    std::span<const VkImage> swapchainImages = m_Swapchain.GetImages();
+    VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
+    for (u32 i = 0; i < swapchainImages.size(); i++)
+    {
+      vulkan::FCommandBuffer& cmdBuf = m_CommandBuffers[i];
+      VkImage swapchainImage = swapchainImages[i];
+
+      cmdBuf.BeginRecording();
+      cmdBuf.ImageMemoryBarrier(offscreenImage,
+                                VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT,
+                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
+                                subresourceRange,
+                                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+      cmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipeline.GetHandle());
+      cmdBuf.BindDescriptorSet(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
+                               m_DescriptorPool.GetDescriptorSet());
+      cmdBuf.TraceRays(&m_RayTracingPipeline, offscreenExtent);
+      cmdBuf.ImageMemoryBarrier(offscreenImage,
+                                VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                subresourceRange,
+                                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+      cmdBuf.ImageMemoryBarrier(swapchainImage,
+                                VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                subresourceRange,
+                                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      cmdBuf.CopyImage(offscreenImage, swapchainImage, subresourceLayers, swapchainExtent);
+      cmdBuf.ImageMemoryBarrier(swapchainImage,
+                                VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                                subresourceRange,
+                                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+      cmdBuf.EndRecording();
+    }
   }
 
 
   std::shared_ptr<IWindow> m_Window;
   vulkan::FRenderContext m_RenderContext{};
   vulkan::FSwapchain m_Swapchain{};
-  vulkan::FCommandPool m_GraphicsCommandPool{};
-  vulkan::FCommandPool m_TransferCommandPool{};
-  std::vector<vulkan::FCommandBuffer> m_RenderCommandBuffers{};
-  std::vector<vulkan::FCommandBuffer> m_TransferCommandBuffers{};
-  std::vector<vulkan::FImage> m_RenderTargetImages{};
-  std::vector<vulkan::FSemaphore> m_RenderSemaphores{};
+  vulkan::FCommandPool m_CommandPool{};
+  std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
+  vulkan::FImage m_OffscreenImage{};
   vulkan::FBottomLevelAS m_BottomLevelAS{};
   vulkan::FTopLevelAS m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
