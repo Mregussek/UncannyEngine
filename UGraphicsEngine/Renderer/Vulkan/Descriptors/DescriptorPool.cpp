@@ -96,11 +96,11 @@ void FDescriptorPool::WriteTopLevelAsToDescriptorSet(VkAccelerationStructureKHR 
 }
 
 
-void FDescriptorPool::WriteStorageImageToDescriptorSet(const FImage& image, u32 dstBinding) const
+void FDescriptorPool::WriteStorageImageToDescriptorSet(VkImageView storageView, u32 dstBinding) const
 {
   VkDescriptorImageInfo writeImage{
       .sampler = VK_NULL_HANDLE,
-      .imageView = image.GetHandleView(),
+      .imageView = storageView,
       .imageLayout = VK_IMAGE_LAYOUT_GENERAL
   };
 
@@ -114,6 +114,31 @@ void FDescriptorPool::WriteStorageImageToDescriptorSet(const FImage& image, u32 
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
       .pImageInfo = &writeImage,
       .pBufferInfo = nullptr,
+      .pTexelBufferView = nullptr
+  };
+
+  vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
+}
+
+
+void FDescriptorPool::WriteUniformBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding) const
+{
+  VkDescriptorBufferInfo writeBuffer{
+    .buffer = buffer,
+    .offset = 0,
+    .range = range
+  };
+
+  VkWriteDescriptorSet writeDescriptorSet{
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .pNext = nullptr,
+      .dstSet = m_DescriptorSet,
+      .dstBinding = dstBinding,
+      .dstArrayElement = 0,
+      .descriptorCount = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .pImageInfo = nullptr,
+      .pBufferInfo = &writeBuffer,
       .pTexelBufferView = nullptr
   };
 

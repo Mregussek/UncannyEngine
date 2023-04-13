@@ -6,7 +6,6 @@
 #include <volk.h>
 #include <vector>
 #include "UTools/UTypes.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 
 
 namespace uncanny::vulkan
@@ -33,7 +32,9 @@ public:
 
   void WriteTopLevelAsToDescriptorSet(VkAccelerationStructureKHR topLevelAS, u32 dstBinding) const;
 
-  void WriteStorageImageToDescriptorSet(const FImage& image, u32 dstBinding) const;
+  void WriteStorageImageToDescriptorSet(VkImageView storageView, u32 dstBinding) const;
+
+  void WriteUniformBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding) const;
 
   [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 

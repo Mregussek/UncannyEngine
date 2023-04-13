@@ -34,6 +34,13 @@ math::Matrix4x4f FPerspectiveCamera::GetProjection() const
 }
 
 
+FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
+{
+  return { .inversePerspective = math::Inverse(GetProjection()),
+           .inverseView = math::Inverse(GetView()) };
+}
+
+
 void updateCameraVectors(const FPerspectiveCameraSpecification& specs, math::Vector3f* pOutFront,
                          math::Vector3f* pOutRight, math::Vector3f* pOutUp)
 {

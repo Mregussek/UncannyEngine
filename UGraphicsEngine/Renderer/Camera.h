@@ -27,6 +27,13 @@ struct FPerspectiveCameraSpecification
 };
 
 
+struct FPerspectiveCameraUniformData
+{
+  math::Matrix4x4f inversePerspective{};
+  math::Matrix4x4f inverseView{};
+};
+
+
 class FPerspectiveCamera
 {
 public:
@@ -36,6 +43,8 @@ public:
   [[nodiscard]] math::Matrix4x4f GetView() const;
 
   [[nodiscard]] math::Matrix4x4f GetProjection() const;
+
+  [[nodiscard]] FPerspectiveCameraUniformData GetUniformData() const;
 
 private:
 

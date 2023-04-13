@@ -65,7 +65,7 @@ public:
         m_OffscreenImage.Recreate(m_Swapchain.GetCurrentExtent());
 
         u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-        m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage, dstBinding);
+        m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
 
         RecordCommands();
       }
@@ -142,6 +142,15 @@ private:
       m_Camera.Initialize(cameraSpecification);
     }
 
+    m_CameraUniformBuffer = deviceFactory.CreateBuffer();
+
+    m_CameraUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    {
+      FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
+      m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+    }
+
     // Creating buffers and acceleration structures...
     std::vector<vulkan::FVertex> vertices{
         { .position = { .x = 1.f, .y = 1.f, .z = 0.f } },
@@ -185,6 +194,13 @@ private:
       VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
       m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
     }
+    {
+      u32 binding = 2;
+      VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      u32 count = 1;
+      VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+      m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
+    }
     m_DescriptorSetLayout.Create();
 
     m_DescriptorPool = deviceFactory.CreateDescriptorPool();
@@ -197,7 +213,12 @@ private:
     }
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-      m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage, dstBinding);
+      m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
+    }
+    {
+      u32 dstBinding = m_DescriptorSetLayout.GetBindings()[2].binding;
+      m_DescriptorPool.WriteUniformBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
+                                                         m_CameraUniformBuffer.GetStride(), dstBinding);
     }
 
     // Creating pipeline...
@@ -248,6 +269,9 @@ private:
     // Destroying descriptors...
     m_DescriptorSetLayout.Destroy();
     m_DescriptorPool.Destroy();
+
+    // Closing buffers
+    m_CameraUniformBuffer.Free();
 
     // Destroying pipelines...
     m_RayTracingPipelineLayout.Destroy();
@@ -329,6 +353,7 @@ private:
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
   FPerspectiveCamera m_Camera{};
+  vulkan::FBuffer m_CameraUniformBuffer{};
 
 };
 

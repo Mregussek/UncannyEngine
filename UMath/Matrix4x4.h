@@ -236,12 +236,12 @@ Matrix4x4<T> Rotation(T angle, Vector3<T> axis)
 
   T cosine{ (T)cos(angle) };
   T sine{ (T)sin(angle) };
-  T neg_cosine{ 1 - cosine };
+  T neg_cosine{ (T)1 - cosine };
 
   Vector3<T> ax = Normalize(axis);
-  T x{ ax.x };
-  T y{ ax.y };
-  T z{ ax.z };
+  T x{ (T)ax.x };
+  T y{ (T)ax.y };
+  T z{ (T)ax.z };
 
   rtn[0 + 0 * 4] = cosine + x * x * neg_cosine;
   rtn[1 + 0 * 4] = y * x * neg_cosine + z * sine;
@@ -273,6 +273,73 @@ Matrix4x4<T> Scale(Vector3<T> vec)
   rtn[1 + 1 * 4] = vec.y;
   rtn[2 + 2 * 4] = vec.z;
   return rtn;
+}
+
+
+template<ConceptMathType T>
+Matrix4x4<T> Inverse(const Matrix4x4<T>& m)
+{
+  Matrix4x4<T> inv{};
+  inv[0] = m[5]  * m[10] * m[15] - m[5]  * m[11] * m[14] -
+           m[9]  * m[6]  * m[15] + m[9]  * m[7]  * m[14] +
+           m[13] * m[6]  * m[11] - m[13] * m[7]  * m[10];
+  inv[4] = -m[4]  * m[10] * m[15] + m[4]  * m[11] * m[14] +
+            m[8]  * m[6]  * m[15] - m[8]  * m[7]  * m[14] -
+            m[12] * m[6]  * m[11] + m[12] * m[7]  * m[10];
+  inv[8] = m[4]  * m[9]  * m[15] - m[4]  * m[11] * m[13] -
+           m[8]  * m[5]  * m[15] + m[8]  * m[7]  * m[13] +
+           m[12] * m[5]  * m[11] - m[12] * m[7]  * m[9];
+  inv[12] = -m[4]  * m[9]  * m[14] + m[4]  * m[10] * m[13] +
+             m[8]  * m[5]  * m[14] - m[8]  * m[6]  * m[13] -
+             m[12] * m[5]  * m[10] + m[12] * m[6]  * m[9];
+  inv[1] = -m[1]  * m[10] * m[15] + m[1]  * m[11] * m[14] +
+            m[9]  * m[2]  * m[15] - m[9]  * m[3]  * m[14] -
+            m[13] * m[2]  * m[11] + m[13] * m[3]  * m[10];
+  inv[5] = m[0]  * m[10] * m[15] - m[0]  * m[11] * m[14] -
+           m[8]  * m[2]  * m[15] + m[8]  * m[3]  * m[14] +
+           m[12] * m[2]  * m[11] - m[12] * m[3]  * m[10];
+  inv[9] = -m[0]  * m[9]  * m[15] + m[0]  * m[11] * m[13] +
+            m[8]  * m[1]  * m[15] - m[8]  * m[3]  * m[13] -
+            m[12] * m[1]  * m[11] + m[12] * m[3]  * m[9];
+  inv[13] = m[0]  * m[9]  * m[14] - m[0]  * m[10] * m[13] -
+            m[8]  * m[1]  * m[14] + m[8]  * m[2]  * m[13] +
+            m[12] * m[1]  * m[10] - m[12] * m[2]  * m[9];
+  inv[2] = m[1]  * m[6] * m[15] - m[1]  * m[7] * m[14] -
+           m[5]  * m[2] * m[15] + m[5]  * m[3] * m[14] +
+           m[13] * m[2] * m[7]  - m[13] * m[3] * m[6];
+  inv[6] = -m[0]  * m[6] * m[15] + m[0]  * m[7] * m[14] +
+            m[4]  * m[2] * m[15] - m[4]  * m[3] * m[14] -
+            m[12] * m[2] * m[7]  + m[12] * m[3] * m[6];
+  inv[10] = m[0]  * m[5] * m[15] - m[0]  * m[7] * m[13] -
+            m[4]  * m[1] * m[15] + m[4]  * m[3] * m[13] +
+            m[12] * m[1] * m[7]  - m[12] * m[3] * m[5];
+  inv[14] = -m[0]  * m[5] * m[14] + m[0]  * m[6] * m[13] +
+             m[4]  * m[1] * m[14] - m[4]  * m[2] * m[13] -
+             m[12] * m[1] * m[6]  + m[12] * m[2] * m[5];
+  inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] +
+            m[5] * m[2] * m[11] - m[5] * m[3] * m[10] -
+            m[9] * m[2] * m[7]  + m[9] * m[3] * m[6];
+  inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] -
+           m[4] * m[2] * m[11] + m[4] * m[3] * m[10] +
+           m[8] * m[2] * m[7]  - m[8] * m[3] * m[6];
+  inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] +
+             m[4] * m[1] * m[11] - m[4] * m[3] * m[9] -
+             m[8] * m[1] * m[7]  + m[8] * m[3] * m[5];
+  inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] -
+            m[4] * m[1] * m[10] + m[4] * m[2] * m[9] +
+            m[8] * m[1] * m[6]  - m[8] * m[2] * m[5];
+
+  T det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+  if (det == (T)0)
+  {
+    return Matrix4x4<T>{ FLT_MAX };
+  }
+  T invDet = (T)1 / det;
+  for (T& value : inv.values)
+  {
+    value *= invDet;
+  }
+  return inv;
 }
 
 
