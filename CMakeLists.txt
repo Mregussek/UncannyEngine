@@ -19,6 +19,7 @@ message(STATUS "GLFW Dir: $ENV{GLFW_3RDPARTY_DIR}")
 
 # ------------------- Loading all projects for UncannyEngine
 
+add_subdirectory(UMath)
 add_subdirectory(UGraphicsEngine)
 add_subdirectory(UTools)
 add_subdirectory(USamples)

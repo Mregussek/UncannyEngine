@@ -12,6 +12,7 @@ target_link_libraries(02_CopyRenderTargetImageIntoSwapchainImage
         PUBLIC
         UncannyGraphicsEngine
         UncannyTools
+        UncannyMath
         )
 target_compile_features(02_CopyRenderTargetImageIntoSwapchainImage
         PUBLIC

@@ -12,6 +12,7 @@ target_link_libraries(03_RayTracingTriangle
         PUBLIC
         UncannyGraphicsEngine
         UncannyTools
+        UncannyMath
         )
 target_compile_features(03_RayTracingTriangle
         PUBLIC

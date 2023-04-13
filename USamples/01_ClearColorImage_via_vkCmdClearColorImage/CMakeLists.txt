@@ -12,6 +12,7 @@ target_link_libraries(01_ClearColorImage_via_vkCmdClearColorImage
         PUBLIC
         UncannyGraphicsEngine
         UncannyTools
+        UncannyMath
         )
 target_compile_features(01_ClearColorImage_via_vkCmdClearColorImage
         PUBLIC

@@ -45,6 +45,7 @@ target_link_libraries(UncannyGraphicsEngine
         ${OPENGL_LIBRARIES}
         volk_headers
         UncannyTools
+        UncannyMath
         ${GLSLANG_3RDPARTY_LIBS}
         )
 target_compile_features(UncannyGraphicsEngine

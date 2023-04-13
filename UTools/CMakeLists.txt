@@ -18,6 +18,7 @@ file(GLOB_RECURSE TOOLS_LIBRARY_SOURCES
         ${UTOOLS_PATH}/*.h
         )
 list(FILTER TOOLS_LIBRARY_SOURCES EXCLUDE REGEX "${UTOOLS_PATH}/3rdparty/.*" )
+
 add_library(UncannyTools
         ${TOOLS_LIBRARY_SOURCES}
         ${SPDLOG_LIBRARY_SOURCES}

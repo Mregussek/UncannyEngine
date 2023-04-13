@@ -16,6 +16,9 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
+#include "UMath/Vector3.h"
+#include "UMath/Vector4.h"
+#include "UMath/Matrix4x4.h"
 
 using namespace uncanny;
 
@@ -199,6 +202,10 @@ private:
 
     // Recording commands
     RecordCommands();
+
+    math::Matrix4x4f matrix = math::Identity<f32>();
+    math::Vector3f vec3 = math::Create(1.f, 1.f, 1.f);
+    math::Vector4f vec4 = math::Create(1.f, 1.f, 1.f, 1.f);
   }
 
   void Destroy()

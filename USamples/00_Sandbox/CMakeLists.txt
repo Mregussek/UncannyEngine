@@ -12,6 +12,7 @@ target_link_libraries(00_Sandbox
         PUBLIC
         UncannyGraphicsEngine
         UncannyTools
+        UncannyMath
         )
 target_compile_features(00_Sandbox
         PUBLIC
@@ -21,16 +22,3 @@ target_compile_options(00_Sandbox
         PRIVATE
         /NODEFAULTLIB
         )
-
-function(CopyDirToBuildDirectory TargetName AbsoluteDirPath DirName)
-    add_custom_command(
-            TARGET ${TargetName} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${AbsoluteDirPath} $<TARGET_FILE_DIR:${TargetName}>/${DirName}
-            COMMENT "Copying ${AbsoluteDirPath} => $<TARGET_FILE_DIR:${TargetName}>/${DirName}"
-    )
-endfunction()
-
-#set(SHADERS_DIR ${PROJECT_SOURCE_DIR}/Engine/renderer/vulkan/vulkan_renderer/graphics_pipelines/shaders)
-#set(SHADERS_DIR_NAME shaders)
-
-#CopyDirToBuildDirectory(Sandbox ${SHADERS_DIR} ${SHADERS_DIR_NAME})
