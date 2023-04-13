@@ -5,6 +5,7 @@
 #include "UTools/Filesystem/File.h"
 #include "UTools/Assets/AssetRegistry.h"
 #include "UTools/Assets/MeshAsset.h"
+#include "UTools/Assets/AssetLoader.h"
 #include "UTools/EntityComponentSystem/EntityRegistry.h"
 #include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
@@ -105,6 +106,10 @@ private:
     // Initializing ECS...
     {
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+
+      FPath resourcesPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources" });
+      FPath bunnyMeshPath = FPath::Append(resourcesPath, { "bunny", "bunny.obj" });
+      FAssetLoader::LoadOBJ(bunnyMeshPath.GetString().c_str(), &meshAsset);
 
       m_EntityRegistry.Create();
       m_Entity = m_EntityRegistry.Register();

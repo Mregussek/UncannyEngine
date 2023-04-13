@@ -12,4 +12,10 @@ FMeshAsset::FMeshAsset(u64 id)
 }
 
 
+FSubmeshAsset& FMeshAsset::AppendSubmesh()
+{
+  return m_Submeshes.emplace_back();
+}
+
+
 }
