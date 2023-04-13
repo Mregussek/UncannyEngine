@@ -16,9 +16,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
-#include "UMath/Vector3.h"
-#include "UMath/Vector4.h"
-#include "UMath/Matrix4x4.h"
+#include "UGraphicsEngine/Renderer/Camera.h"
 
 using namespace uncanny;
 
@@ -115,6 +113,7 @@ private:
     m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
     u32 backBufferCount = m_Swapchain.GetBackBufferCount();
+    VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
 
     // Creating command pools
     m_CommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
@@ -123,6 +122,25 @@ private:
 
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+
+    // Creating camera...
+    {
+      FPerspectiveCameraSpecification cameraSpecification{
+        .position = { 2.f, -0.5f, 2.f },
+        .front = { 0.f, 0.f, 0.f },
+        .worldUp = { 0.f, 1.f, 0.f },
+        .fieldOfView = 45.f,
+        .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.width,
+        .near = 0.1f,
+        .far = 10.f,
+        .yaw = -90.f,
+        .pitch = 0.f,
+        .movementSpeed = 2.5f,
+        .sensitivity = 1.f,
+        .zoom = 45.f
+      };
+      m_Camera.Initialize(cameraSpecification);
+    }
 
     // Creating buffers and acceleration structures...
     std::vector<vulkan::FVertex> vertices{
@@ -141,13 +159,13 @@ private:
     // Creating render target images...
     m_OffscreenImage = deviceFactory.CreateImage();
     {
-      VkExtent2D extent = m_Swapchain.GetCurrentExtent();
-      VkFormat format = VK_FORMAT_B8G8R8A8_UNORM;
-      VkImageUsageFlags usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-      VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-      VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
-      m_OffscreenImage.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
+      m_OffscreenImage.Allocate(VK_FORMAT_B8G8R8A8_UNORM,
+                                swapchainExtent,
+                                VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                                VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                queueFamilies);
     }
     m_OffscreenImage.CreateView();
 
@@ -202,10 +220,6 @@ private:
 
     // Recording commands
     RecordCommands();
-
-    math::Matrix4x4f matrix = math::Identity<f32>();
-    math::Vector3f vec3 = math::Create(1.f, 1.f, 1.f);
-    math::Vector4f vec4 = math::Create(1.f, 1.f, 1.f, 1.f);
   }
 
   void Destroy()
@@ -314,6 +328,7 @@ private:
   vulkan::FDescriptorPool m_DescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
+  FPerspectiveCamera m_Camera{};
 
 };
 

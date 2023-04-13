@@ -124,7 +124,7 @@ Vector3<T> Normalize(Vector3<T> vec)
   T magnitude{ Length(vec) };
   if (magnitude == 0.f)
   {
-    return FLT_MAX;
+    return { FLT_MAX, FLT_MAX, FLT_MAX };
   }
   T inverseMagnitude{ 1.f / magnitude };
   return Multiply(vec, inverseMagnitude);

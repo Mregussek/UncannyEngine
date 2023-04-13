@@ -4,6 +4,7 @@
 
 
 #include "Types.h"
+#include "Vector3.h"
 #undef near
 #undef far
 
@@ -154,7 +155,7 @@ Vector4<T> Multiply(const Matrix4x4<T>& m, const Vector4<T>& v)
 template<ConceptMathType T>
 Matrix4x4<T> Perspective(T fov, T aspectRatio, T near, T far)
 {
-  Matrix4x4<T> result(1);
+  Matrix4x4<T> result = Identity<T>();
   const T tanfov2{ (T)tan(fov / 2) };
 
   result.values[0 + 0 * 4] = (T)1 / (aspectRatio * tanfov2);
@@ -180,8 +181,8 @@ template<ConceptMathType T>
 Matrix4x4<T> LookAt(Vector3<T> eye, Vector3<T> target, Vector3<T> y)
 {
   Vector3<T> fwd{ Normalize(target - eye) };
-  Vector3<T> side{ Normalize(Cross(fwd, y)) };
-  Vector3<T> up{ Normalize(side, fwd) };
+  Vector3<T> side{ Normalize(CrossProduct(fwd, y)) };
+  Vector3<T> up{ CrossProduct(side, fwd) };
 
   Matrix4x4<T> rtn{ 1.f };
 
