@@ -62,10 +62,19 @@ public:
 
         m_CommandPool.Reset();
 
-        m_OffscreenImage.Recreate(m_Swapchain.GetCurrentExtent());
+        VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
+        m_OffscreenImage.Recreate(swapchainExtent);
 
-        u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-        m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
+        {
+          u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
+          m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
+        }
+
+        m_Camera.UpdateAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
+        {
+          FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
+          m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+        }
 
         RecordCommands();
       }
@@ -126,7 +135,7 @@ private:
     // Creating camera...
     {
       FPerspectiveCameraSpecification cameraSpecification{
-        .position = { 2.f, -0.5f, 2.f },
+        .position = { 1.f, -0.5f, 4.f },
         .front = { 0.f, 0.f, 0.f },
         .worldUp = { 0.f, 1.f, 0.f },
         .fieldOfView = 45.f,

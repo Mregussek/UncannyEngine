@@ -16,14 +16,17 @@ void main() {
     const vec2 inUV = pixelCenter/vec2(gl_LaunchSizeEXT.xy);
     vec2 d = inUV * 2.0 - 1.0;
 
-    vec4 origin = cam.viewInverse * vec4(0,0,0,1);
-    vec4 target = cam.projInverse * vec4(d.x, d.y, 1, 1) ;
-    vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0) ;
+    mat4 view = cam.viewInverse;
+    mat4 proj = cam.projInverse;
+
+    vec4 origin = view * vec4(0,0,0,1);
+    vec4 target = proj * vec4(d.x, d.y, 1, 1) ;
+    vec4 direction = view * vec4(normalize(target.xyz), 0) ;
 
 	float tmin = 0.001;
 	float tmax = 10000.0;
 
-    payload = vec4(0);
+    payload = vec4(0.0);
     traceRayEXT(topLevelAS,
                 gl_RayFlagsOpaqueEXT,
                 0xff,
@@ -34,5 +37,5 @@ void main() {
                 tmax,
                 0);
 
-    imageStore(img, ivec2(gl_LaunchIDEXT), vec4(payload.rgb, 1.0));
+    imageStore(img, ivec2(gl_LaunchIDEXT), vec4(payload.rgb, 0.0));
 }

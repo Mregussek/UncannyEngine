@@ -40,6 +40,8 @@ public:
 
   void Initialize(const FPerspectiveCameraSpecification& specification);
 
+  void UpdateAspectRatio(f32 aspectRatio) { m_Specification.aspectRatio = aspectRatio; }
+
   [[nodiscard]] math::Matrix4x4f GetView() const;
 
   [[nodiscard]] math::Matrix4x4f GetProjection() const;
