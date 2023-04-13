@@ -1,6 +1,6 @@
 
 #include "BottomLevelAS.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
+#include "UGraphicsEngine/Renderer/RenderMesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceFactory.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 
@@ -23,9 +23,9 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
   m_VertexBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  m_VertexBuffer.Allocate(vertices.size() * sizeof(vulkan::FVertex), bufferUsageFlags,
+  m_VertexBuffer.Allocate(vertices.size() * sizeof(FVertex), bufferUsageFlags,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  m_VertexBuffer.Fill(vertices.data(), sizeof(vulkan::FVertex), vertices.size());
+  m_VertexBuffer.Fill(vertices.data(), sizeof(FVertex), vertices.size());
 
   m_IndexBuffer = m_pRenderDeviceFactory->CreateBuffer();
   m_IndexBuffer.Allocate(indices.size() * sizeof(u32), bufferUsageFlags,

@@ -6,7 +6,6 @@
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/GlslShaderCompiler.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Device/Mesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/PipelineLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
@@ -16,6 +15,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
+#include "UGraphicsEngine/Renderer/RenderMesh.h"
 
 using namespace uncanny;
 
@@ -121,21 +121,17 @@ private:
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
 
-    // Creating buffers and acceleration structures...
-    std::vector<vulkan::FVertex> vertices{
-      { .position = { .x = 1.f, .y = 1.f, .z = 0.f } },
-      { .position = { .x = -1.f, .y = 1.f, .z = 0.f } },
-      { .position = { .x = 0.f, .y = -1.f, .z = 0.f } },
-    };
-    std::vector<u32> indices{ 0, 1, 2 };
+    // Creating acceleration structures...
+    FRenderMesh triangleMesh = FRenderMeshFactory::CreateTriangle();
 
     m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(vertices, indices, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+    m_BottomLevelAS.Build(triangleMesh.vertices, triangleMesh.indices, m_CommandPool,
+                          pLogicalDevice->GetGraphicsQueue());
 
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
     m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
-    // Creating render target images...
+    // Creating off screen buffer...
     m_OffscreenImage = deviceFactory.CreateImage();
     {
       VkExtent2D extent = m_Swapchain.GetCurrentExtent();
