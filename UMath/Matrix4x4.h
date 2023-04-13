@@ -19,7 +19,7 @@ Matrix4x4<T> CreateDiagonal(T diagonal)
 {
   Matrix4x4<T> rtn{};
   for (u32 i = 0; i < 4; i++) {
-    rtn.values[i + i * 4] = diagonal;
+    rtn[i + i * 4] = diagonal;
   }
   return rtn;
 }
@@ -158,11 +158,11 @@ Matrix4x4<T> Perspective(T fov, T aspectRatio, T near, T far)
   Matrix4x4<T> result = Identity<T>();
   const T tanfov2{ (T)tan(fov / 2) };
 
-  result.values[0 + 0 * 4] = (T)1 / (aspectRatio * tanfov2);
-  result.values[1 + 1 * 4] = (T)1 / tanfov2;
-  result.values[2 + 2 * 4] = -((far + near) / (far - near));
-  result.values[3 + 2 * 4] = -(T)1;
-  result.values[2 + 3 * 4] = -(((T)2 * far * near) / (far - near));
+  result[0 + 0 * 4] = (T)1 / (aspectRatio * tanfov2);
+  result[1 + 1 * 4] = (T)1 / tanfov2;
+  result[2 + 2 * 4] = -((far + near) / (far - near));
+  result[3 + 2 * 4] = -(T)1;
+  result[2 + 3 * 4] = -(((T)2 * far * near) / (far - near));
 
   return result;
 }

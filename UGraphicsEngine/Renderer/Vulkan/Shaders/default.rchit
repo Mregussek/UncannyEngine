@@ -5,7 +5,8 @@ layout(location = 0) rayPayloadInEXT vec4 payload;
 
 hitAttributeEXT vec3 attribs;
 
-void main() {
-    vec3 bary = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
-    payload = vec4(bary, 0.0);
+void main()
+{
+    const vec3 barycentricCoords = vec3(1.f - attribs.x - attribs.y, attribs.x, attribs.y);
+    payload = vec4(barycentricCoords, 0.0);
 }

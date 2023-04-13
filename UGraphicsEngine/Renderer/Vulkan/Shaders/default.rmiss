@@ -3,6 +3,7 @@
 
 layout(location = 0) rayPayloadInEXT vec4 payload;
 
-void main() {
-    payload = vec4(vec3(0.3), 0.0);
+void main()
+{
+    payload = vec4(0.1, 0.2, 0.1, 0.0);
 }
