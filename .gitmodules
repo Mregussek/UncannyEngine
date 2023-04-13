@@ -10,3 +10,6 @@
 [submodule "UTools/3rdparty/entt"]
 	path = UTools/3rdparty/entt
 	url = https://github.com/skypjack/entt
+[submodule "UTools/3rdparty/assimp"]
+	path = UTools/3rdparty/assimp
+	url = https://github.com/assimp/assimp

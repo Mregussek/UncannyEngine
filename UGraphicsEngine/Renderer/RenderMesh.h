@@ -4,6 +4,7 @@
 
 
 #include "UTools/UTypes.h"
+#include "UMath/Vector3.h"
 #include <vector>
 
 
@@ -11,17 +12,9 @@ namespace uncanny
 {
 
 
-struct FPosition
-{
-  f32 x{ 0.f };
-  f32 y{ 0.f };
-  f32 z{ 0.f };
-};
-
-
 struct FVertex
 {
-  FPosition position{};
+  math::Vector3f position{};
 };
 
 
@@ -32,11 +25,16 @@ struct FRenderMesh
 };
 
 
+class FMeshAsset;
+
+
 class FRenderMeshFactory
 {
 public:
 
   static FRenderMesh CreateTriangle();
+
+  static FRenderMesh ConvertAsset(const FMeshAsset* pMeshAsset);
 
 };
 

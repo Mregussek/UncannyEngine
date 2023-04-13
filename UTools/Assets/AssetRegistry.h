@@ -21,7 +21,7 @@ public:
 
   void Clear();
 
-  [[nodiscard]] FMeshAsset& GetMesh(u64 id) { return m_MeshAssets.at(id); }
+  [[nodiscard]] const FMeshAsset& GetMesh(u64 id) const { return m_MeshAssets.at(id); }
 
 private:
 

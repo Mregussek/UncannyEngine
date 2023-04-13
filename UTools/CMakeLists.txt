@@ -6,6 +6,10 @@ set(ENV{GLFW_PRECOMPILED_3RDPARTY_DIR} "${UTOOLS_PATH}/3rdparty/glfw_win64")
 set(GLFW_INCLUDE_DIR "$ENV{GLFW_PRECOMPILED_3RDPARTY_DIR}/include")
 set(GLFW_LIBRARY "$ENV{GLFW_PRECOMPILED_3RDPARTY_DIR}/lib-vc2022/glfw3.lib")
 
+# assimp
+set(ENV{ASSIMP_3RDPARTY_DIR} "${UTOOLS_PATH}/3rdparty/assimp")
+add_subdirectory($ENV{ASSIMP_3RDPARTY_DIR})
+
 # spdlog
 set(ENV{SPDLOG_3RDPARTY_DIR} "${UTOOLS_PATH}/3rdparty/spdlog")
 file(GLOB_RECURSE SPDLOG_LIBRARY_SOURCES
@@ -39,10 +43,12 @@ target_include_directories(UncannyTools
         $ENV{SPDLOG_3RDPARTY_DIR}/include
         ${GLFW_INCLUDE_DIR}
         $ENV{ENTT_3RDPARTY_DIR}
+        $ENV{ASSIMP_3RDPARTY_DIR}/include
         )
 target_link_libraries(UncannyTools
         PRIVATE
         ${GLFW_LIBRARY}
+        assimp
         )
 target_compile_features(UncannyTools
         PUBLIC

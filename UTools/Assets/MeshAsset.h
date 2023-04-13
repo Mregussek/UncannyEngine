@@ -12,7 +12,7 @@ namespace uncanny
 {
 
 
-class FSubmeshAsset
+struct FSubmeshAsset
 {
   std::vector<math::Vector3f> positions{};
   std::vector<u32> indices{};

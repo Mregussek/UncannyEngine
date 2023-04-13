@@ -107,8 +107,7 @@ private:
     {
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
 
-      FPath resourcesPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources" });
-      FPath bunnyMeshPath = FPath::Append(resourcesPath, { "bunny", "bunny.obj" });
+      FPath bunnyMeshPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "bunny", "bunny.obj" });
       FAssetLoader::LoadOBJ(bunnyMeshPath.GetString().c_str(), &meshAsset);
 
       m_EntityRegistry.Create();
@@ -181,7 +180,9 @@ private:
     }
 
     // Creating acceleration structures...
-    FRenderMesh triangleMesh = FRenderMeshFactory::CreateTriangle();
+    auto& renderMeshComponent = m_Entity.Get<FRenderMeshComponent>();
+    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(renderMeshComponent.id);
+    FRenderMesh triangleMesh = FRenderMeshFactory::ConvertAsset(&meshAsset);
 
     m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
     m_BottomLevelAS.Build(triangleMesh.vertices, triangleMesh.indices, m_CommandPool,
@@ -307,6 +308,8 @@ private:
 
     m_Entity.Destroy();
     m_EntityRegistry.Destroy();
+
+    m_AssetRegistry.Clear();
 
     m_Window->Destroy();
   }

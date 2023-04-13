@@ -15,7 +15,7 @@ FMeshAsset& FAssetRegistry::RegisterMesh()
   {
     UWARN("Asset with ID {} is already inserted!");
   }
-  return GetMesh(uniqueID);
+  return m_MeshAssets.at(uniqueID);
 }
 
 
