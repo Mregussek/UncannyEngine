@@ -64,7 +64,7 @@ public:
         m_OffscreenImage.Recreate(m_Swapchain.GetCurrentExtent());
 
         u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-        m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage, dstBinding);
+        m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
 
         RecordCommands();
       }
@@ -176,7 +176,7 @@ private:
     }
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-      m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage, dstBinding);
+      m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
     }
 
     // Creating pipeline...

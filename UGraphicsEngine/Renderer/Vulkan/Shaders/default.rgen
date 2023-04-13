@@ -1,41 +1,28 @@
 #version 460
 #extension GL_EXT_ray_tracing : enable
 
-layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
-layout(binding = 1, rgba32f) uniform image2D img;
-layout(binding = 2, set = 0) uniform CameraProperties
-{
-    mat4 projInverse;
-    mat4 viewInverse;
-} cam;
-
 layout(location = 0) rayPayloadEXT vec4 payload;
 
+layout(binding = 0, set = 0) uniform accelerationStructureEXT as;
+
+layout(binding = 1, rgba32f) uniform image2D img;
+
 void main() {
-    const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
-    const vec2 inUV = pixelCenter/vec2(gl_LaunchSizeEXT.xy);
-    vec2 d = inUV * 2.0 - 1.0;
+    vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
+    vec2 uv = pixelCenter / vec2(gl_LaunchSizeEXT.xy);
+    vec2 d = uv * 2.0 - 1.0;
+    float aspect = float(gl_LaunchSizeEXT.x) / float(gl_LaunchSizeEXT.y);
 
-    mat4 view = cam.viewInverse;
-    mat4 proj = cam.projInverse;
+    vec3 ro = vec3(0, 0, -1.5);
+    vec3 rd = normalize(vec3(d.x * aspect, d.y, 1));
 
-    vec4 origin = view * vec4(0,0,0,1);
-    vec4 target = proj * vec4(d.x, d.y, 1, 1) ;
-    vec4 direction = view * vec4(normalize(target.xyz), 0) ;
-
-	float tmin = 0.001;
-	float tmax = 10000.0;
-
-    payload = vec4(0.0);
-    traceRayEXT(topLevelAS,
+    payload = vec4(0);
+    traceRayEXT(as,
                 gl_RayFlagsOpaqueEXT,
                 0xff,
                 0, 0, 0,
-                origin.xyz,
-                tmin,
-                direction.xyz,
-                tmax,
+                ro, 0.001, rd, 100.0,
                 0);
 
-    imageStore(img, ivec2(gl_LaunchIDEXT), vec4(payload.rgb, 0.0));
+    imageStore(img, ivec2(gl_LaunchIDEXT), vec4(payload.rgb, 1.0));
 }
