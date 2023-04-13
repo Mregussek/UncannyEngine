@@ -274,16 +274,16 @@ private:
       cmdBuf.BindDescriptorSet(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
                                m_DescriptorPool.GetDescriptorSet());
       cmdBuf.TraceRays(&m_RayTracingPipeline, offscreenExtent);
-      cmdBuf.ImageMemoryBarrier(swapchainImage,
-                                VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                subresourceRange,
-                                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
       cmdBuf.ImageMemoryBarrier(offscreenImage,
                                 VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                                 VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                                 subresourceRange,
                                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+      cmdBuf.ImageMemoryBarrier(swapchainImage,
+                                VK_ACCESS_MEMORY_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                subresourceRange,
+                                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
       cmdBuf.CopyImage(offscreenImage, swapchainImage, subresourceLayers, swapchainExtent);
       cmdBuf.ImageMemoryBarrier(swapchainImage,
                                 VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_MEMORY_READ_BIT,
@@ -301,7 +301,6 @@ private:
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
   vulkan::FImage m_OffscreenImage{};
-  vulkan::FSemaphore m_PresentAvailableSemaphore{};
   vulkan::FBottomLevelAS m_BottomLevelAS{};
   vulkan::FTopLevelAS m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
