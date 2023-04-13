@@ -12,6 +12,11 @@ file(GLOB_RECURSE SPDLOG_LIBRARY_SOURCES
         $ENV{SPDLOG_3RDPARTY_DIR}/include/spdlog/*.h
         )
 
+# entt
+set(ENV{ENTT_3RDPARTY_DIR} "${UTOOLS_PATH}/3rdparty/entt/single_include")
+set(ENTT_LIBRARY_SOURCES $ENV{ENTT_3RDPARTY_DIR}/entt/entt.hpp)
+
+# --------------------------------------------------------------------------------
 file(GLOB_RECURSE TOOLS_LIBRARY_SOURCES
         ${UTOOLS_PATH}/*.cpp
         ${UTOOLS_PATH}/*.inl
@@ -22,6 +27,7 @@ list(FILTER TOOLS_LIBRARY_SOURCES EXCLUDE REGEX "${UTOOLS_PATH}/3rdparty/.*" )
 add_library(UncannyTools
         ${TOOLS_LIBRARY_SOURCES}
         ${SPDLOG_LIBRARY_SOURCES}
+        ${ENTT_LIBRARY_SOURCES}
         )
 set_target_properties(UncannyTools
         PROPERTIES
@@ -32,6 +38,7 @@ target_include_directories(UncannyTools
         ${PROJECT_SOURCE_DIR}
         $ENV{SPDLOG_3RDPARTY_DIR}/include
         ${GLFW_INCLUDE_DIR}
+        $ENV{ENTT_3RDPARTY_DIR}
         )
 target_link_libraries(UncannyTools
         PRIVATE

@@ -7,3 +7,6 @@
 [submodule "UGraphicsEngine/3rdparty/glslang"]
 	path = UGraphicsEngine/3rdparty/glslang
 	url = https://github.com/KhronosGroup/glslang.git
+[submodule "UTools/3rdparty/entt"]
+	path = UTools/3rdparty/entt
+	url = https://github.com/skypjack/entt

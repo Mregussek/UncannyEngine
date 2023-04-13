@@ -1,8 +1,10 @@
 
-#include <UTools/Logger/Log.h>
-#include <UTools/Window/WindowGLFW.h>
-#include <UTools/Filesystem/Path.h>
-#include <UTools/Filesystem/File.h>
+#include "UTools/Logger/Log.h"
+#include "UTools/Window/WindowGLFW.h"
+#include "UTools/Filesystem/Path.h"
+#include "UTools/Filesystem/File.h"
+#include "UTools/EntityComponentSystem/EntityRegistry.h"
+#include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/GlslShaderCompiler.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
@@ -98,6 +100,12 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
+    // Initializing ECS...
+    m_EntityRegistry.Create();
+    m_Entity = m_EntityRegistry.RegisterEntity();
+    FRenderMeshComponent& renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
+
+    // Initialing renderer...
     vulkan::FRenderContextAttributes renderContextAttributes{
         .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
         .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
@@ -284,6 +292,10 @@ private:
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
+
+    m_Entity.Destroy();
+    m_EntityRegistry.Destroy();
+
     m_Window->Destroy();
   }
 
@@ -359,6 +371,8 @@ private:
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_CameraUniformBuffer{};
+  FEntityRegistry m_EntityRegistry{};
+  FEntity m_Entity{};
 
 };
 
