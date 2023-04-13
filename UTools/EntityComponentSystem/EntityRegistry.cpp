@@ -18,7 +18,7 @@ void FEntityRegistry::Destroy()
 }
 
 
-FEntity FEntityRegistry::RegisterEntity()
+FEntity FEntityRegistry::Register()
 {
   return FEntity{ &m_Registry };
 }

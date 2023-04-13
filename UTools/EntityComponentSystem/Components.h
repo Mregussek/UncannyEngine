@@ -11,15 +11,12 @@ namespace uncanny
 {
 
 
-struct FRenderMeshData;
-
-
 struct FEntityComponent { };
 
 
 struct FRenderMeshComponent : public FEntityComponent
 {
-  FRenderMeshData* pData{ nullptr };
+  u64 id{ UUNUSED };
 };
 
 

@@ -3,6 +3,8 @@
 #include "UTools/Window/WindowGLFW.h"
 #include "UTools/Filesystem/Path.h"
 #include "UTools/Filesystem/File.h"
+#include "UTools/Assets/AssetRegistry.h"
+#include "UTools/Assets/MeshAsset.h"
 #include "UTools/EntityComponentSystem/EntityRegistry.h"
 #include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
@@ -101,9 +103,14 @@ private:
     m_Window->Create(windowConfiguration);
 
     // Initializing ECS...
-    m_EntityRegistry.Create();
-    m_Entity = m_EntityRegistry.RegisterEntity();
-    FRenderMeshComponent& renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
+    {
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+
+      m_EntityRegistry.Create();
+      m_Entity = m_EntityRegistry.Register();
+      auto& renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
+      renderMeshComponent.id = meshAsset.ID();
+    }
 
     // Initialing renderer...
     vulkan::FRenderContextAttributes renderContextAttributes{
@@ -371,6 +378,9 @@ private:
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_CameraUniformBuffer{};
+
+  FAssetRegistry m_AssetRegistry{};
+
   FEntityRegistry m_EntityRegistry{};
   FEntity m_Entity{};
 

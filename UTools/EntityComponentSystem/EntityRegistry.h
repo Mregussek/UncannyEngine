@@ -18,7 +18,7 @@ public:
   void Create();
   void Destroy();
 
-  FEntity RegisterEntity();
+  FEntity Register();
 
 private:
 
