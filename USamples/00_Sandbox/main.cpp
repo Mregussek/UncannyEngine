@@ -103,19 +103,6 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
-    // Initializing ECS...
-    {
-      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-
-      FPath bunnyMeshPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "cube", "cube.obj" });
-      FAssetLoader::LoadOBJ(bunnyMeshPath.GetString().c_str(), &meshAsset);
-
-      m_EntityRegistry.Create();
-      m_Entity = m_EntityRegistry.Register();
-      auto& renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
-      renderMeshComponent.id = meshAsset.ID();
-    }
-
     // Initialing renderer...
     vulkan::FRenderContextAttributes renderContextAttributes{
         .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
@@ -151,6 +138,31 @@ private:
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
 
+    // Initializing ECS...
+    {
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+
+      FPath cubeMeshPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "cube", "cube.obj" });
+      FAssetLoader::LoadOBJ(cubeMeshPath.GetString().c_str(), &meshAsset);
+
+      m_EntityRegistry.Create();
+      m_Entity = m_EntityRegistry.Register();
+      auto& renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
+      renderMeshComponent.id = meshAsset.ID();
+    }
+
+    // Creating acceleration structures...
+    auto& renderMeshComponent = m_Entity.Get<FRenderMeshComponent>();
+    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(renderMeshComponent.id);
+    FRenderMesh renderMesh = FRenderMeshFactory::ConvertAsset(&meshAsset);
+
+    m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
+    m_BottomLevelAS.Build(renderMesh.vertices, renderMesh.indices, m_CommandPool,
+                          pLogicalDevice->GetGraphicsQueue());
+
+    m_TopLevelAS = deviceFactory.CreateTopLevelAS();
+    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+
     // Creating camera...
     {
       FPerspectiveCameraSpecification cameraSpecification{
@@ -178,18 +190,6 @@ private:
       FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
       m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
-
-    // Creating acceleration structures...
-    auto& renderMeshComponent = m_Entity.Get<FRenderMeshComponent>();
-    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(renderMeshComponent.id);
-    FRenderMesh triangleMesh = FRenderMeshFactory::ConvertAsset(&meshAsset);
-
-    m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(triangleMesh.vertices, triangleMesh.indices, m_CommandPool,
-                          pLogicalDevice->GetGraphicsQueue());
-
-    m_TopLevelAS = deviceFactory.CreateTopLevelAS();
-    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
     // Creating off screen buffer...
     m_OffscreenImage = deviceFactory.CreateImage();
