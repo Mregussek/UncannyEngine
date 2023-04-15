@@ -170,7 +170,7 @@ private:
         .front = { 0.f, 0.f, 0.f },
         .worldUp = { 0.f, 1.f, 0.f },
         .fieldOfView = 45.f,
-        .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.width,
+        .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
         .near = 0.1f,
         .far = 10.f,
         .yaw = -90.f,
