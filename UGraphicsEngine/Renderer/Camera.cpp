@@ -106,6 +106,19 @@ void FPerspectiveCamera::ProcessMouseMovement(IWindow* pWindow, f32 deltaTime)
 }
 
 
+void FPerspectiveCamera::ProcessMouseScroll(IWindow* pWindow, f32 deltaTime)
+{
+  FMouseScrollPosition scrollPosition = pWindow->GetMouseScrollPosition();
+  m_Specification.zoom -= (f32)scrollPosition.y;
+  if (m_Specification.zoom < 1.0f) {
+    m_Specification.zoom = 1.0f;
+  }
+  else if (m_Specification.zoom > 45.0f) {
+    m_Specification.zoom = 45.0f;
+  }
+}
+
+
 void updateCameraVectors(const FPerspectiveCameraSpecification& specs, math::Vector3f* pOutFront,
                          math::Vector3f* pOutRight, math::Vector3f* pOutUp)
 {

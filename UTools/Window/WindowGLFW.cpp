@@ -10,6 +10,7 @@ namespace uncanny
 static FMousePosition* g_pMousePosition{ nullptr };
 static FMouseButtonsPressed* g_pMouseButtonsPressed{ nullptr };
 static FKeyboardButtonsPressed* g_pKeyboardButtonsPressed{ nullptr };
+static FMouseScrollPosition* g_pMouseScrollPosition{ nullptr };
 
 
 static void ErrorCallback(i32 error, const char* description)
@@ -37,6 +38,13 @@ static void MouseButtonCallback(GLFWwindow* pWindow, i32 button, i32 action, i32
   {
     g_pMouseButtonsPressed->right = action == GLFW_PRESS;
   }
+}
+
+
+static void ScrollCallback(GLFWwindow* pWindow, f64 xoffset, f64 yoffset)
+{
+  g_pMouseScrollPosition->x = xoffset;
+  g_pMouseScrollPosition->y = yoffset;
 }
 
 
@@ -90,10 +98,12 @@ void FWindowGLFW::Create(const FWindowConfiguration &windowConfiguration)
   g_pMousePosition = &m_MousePosition;
   g_pMouseButtonsPressed = &m_MouseButtonsPressed;
   g_pKeyboardButtonsPressed = &m_KeyboardButtonsPressed;
+  g_pMouseScrollPosition = &m_MouseScrollPosition;
 
   glfwSetCursorPosCallback(m_pWindow.get(), CursorPosCallback);
   glfwSetMouseButtonCallback(m_pWindow.get(), MouseButtonCallback);
   glfwSetKeyCallback(m_pWindow.get(), KeyboardButtonCallback);
+  glfwSetScrollCallback(m_pWindow.get(), ScrollCallback);
   glfwSetInputMode(m_pWindow.get(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
   UpdateState();

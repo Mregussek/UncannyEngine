@@ -36,6 +36,13 @@ struct FMouseButtonsPressed
 };
 
 
+struct FMouseScrollPosition
+{
+  f64 x{ 0.f };
+  f64 y{ 0.f };
+};
+
+
 struct FKeyboardButtonsPressed
 {
   b32 escape{ UFALSE };
@@ -75,6 +82,7 @@ public:
   [[nodiscard]] virtual FWindowSize GetSize() const = 0;
   [[nodiscard]] virtual FMousePosition GetMousePosition() const = 0;
   [[nodiscard]] virtual FMouseButtonsPressed GetMouseButtonsPressed() const = 0;
+  [[nodiscard]] virtual FMouseScrollPosition GetMouseScrollPosition() const = 0;
   [[nodiscard]] virtual const FKeyboardButtonsPressed& GetKeyboardButtonsPressed() const = 0;
 
   [[nodiscard]] virtual b32 IsGoingToClose() const = 0;

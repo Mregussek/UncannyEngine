@@ -47,6 +47,7 @@ public:
   [[nodiscard]] FWindowSize GetSize() const override { return m_Configuration.size; }
   [[nodiscard]] FMousePosition GetMousePosition() const override { return m_MousePosition; }
   [[nodiscard]] FMouseButtonsPressed GetMouseButtonsPressed() const override { return m_MouseButtonsPressed; }
+  [[nodiscard]] FMouseScrollPosition GetMouseScrollPosition() const override { return m_MouseScrollPosition; }
   [[nodiscard]] const FKeyboardButtonsPressed& GetKeyboardButtonsPressed() const override
   {
     return m_KeyboardButtonsPressed;
@@ -59,10 +60,11 @@ public:
 private:
 
   FWindowConfiguration m_Configuration{};
-  std::unique_ptr<GLFWwindow, GLFWwindowDeleter> m_pWindow{};
-  FMousePosition m_MousePosition{};
-  FMouseButtonsPressed m_MouseButtonsPressed{};
   FKeyboardButtonsPressed m_KeyboardButtonsPressed{};
+  FMouseButtonsPressed m_MouseButtonsPressed{};
+  FMousePosition m_MousePosition{};
+  FMouseScrollPosition m_MouseScrollPosition{};
+  std::unique_ptr<GLFWwindow, GLFWwindowDeleter> m_pWindow{};
   f32 m_DeltaTime{ 0.0f };
   f32 m_LastFrame{ 0.0f };
 
