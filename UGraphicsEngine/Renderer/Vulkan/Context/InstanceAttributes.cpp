@@ -1,6 +1,5 @@
 
 #include "InstanceAttributes.h"
-#include <algorithm>
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UTools/Logger/Log.h"
 
@@ -55,14 +54,12 @@ b8 FInstanceAttributes::IsVersionAvailable(u32 apiVersion) const
 
 b8 FInstanceAttributes::IsExtensionRequested(const char* extensionName) const
 {
-  auto found = std::ranges::find_if(m_RequestedExtensions,
-                                    [extensionName](const char* requestedExtension) -> b32
+  for (auto&& requestedExtensionName : m_RequestedExtensions)
   {
-    return std::strcmp(extensionName, requestedExtension) == 0;
-  });
-  if (found != m_RequestedExtensions.end())
-  {
-    return UTRUE;
+    if (std::strcmp(extensionName, requestedExtensionName) == 0)
+    {
+      return UTRUE;
+    }
   }
   return UFALSE;
 }
@@ -103,35 +100,27 @@ void FInstanceAttributes::GatherAvailableExtensions()
 
 b8 FInstanceAttributes::IsLayerAvailable(const char* layerName) const
 {
-  auto foundLayer = std::ranges::find_if(m_AvailableLayerProperties,
-                                         [layerName](const VkLayerProperties& vkLayerProperties) -> b32
+  for (auto&& vkLayerProperties : m_AvailableLayerProperties)
   {
-    return std::strcmp(layerName, vkLayerProperties.layerName) == 0;
-  });
-  if (foundLayer == m_AvailableLayerProperties.end())
-  {
-    UERROR("Layer {} is not available!", layerName);
-    return UFALSE;
+    if (std::strcmp(layerName, vkLayerProperties.layerName) == 0)
+    {
+      return UTRUE;
+    }
   }
-
-  return UTRUE;
+  return UFALSE;
 }
 
 
 b8 FInstanceAttributes::IsExtensionAvailable(const char* extensionName) const
 {
-  auto foundExtension = std::ranges::find_if(m_AvailableExtensionsProperties,
-                                             [extensionName](const VkExtensionProperties& vkExtensionProperties) -> b32
+  for (auto&& vkExtensionProperties : m_AvailableExtensionsProperties)
   {
-    return std::strcmp(extensionName, vkExtensionProperties.extensionName) == 0;
-  });
-  if (foundExtension == m_AvailableExtensionsProperties.end())
-  {
-    UERROR("Extension {} is not available!", extensionName);
-    return UFALSE;
+    if (std::strcmp(extensionName, vkExtensionProperties.extensionName) == 0)
+    {
+      return UTRUE;
+    }
   }
-
-  return UTRUE;
+  return UFALSE;
 }
 
 

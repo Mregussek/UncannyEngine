@@ -95,6 +95,8 @@ void FWindowGLFW::Create(const FWindowConfiguration &windowConfiguration)
   glfwSetKeyCallback(m_pWindow.get(), KeyboardButtonCallback);
 
   UpdateState();
+
+  UDEBUG("Created window!");
 }
 
 

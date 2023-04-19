@@ -1,6 +1,5 @@
 
 #include "PhysicalDeviceSelector.h"
-#include <algorithm>
 #include <map>
 #include "PhysicalDeviceAttributes.h"
 
@@ -49,12 +48,10 @@ FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice)
 VkPhysicalDevice FPhysicalDeviceSelector::Select(std::span<VkPhysicalDevice> availablePhysicalDevices)
 {
   std::multimap<FPhysicalDeviceScore, VkPhysicalDevice> ratings;
-
-  std::ranges::for_each(availablePhysicalDevices, [&ratings](VkPhysicalDevice physicalDevice)
+  for (auto&& device : availablePhysicalDevices)
   {
-    ratings.insert(std::make_pair(GetScore(physicalDevice), physicalDevice));
-  });
-
+    ratings.insert(std::make_pair(GetScore(device), device));
+  }
   return ratings.rbegin()->second;
 }
 

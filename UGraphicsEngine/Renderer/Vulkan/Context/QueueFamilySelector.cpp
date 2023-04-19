@@ -1,6 +1,5 @@
 
 #include "QueueFamilySelector.h"
-#include <algorithm>
 #include <map>
 #include <functional>
 
@@ -80,13 +79,11 @@ std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> qu
                                      VkPhysicalDevice vkPhysicalDevice)
 {
   std::multimap<FQueueFamilyScore, u32> ratings;
-  std::ranges::for_each(queueFamilyProperties,
-                        [&, getScoreFunctionObject, idx = 0](const VkQueueFamilyProperties& properties) mutable
+  for (u32 i = 0; i < queueFamilyProperties.size(); i++)
   {
-    FQueueFamilyScore score = getScoreFunctionObject(properties, idx, vkInstance, vkPhysicalDevice);
-    ratings.insert(std::make_pair(score, idx));
-    ++idx;
-  });
+    FQueueFamilyScore score = getScoreFunctionObject(queueFamilyProperties[i], i, vkInstance, vkPhysicalDevice);
+    ratings.insert(std::make_pair(score, i));
+  }
   auto highestRatingIt = ratings.rbegin();
   if (highestRatingIt->first == 0)
   {

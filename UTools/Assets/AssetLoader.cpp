@@ -15,16 +15,16 @@ namespace uncanny
 void FAssetLoader::LoadOBJ(const char* path, FMeshAsset* pMesh)
 {
   Assimp::Importer importer;
-  const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
-  if (not scene or not scene->HasMeshes()) {
+  const aiScene* pScene = importer.ReadFile(path, aiProcess_Triangulate);
+  if (not pScene or not pScene->HasMeshes()) {
     UERROR("Cannot load obj file {}\n", importer.GetErrorString());
     return;
   }
 
-  for (u32 i = 0; i < scene->mNumMeshes; i++)
+  for (u32 i = 0; i < pScene->mNumMeshes; i++)
   {
     FSubmeshAsset& submesh = pMesh->AppendSubmesh();
-    aiMesh* pAiMesh = scene->mMeshes[i];
+    aiMesh* pAiMesh = pScene->mMeshes[i];
 
     submesh.positions.reserve(pAiMesh->mNumFaces * 3);
     submesh.indices.reserve(pAiMesh->mNumFaces * 3);

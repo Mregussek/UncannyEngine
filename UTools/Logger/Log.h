@@ -3,6 +3,8 @@
 #define UNCANNYENGINE_LOG_H
 
 
+#define UENABLE_DEBUG_TRACES 1
+
 #include "LogImpl.h"
 
 
@@ -70,12 +72,22 @@ private:
   #endif
 #endif
 
-#define UTRACE(msg, ...) ::uncanny::FLog::trace(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-#define UDEBUG(msg, ...) ::uncanny::FLog::debug(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-#define UINFO(msg, ...) ::uncanny::FLog::info(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-#define UWARN(msg, ...) ::uncanny::FLog::warn(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-#define UERROR(msg, ...) ::uncanny::FLog::error(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-#define UCRITICAL(msg, ...) ::uncanny::FLog::critical(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+
+#if UENABLE_DEBUG_TRACES
+  #define UTRACE(msg, ...) ::uncanny::FLog::trace(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+  #define UDEBUG(msg, ...) ::uncanny::FLog::debug(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+  #define UINFO(msg, ...) ::uncanny::FLog::info(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+  #define UWARN(msg, ...) ::uncanny::FLog::warn(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+  #define UERROR(msg, ...) ::uncanny::FLog::error(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+  #define UCRITICAL(msg, ...) ::uncanny::FLog::critical(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+#else
+  #define UTRACE(msg, ...)
+  #define UDEBUG(msg, ...)
+  #define UINFO(msg, ...)
+  #define UWARN(msg, ...)
+  #define UERROR(msg, ...)
+  #define UCRITICAL(msg, ...)
+#endif
 
 
 }

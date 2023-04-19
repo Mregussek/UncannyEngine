@@ -82,7 +82,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
     .updateScratchSize = 0,
     .buildScratchSize = 0
   };
-  u32 primitiveCount = vertexBuffer.GetElementsCount() / 3;
+  u32 primitiveCount = indices.size() / 3;
   vkGetAccelerationStructureBuildSizesKHR(m_Device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                                           &buildSizeGeometryInfo, &primitiveCount, &buildSizesInfo);
 

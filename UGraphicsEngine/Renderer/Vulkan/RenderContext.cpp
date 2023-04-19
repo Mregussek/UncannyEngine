@@ -5,7 +5,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDeviceAttributes.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/PhysicalDeviceSelector.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
-#include <algorithm>
+#include "UTools/Logger/Log.h"
 
 
 namespace uncanny::vulkan
@@ -23,14 +23,14 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
     {
       AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
     }
-    std::ranges::for_each(attributes.instanceLayers, [&instanceAttributes](const char* name)
+    for (auto&& name : attributes.instanceLayers)
     {
       instanceAttributes.AddLayerName(name);
-    });
-    std::ranges::for_each(attributes.instanceExtensions, [&instanceAttributes](const char* name)
+    }
+    for (auto&& name : attributes.instanceExtensions)
     {
       instanceAttributes.AddExtensionName(name);
-    });
+    }
     m_Instance.Create(instanceAttributes);
   }
 
@@ -52,10 +52,10 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
     logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
                                                          m_Instance.GetHandle(),
                                                          m_PhysicalDevice.GetHandle());
-    std::ranges::for_each(attributes.deviceExtensions, [&logicalDeviceAttributes, this](const char*name)
+    for (auto&& name : attributes.deviceExtensions)
     {
       logicalDeviceAttributes.AddExtensionName(name, m_PhysicalDevice.GetAttributes());
-    });
+    }
     logicalDeviceAttributes.InitializeDeviceFeatures(m_PhysicalDevice.GetAttributes());
 
     m_LogicalDevice.Create(logicalDeviceAttributes, m_PhysicalDevice.GetHandle());

@@ -1,8 +1,6 @@
 
 #include "LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
-#include <any>
-#include <algorithm>
 
 
 namespace uncanny::vulkan
@@ -138,16 +136,13 @@ void FQueueCreateInfoCreator::AddQueueFamilyInfo(FQueueFamilyIndex queueFamilyIn
 
 std::pair<b32, u64> FQueueCreateInfoCreator::IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const
 {
-  auto it = std::ranges::find_if(m_DeviceQueueCreateInfoVector,
-                                 [queueFamilyIndex](const VkDeviceQueueCreateInfo& createInfo) -> b32
+  for (u32 i = 0; i < m_DeviceQueueCreateInfoVector.size(); i++)
   {
-    return queueFamilyIndex == createInfo.queueFamilyIndex;
-  });
-  if (it != m_DeviceQueueCreateInfoVector.end())
-  {
-    return std::make_pair(UTRUE, std::distance(m_DeviceQueueCreateInfoVector.begin(), it));
+    if (queueFamilyIndex == m_DeviceQueueCreateInfoVector[i].queueFamilyIndex)
+    {
+      return std::make_pair(UTRUE, i);
+    }
   }
-
   return std::make_pair(UFALSE, UUNUSED);
 }
 
