@@ -1,11 +1,9 @@
 
 #include "AssetLoader.h"
-#include "MeshAsset.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "UTools/Logger/Log.h"
-#include <span>
 
 
 namespace uncanny
@@ -68,7 +66,7 @@ private:
 };
 
 
-void FAssetLoader::LoadOBJ(const char* path, FMeshAsset* pMesh)
+void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData)
 {
   Assimp::Importer importer;
   const aiScene* aiScene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -81,7 +79,7 @@ void FAssetLoader::LoadOBJ(const char* path, FMeshAsset* pMesh)
     return;
   }
 
-  FAssimpSceneProcessor sceneProcessor(pMesh->GetDataPtr());
+  FAssimpSceneProcessor sceneProcessor(pMeshData);
   sceneProcessor.ProcessNode(aiScene->mRootNode, aiScene);
 
   importer.FreeScene();

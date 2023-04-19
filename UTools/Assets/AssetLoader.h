@@ -3,18 +3,21 @@
 #define UNCANNYENGINE_ASSETLOADER_H
 
 
+#include "MeshAsset.h"
+
+
 namespace uncanny
 {
 
 
-class FMeshAsset;
+class FMeshAssetData;
 
 
 class FAssetLoader
 {
 public:
 
-  static void LoadOBJ(const char* path, FMeshAsset* pMesh);
+  static void LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData);
 
 };
 

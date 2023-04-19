@@ -34,7 +34,7 @@ public:
 
   static FRenderMesh CreateTriangle();
 
-  static FRenderMesh ConvertAsset(const FMeshAsset* pMeshAsset);
+  static FRenderMesh ConvertAssetToOneRenderMesh(const FMeshAsset* pMeshAsset);
 
 };
 

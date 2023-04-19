@@ -4,6 +4,7 @@
 
 
 #include "BottomLevelAccelerationStructure.h"
+#include <span>
 
 
 namespace uncanny::vulkan
@@ -17,7 +18,10 @@ public:
   FTopLevelAccelerationStructure() = default;
   FTopLevelAccelerationStructure(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
 
-  void Build(const FBottomLevelAccelerationStructure& bottomLevelAS, const FCommandPool& commandPool,
+  void Build(const FBottomLevelAccelerationStructure& bottomLevelStructure, const FCommandPool& commandPool,
+             const FQueue& queue);
+
+  void Build(std::span<VkAccelerationStructureInstanceKHR> instances, const FCommandPool& commandPool,
              const FQueue& queue);
 
 };

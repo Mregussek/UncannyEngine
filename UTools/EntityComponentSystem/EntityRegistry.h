@@ -20,6 +20,17 @@ public:
 
   FEntity Register();
 
+  template<ConceptComponent TComponent>
+  void ForEach(std::function<void(TComponent&)> func)
+  {
+    auto view = m_Registry.view<TComponent>();
+    for (auto entity : view)
+    {
+      auto& component = view.template get<TComponent>(entity);
+      func(component);
+    }
+  }
+
 private:
 
   entt::registry m_Registry{};

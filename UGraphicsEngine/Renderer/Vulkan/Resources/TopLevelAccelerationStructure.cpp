@@ -14,8 +14,8 @@ FTopLevelAccelerationStructure::FTopLevelAccelerationStructure(
 }
 
 
-void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructure& bottomLevelAS,
-                                           const FCommandPool&commandPool, const FQueue& queue)
+void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructure& bottomLevelStructure,
+                                           const FCommandPool& commandPool, const FQueue& queue)
 {
   VkTransformMatrixKHR instanceTransform{
       1.0f, 0.0f, 0.0f, 0.0f,
@@ -23,15 +23,24 @@ void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructu
       0.0f, 0.0f, 1.0f, 0.0f
   };
 
-  VkAccelerationStructureInstanceKHR instance{
+  VkAccelerationStructureInstanceKHR instances[1];
+  instances[0] = {
       .transform = instanceTransform,
       .instanceCustomIndex = 0,
       .mask = 0xFF,
       .instanceShaderBindingTableRecordOffset = 0,
       .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
-      .accelerationStructureReference = bottomLevelAS.GetDeviceAddress()
+      .accelerationStructureReference = bottomLevelStructure.GetDeviceAddress()
   };
-  u32 instancesCount = 1;
+
+  Build(instances, commandPool, queue);
+}
+
+
+void FTopLevelAccelerationStructure::Build(std::span<VkAccelerationStructureInstanceKHR> instances,
+                                           const FCommandPool&commandPool, const FQueue& queue)
+{
+  u32 instancesCount = instances.size();
 
   FBuffer instanceBuffer(m_pPhysicalDeviceAttributes, m_Device);
   VkBufferUsageFlags usageFlags =
@@ -40,7 +49,8 @@ void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructu
       VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR) * instancesCount, usageFlags,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  instanceBuffer.FillStaged(&instance, sizeof(VkAccelerationStructureInstanceKHR), instancesCount, commandPool, queue);
+  instanceBuffer.FillStaged(instances.data(), sizeof(VkAccelerationStructureInstanceKHR), instancesCount, commandPool,
+                            queue);
   VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{
       .deviceAddress = instanceBuffer.GetDeviceAddress()
   };

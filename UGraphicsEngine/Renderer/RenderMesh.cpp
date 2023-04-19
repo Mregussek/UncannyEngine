@@ -21,7 +21,7 @@ FRenderMesh FRenderMeshFactory::CreateTriangle()
 }
 
 
-FRenderMesh FRenderMeshFactory::ConvertAsset(const FMeshAsset* pMeshAsset)
+FRenderMesh FRenderMeshFactory::ConvertAssetToOneRenderMesh(const FMeshAsset* pMeshAsset)
 {
   FRenderMesh rtn{};
 

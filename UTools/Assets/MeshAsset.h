@@ -32,8 +32,9 @@ public:
   FMeshAsset() = delete;
   explicit FMeshAsset(u64 id);
 
+  void LoadObj(const char* path);
+
   [[nodiscard]] const std::vector<FMeshAssetData>& GetData() const { return m_Data; }
-  [[nodiscard]] std::vector<FMeshAssetData>* GetDataPtr() { return &m_Data; }
 
   [[nodiscard]] u64 ID() const { return m_ID; }
 

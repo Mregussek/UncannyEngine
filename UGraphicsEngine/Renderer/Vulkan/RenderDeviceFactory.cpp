@@ -22,6 +22,18 @@ FBottomLevelAccelerationStructure FRenderDeviceFactory::CreateBottomLevelAS() co
 }
 
 
+std::vector<FBottomLevelAccelerationStructure> FRenderDeviceFactory::CreateBottomLevelASVector(u32 count) const
+{
+  std::vector<FBottomLevelAccelerationStructure> structures{};
+  structures.reserve(count);
+  for(u32 i = 0; i < count; i++)
+  {
+    structures.push_back(CreateBottomLevelAS());
+  }
+  return structures;
+}
+
+
 FTopLevelAccelerationStructure FRenderDeviceFactory::CreateTopLevelAS() const
 {
   return FTopLevelAccelerationStructure{ m_pLogicalDevice->GetHandle(), m_pPhysicalDeviceAttributes };

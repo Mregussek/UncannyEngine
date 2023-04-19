@@ -36,6 +36,8 @@ public:
 
   [[nodiscard]] FBottomLevelAccelerationStructure CreateBottomLevelAS() const;
 
+  [[nodiscard]] std::vector<FBottomLevelAccelerationStructure> CreateBottomLevelASVector(u32 count) const;
+
   [[nodiscard]] FTopLevelAccelerationStructure CreateTopLevelAS() const;
 
   [[nodiscard]] FImage CreateImage() const;
