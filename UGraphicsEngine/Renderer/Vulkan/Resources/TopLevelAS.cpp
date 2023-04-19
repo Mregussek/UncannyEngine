@@ -35,13 +35,14 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
     .accelerationStructureReference = bottomLevelAS.GetDeviceAddress()
   };
 
+  FBuffer instanceBuffer{};
   VkBufferUsageFlags usageFlags =
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
-  m_InstanceBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  m_InstanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR), usageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  m_InstanceBuffer.Fill(&instance, sizeof(VkAccelerationStructureInstanceKHR), 1);
+  instanceBuffer = m_pRenderDeviceFactory->CreateBuffer();
+  instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR), usageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  instanceBuffer.Fill(&instance, sizeof(VkAccelerationStructureInstanceKHR), 1);
   VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{
-    .deviceAddress = m_InstanceBuffer.GetDeviceAddress()
+    .deviceAddress = instanceBuffer.GetDeviceAddress()
   };
 
   VkAccelerationStructureGeometryKHR geometryInfo{
@@ -81,7 +82,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
     .updateScratchSize = 0,
     .buildScratchSize = 0
   };
-  u32 primitiveCount = m_InstanceBuffer.GetElementsCount();
+  u32 primitiveCount = instanceBuffer.GetElementsCount();
   vkGetAccelerationStructureBuildSizesKHR(m_Device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                                           &buildSizeGeometryInfo, &primitiveCount, &buildSizesInfo);
 
@@ -166,7 +167,6 @@ void FTopLevelAS::Destroy()
     vkDestroyAccelerationStructureKHR(m_Device, m_AccelerationStructure, nullptr);
   }
 
-  m_InstanceBuffer.Free();
   m_AccelerationMemoryBuffer.Free();
 }
 

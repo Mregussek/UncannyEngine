@@ -34,7 +34,6 @@ private:
   FTopLevelAS(const FRenderDeviceFactory* pFactory, VkDevice vkDevice);
 
 
-  FBuffer m_InstanceBuffer{};
   FBuffer m_AccelerationMemoryBuffer{};
   VkAccelerationStructureKHR m_AccelerationStructure{ VK_NULL_HANDLE };
   u64 m_DeviceAddress{ UUNUSED };
