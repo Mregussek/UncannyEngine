@@ -39,8 +39,9 @@ public:
 
   [[nodiscard]] VkBuffer GetHandle() const { return m_Buffer; }
   [[nodiscard]] u64 GetDeviceAddress() const { return m_Address; }
-  [[nodiscard]] u32 GetStride() const { return m_ElementSizeof; }
-  [[nodiscard]] u32 GetElementsCount() const { return m_ElementsCount; }
+  [[nodiscard]] u32 GetFilledStride() const { return m_Stride; }
+  [[nodiscard]] u32 GetFilledElementsCount() const { return m_ElementsCount; }
+  [[nodiscard]] u32 GetFilledElementsSizeInBytes() const { return m_ElementsSizeInBytes; }
 
 private:
 
@@ -53,8 +54,9 @@ private:
   VkBuffer m_Buffer{ VK_NULL_HANDLE };
   VkDeviceSize m_MemorySize{ 0 };
   u64 m_Address{ UUNUSED };
-  u32 m_ElementSizeof{ UUNUSED };
+  u32 m_Stride{ UUNUSED };
   u32 m_ElementsCount{ UUNUSED };
+  u64 m_ElementsSizeInBytes{ UUNUSED };
   VkMemoryPropertyFlags m_MemoryFlags{ 0 };
   b8 m_Freed{ UFALSE };
 

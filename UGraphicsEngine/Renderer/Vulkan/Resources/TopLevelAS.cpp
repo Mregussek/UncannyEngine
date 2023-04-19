@@ -82,7 +82,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
     .updateScratchSize = 0,
     .buildScratchSize = 0
   };
-  u32 primitiveCount = instanceBuffer.GetElementsCount();
+  u32 primitiveCount = instanceBuffer.GetFilledElementsCount();
   vkGetAccelerationStructureBuildSizesKHR(m_Device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                                           &buildSizeGeometryInfo, &primitiveCount, &buildSizesInfo);
 

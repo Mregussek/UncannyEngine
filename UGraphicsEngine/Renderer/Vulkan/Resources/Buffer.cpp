@@ -84,16 +84,16 @@ void FBuffer::Free()
 
 void FBuffer::Fill(void* pData, u32 elementSizeof, u32 elementsCount)
 {
-  m_ElementSizeof = elementSizeof;
+  m_Stride = elementSizeof;
   m_ElementsCount = elementsCount;
+  m_ElementsSizeInBytes = m_Stride * m_ElementsCount;
 
-  u64 dataSizeof = m_ElementSizeof * m_ElementsCount;
   VkDeviceSize offset{ 0 };
   VkMemoryMapFlags flags{ 0 };
   void* pMapPtr{ nullptr };
 
   vkMapMemory(m_Device, m_Memory.GetHandle(), offset, m_MemorySize, flags, &pMapPtr);
-  memcpy(pMapPtr, pData, dataSizeof);
+  memcpy(pMapPtr, pData, m_ElementsSizeInBytes);
   vkUnmapMemory(m_Device, m_Memory.GetHandle());
 }
 

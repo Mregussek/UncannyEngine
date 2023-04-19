@@ -253,7 +253,7 @@ private:
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[2].binding;
       m_DescriptorPool.WriteUniformBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
-                                                         m_CameraUniformBuffer.GetStride(), dstBinding);
+                                                         m_CameraUniformBuffer.GetFilledStride(), dstBinding);
     }
 
     // Creating pipeline...

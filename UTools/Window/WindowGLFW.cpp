@@ -107,8 +107,6 @@ void FWindowGLFW::Create(const FWindowConfiguration &windowConfiguration)
   glfwSetInputMode(m_pWindow.get(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
   UpdateState();
-
-  UDEBUG("Created window!");
 }
 
 

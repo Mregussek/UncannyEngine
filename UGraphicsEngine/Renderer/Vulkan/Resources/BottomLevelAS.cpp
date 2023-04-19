@@ -3,6 +3,7 @@
 #include "UGraphicsEngine/Renderer/RenderMesh.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceFactory.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Fence.h"
 
 
 namespace uncanny::vulkan
@@ -50,8 +51,8 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
           .pNext = nullptr,
           .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
           .vertexData = vertexBufferDeviceAddress,
-          .vertexStride = vertexBuffer.GetStride(),
-          .maxVertex = vertexBuffer.GetElementsCount(),
+          .vertexStride = vertexBuffer.GetFilledStride(),
+          .maxVertex = vertexBuffer.GetFilledElementsCount(),
           .indexType = VK_INDEX_TYPE_UINT32,
           .indexData = indexBufferDeviceAddress,
           .transformData = {}
@@ -143,8 +144,12 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
   commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos);
   commandBuffer.EndRecording();
 
-  queue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);
-  queue.WaitIdle();
+  FFence fence{};
+  fence.Create(m_Device, 0);
+
+  queue.Submit({}, {}, commandBuffer, {}, fence.GetHandle());
+
+  fence.WaitAndReset();
 
   VkAccelerationStructureDeviceAddressInfoKHR addressInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,

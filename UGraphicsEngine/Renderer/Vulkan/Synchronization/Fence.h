@@ -14,7 +14,9 @@ class FFence
 {
 public:
 
-  void Create(VkDevice vkDevice);
+  ~FFence();
+
+  void Create(VkDevice vkDevice, VkFenceCreateFlags flags);
   void Destroy();
 
   void WaitAndReset() const;

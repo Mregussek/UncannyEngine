@@ -172,22 +172,22 @@ void FCommandBuffer::TraceRays(const FRayTracingPipeline* pRayTracingPipeline, V
   const FBuffer& rayGenBuffer = pRayTracingPipeline->GetRayGenBuffer();
   VkStridedDeviceAddressRegionKHR rayGenSBT{
     .deviceAddress = rayGenBuffer.GetDeviceAddress(),
-    .stride = rayGenBuffer.GetElementsCount(),
-    .size = rayGenBuffer.GetElementsCount()
+    .stride = rayGenBuffer.GetFilledElementsCount(),
+    .size = rayGenBuffer.GetFilledElementsCount()
   };
 
   const FBuffer& rayMissBuffer = pRayTracingPipeline->GetRayMissBuffer();
   VkStridedDeviceAddressRegionKHR rayMissSBT{
     .deviceAddress = rayMissBuffer.GetDeviceAddress(),
-    .stride = rayMissBuffer.GetElementsCount(),
-    .size = rayMissBuffer.GetElementsCount()
+    .stride = rayMissBuffer.GetFilledElementsCount(),
+    .size = rayMissBuffer.GetFilledElementsCount()
   };
 
   const FBuffer& rayClosestHitBuffer = pRayTracingPipeline->GetRayClosestHitBuffer();
   VkStridedDeviceAddressRegionKHR rayHitSBT{
     .deviceAddress = rayClosestHitBuffer.GetDeviceAddress(),
-    .stride = rayClosestHitBuffer.GetElementsCount(),
-    .size = rayClosestHitBuffer.GetElementsCount()
+    .stride = rayClosestHitBuffer.GetFilledElementsCount(),
+    .size = rayClosestHitBuffer.GetFilledElementsCount()
   };
 
   VkStridedDeviceAddressRegionKHR rayCallableSBT{};

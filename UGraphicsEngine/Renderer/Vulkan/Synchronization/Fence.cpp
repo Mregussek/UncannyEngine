@@ -8,14 +8,20 @@ namespace uncanny::vulkan
 {
 
 
-void FFence::Create(VkDevice vkDevice)
+FFence::~FFence()
+{
+  Destroy();
+}
+
+
+void FFence::Create(VkDevice vkDevice, VkFenceCreateFlags flags)
 {
   m_Device = vkDevice;
 
   VkFenceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
     .pNext = nullptr,
-    .flags = VK_FENCE_CREATE_SIGNALED_BIT
+    .flags = flags
   };
   VkResult result = vkCreateFence(m_Device, &createInfo, nullptr, &m_Fence);
   AssertVkAndThrow(result);
@@ -27,6 +33,7 @@ void FFence::Destroy()
   if (m_Fence != VK_NULL_HANDLE)
   {
     vkDestroyFence(m_Device, m_Fence, nullptr);
+    m_Fence = VK_NULL_HANDLE;
   }
 }
 

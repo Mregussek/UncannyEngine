@@ -65,7 +65,7 @@ void FSwapchain::Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pQ
   m_PresentableImagesReadySemaphores.resize(m_BackBufferCount);
   for(u32 i = 0; i < m_BackBufferCount; i++)
   {
-    m_Fences[i].Create(m_Device);
+    m_Fences[i].Create(m_Device, VK_FENCE_CREATE_SIGNALED_BIT);
     m_ImageAvailableSemaphores[i].Create(m_Device);
     m_PresentableImagesReadySemaphores[i].Create(m_Device);
   }
