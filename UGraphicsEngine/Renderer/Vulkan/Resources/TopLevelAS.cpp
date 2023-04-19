@@ -39,7 +39,8 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
   VkBufferUsageFlags usageFlags =
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
   instanceBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR), usageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR), usageFlags,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
   instanceBuffer.Fill(&instance, sizeof(VkAccelerationStructureInstanceKHR), 1);
   VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{
     .deviceAddress = instanceBuffer.GetDeviceAddress()

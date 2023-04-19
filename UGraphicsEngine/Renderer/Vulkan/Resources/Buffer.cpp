@@ -101,9 +101,12 @@ void FBuffer::Fill(void* pData, u32 elementSizeof, u32 elementsCount)
 void FBuffer::FillStaged(void* pData, u32 elementSizeof, u32 elementsCount, const FCommandPool& transferCommandPool,
                          const FQueue& transferQueue)
 {
-  VkDeviceSize dataSizeof = elementSizeof * elementsCount;
+  m_Stride = elementSizeof;
+  m_ElementsCount = elementsCount;
+  m_ElementsSizeInBytes = m_Stride * m_ElementsCount;
+
   FBuffer stagingBuffer{ m_pPhysicalDeviceAttributes, m_Device };
-  stagingBuffer.Allocate(dataSizeof, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  stagingBuffer.Allocate(m_ElementsSizeInBytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
   stagingBuffer.Fill(pData, elementSizeof, elementsCount);
 
   FCommandBuffer commandBuffer = transferCommandPool.AllocatePrimaryCommandBuffer();
@@ -112,18 +115,14 @@ void FBuffer::FillStaged(void* pData, u32 elementSizeof, u32 elementsCount, cons
   VkBufferCopy copyRegion{
     .srcOffset = 0, // Optional
     .dstOffset = 0, // Optional
-    .size = dataSizeof
+    .size = m_ElementsSizeInBytes
   };
-
   vkCmdCopyBuffer(commandBuffer.GetHandle(), stagingBuffer.m_Buffer, m_Buffer, 1, &copyRegion);
 
   commandBuffer.EndRecording();
 
   transferQueue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);
   transferQueue.WaitIdle();
-
-  commandBuffer.Free();
-  stagingBuffer.Free();
 }
 
 

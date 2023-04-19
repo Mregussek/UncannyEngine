@@ -21,18 +21,19 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
                            const FQueue& queue)
 {
   VkBufferUsageFlags bufferUsageFlags =
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
   FBuffer vertexBuffer{};
   FBuffer indexBuffer{};
 
   vertexBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  vertexBuffer.Allocate(vertices.size() * sizeof(FVertex), bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  vertexBuffer.Fill(vertices.data(), sizeof(FVertex), vertices.size());
+  vertexBuffer.Allocate(vertices.size() * sizeof(FVertex), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  vertexBuffer.FillStaged(vertices.data(), sizeof(FVertex), vertices.size(), commandPool, queue);
 
   indexBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  indexBuffer.Allocate(indices.size() * sizeof(u32), bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-  indexBuffer.Fill(indices.data(), sizeof(u32), indices.size());
+  indexBuffer.Allocate(indices.size() * sizeof(u32), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  indexBuffer.FillStaged(indices.data(), sizeof(u32), indices.size(), commandPool, queue);
 
   VkDeviceOrHostAddressConstKHR vertexBufferDeviceAddress{
     .deviceAddress = vertexBuffer.GetDeviceAddress()

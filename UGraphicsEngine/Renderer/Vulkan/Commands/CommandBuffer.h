@@ -22,6 +22,8 @@ public:
   FCommandBuffer() = default;
   FCommandBuffer(VkDevice vkDevice, VkCommandPool vkCommandPool, VkCommandBuffer vkCommandBuffer);
 
+  ~FCommandBuffer();
+
   void Free();
 
   void BeginRecording();
