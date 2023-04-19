@@ -42,6 +42,8 @@ public:
 
   [[nodiscard]] b32 IsMinimized() const override;
 
+  [[nodiscard]] f32 GetDeltaTime() const override { return m_DeltaTime; }
+
   [[nodiscard]] FWindowSize GetSize() const override { return m_Configuration.size; }
   [[nodiscard]] FMousePosition GetMousePosition() const override { return m_MousePosition; }
   [[nodiscard]] FMouseButtonsPressed GetMouseButtonsPressed() const override { return m_MouseButtonsPressed; }
@@ -61,6 +63,8 @@ private:
   FMousePosition m_MousePosition{};
   FMouseButtonsPressed m_MouseButtonsPressed{};
   FKeyboardButtonsPressed m_KeyboardButtonsPressed{};
+  f32 m_DeltaTime{ 0.0f };
+  f32 m_LastFrame{ 0.0f };
 
 };
 

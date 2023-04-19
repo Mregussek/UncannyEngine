@@ -22,8 +22,8 @@ static void CursorPosCallback(GLFWwindow* pWindow, f64 x, f64 y)
 {
   FWindowSize windowSize{};
   glfwGetFramebufferSize(pWindow, &windowSize.width, &windowSize.height);
-  g_pMousePosition->posX = static_cast<f64>(x / windowSize.width);
-  g_pMousePosition->posY = static_cast<f64>(y / windowSize.height);
+  g_pMousePosition->x = x / static_cast<f64>(windowSize.width);
+  g_pMousePosition->y = y / static_cast<f64>(windowSize.height);
 }
 
 
@@ -58,6 +58,7 @@ static void KeyboardButtonCallback(GLFWwindow* pWindow, i32 key, i32 scancode, i
   SetPressForKey(g_pKeyboardButtonsPressed->num1, GLFW_KEY_1);
   SetPressForKey(g_pKeyboardButtonsPressed->num2, GLFW_KEY_2);
   SetPressForKey(g_pKeyboardButtonsPressed->leftShift, GLFW_KEY_LEFT_SHIFT);
+  SetPressForKey(g_pKeyboardButtonsPressed->leftControl, GLFW_KEY_LEFT_CONTROL);
   SetPressForKey(g_pKeyboardButtonsPressed->space, GLFW_KEY_SPACE);
 }
 
@@ -93,6 +94,7 @@ void FWindowGLFW::Create(const FWindowConfiguration &windowConfiguration)
   glfwSetCursorPosCallback(m_pWindow.get(), CursorPosCallback);
   glfwSetMouseButtonCallback(m_pWindow.get(), MouseButtonCallback);
   glfwSetKeyCallback(m_pWindow.get(), KeyboardButtonCallback);
+  glfwSetInputMode(m_pWindow.get(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
   UpdateState();
 
@@ -111,6 +113,10 @@ void FWindowGLFW::UpdateState()
 {
   glfwGetFramebufferSize(m_pWindow.get(), &m_Configuration.size.width,
                          &m_Configuration.size.height);
+
+  f32 currentFrame{ (f32)glfwGetTime() };
+  m_DeltaTime = currentFrame - m_LastFrame;
+  m_LastFrame = currentFrame;
 }
 
 

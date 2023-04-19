@@ -24,8 +24,8 @@ struct FWindowSize
 
 struct FMousePosition
 {
-  f64 posX{ 0.f };
-  f64 posY{ 0.f };
+  f64 x{ 0.f };
+  f64 y{ 0.f };
 };
 
 
@@ -46,6 +46,7 @@ struct FKeyboardButtonsPressed
   b32 num1{ UFALSE };
   b32 num2{ UFALSE };
   b32 leftShift{ UFALSE };
+  b32 leftControl{ UFALSE };
   b32 space{ UFALSE };
 };
 
@@ -79,6 +80,8 @@ public:
   [[nodiscard]] virtual b32 IsGoingToClose() const = 0;
 
   [[nodiscard]] virtual b32 IsMinimized() const = 0;
+
+  [[nodiscard]] virtual f32 GetDeltaTime() const = 0;
 
 #ifdef WIN32
   [[nodiscard]] virtual HWND GetWin32Handle() const = 0;

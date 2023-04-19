@@ -47,6 +47,15 @@ public:
         continue;
       }
 
+      f32 deltaTime = m_Window->GetDeltaTime();
+
+      m_Camera.ProcessKeyboardInput(m_Window.get(), deltaTime);
+      m_Camera.ProcessMouseMovement(m_Window.get(), deltaTime);
+      {
+        FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
+        m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+      }
+
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
@@ -175,8 +184,8 @@ private:
         .far = 10.f,
         .yaw = -90.f,
         .pitch = 0.f,
-        .movementSpeed = 2.5f,
-        .sensitivity = 1.f,
+        .movementSpeed = 5.f,
+        .sensitivity = 100.f,
         .zoom = 45.f
       };
       m_Camera.Initialize(cameraSpecification);
@@ -316,7 +325,6 @@ private:
 
   void RecordCommands()
   {
-    VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
     VkExtent3D offscreenExtent = m_OffscreenImage.GetExtent3D();
     VkImage offscreenImage = m_OffscreenImage.GetHandle();
 

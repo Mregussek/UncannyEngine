@@ -4,6 +4,9 @@
 
 
 #include "UMath/Matrix4x4.h"
+#include "UTools/Window/IWindow.h"
+#undef near
+#undef far
 
 
 namespace uncanny
@@ -24,6 +27,7 @@ struct FPerspectiveCameraSpecification
   f32 movementSpeed{ 0.f };
   f32 sensitivity{ 0.f };
   f32 zoom{ 0.f };
+  b8 constrainPitch{ UFALSE };
 };
 
 
@@ -40,6 +44,10 @@ public:
 
   void Initialize(const FPerspectiveCameraSpecification& specification);
 
+  void ProcessKeyboardInput(IWindow* pWindow, f32 deltaTime);
+
+  void ProcessMouseMovement(IWindow* pWindow, f32 deltaTime);
+
   void UpdateAspectRatio(f32 aspectRatio) { m_Specification.aspectRatio = aspectRatio; }
 
   [[nodiscard]] math::Matrix4x4f GetView() const;
@@ -53,6 +61,8 @@ private:
   FPerspectiveCameraSpecification m_Specification{};
   math::Vector3f m_Up{};
   math::Vector3f m_Right{};
+  FMousePosition m_LastMousePos{};
+  b8 m_FirstMouseMove{ UFALSE };
 
 };
 

@@ -231,6 +231,34 @@ Vector3<T> operator/(T left, Vector3<T> right) {
 }
 
 
+template<ConceptMathType T>
+Vector3<T> operator+=(Vector3<T> left, Vector3<T> right)
+{
+  return Add(left, right);
+}
+
+
+template<ConceptMathType T>
+Vector3<T> operator-=(Vector3<T> left, Vector3<T> right)
+{
+  return Subtract(left, right);
+}
+
+
+template<ConceptMathType T>
+Vector3<T> operator*=(Vector3<T> left, Vector3<T> right)
+{
+  return Multiply(left, right);
+}
+
+
+template<ConceptMathType T>
+Vector3<T> operator/=(Vector3<T> left, Vector3<T> right)
+{
+  return Divide(left, right);
+}
+
+
 }
 
 
