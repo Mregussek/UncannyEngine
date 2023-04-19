@@ -35,6 +35,9 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
   indexBuffer.Allocate(indices.size() * sizeof(u32), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   indexBuffer.FillStaged(indices.data(), sizeof(u32), indices.size(), commandPool, queue);
 
+  u32 trianglesCount = indexBuffer.GetFilledElementsCount() / 3;
+  u32 vertexMaxCount = vertexBuffer.GetFilledElementsCount();
+
   VkDeviceOrHostAddressConstKHR vertexBufferDeviceAddress{
     .deviceAddress = vertexBuffer.GetDeviceAddress()
   };
@@ -53,7 +56,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
           .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
           .vertexData = vertexBufferDeviceAddress,
           .vertexStride = vertexBuffer.GetFilledStride(),
-          .maxVertex = vertexBuffer.GetFilledElementsCount(),
+          .maxVertex = vertexMaxCount,
           .indexType = VK_INDEX_TYPE_UINT32,
           .indexData = indexBufferDeviceAddress,
           .transformData = {}
@@ -62,6 +65,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
     .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
   };
 
+  // acquire size to build acceleration structure
   VkAccelerationStructureBuildGeometryInfoKHR buildSizeGeometryInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
     .pNext = nullptr,
@@ -75,8 +79,6 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
     .ppGeometries = nullptr,
     .scratchData = {}
   };
-
-  // acquire size to build acceleration structure
   VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
     .pNext = nullptr,
@@ -84,17 +86,17 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
     .updateScratchSize = 0,
     .buildScratchSize = 0
   };
-  u32 primitiveCount = indices.size() / 3;
   vkGetAccelerationStructureBuildSizesKHR(m_Device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
-                                          &buildSizeGeometryInfo, &primitiveCount, &buildSizesInfo);
+                                          &buildSizeGeometryInfo, &trianglesCount, &buildSizesInfo);
 
-  // reserve memory to hold the acceleration structure
+  // reserve memory to hold the acceleration structure...
   VkBufferUsageFlags accelerationUsageFlags =
       VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
   m_AccelerationMemoryBuffer = m_pRenderDeviceFactory->CreateBuffer();
   m_AccelerationMemoryBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationUsageFlags,
                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
+  // create acceleration structure...
   VkAccelerationStructureCreateInfoKHR createInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
     .pNext = nullptr,
@@ -108,11 +110,23 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
   VkResult result = vkCreateAccelerationStructureKHR(m_Device, &createInfo, nullptr, &m_AccelerationStructure);
   AssertVkAndThrow(result);
 
+  // acquire device address for newly created acceleration structure
+  VkAccelerationStructureDeviceAddressInfoKHR addressInfo{
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+      .pNext = nullptr,
+      .accelerationStructure = m_AccelerationStructure
+  };
+  m_DeviceAddress = vkGetAccelerationStructureDeviceAddressKHR(m_Device, &addressInfo);
+  if (m_DeviceAddress == 0)
+  {
+    AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Invalid device address to bottom AS!");
+  }
+
   // reserve memory to build acceleration structure
-  VkBufferUsageFlags accelerationBuildUsageFlags =
+  VkBufferUsageFlags scratchUsageFlags =
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
   FBuffer scratchBuffer = m_pRenderDeviceFactory->CreateBuffer();
-  scratchBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationBuildUsageFlags,
+  scratchBuffer.Allocate(buildSizesInfo.accelerationStructureSize, scratchUsageFlags,
                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   VkDeviceOrHostAddressKHR scratchDeviceAddress{
       .deviceAddress = scratchBuffer.GetDeviceAddress()
@@ -133,7 +147,7 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
   };
 
   VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo{
-    .primitiveCount = primitiveCount,
+    .primitiveCount = trianglesCount,
     .primitiveOffset = 0,
     .firstVertex = 0,
     .transformOffset = 0
@@ -145,24 +159,8 @@ void FBottomLevelAS::Build(std::span<FVertex> vertices, std::span<u32> indices, 
   commandBuffer.BuildAccelerationStructure(&buildGeometryInfo, buildRangeInfos);
   commandBuffer.EndRecording();
 
-  FFence fence{};
-  fence.Create(m_Device, 0);
-
-  queue.Submit({}, {}, commandBuffer, {}, fence.GetHandle());
-
-  fence.WaitAndReset();
-
-  VkAccelerationStructureDeviceAddressInfoKHR addressInfo{
-    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
-    .pNext = nullptr,
-    .accelerationStructure = m_AccelerationStructure
-  };
-  m_DeviceAddress = vkGetAccelerationStructureDeviceAddressKHR(m_Device, &addressInfo);
-
-  if (m_DeviceAddress == 0)
-  {
-    AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Invalid device address to bottom AS!");
-  }
+  queue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);
+  queue.WaitIdle();
 }
 
 

@@ -66,7 +66,7 @@ void FPerspectiveCamera::ProcessKeyboardInput(IWindow* pWindow, uncanny::f32 del
 
 void FPerspectiveCamera::ProcessMouseMovement(IWindow* pWindow, f32 deltaTime)
 {
-  if (not pWindow->GetKeyboardButtonsPressed().leftControl)
+  if (not pWindow->GetMouseButtonsPressed().right)
   {
     m_FirstMouseMove = UTRUE;
     return;

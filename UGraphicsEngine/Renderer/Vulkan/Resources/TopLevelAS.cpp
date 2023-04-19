@@ -61,6 +61,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
     .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
   };
 
+  // acquire size to build acceleration structure
   VkAccelerationStructureBuildGeometryInfoKHR buildSizeGeometryInfo{
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
       .pNext = nullptr,
@@ -75,7 +76,6 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
       .scratchData = {}
   };
 
-  // acquire size to build acceleration structure
   VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo{
     .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
     .pNext = nullptr,
@@ -94,6 +94,7 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
   m_AccelerationMemoryBuffer.Allocate(buildSizesInfo.accelerationStructureSize, accelerationUsageFlags,
                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
+  // create acceleration structure...
   VkAccelerationStructureCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
       .pNext = nullptr,
@@ -106,6 +107,18 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
   };
   VkResult result = vkCreateAccelerationStructureKHR(m_Device, &createInfo, nullptr, &m_AccelerationStructure);
   AssertVkAndThrow(result);
+
+  // acquire device address for newly created acceleration structure
+  VkAccelerationStructureDeviceAddressInfoKHR addressInfo{
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+      .pNext = nullptr,
+      .accelerationStructure = m_AccelerationStructure
+  };
+  m_DeviceAddress = vkGetAccelerationStructureDeviceAddressKHR(m_Device, &addressInfo);
+  if (m_DeviceAddress == 0)
+  {
+    AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Invalid device address to bottom AS!");
+  }
 
   // reserve memory to build acceleration structure
   VkBufferUsageFlags scratchUsageFlags =
@@ -146,18 +159,6 @@ void FTopLevelAS::Build(const FBottomLevelAS& bottomLevelAS, const FCommandPool&
 
   queue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);
   queue.WaitIdle();
-
-  VkAccelerationStructureDeviceAddressInfoKHR addressInfo{
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
-      .pNext = nullptr,
-      .accelerationStructure = m_AccelerationStructure
-  };
-  m_DeviceAddress = vkGetAccelerationStructureDeviceAddressKHR(m_Device, &addressInfo);
-
-  if (m_DeviceAddress == 0)
-  {
-    AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Invalid device address to bottom AS!");
-  }
 }
 
 
