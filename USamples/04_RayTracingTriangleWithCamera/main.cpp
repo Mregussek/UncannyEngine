@@ -1,8 +1,13 @@
 
-#include <UTools/Logger/Log.h>
-#include <UTools/Window/WindowGLFW.h>
-#include <UTools/Filesystem/Path.h>
-#include <UTools/Filesystem/File.h>
+#include "UTools/Logger/Log.h"
+#include "UTools/Window/WindowGLFW.h"
+#include "UTools/Filesystem/Path.h"
+#include "UTools/Filesystem/File.h"
+#include "UTools/Assets/AssetRegistry.h"
+#include "UTools/Assets/MeshAsset.h"
+#include "UTools/Assets/AssetLoader.h"
+#include "UTools/EntityComponentSystem/EntityRegistry.h"
+#include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/GlslShaderCompiler.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/Swapchain.h"
@@ -40,6 +45,15 @@ public:
       if (m_Window->IsMinimized())
       {
         continue;
+      }
+
+      f32 deltaTime = m_Window->GetDeltaTime();
+
+      m_Camera.ProcessKeyboardInput(m_Window.get(), deltaTime);
+      m_Camera.ProcessMouseMovement(m_Window.get(), deltaTime);
+      {
+        FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
+        m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
       }
 
       m_Swapchain.WaitForNextImage();
@@ -98,6 +112,7 @@ private:
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
+    // Initialing renderer...
     vulkan::FRenderContextAttributes renderContextAttributes{
         .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
         .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
@@ -132,21 +147,31 @@ private:
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
 
+    // Creating acceleration structures...
+    FRenderMesh triangleMesh = FRenderMeshFactory::CreateTriangle();
+
+    m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
+    m_BottomLevelAS.Build(triangleMesh.vertices, triangleMesh.indices, m_CommandPool,
+                          pLogicalDevice->GetGraphicsQueue());
+
+    m_TopLevelAS = deviceFactory.CreateTopLevelAS();
+    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+
     // Creating camera...
     {
       FPerspectiveCameraSpecification cameraSpecification{
-        .position = { 1.f, -0.5f, 4.f },
-        .front = { 0.f, 0.f, 0.f },
-        .worldUp = { 0.f, 1.f, 0.f },
-        .fieldOfView = 45.f,
-        .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
-        .near = 0.1f,
-        .far = 10.f,
-        .yaw = -90.f,
-        .pitch = 0.f,
-        .movementSpeed = 2.5f,
-        .sensitivity = 1.f,
-        .zoom = 45.f
+          .position = { 1.f, -0.5f, 4.f },
+          .front = { 0.f, 0.f, 0.f },
+          .worldUp = { 0.f, 1.f, 0.f },
+          .fieldOfView = 45.f,
+          .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
+          .near = 0.1f,
+          .far = 10.f,
+          .yaw = -90.f,
+          .pitch = 0.f,
+          .movementSpeed = 5.f,
+          .sensitivity = 100.f,
+          .zoom = 45.f
       };
       m_Camera.Initialize(cameraSpecification);
     }
@@ -160,17 +185,7 @@ private:
       m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
 
-    // Creating acceleration structures...
-    FRenderMesh triangleMesh = FRenderMeshFactory::CreateTriangle();
-
-    m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(triangleMesh.vertices, triangleMesh.indices, m_CommandPool,
-                          pLogicalDevice->GetGraphicsQueue());
-
-    m_TopLevelAS = deviceFactory.CreateTopLevelAS();
-    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
-
-    // Creating render target images...
+    // Creating off screen buffer...
     m_OffscreenImage = deviceFactory.CreateImage();
     {
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
@@ -284,12 +299,12 @@ private:
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
+
     m_Window->Destroy();
   }
 
   void RecordCommands()
   {
-    VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
     VkExtent3D offscreenExtent = m_OffscreenImage.GetExtent3D();
     VkImage offscreenImage = m_OffscreenImage.GetHandle();
 
@@ -364,6 +379,7 @@ private:
 
 
 int main() {
+  //return 0;
   Application app{};
   app.Run();
 
