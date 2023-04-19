@@ -18,7 +18,7 @@ public:
   FBottomLevelAccelerationStructure() = default;
   FBottomLevelAccelerationStructure(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
 
-  void Build(std::span<FVertex> vertices, std::span<u32> indices, const FCommandPool& commandPool,
+  void Build(std::span<FRenderVertex> vertices, std::span<u32> indices, const FCommandPool& commandPool,
              const FQueue& queue);
 
 };

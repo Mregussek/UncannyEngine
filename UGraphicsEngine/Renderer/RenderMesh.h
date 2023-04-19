@@ -12,7 +12,7 @@ namespace uncanny
 {
 
 
-struct FVertex
+struct FRenderVertex
 {
   math::Vector3f position{};
 };
@@ -20,7 +20,7 @@ struct FVertex
 
 struct FRenderMesh
 {
-  std::vector<FVertex> vertices{};
+  std::vector<FRenderVertex> vertices{};
   std::vector<u32> indices{};
 };
 

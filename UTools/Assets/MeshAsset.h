@@ -12,9 +12,15 @@ namespace uncanny
 {
 
 
-struct FSubmeshAsset
+struct FVertex
 {
-  std::vector<math::Vector3f> positions{};
+  math::Vector3f position{};
+};
+
+
+struct FMeshAssetData
+{
+  std::vector<FVertex> vertices{};
   std::vector<u32> indices{};
 };
 
@@ -26,15 +32,14 @@ public:
   FMeshAsset() = delete;
   explicit FMeshAsset(u64 id);
 
-  FSubmeshAsset& AppendSubmesh();
-
-  [[nodiscard]] const std::vector<FSubmeshAsset>& GetSubmeshes() const { return m_Submeshes; }
+  [[nodiscard]] const std::vector<FMeshAssetData>& GetData() const { return m_Data; }
+  [[nodiscard]] std::vector<FMeshAssetData>* GetDataPtr() { return &m_Data; }
 
   [[nodiscard]] u64 ID() const { return m_ID; }
 
 private:
 
-  std::vector<FSubmeshAsset> m_Submeshes{};
+  std::vector<FMeshAssetData> m_Data{};
   u64 m_ID{ UUNUSED };
 
 };

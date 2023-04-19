@@ -14,7 +14,7 @@ FBottomLevelAccelerationStructure::FBottomLevelAccelerationStructure(
 }
 
 
-void FBottomLevelAccelerationStructure::Build(std::span<FVertex> vertices, std::span<u32> indices,
+void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices, std::span<u32> indices,
                                               const FCommandPool& commandPool, const FQueue& queue)
 {
   VkBufferUsageFlags bufferUsageFlags =
@@ -24,8 +24,8 @@ void FBottomLevelAccelerationStructure::Build(std::span<FVertex> vertices, std::
   FBuffer vertexBuffer(m_pPhysicalDeviceAttributes, m_Device);
   FBuffer indexBuffer(m_pPhysicalDeviceAttributes, m_Device);
 
-  vertexBuffer.Allocate(vertices.size() * sizeof(FVertex), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  vertexBuffer.FillStaged(vertices.data(), sizeof(FVertex), vertices.size(), commandPool, queue);
+  vertexBuffer.Allocate(vertices.size() * sizeof(FRenderVertex), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  vertexBuffer.FillStaged(vertices.data(), sizeof(FRenderVertex), vertices.size(), commandPool, queue);
 
   indexBuffer.Allocate(indices.size() * sizeof(u32), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   indexBuffer.FillStaged(indices.data(), sizeof(u32), indices.size(), commandPool, queue);

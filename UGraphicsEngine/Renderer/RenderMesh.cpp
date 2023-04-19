@@ -26,23 +26,23 @@ FRenderMesh FRenderMeshFactory::ConvertAsset(const FMeshAsset* pMeshAsset)
 
   u32 verticesReserveCount = 0;
   u32 indicesReserveCount = 0;
-  for (const FSubmeshAsset& submesh : pMeshAsset->GetSubmeshes())
+  for (const FMeshAssetData& data : pMeshAsset->GetData())
   {
-    verticesReserveCount += submesh.positions.size();
-    indicesReserveCount += submesh.indices.size();
+    verticesReserveCount += data.vertices.size();
+    indicesReserveCount += data.indices.size();
   }
   rtn.vertices.reserve(verticesReserveCount);
   rtn.indices.reserve(indicesReserveCount);
 
-  for (const FSubmeshAsset& submesh : pMeshAsset->GetSubmeshes())
+  for (const FMeshAssetData& data : pMeshAsset->GetData())
   {
-    for (math::Vector3f pos : submesh.positions)
+    for (const FVertex& vertex : data.vertices)
     {
-      rtn.vertices.push_back({ .position = pos });
+      rtn.vertices.push_back({ .position = vertex.position });
     }
 
     u32 indicesSize = rtn.indices.size();
-    for (u32 ind : submesh.indices)
+    for (u32 ind : data.indices)
     {
       rtn.indices.push_back(indicesSize + ind);
     }
