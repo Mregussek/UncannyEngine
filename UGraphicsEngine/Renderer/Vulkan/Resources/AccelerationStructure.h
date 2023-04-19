@@ -49,6 +49,7 @@ private:
   VkAccelerationStructureKHR m_AccelerationStructure{ VK_NULL_HANDLE };
   u64 m_DeviceAddress{ UUNUSED };
   VkDeviceSize m_Size{ UUNUSED };
+  VkDeviceSize m_ScratchSize{ UUNUSED };
 
 };
 

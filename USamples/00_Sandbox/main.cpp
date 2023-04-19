@@ -146,7 +146,7 @@ private:
     {
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
 
-      FPath cubeMeshPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "cube", "cube.obj" });
+      FPath cubeMeshPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "bunny", "bunny.obj" });
       FAssetLoader::LoadOBJ(cubeMeshPath.GetString().c_str(), &meshAsset);
 
       m_EntityRegistry.Create();

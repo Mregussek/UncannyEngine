@@ -11,7 +11,7 @@ namespace uncanny::vulkan
 {
 
 
-class FBottomLevelAccelerationStructure : public FAccelerationStructure
+class FBottomLevelAccelerationStructure final : public FAccelerationStructure
 {
 public:
 

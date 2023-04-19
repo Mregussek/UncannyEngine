@@ -10,7 +10,7 @@ namespace uncanny::vulkan
 {
 
 
-class FTopLevelAccelerationStructure : public FAccelerationStructure
+class FTopLevelAccelerationStructure final : public FAccelerationStructure
 {
 public:
 

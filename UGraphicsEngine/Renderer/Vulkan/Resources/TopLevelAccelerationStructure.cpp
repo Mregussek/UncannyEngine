@@ -31,18 +31,19 @@ void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructu
       .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
       .accelerationStructureReference = bottomLevelAS.GetDeviceAddress()
   };
+  u32 instancesCount = 1;
 
   FBuffer instanceBuffer(m_pPhysicalDeviceAttributes, m_Device);
   VkBufferUsageFlags usageFlags =
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
-  instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR), usageFlags,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-  instanceBuffer.Fill(&instance, sizeof(VkAccelerationStructureInstanceKHR), 1);
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
+      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR) * instancesCount, usageFlags,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  instanceBuffer.FillStaged(&instance, sizeof(VkAccelerationStructureInstanceKHR), instancesCount, commandPool, queue);
   VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{
       .deviceAddress = instanceBuffer.GetDeviceAddress()
   };
-
-  u32 instancesCount = instanceBuffer.GetFilledElementsCount();
 
   VkAccelerationStructureGeometryKHR geometryInfo{
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,

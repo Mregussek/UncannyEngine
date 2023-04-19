@@ -2,7 +2,6 @@
 #include "AccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
-#include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceFactory.h"
 
 
 namespace uncanny::vulkan
@@ -34,6 +33,7 @@ void FAccelerationStructure::AcquireSizeForBuild(VkAccelerationStructureTypeKHR 
   vkGetAccelerationStructureBuildSizesKHR(m_Device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                                           &buildSizeGeometryInfo, &trianglesCount, &buildSizesInfo);
   m_Size = buildSizesInfo.accelerationStructureSize;
+  m_ScratchSize = buildSizesInfo.buildScratchSize;
 }
 
 
@@ -75,7 +75,7 @@ void FAccelerationStructure::Build(VkAccelerationStructureTypeKHR type,
                                    u32 primitiveCount, const FCommandPool& commandPool, const FQueue& queue)
 {
   FBuffer scratchBuffer(m_pPhysicalDeviceAttributes, m_Device);
-  scratchBuffer.Allocate(m_Size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+  scratchBuffer.Allocate(m_ScratchSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   VkDeviceOrHostAddressKHR scratchDeviceAddress{
       .deviceAddress = scratchBuffer.GetDeviceAddress()
@@ -115,6 +115,8 @@ void FAccelerationStructure::Build(VkAccelerationStructureTypeKHR type,
 
   queue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);
   queue.WaitIdle();
+
+  vkDeviceWaitIdle(m_Device);
 }
 
 
