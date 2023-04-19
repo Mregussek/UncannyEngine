@@ -17,11 +17,11 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
   m_VolkHandler.Initialize();
 
   {
-    vulkan::FInstanceAttributes instanceAttributes{};
+    FInstanceAttributes instanceAttributes{};
     instanceAttributes.Initialize();
     if (!instanceAttributes.IsVersionAvailable(attributes.apiVersion))
     {
-      vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
+      AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
     }
     std::ranges::for_each(attributes.instanceLayers, [&instanceAttributes](const char* name)
     {
@@ -43,12 +43,12 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
 
   {
     auto availablePhysicalDevices = m_Instance.QueryAvailablePhysicalDevices();
-    VkPhysicalDevice selectedPhysicalDevice = vulkan::FPhysicalDeviceSelector::Select(availablePhysicalDevices);
+    VkPhysicalDevice selectedPhysicalDevice = FPhysicalDeviceSelector::Select(availablePhysicalDevices);
     m_PhysicalDevice.Initialize(selectedPhysicalDevice);
   }
 
   {
-    vulkan::FLogicalDeviceAttributes logicalDeviceAttributes{};
+    FLogicalDeviceAttributes logicalDeviceAttributes{};
     logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
                                                          m_Instance.GetHandle(),
                                                          m_PhysicalDevice.GetHandle());
@@ -64,7 +64,7 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
   m_WindowSurface.Create(pWindow.get(), m_Instance.GetHandle(), m_PhysicalDevice.GetHandle());
   if (!m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentFamilyIndex()))
   {
-    vulkan::AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
+    AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
   }
 
   m_DeviceFactory.Initialize(&m_Instance.GetAttributes(), &(GetPhysicalDevice()->GetAttributes()), GetLogicalDevice());

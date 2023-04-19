@@ -33,7 +33,9 @@ struct FRenderContextAttributes
 /// @brief FRenderContext is a class describing the most important parts for initialization of Vulkan API
 /// in the engine.
 /// @details It creates Instance, chooses physical device, creates logical device and windows surface.
-/// Also it is responsible for their destruction.
+/// Also it is responsible for their destruction. FLogicalDevice class is a owner of every graphics
+/// queue family and actual VkQueue objects so they are a also available.
+/// All contents related to this class are stored in Context directory.
 class FRenderContext
 {
 public:
