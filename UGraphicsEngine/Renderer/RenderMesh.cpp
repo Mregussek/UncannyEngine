@@ -1,6 +1,7 @@
 
 #include "RenderMesh.h"
 #include "UTools/Assets/MeshAsset.h"
+#include <algorithm>
 
 
 namespace uncanny
@@ -41,10 +42,11 @@ FRenderMesh FRenderMeshFactory::ConvertAsset(const FMeshAsset* pMeshAsset)
       rtn.vertices.push_back({ .position = vertex.position });
     }
 
-    u32 indicesSize = rtn.indices.size();
+    auto it = std::max_element(std::begin(rtn.indices), std::end(rtn.indices));
+    u32 maxElem = it != rtn.indices.end() ? *it + 1 : 0;
     for (u32 ind : data.indices)
     {
-      rtn.indices.push_back(indicesSize + ind);
+      rtn.indices.push_back(maxElem + ind);
     }
   }
   return rtn;

@@ -146,9 +146,12 @@ private:
     {
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
 
-      FPath cubeMeshPath = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "teapot",
-                                                                          "teapot.obj" });
-      FAssetLoader::LoadOBJ(cubeMeshPath.GetString().c_str(), &meshAsset);
+      FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "sponza", "sponza.obj" });
+      FPath teapot = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "teapot", "teapot.obj" });
+      FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "bunny", "bunny.obj" });
+      FPath deagle = FPath::Append(FPath::GetEngineProjectPath(), { "resources", "other", "deagle.obj" });
+      FPath buildings = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "other", "low_poly_buildings.obj" });
+      FAssetLoader::LoadOBJ(sponza.GetString().c_str(), &meshAsset);
 
       m_EntityRegistry.Create();
       m_Entity = m_EntityRegistry.Register();
