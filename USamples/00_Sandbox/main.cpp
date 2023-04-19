@@ -15,8 +15,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/AccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
@@ -117,16 +116,12 @@ private:
         .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
         .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
                                VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-                               VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
                                VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
         .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                               VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
                               VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-                              VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
                               VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-                              VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-                              VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-                              VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME },
+                              VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME },
         .apiVersion = VK_API_VERSION_1_3
     };
 
@@ -386,8 +381,8 @@ private:
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
   vulkan::FImage m_OffscreenImage{};
-  vulkan::FBottomLevelAS m_BottomLevelAS{};
-  vulkan::FTopLevelAS m_TopLevelAS{};
+  vulkan::FBottomLevelAccelerationStructure m_BottomLevelAS{};
+  vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
   vulkan::FDescriptorPool m_DescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};

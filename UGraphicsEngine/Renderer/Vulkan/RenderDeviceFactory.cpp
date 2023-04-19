@@ -16,15 +16,15 @@ FBuffer FRenderDeviceFactory::CreateBuffer() const
 }
 
 
-FBottomLevelAS FRenderDeviceFactory::CreateBottomLevelAS() const
+FBottomLevelAccelerationStructure FRenderDeviceFactory::CreateBottomLevelAS() const
 {
-  return FBottomLevelAS{ this,  m_pLogicalDevice->GetHandle() };
+  return FBottomLevelAccelerationStructure{ m_pLogicalDevice->GetHandle(), m_pPhysicalDeviceAttributes };
 }
 
 
-FTopLevelAS FRenderDeviceFactory::CreateTopLevelAS() const
+FTopLevelAccelerationStructure FRenderDeviceFactory::CreateTopLevelAS() const
 {
-  return FTopLevelAS{ this,  m_pLogicalDevice->GetHandle() };
+  return FTopLevelAccelerationStructure{ m_pLogicalDevice->GetHandle(), m_pPhysicalDeviceAttributes };
 }
 
 

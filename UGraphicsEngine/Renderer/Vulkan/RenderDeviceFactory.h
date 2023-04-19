@@ -6,8 +6,8 @@
 #include <volk.h>
 #include "Descriptors/DescriptorSetLayout.h"
 #include "Descriptors/DescriptorPool.h"
-#include "Resources/BottomLevelAS.h"
-#include "Resources/TopLevelAS.h"
+#include "Resources/TopLevelAccelerationStructure.h"
+#include "Resources/BottomLevelAccelerationStructure.h"
 #include "Resources/Buffer.h"
 #include "Resources/Image.h"
 #include "Device/GlslShaderCompiler.h"
@@ -34,9 +34,9 @@ public:
 
   [[nodiscard]] FBuffer CreateBuffer() const;
 
-  [[nodiscard]] FBottomLevelAS CreateBottomLevelAS() const;
+  [[nodiscard]] FBottomLevelAccelerationStructure CreateBottomLevelAS() const;
 
-  [[nodiscard]] FTopLevelAS CreateTopLevelAS() const;
+  [[nodiscard]] FTopLevelAccelerationStructure CreateTopLevelAS() const;
 
   [[nodiscard]] FImage CreateImage() const;
 

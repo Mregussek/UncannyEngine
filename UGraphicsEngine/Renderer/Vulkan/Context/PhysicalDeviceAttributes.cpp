@@ -27,7 +27,7 @@ void FPhysicalDeviceAttributes::Initialize(VkPhysicalDevice vkPhysicalDevice)
   vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, m_QueueFamilyProperties.data());
 
   vkGetPhysicalDeviceFeatures(m_PhysicalDevice, &m_Features);
-  vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
+
 }
 
 
@@ -43,6 +43,14 @@ b8 FPhysicalDeviceAttributes::IsExtensionPresent(const char* extensionName) cons
   }
 
   return UTRUE;
+}
+
+
+VkPhysicalDeviceMemoryProperties FPhysicalDeviceAttributes::GetMemoryProperties() const
+{
+  VkPhysicalDeviceMemoryProperties properties{};
+  vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &properties);
+  return properties;
 }
 
 

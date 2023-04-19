@@ -23,14 +23,14 @@ FBuffer::~FBuffer()
 
 void FBuffer::Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags)
 {
-  m_MemoryFlags = memoryFlags;
-  m_MemorySize = memorySize;
+  m_MemoryPropertyFlags = memoryFlags;
+  m_AllocatedMemorySize = memorySize;
 
   VkBufferCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .size = m_MemorySize,
+    .size = m_AllocatedMemorySize,
     .usage = usage,
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     .queueFamilyIndexCount = 0,
@@ -49,8 +49,8 @@ void FBuffer::Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemo
     useDeviceAddress = UTRUE;
   }
 
-  m_Memory.Allocate(m_Device, m_pPhysicalDeviceAttributes->GetMemoryProperties(), memoryRequirements, m_MemoryFlags,
-                    useDeviceAddress);
+  m_Memory.Allocate(m_Device, m_pPhysicalDeviceAttributes->GetMemoryProperties(), memoryRequirements,
+                    m_MemoryPropertyFlags, useDeviceAddress);
 
   constexpr VkDeviceSize memoryOffset{ 0 };
   vkBindBufferMemory(m_Device, m_Buffer, m_Memory.GetHandle(), memoryOffset);
@@ -62,7 +62,7 @@ void FBuffer::Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemo
         .pNext = nullptr,
         .buffer = m_Buffer
     };
-    m_Address = vkGetBufferDeviceAddressKHR(m_Device, &addressInfo);
+    m_DeviceAddress = vkGetBufferDeviceAddressKHR(m_Device, &addressInfo);
   }
 }
 
@@ -92,8 +92,22 @@ void FBuffer::Fill(void* pData, u32 elementSizeof, u32 elementsCount)
   VkMemoryMapFlags flags{ 0 };
   void* pMapPtr{ nullptr };
 
-  vkMapMemory(m_Device, m_Memory.GetHandle(), offset, m_MemorySize, flags, &pMapPtr);
+  vkMapMemory(m_Device, m_Memory.GetHandle(), offset, m_AllocatedMemorySize, flags, &pMapPtr);
   memcpy(pMapPtr, pData, m_ElementsSizeInBytes);
+
+  if ((m_MemoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
+  {
+    VkMappedMemoryRange mappedRange{
+        .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+        .pNext = nullptr,
+        .memory = m_Memory.GetHandle(),
+        .offset = offset,
+        .size = m_AllocatedMemorySize,
+    };
+    VkResult result = vkFlushMappedMemoryRanges(m_Device, 1, &mappedRange);
+    AssertVkAndThrow(result);
+  }
+
   vkUnmapMemory(m_Device, m_Memory.GetHandle());
 }
 

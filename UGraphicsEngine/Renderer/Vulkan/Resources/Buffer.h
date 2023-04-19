@@ -28,6 +28,7 @@ class FBuffer
 public:
 
   FBuffer() = default;
+  FBuffer(const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, VkDevice vkDevice);
   ~FBuffer();
 
   void Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags);
@@ -38,26 +39,23 @@ public:
                   const FQueue& transferQueue);
 
   [[nodiscard]] VkBuffer GetHandle() const { return m_Buffer; }
-  [[nodiscard]] u64 GetDeviceAddress() const { return m_Address; }
+  [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
   [[nodiscard]] u32 GetFilledStride() const { return m_Stride; }
   [[nodiscard]] u32 GetFilledElementsCount() const { return m_ElementsCount; }
   [[nodiscard]] u32 GetFilledElementsSizeInBytes() const { return m_ElementsSizeInBytes; }
 
 private:
 
-  FBuffer(const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, VkDevice vkDevice);
-
-
   FMemory m_Memory{};
   const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
   VkDevice m_Device{ VK_NULL_HANDLE };
   VkBuffer m_Buffer{ VK_NULL_HANDLE };
-  VkDeviceSize m_MemorySize{ 0 };
-  u64 m_Address{ UUNUSED };
+  VkDeviceSize m_AllocatedMemorySize{ 0 };
+  u64 m_DeviceAddress{ UUNUSED };
   u32 m_Stride{ UUNUSED };
   u32 m_ElementsCount{ UUNUSED };
   u64 m_ElementsSizeInBytes{ UUNUSED };
-  VkMemoryPropertyFlags m_MemoryFlags{ 0 };
+  VkMemoryPropertyFlags m_MemoryPropertyFlags{ 0 };
   b8 m_Freed{ UFALSE };
 
 };

@@ -6,6 +6,7 @@
 #include <volk.h>
 #include <vector>
 #include "UTools/UTypes.h"
+#undef MemoryBarrier
 
 
 namespace uncanny::vulkan
@@ -30,6 +31,8 @@ public:
   void BeginOneTimeRecording();
   void EndRecording();
 
+  void MemoryBarrier(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage,
+                     VkPipelineStageFlags dstStage);
   void ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, VkAccessFlags dstFlags, VkImageLayout oldLayout,
                           VkImageLayout newLayout, VkImageSubresourceRange subresourceRange,
                           VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);

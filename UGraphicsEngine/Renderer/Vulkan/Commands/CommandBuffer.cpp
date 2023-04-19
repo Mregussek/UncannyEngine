@@ -3,6 +3,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UTools/Logger/Log.h"
+#undef MemoryBarrier
 
 
 namespace uncanny::vulkan
@@ -86,6 +87,23 @@ void FCommandBuffer::EndRecording()
   VkResult result = vkEndCommandBuffer(m_CommandBuffer);
   AssertVkAndThrow(result);
   m_Recording = UFALSE;
+}
+
+
+void FCommandBuffer::MemoryBarrier(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage,
+                                   VkPipelineStageFlags dstStage)
+{
+  VkMemoryBarrier memoryBarrier{
+    .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+    .pNext = nullptr,
+    .srcAccessMask = srcAccess,
+    .dstAccessMask = dstAccess
+  };
+
+  vkCmdPipelineBarrier(m_CommandBuffer, srcStage, dstStage, VkDependencyFlags{ 0 },
+                       1, &memoryBarrier,  0, nullptr, 0, nullptr);
+
+  m_LastWaitStageFlag = dstStage;
 }
 
 

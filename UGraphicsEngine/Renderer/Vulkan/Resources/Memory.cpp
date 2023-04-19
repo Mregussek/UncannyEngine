@@ -15,7 +15,7 @@ struct FMemoryTypeIndexResult
 };
 
 
-static FMemoryTypeIndexResult FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties properties, u32 typeFilter,
+static FMemoryTypeIndexResult FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties properties, u32 typeBits,
                                                   VkMemoryPropertyFlags flags);
 
 
@@ -64,16 +64,22 @@ void FMemory::Free()
 }
 
 
-FMemoryTypeIndexResult FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties properties, u32 typeFilter,
+FMemoryTypeIndexResult FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties memoryProperties, u32 typeBits,
                                            VkMemoryPropertyFlags flags)
 {
-  for (u32 i = 0; i < properties.memoryTypeCount; i++) {
-    // Check each memory type to see if its bit is set to 1.
-    if (typeFilter & (1 << i) && (properties.memoryTypes[i].propertyFlags & flags) == flags) {
-      return { .index = i, .found = UTRUE };
+  for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+  {
+    if ((typeBits & 1) == 1)
+    {
+      if ((memoryProperties.memoryTypes[i].propertyFlags & flags) == flags)
+      {
+        return FMemoryTypeIndexResult{ i, UTRUE };
+      }
     }
+    typeBits >>= 1;
   }
-  return { .index = UUNUSED, .found = UFALSE };
+
+  return FMemoryTypeIndexResult{ UUNUSED, UFALSE };
 }
 
 
