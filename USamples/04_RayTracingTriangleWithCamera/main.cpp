@@ -3,10 +3,7 @@
 #include "UTools/Window/WindowGLFW.h"
 #include "UTools/Filesystem/Path.h"
 #include "UTools/Filesystem/File.h"
-#include "UTools/Assets/AssetRegistry.h"
 #include "UTools/Assets/MeshAsset.h"
-#include "UTools/Assets/AssetLoader.h"
-#include "UTools/EntityComponentSystem/EntityRegistry.h"
 #include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/GlslShaderCompiler.h"
@@ -15,8 +12,8 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAccelerationStructure.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
@@ -238,7 +235,7 @@ private:
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[2].binding;
       m_DescriptorPool.WriteUniformBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
-                                                         m_CameraUniformBuffer.GetStride(), dstBinding);
+                                                         m_CameraUniformBuffer.GetFilledStride(), dstBinding);
     }
 
     // Creating pipeline...
@@ -366,8 +363,8 @@ private:
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
   vulkan::FImage m_OffscreenImage{};
-  vulkan::FBottomLevelAS m_BottomLevelAS{};
-  vulkan::FTopLevelAS m_TopLevelAS{};
+  vulkan::FBottomLevelAccelerationStructure m_BottomLevelAS{};
+  vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
   vulkan::FDescriptorPool m_DescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};

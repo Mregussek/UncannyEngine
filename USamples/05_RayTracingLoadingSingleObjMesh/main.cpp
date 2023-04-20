@@ -145,7 +145,7 @@ private:
     // Initializing ECS...
     m_EntityRegistry.Create();
     {
-      FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
+      FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
       FMeshAsset &sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
       sponzaMeshAsset.LoadObj(sponza.GetString().c_str());
 

@@ -10,8 +10,8 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAS.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAS.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAccelerationStructure.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
@@ -297,8 +297,8 @@ private:
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
   vulkan::FImage m_OffscreenImage{};
-  vulkan::FBottomLevelAS m_BottomLevelAS{};
-  vulkan::FTopLevelAS m_TopLevelAS{};
+  vulkan::FBottomLevelAccelerationStructure m_BottomLevelAS{};
+  vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
   vulkan::FDescriptorPool m_DescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
