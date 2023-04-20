@@ -18,7 +18,3 @@ target_compile_features(02_CopyRenderTargetImageIntoSwapchainImage
         PUBLIC
         cxx_std_20
         )
-target_compile_options(02_CopyRenderTargetImageIntoSwapchainImage
-        PRIVATE
-        /NODEFAULTLIB
-        )

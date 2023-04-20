@@ -5,3 +5,4 @@ build
 build-test
 cmake-build-debug
 clion-build
+cmake-gui-build

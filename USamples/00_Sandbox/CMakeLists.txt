@@ -18,7 +18,3 @@ target_compile_features(00_Sandbox
         PUBLIC
         cxx_std_20
         )
-target_compile_options(00_Sandbox
-        PRIVATE
-        /NODEFAULTLIB
-        )

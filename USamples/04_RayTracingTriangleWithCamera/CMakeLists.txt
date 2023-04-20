@@ -18,7 +18,3 @@ target_compile_features(04_RayTracingTriangleWithCamera
         PUBLIC
         cxx_std_20
         )
-target_compile_options(04_RayTracingTriangleWithCamera
-        PRIVATE
-        /NODEFAULTLIB
-        )

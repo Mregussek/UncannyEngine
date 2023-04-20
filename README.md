@@ -3,8 +3,35 @@
 
 Educational Vulkan-based 3D engine.
 
-Models downloaded from Morgan McGuire's [Computer Graphics Archive](https://casual-effects.com/data)
+### Samples
 
-## Author
+In USamples directory you can find all sample projects that are using UncannyEngine.
+Every sample project name that I have created starts from xx number, for example: *06_RayTracingInSeveralBLASes*
 
-Mateusz Rzeczyca
+Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://casual-effects.com/data)
+
+### Current state
+
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/06_RayTracingInSeveralBLASes.png">
+</p>
+
+## Build
+
+I am using CMake as a build system and MSVC as a compiler. Please use **Visual Studio 16 2019**! 
+
+In order to build it you should use CMakeGUI and select project directory. In project directory please create
+some build directory and mark it in GUI as follows.
+
+<p align="center">
+  <img style="width: 40vw; min-width: 330px;" src="Media/cmake-build-config.png">
+</p>
+
+Next you can choose proper startup project, every sample project that I have created starts from xx number, for
+example: *06_RayTracingInSeveralBLASes*
+
+<p align="center">
+  <img style="width: 1vw; min-width: 330px;" src="Media/startup-project-selection.png">
+</p>
+
+Afterwards you can build project and you should running project :)

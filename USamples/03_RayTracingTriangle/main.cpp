@@ -83,7 +83,7 @@ private:
           .width = 1600,
           .height = 900
       },
-      .name = "UncannyEngine"
+      .name = "UncannyEngine Sample 03 RayTracingTriangle"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);

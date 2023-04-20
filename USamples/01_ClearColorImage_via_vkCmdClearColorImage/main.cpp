@@ -71,7 +71,7 @@ private:
             .width = 1600,
             .height = 900
         },
-        .name = "UncannyEngine"
+        .name = "UncannyEngine Sample 01 ClearColorImage_via_vkCmdClearColorImage"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);

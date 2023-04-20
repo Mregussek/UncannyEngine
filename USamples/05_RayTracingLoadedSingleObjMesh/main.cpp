@@ -3,7 +3,10 @@
 #include "UTools/Window/WindowGLFW.h"
 #include "UTools/Filesystem/Path.h"
 #include "UTools/Filesystem/File.h"
+#include "UTools/Assets/AssetRegistry.h"
 #include "UTools/Assets/MeshAsset.h"
+#include "UTools/Assets/AssetLoader.h"
+#include "UTools/EntityComponentSystem/EntityRegistry.h"
 #include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/GlslShaderCompiler.h"
@@ -12,8 +15,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAccelerationStructure.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAccelerationStructure.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/AccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
@@ -104,7 +106,7 @@ private:
             .width = 1600,
             .height = 900
         },
-        .name = "UncannyEngine Sample 04 RayTracingTriangleWithCamera"
+        .name = "UncannyEngine Sample 05 RayTracingLoadedSingleObjMesh"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
@@ -114,16 +116,12 @@ private:
         .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
         .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
                                VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-                               VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
                                VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
         .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                               VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
                               VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-                              VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
                               VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-                              VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-                              VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-                              VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME },
+                              VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME },
         .apiVersion = VK_API_VERSION_1_3
     };
 
@@ -144,11 +142,25 @@ private:
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
 
+    // Initializing ECS...
+    m_EntityRegistry.Create();
+    {
+      FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
+      FMeshAsset &sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
+      sponzaMeshAsset.LoadObj(sponza.GetString().c_str());
+
+      m_Entity = m_EntityRegistry.Register();
+      auto &renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
+      renderMeshComponent.id = sponzaMeshAsset.ID();
+    }
+
     // Creating acceleration structures...
-    FRenderMesh triangleMesh = FRenderMeshFactory::CreateTriangle();
+    auto& renderMeshComponent = m_Entity.Get<FRenderMeshComponent>();
+    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(renderMeshComponent.id);
+    FRenderMesh renderMesh = FRenderMeshFactory::ConvertAssetToOneRenderMesh(&meshAsset);
 
     m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(triangleMesh.vertices, triangleMesh.indices, m_CommandPool,
+    m_BottomLevelAS.Build(renderMesh.vertices, renderMesh.indices, m_CommandPool,
                           pLogicalDevice->GetGraphicsQueue());
 
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
@@ -157,18 +169,18 @@ private:
     // Creating camera...
     {
       FPerspectiveCameraSpecification cameraSpecification{
-          .position = { 1.f, -0.5f, 4.f },
-          .front = { 0.f, 0.f, 0.f },
-          .worldUp = { 0.f, 1.f, 0.f },
-          .fieldOfView = 45.f,
-          .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
-          .near = 0.1f,
-          .far = 10.f,
-          .yaw = -90.f,
-          .pitch = 0.f,
-          .movementSpeed = 5.f,
-          .sensitivity = 100.f,
-          .zoom = 45.f
+        .position = { 1.f, -0.5f, 4.f },
+        .front = { 0.f, 0.f, 0.f },
+        .worldUp = { 0.f, 1.f, 0.f },
+        .fieldOfView = 45.f,
+        .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
+        .near = 0.1f,
+        .far = 10.f,
+        .yaw = -90.f,
+        .pitch = 0.f,
+        .movementSpeed = 5.f,
+        .sensitivity = 100.f,
+        .zoom = 45.f
       };
       m_Camera.Initialize(cameraSpecification);
     }
@@ -297,6 +309,11 @@ private:
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
 
+    m_Entity.Destroy();
+    m_EntityRegistry.Destroy();
+
+    m_AssetRegistry.Clear();
+
     m_Window->Destroy();
   }
 
@@ -371,6 +388,11 @@ private:
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_CameraUniformBuffer{};
+
+  FAssetRegistry m_AssetRegistry{};
+
+  FEntityRegistry m_EntityRegistry{};
+  FEntity m_Entity{};
 
 };
 

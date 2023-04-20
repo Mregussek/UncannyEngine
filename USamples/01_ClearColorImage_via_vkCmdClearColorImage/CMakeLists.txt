@@ -18,7 +18,3 @@ target_compile_features(01_ClearColorImage_via_vkCmdClearColorImage
         PUBLIC
         cxx_std_20
         )
-target_compile_options(01_ClearColorImage_via_vkCmdClearColorImage
-        PRIVATE
-        /NODEFAULTLIB
-        )

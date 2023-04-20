@@ -88,7 +88,7 @@ private:
             .width = 1600,
             .height = 900
         },
-        .name = "UncannyEngine"
+        .name = "UncannyEngine Sample 02 CopyRenderTargetImageIntoSwapchainImage"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
@@ -123,7 +123,7 @@ private:
     std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
     {
       VkExtent2D extent = m_Swapchain.GetCurrentExtent();
-      VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
+      VkFormat format = VK_FORMAT_B8G8R8A8_UNORM;
       VkImageUsageFlags usage =
           VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;

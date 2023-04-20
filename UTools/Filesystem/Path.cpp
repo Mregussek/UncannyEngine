@@ -47,7 +47,7 @@ FPath FPath::GetExecutablePath()
   }
   else
   {
-    const char* errorCode = "No supported platform!";
+    std::string errorCode = "No supported platform!";
     UCRITICAL(errorCode);
     throw std::runtime_error(errorCode);
   }

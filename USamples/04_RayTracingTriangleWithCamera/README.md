@@ -1,6 +1,6 @@
 
-# Ray Tracing Triangle with Camera
+# 04_RayTracingTriangleWithCamera
 
-You can move using WASD keys on your keyboard.
-
-Holding right muse button you can use your mouse to look around.
+<p align="center">
+  <img width="960" height="526" src="../../Media/SamplesPictures/04_RayTracingTriangleWithCamera.png">
+</p>

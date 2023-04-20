@@ -21,38 +21,44 @@ public:
     FLogImpl::init(uncanny::FLogImpl::s_LoggerPtr);
   }
 
-  template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void trace(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
+  static void trace(TString msg, TString filename, Line line, TString functionName,
+                    Args&&... args)
   {
     FLogImpl::trace(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
-  template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void debug(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
+  static void debug(TString msg, TString filename, Line line, TString functionName,
+                    Args&&... args)
   {
     FLogImpl::debug(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
-  template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void info(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
+  static void info(TString msg, TString filename, Line line, TString functionName,
+                   Args&&... args)
   {
     FLogImpl::info(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
-  template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void warn(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
+  static void warn(TString msg, TString filename, Line line, TString functionName,
+                   Args&&... args)
   {
     FLogImpl::warn(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
-  template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void error(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
+  static void error(TString msg, TString filename, Line line, TString functionName,
+                    Args&&... args)
   {
     FLogImpl::error(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
 
-  template<ConceptStringLiteral Msg, ConceptCodeLine Line, typename... Args>
-  static void critical(Msg msg, Msg filename, Line line, Msg functionName, Args&&... args)
+  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
+  static void critical(TString msg, TString filename, Line line, TString functionName,
+                       Args&&... args)
   {
     FLogImpl::critical(msg, filename, line, functionName, std::forward<Args>(args)...);
   }
@@ -74,12 +80,12 @@ private:
 
 
 #if UENABLE_DEBUG_TRACES
-  #define UTRACE(msg, ...) ::uncanny::FLog::trace(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-  #define UDEBUG(msg, ...) ::uncanny::FLog::debug(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-  #define UINFO(msg, ...) ::uncanny::FLog::info(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-  #define UWARN(msg, ...) ::uncanny::FLog::warn(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-  #define UERROR(msg, ...) ::uncanny::FLog::error(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
-  #define UCRITICAL(msg, ...) ::uncanny::FLog::critical(msg, __FILE__, __LINE__, U_FUNCTION_NAME, __VA_ARGS__)
+  #define UTRACE(msg, ...) ::uncanny::FLog::trace(std::string{ msg }, std::string{ __FILE__ }, __LINE__, std::string{ U_FUNCTION_NAME }, __VA_ARGS__)
+  #define UDEBUG(msg, ...) ::uncanny::FLog::debug(std::string{ msg }, std::string{ __FILE__ }, __LINE__, std::string{ U_FUNCTION_NAME }, __VA_ARGS__)
+  #define UINFO(msg, ...) ::uncanny::FLog::info(std::string{ msg }, std::string{ __FILE__ }, __LINE__, std::string{ U_FUNCTION_NAME }, __VA_ARGS__)
+  #define UWARN(msg, ...) ::uncanny::FLog::warn(std::string{ msg }, std::string{ __FILE__ }, __LINE__, std::string{ U_FUNCTION_NAME }, __VA_ARGS__)
+  #define UERROR(msg, ...) ::uncanny::FLog::error(std::string{ msg }, std::string{ __FILE__ }, __LINE__, std::string{ U_FUNCTION_NAME }, __VA_ARGS__)
+  #define UCRITICAL(msg, ...) ::uncanny::FLog::critical(std::string{ msg }, std::string{ __FILE__ }, __LINE__, std::string{ U_FUNCTION_NAME }, __VA_ARGS__)
 #else
   #define UTRACE(msg, ...)
   #define UDEBUG(msg, ...)
