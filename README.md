@@ -31,7 +31,7 @@ Next you can choose proper startup project, every sample project that I have cre
 example: *06_RayTracingInSeveralBLASes*
 
 <p align="center">
-  <img style="width: 1vw; min-width: 330px;" src="Media/startup-project-selection.png">
+  <img style="width: 30vw; min-width: 330px;" src="Media/startup-project-selection.png">
 </p>
 
 Afterwards you can build project and you should running project :)
