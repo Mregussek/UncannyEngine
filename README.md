@@ -1,7 +1,8 @@
 
 # UncannyEngine
 
-Educational Vulkan-based 3D engine.
+Educational Vulkan-based 3D engine. Currently I my primary focus includes acceleration structures, shader binding table,
+ray tracing pipeline and its shaders.
 
 ### Samples
 
