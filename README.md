@@ -1,7 +1,7 @@
 
 # UncannyEngine
 
-Educational Vulkan-based 3D engine. Currently I my primary focus includes acceleration structures, shader binding table,
+Educational Vulkan-based 3D engine. Currently my primary focus includes acceleration structures, shader binding table,
 ray tracing pipeline and its shaders.
 
 ### Samples
@@ -32,7 +32,7 @@ Next you can choose proper startup project, every sample project that I have cre
 example: *06_RayTracingInSeveralBLASes*
 
 <p align="center">
-  <img style="width: 30vw; min-width: 330px;" src="Media/startup-project-selection.png">
+  <img style="width: 10vw; min-width: 330px;" src="Media/startup-project-selection.png">
 </p>
 
 Afterwards you can build project and you should running project :)
