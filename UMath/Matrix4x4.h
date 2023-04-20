@@ -5,6 +5,7 @@
 
 #include "Types.h"
 #include "Vector3.h"
+#include "Vector4.h"
 #undef near
 #undef far
 
@@ -103,7 +104,7 @@ Vector4<T> GetRow4(const Matrix4x4<T>& matrix, u32 idx)
 template<ConceptMathType T>
 Matrix4x4<T> Multiply(const Matrix4x4<T>& a, const Matrix4x4<T>& b)
 {
-  Matrix4x4<T> rtn{};
+  Matrix4x4<T> rtn = Identity<T>();
   Vector4<T> cols[4]{ GetRow4(a, 0), GetRow4(a, 1), GetRow4(a, 2), GetRow4(a, 3) };
 
   Vector4<T> col1{ cols[0] * b[0 + 0 * 4] + cols[1] * b[1 + 0 * 4] + cols[2] * b[2 + 0 * 4] + cols[3] * b[3 + 0 * 4] };
@@ -220,7 +221,7 @@ Matrix4x4<T> LookAt(Vector3<T> eye, Vector3<T> target, Vector3<T> y)
 template<ConceptMathType T>
 Matrix4x4<T> Translation(Vector3<T> vec)
 {
-  Matrix4x4<T> rtn(1);
+  Matrix4x4<T> rtn = Identity<T>();
   rtn[0 + 3 * 4] = vec.x;
   rtn[1 + 3 * 4] = vec.y;
   rtn[2 + 3 * 4] = vec.z;
@@ -232,7 +233,7 @@ Matrix4x4<T> Translation(Vector3<T> vec)
 template<ConceptMathType T>
 Matrix4x4<T> Rotation(T angle, Vector3<T> axis)
 {
-  Matrix4x4<T> rtn(1);
+  Matrix4x4<T> rtn = Identity<T>();
 
   T cosine{ (T)cos(angle) };
   T sine{ (T)sin(angle) };
@@ -268,7 +269,7 @@ Matrix4x4<T> Rotation(T angle, Vector3<T> axis)
 template<ConceptMathType T>
 Matrix4x4<T> Scale(Vector3<T> vec)
 {
-  Matrix4x4<T> rtn(1.0f);
+  Matrix4x4<T> rtn = Identity<T>();
   rtn[0 + 0 * 4] = vec.x;
   rtn[1 + 1 * 4] = vec.y;
   rtn[2 + 2 * 4] = vec.z;

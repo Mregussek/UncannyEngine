@@ -17,15 +17,9 @@ FTopLevelAccelerationStructure::FTopLevelAccelerationStructure(
 void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructure& bottomLevelStructure,
                                            const FCommandPool& commandPool, const FQueue& queue)
 {
-  VkTransformMatrixKHR instanceTransform{
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 1.0f, 0.0f
-  };
-
   VkAccelerationStructureInstanceKHR instances[1];
   instances[0] = {
-      .transform = instanceTransform,
+      .transform = bottomLevelStructure.GetTransform(),
       .instanceCustomIndex = 0,
       .mask = 0xFF,
       .instanceShaderBindingTableRecordOffset = 0,

@@ -21,6 +21,14 @@ public:
   void Build(std::span<FRenderVertex> vertices, std::span<u32> indices, const FCommandPool& commandPool,
              const FQueue& queue);
 
+  void AssignTransformMatrix(math::Matrix4x4f transform);
+
+  [[nodiscard]] const VkTransformMatrixKHR& GetTransform() const { return m_Transform; }
+
+private:
+
+  VkTransformMatrixKHR m_Transform{};
+
 };
 
 

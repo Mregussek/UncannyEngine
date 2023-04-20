@@ -10,7 +10,11 @@ FBottomLevelAccelerationStructure::FBottomLevelAccelerationStructure(
     VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
     : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes)
 {
-
+  m_Transform = {
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 1.0f, 0.0f
+  };
 }
 
 
@@ -65,6 +69,16 @@ void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices,
   FAccelerationStructure::Create(VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR);
   FAccelerationStructure::Build(VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR, &geometryInfo, trianglesCount,
                                 commandPool, queue);
+}
+
+
+void FBottomLevelAccelerationStructure::AssignTransformMatrix(math::Matrix4x4f transform)
+{
+  m_Transform = {
+      transform[0], transform[4], transform[8], transform[12],
+      transform[1], transform[5], transform[9], transform[13],
+      transform[2], transform[6], transform[10], transform[14]
+  };
 }
 
 

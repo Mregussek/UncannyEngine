@@ -150,8 +150,12 @@ private:
       sponzaMeshAsset.LoadObj(sponza.GetString().c_str());
 
       m_Entity = m_EntityRegistry.Register();
-      auto &renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
-      renderMeshComponent.id = sponzaMeshAsset.ID();
+      auto &renderMeshComponent = m_Entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+        .id = sponzaMeshAsset.ID(),
+        .position = { 0.f, 2.f, 0.f },
+        .rotation = { 0.f, 0.f, 0.f },
+        .scale = { -1.f, -1.f, -1.f }
+      });
     }
 
     // Creating acceleration structures...
@@ -160,6 +164,7 @@ private:
     FRenderMesh renderMesh = FRenderMeshFactory::ConvertAssetToOneRenderMesh(&meshAsset);
 
     m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
+    m_BottomLevelAS.AssignTransformMatrix(renderMeshComponent.GetMatrix());
     m_BottomLevelAS.Build(renderMesh.vertices, renderMesh.indices, m_CommandPool,
                           pLogicalDevice->GetGraphicsQueue());
 
@@ -169,14 +174,14 @@ private:
     // Creating camera...
     {
       FPerspectiveCameraSpecification cameraSpecification{
-        .position = { 1.f, -0.5f, 4.f },
+        .position = { 0.f, 0.f, 0.f },
         .front = { 0.f, 0.f, 0.f },
         .worldUp = { 0.f, 1.f, 0.f },
         .fieldOfView = 45.f,
         .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
         .near = 0.1f,
         .far = 10.f,
-        .yaw = -90.f,
+        .yaw = 0.f,
         .pitch = 0.f,
         .movementSpeed = 5.f,
         .sensitivity = 100.f,
