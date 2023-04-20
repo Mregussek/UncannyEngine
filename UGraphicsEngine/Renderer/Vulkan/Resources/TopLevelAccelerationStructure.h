@@ -21,6 +21,9 @@ public:
   void Build(const FBottomLevelAccelerationStructure& bottomLevelStructure, const FCommandPool& commandPool,
              const FQueue& queue);
 
+  void Build(std::span<FBottomLevelAccelerationStructure> bottomLevelStructures, const FCommandPool& commandPool,
+             const FQueue& queue);
+
   void Build(std::span<VkAccelerationStructureInstanceKHR> instances, const FCommandPool& commandPool,
              const FQueue& queue);
 

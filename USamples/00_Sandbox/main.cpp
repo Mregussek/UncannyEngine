@@ -144,37 +144,55 @@ private:
 
     // Initializing ECS...
     m_EntityRegistry.Create();
+    std::span<const FEntity> entities = m_EntityRegistry.Register(2);
     {
       FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
-      FMeshAsset &sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
+      FMeshAsset& sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
       sponzaMeshAsset.LoadObj(sponza.GetString().c_str());
 
-      m_Entity = m_EntityRegistry.Register();
-      auto &renderMeshComponent = m_Entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+      entities[0].Add<FRenderMeshComponent>(FRenderMeshComponent{
         .id = sponzaMeshAsset.ID(),
         .position = { 0.f, 2.f, 0.f },
         .rotation = { 0.f, 0.f, 0.f },
         .scale = { -1.f, -1.f, -1.f }
       });
     }
+    {
+      FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
+      FMeshAsset& bunnyMeshAsset = m_AssetRegistry.RegisterMesh();
+      bunnyMeshAsset.LoadObj(bunny.GetString().c_str());
+
+      entities[1].Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = bunnyMeshAsset.ID(),
+          .position = { 0.f, 2.f, 0.f },
+          .rotation = { 0.f, 90.f, 0.f },
+          .scale = { -1.f, -1.f, -1.f }
+      });
+    }
 
     // Creating acceleration structures...
-    auto& renderMeshComponent = m_Entity.Get<FRenderMeshComponent>();
-    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(renderMeshComponent.id);
-    FRenderMesh renderMesh = FRenderMeshFactory::ConvertAssetToOneRenderMesh(&meshAsset);
+    std::vector<FRenderMesh> renderMeshes;
+    renderMeshes.reserve(m_EntityRegistry.GetEntities().size());
+    m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderMeshes](FRenderMeshComponent& component)
+    {
+      const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
+      auto& renderMesh = renderMeshes.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderMesh(&meshAsset));
+      renderMesh.transform = component.GetMatrix();
+    });
 
-    m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.AssignTransformMatrix(renderMeshComponent.GetMatrix());
-    m_BottomLevelAS.Build(renderMesh.vertices, renderMesh.indices, m_CommandPool,
-                          pLogicalDevice->GetGraphicsQueue());
-
+    m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderMeshes.size());
+    for (u32 i = 0; i < renderMeshes.size(); i++)
+    {
+      m_BottomLevelASVector[i].Build(renderMeshes[i].vertices, renderMeshes[i].indices, renderMeshes[i].transform,
+                                     m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+    }
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
-    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+    m_TopLevelAS.Build(m_BottomLevelASVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
     // Creating camera...
     {
       FPerspectiveCameraSpecification cameraSpecification{
-        .position = { 0.f, 0.f, 0.f },
+        .position = { -4.f, 0.f, 0.f },
         .front = { 0.f, 0.f, 0.f },
         .worldUp = { 0.f, 1.f, 0.f },
         .fieldOfView = 45.f,
@@ -297,7 +315,10 @@ private:
     m_CommandPool.Destroy();
 
     // Destroying rendering resources...
-    m_BottomLevelAS.Destroy();
+    for (vulkan::FBottomLevelAccelerationStructure& bottomAS : m_BottomLevelASVector)
+    {
+      bottomAS.Destroy();
+    }
     m_TopLevelAS.Destroy();
 
     // Destroying descriptors...
@@ -314,7 +335,6 @@ private:
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
 
-    m_Entity.Destroy();
     m_EntityRegistry.Destroy();
 
     m_AssetRegistry.Clear();
@@ -385,7 +405,7 @@ private:
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
   vulkan::FImage m_OffscreenImage{};
-  vulkan::FBottomLevelAccelerationStructure m_BottomLevelAS{};
+  std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelASVector{};
   vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
   vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
   vulkan::FDescriptorPool m_DescriptorPool{};
@@ -397,7 +417,6 @@ private:
   FAssetRegistry m_AssetRegistry{};
 
   FEntityRegistry m_EntityRegistry{};
-  FEntity m_Entity{};
 
 };
 

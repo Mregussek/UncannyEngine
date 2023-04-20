@@ -22,6 +22,7 @@ struct FRenderMesh
 {
   std::vector<FRenderVertex> vertices{};
   std::vector<u32> indices{};
+  math::Matrix4x4f transform{};
 };
 
 

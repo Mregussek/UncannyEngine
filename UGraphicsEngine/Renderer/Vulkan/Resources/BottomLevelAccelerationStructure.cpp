@@ -19,6 +19,15 @@ FBottomLevelAccelerationStructure::FBottomLevelAccelerationStructure(
 
 
 void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices, std::span<u32> indices,
+                                             math::Matrix4x4f transform, const FCommandPool& commandPool,
+                                             const FQueue& queue)
+{
+  AssignTransformMatrix(transform);
+  Build(vertices, indices, commandPool, queue);
+}
+
+
+void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices, std::span<u32> indices,
                                               const FCommandPool& commandPool, const FQueue& queue)
 {
   VkBufferUsageFlags bufferUsageFlags =

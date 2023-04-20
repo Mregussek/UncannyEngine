@@ -31,6 +31,27 @@ void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructu
 }
 
 
+void FTopLevelAccelerationStructure::Build(std::span<FBottomLevelAccelerationStructure> bottomLevelStructures,
+                                           const FCommandPool& commandPool, const FQueue& queue)
+{
+  std::vector<VkAccelerationStructureInstanceKHR> instances;
+  instances.reserve(bottomLevelStructures.size());
+  for (FBottomLevelAccelerationStructure& as : bottomLevelStructures)
+  {
+    instances.push_back({
+      .transform = as.GetTransform(),
+      .instanceCustomIndex = 0,
+      .mask = 0xFF,
+      .instanceShaderBindingTableRecordOffset = 0,
+      .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
+      .accelerationStructureReference = as.GetDeviceAddress()
+    });
+  }
+
+  Build(instances, commandPool, queue);
+}
+
+
 void FTopLevelAccelerationStructure::Build(std::span<VkAccelerationStructureInstanceKHR> instances,
                                            const FCommandPool&commandPool, const FQueue& queue)
 {
