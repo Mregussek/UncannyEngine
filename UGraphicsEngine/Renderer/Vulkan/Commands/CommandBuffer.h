@@ -4,7 +4,7 @@
 
 
 #include <volk.h>
-#include <vector>
+#include <span>
 #include "UTools/UTypes.h"
 #undef MemoryBarrier
 
@@ -46,6 +46,8 @@ public:
   void BindPipeline(VkPipelineBindPoint bindPoint, VkPipeline pipeline);
 
   void BindDescriptorSet(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet);
+  void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
+                          std::span<VkDescriptorSet> descriptorSets);
 
   void TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D);
 

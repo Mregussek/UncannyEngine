@@ -21,6 +21,7 @@ public:
   FPipelineLayout() = default;
 
   void Create(VkDescriptorSetLayout setLayout);
+  void Create(std::span<VkDescriptorSetLayout> setLayouts);
 
   void Destroy();
 

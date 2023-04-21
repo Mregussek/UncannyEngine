@@ -309,7 +309,11 @@ private:
 
     // Creating ray tracing pipeline...
     m_RayTracingPipelineLayout = deviceFactory.CreatePipelineLayout();
-    m_RayTracingPipelineLayout.Create(m_RayTracingDescriptorSetLayout.GetHandle());
+    {
+      VkDescriptorSetLayout setLayouts[]{ m_RayTracingDescriptorSetLayout.GetHandle(),
+                                          m_ObjectsDescriptorSetLayout.GetHandle() };
+      m_RayTracingPipelineLayout.Create(setLayouts);
+    }
 
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders" });
@@ -317,7 +321,7 @@ private:
     vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
     glslCompiler.Initialize();
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
-        .rayClosestHitPath = FPath::Append(shadersPath, "default.rchit"),
+        .rayClosestHitPath = FPath::Append(shadersPath, "normals.rchit"),
         .rayGenerationPath = FPath::Append(shadersPath, "camera.rgen"),
         .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
         .pGlslCompiler = &glslCompiler,
@@ -401,6 +405,9 @@ private:
 
     std::span<const VkImage> swapchainImages = m_Swapchain.GetImages();
     VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
+    VkDescriptorSet descriptorSets[]{ m_RayTracingDescriptorPool.GetDescriptorSet(),
+                                      m_ObjectsDescriptorPool.GetDescriptorSet() };
+
     for (u32 i = 0; i < swapchainImages.size(); i++)
     {
       vulkan::FCommandBuffer& cmdBuf = m_CommandBuffers[i];
@@ -413,8 +420,8 @@ private:
                                 subresourceRange,
                                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
       cmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipeline.GetHandle());
-      cmdBuf.BindDescriptorSet(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
-                               m_RayTracingDescriptorPool.GetDescriptorSet());
+      cmdBuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
+                                descriptorSets);
       cmdBuf.TraceRays(&m_RayTracingPipeline, offscreenExtent);
       cmdBuf.ImageMemoryBarrier(offscreenImage,
                                 VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,

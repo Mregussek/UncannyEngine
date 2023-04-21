@@ -181,12 +181,19 @@ void FCommandBuffer::BindPipeline(VkPipelineBindPoint bindPoint, VkPipeline pipe
 void FCommandBuffer::BindDescriptorSet(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
                                        VkDescriptorSet descriptorSet)
 {
+  std::span<VkDescriptorSet> span(&descriptorSet, 1);
+  BindDescriptorSets(bindPoint, pipelineLayout, span);
+}
+
+
+void FCommandBuffer::BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
+                                        std::span<VkDescriptorSet> descriptorSets)
+{
   constexpr u32 firstSet = 0;
-  constexpr u32 descriptorsCount = 1;
   constexpr u32 dynamicOffsetCount = 0;
   constexpr u32* pDynamicOffsets = nullptr;
   vkCmdBindDescriptorSets(m_CommandBuffer, bindPoint, pipelineLayout,
-                          firstSet, descriptorsCount, &descriptorSet,
+                          firstSet, descriptorSets.size(), descriptorSets.data(),
                           dynamicOffsetCount, pDynamicOffsets);
 }
 
