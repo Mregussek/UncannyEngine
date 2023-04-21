@@ -26,6 +26,12 @@ void FDescriptorSetLayout::AddBinding(u32 binding, VkDescriptorType type, u32 co
 }
 
 
+void FDescriptorSetLayout::AddBinding(VkDescriptorSetLayoutBinding layoutBinding)
+{
+  m_Bindings.push_back(layoutBinding);
+}
+
+
 void FDescriptorSetLayout::Create()
 {
   VkDescriptorSetLayoutCreateInfo createInfo{

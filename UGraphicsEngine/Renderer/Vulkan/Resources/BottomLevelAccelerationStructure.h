@@ -26,11 +26,17 @@ public:
 
   void AssignTransformMatrix(math::Matrix4x4f transform);
 
+  void Destroy();
+
   [[nodiscard]] const VkTransformMatrixKHR& GetTransform() const { return m_Transform; }
+  [[nodiscard]] const FBuffer& GetVertexBuffer() const { return m_VertexBuffer; }
+  [[nodiscard]] const FBuffer& GetIndexBuffer() const { return m_IndexBuffer; }
 
 private:
 
   VkTransformMatrixKHR m_Transform{};
+  FBuffer m_VertexBuffer{};
+  FBuffer m_IndexBuffer{};
 
 };
 

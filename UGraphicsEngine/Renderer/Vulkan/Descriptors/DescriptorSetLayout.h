@@ -23,6 +23,7 @@ public:
 
   void AddBinding(u32 binding, VkDescriptorType type, u32 count, VkShaderStageFlags stageFlags,
                   const VkSampler* pImmutableSamplers);
+  void AddBinding(VkDescriptorSetLayoutBinding layoutBinding);
 
   void Create();
 

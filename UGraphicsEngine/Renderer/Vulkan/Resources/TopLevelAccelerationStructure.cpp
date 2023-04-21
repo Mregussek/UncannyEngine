@@ -17,37 +17,32 @@ FTopLevelAccelerationStructure::FTopLevelAccelerationStructure(
 void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructure& bottomLevelStructure,
                                            const FCommandPool& commandPool, const FQueue& queue)
 {
-  VkAccelerationStructureInstanceKHR instances[1];
-  instances[0] = {
-      .transform = bottomLevelStructure.GetTransform(),
-      .instanceCustomIndex = 0,
-      .mask = 0xFF,
-      .instanceShaderBindingTableRecordOffset = 0,
-      .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
-      .accelerationStructureReference = bottomLevelStructure.GetDeviceAddress()
-  };
-
-  Build(instances, commandPool, queue);
+  std::span<const FBottomLevelAccelerationStructure> span(&bottomLevelStructure, 1);
+  Build(span, commandPool, queue);
 }
 
 
-void FTopLevelAccelerationStructure::Build(std::span<FBottomLevelAccelerationStructure> bottomLevelStructures,
+void FTopLevelAccelerationStructure::Build(std::span<const FBottomLevelAccelerationStructure> bottomLevelStructures,
                                            const FCommandPool& commandPool, const FQueue& queue)
 {
   std::vector<VkAccelerationStructureInstanceKHR> instances;
   instances.reserve(bottomLevelStructures.size());
-  for (FBottomLevelAccelerationStructure& as : bottomLevelStructures)
+  m_BottomUniformData.reserve(bottomLevelStructures.size());
+  for (u32 i = 0; i < bottomLevelStructures.size(); i++)
   {
     instances.push_back({
-      .transform = as.GetTransform(),
-      .instanceCustomIndex = 0,
+      .transform = bottomLevelStructures[i].GetTransform(),
+      .instanceCustomIndex = i,
       .mask = 0xFF,
       .instanceShaderBindingTableRecordOffset = 0,
       .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
-      .accelerationStructureReference = as.GetDeviceAddress()
+      .accelerationStructureReference = bottomLevelStructures[i].GetDeviceAddress()
+    });
+    m_BottomUniformData.push_back(FBottomLevelStructureReferenceUniformData{
+      .vertexBufferDeviceAddress = bottomLevelStructures[i].GetVertexBuffer().GetDeviceAddress(),
+      .indexBufferDeviceAddress = bottomLevelStructures[i].GetIndexBuffer().GetDeviceAddress()
     });
   }
-
   Build(instances, commandPool, queue);
 }
 

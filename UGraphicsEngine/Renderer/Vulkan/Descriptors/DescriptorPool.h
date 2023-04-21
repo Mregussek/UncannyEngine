@@ -34,7 +34,8 @@ public:
 
   void WriteStorageImageToDescriptorSet(VkImageView storageView, u32 dstBinding) const;
 
-  void WriteUniformBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding) const;
+  void WriteBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding,
+                                  VkDescriptorType descriptorBufferType) const;
 
   [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 

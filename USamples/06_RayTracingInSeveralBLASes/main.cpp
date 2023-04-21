@@ -269,8 +269,9 @@ private:
     }
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[2].binding;
-      m_DescriptorPool.WriteUniformBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
-                                                         m_CameraUniformBuffer.GetFilledStride(), dstBinding);
+      m_DescriptorPool.WriteBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
+                                                  m_CameraUniformBuffer.GetFilledStride(), dstBinding,
+                                                  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     }
 
     // Creating pipeline...

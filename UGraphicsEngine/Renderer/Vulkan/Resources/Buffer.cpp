@@ -82,7 +82,7 @@ void FBuffer::Free()
 }
 
 
-void FBuffer::Fill(void* pData, u32 elementSizeof, u32 elementsCount)
+void FBuffer::Fill(const void* pData, u32 elementSizeof, u32 elementsCount)
 {
   m_Stride = elementSizeof;
   m_ElementsCount = elementsCount;
@@ -112,8 +112,8 @@ void FBuffer::Fill(void* pData, u32 elementSizeof, u32 elementsCount)
 }
 
 
-void FBuffer::FillStaged(void* pData, u32 elementSizeof, u32 elementsCount, const FCommandPool& transferCommandPool,
-                         const FQueue& transferQueue)
+void FBuffer::FillStaged(const void* pData, u32 elementSizeof, u32 elementsCount,
+                         const FCommandPool& transferCommandPool, const FQueue& transferQueue)
 {
   m_Stride = elementSizeof;
   m_ElementsCount = elementsCount;

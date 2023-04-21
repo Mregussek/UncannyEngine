@@ -34,8 +34,8 @@ public:
   void Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags);
   void Free();
 
-  void Fill(void* pData, u32 elementSizeof, u32 elementsCount);
-  void FillStaged(void* pData, u32 elementSizeof, u32 elementsCount, const FCommandPool& transferCommandPool,
+  void Fill(const void* pData, u32 elementSizeof, u32 elementsCount);
+  void FillStaged(const void* pData, u32 elementSizeof, u32 elementsCount, const FCommandPool& transferCommandPool,
                   const FQueue& transferQueue);
 
   [[nodiscard]] VkBuffer GetHandle() const { return m_Buffer; }

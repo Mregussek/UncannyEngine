@@ -121,7 +121,8 @@ void FDescriptorPool::WriteStorageImageToDescriptorSet(VkImageView storageView, 
 }
 
 
-void FDescriptorPool::WriteUniformBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding) const
+void FDescriptorPool::WriteBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding,
+                                                 VkDescriptorType descriptorBufferType) const
 {
   VkDescriptorBufferInfo writeBuffer{
     .buffer = buffer,
@@ -136,7 +137,7 @@ void FDescriptorPool::WriteUniformBufferToDescriptorSet(VkBuffer buffer, VkDevic
       .dstBinding = dstBinding,
       .dstArrayElement = 0,
       .descriptorCount = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorType = descriptorBufferType,
       .pImageInfo = nullptr,
       .pBufferInfo = &writeBuffer,
       .pTexelBufferView = nullptr

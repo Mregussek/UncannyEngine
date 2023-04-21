@@ -79,8 +79,8 @@ public:
         m_OffscreenImage.Recreate(swapchainExtent);
 
         {
-          u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-          m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
+          u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[1].binding;
+          m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
         }
 
         m_Camera.UpdateAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
@@ -230,52 +230,86 @@ private:
     }
     m_OffscreenImage.CreateView();
 
-    // Creating descriptors...
-    m_DescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
+    // Creating objects buffers and descriptors
+    m_ObjectsUniformBuffer = deviceFactory.CreateBuffer();
     {
-      u32 binding = 0;
-      VkDescriptorType type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-      u32 count = 1;
-      VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-      m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
-    }
-    {
-      u32 binding = 1;
-      VkDescriptorType type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-      u32 count = 1;
-      VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-      m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
-    }
-    {
-      u32 binding = 2;
-      VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-      u32 count = 1;
-      VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-      m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
-    }
-    m_DescriptorSetLayout.Create();
-
-    m_DescriptorPool = deviceFactory.CreateDescriptorPool();
-    m_DescriptorPool.Create(&m_DescriptorSetLayout, 1);
-    m_DescriptorPool.AllocateDescriptorSet();
-
-    {
-      u32 dstBinding = m_DescriptorSetLayout.GetBindings()[0].binding;
-      m_DescriptorPool.WriteTopLevelAsToDescriptorSet(m_TopLevelAS.GetHandle(), dstBinding);
-    }
-    {
-      u32 dstBinding = m_DescriptorSetLayout.GetBindings()[1].binding;
-      m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
-    }
-    {
-      u32 dstBinding = m_DescriptorSetLayout.GetBindings()[2].binding;
-      m_DescriptorPool.WriteUniformBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
-                                                         m_CameraUniformBuffer.GetFilledStride(), dstBinding);
+      const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
+      m_ObjectsUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
+                                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      m_ObjectsUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]), blasUniformData.size(),
+                                        m_CommandPool, pLogicalDevice->GetGraphicsQueue());
     }
 
-    // Creating pipeline...
+    m_ObjectsDescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
+    m_ObjectsDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
+      .pImmutableSamplers = nullptr
+    });
+    m_ObjectsDescriptorSetLayout.Create();
+
+    m_ObjectsDescriptorPool = deviceFactory.CreateDescriptorPool();
+    m_ObjectsDescriptorPool.Create(&m_ObjectsDescriptorSetLayout, 1);
+    m_ObjectsDescriptorPool.AllocateDescriptorSet();
+    {
+      u32 dstBinding = m_ObjectsDescriptorSetLayout.GetBindings()[0].binding;
+      VkDescriptorType type = m_ObjectsDescriptorSetLayout.GetBindings()[0].descriptorType;
+      m_ObjectsDescriptorPool.WriteBufferToDescriptorSet(m_ObjectsUniformBuffer.GetHandle(),
+                                                         m_ObjectsUniformBuffer.GetFilledStride(),
+                                                         dstBinding, type);
+    }
+
+    // Creating ray tracing descriptors...
+    m_RayTracingDescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
+    m_RayTracingDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+      .pImmutableSamplers = nullptr
+    });
+    m_RayTracingDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        .pImmutableSamplers = nullptr
+    });
+    m_RayTracingDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
+        .binding = 2,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        .pImmutableSamplers = nullptr
+    });
+    m_RayTracingDescriptorSetLayout.Create();
+
+    m_RayTracingDescriptorPool = deviceFactory.CreateDescriptorPool();
+    m_RayTracingDescriptorPool.Create(&m_RayTracingDescriptorSetLayout, 1);
+    m_RayTracingDescriptorPool.AllocateDescriptorSet();
+
+    {
+      u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[0].binding;
+      m_RayTracingDescriptorPool.WriteTopLevelAsToDescriptorSet(m_TopLevelAS.GetHandle(), dstBinding);
+    }
+    {
+      u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[1].binding;
+      m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
+    }
+    {
+      u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[2].binding;
+      VkDescriptorType type = m_RayTracingDescriptorSetLayout.GetBindings()[2].descriptorType;
+      m_RayTracingDescriptorPool.WriteBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
+                                                            m_CameraUniformBuffer.GetFilledStride(),
+                                                            dstBinding, type);
+    }
+
+    // Creating ray tracing pipeline...
     m_RayTracingPipelineLayout = deviceFactory.CreatePipelineLayout();
-    m_RayTracingPipelineLayout.Create(m_DescriptorSetLayout.GetHandle());
+    m_RayTracingPipelineLayout.Create(m_RayTracingDescriptorSetLayout.GetHandle());
 
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders" });
@@ -322,11 +356,15 @@ private:
     m_TopLevelAS.Destroy();
 
     // Destroying descriptors...
-    m_DescriptorSetLayout.Destroy();
-    m_DescriptorPool.Destroy();
+    m_RayTracingDescriptorSetLayout.Destroy();
+    m_RayTracingDescriptorPool.Destroy();
+
+    m_ObjectsDescriptorSetLayout.Destroy();
+    m_ObjectsDescriptorPool.Destroy();
 
     // Closing buffers
     m_CameraUniformBuffer.Free();
+    m_ObjectsUniformBuffer.Free();
 
     // Destroying pipelines...
     m_RayTracingPipelineLayout.Destroy();
@@ -376,7 +414,7 @@ private:
                                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
       cmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipeline.GetHandle());
       cmdBuf.BindDescriptorSet(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
-                               m_DescriptorPool.GetDescriptorSet());
+                               m_RayTracingDescriptorPool.GetDescriptorSet());
       cmdBuf.TraceRays(&m_RayTracingPipeline, offscreenExtent);
       cmdBuf.ImageMemoryBarrier(offscreenImage,
                                 VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
@@ -404,18 +442,23 @@ private:
   vulkan::FSwapchain m_Swapchain{};
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
+
   vulkan::FImage m_OffscreenImage{};
   std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelASVector{};
   vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
-  vulkan::FDescriptorSetLayout m_DescriptorSetLayout{};
-  vulkan::FDescriptorPool m_DescriptorPool{};
+  vulkan::FDescriptorSetLayout m_RayTracingDescriptorSetLayout{};
+  vulkan::FDescriptorPool m_RayTracingDescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
+
+  vulkan::FDescriptorSetLayout m_ObjectsDescriptorSetLayout{};
+  vulkan::FDescriptorPool m_ObjectsDescriptorPool{};
+  vulkan::FBuffer m_ObjectsUniformBuffer{};
+
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_CameraUniformBuffer{};
 
   FAssetRegistry m_AssetRegistry{};
-
   FEntityRegistry m_EntityRegistry{};
 
 };

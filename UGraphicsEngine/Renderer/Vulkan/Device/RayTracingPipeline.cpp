@@ -149,8 +149,7 @@ void FRayTracingPipeline::CreateShaderBindingTable()
   };
 
   u32 sbtHandleSize = m_Properties.shaderGroupHandleSize;
-  u32 sbtHandleAlignment = m_Properties.shaderGroupHandleAlignment;
-  u32 sbtHandleSizeAligned = alignTo(sbtHandleSize, sbtHandleAlignment);
+  u32 sbtHandleSizeAligned = alignTo(sbtHandleSize, m_Properties.shaderGroupHandleAlignment);
   u32 sbtSize = m_ShaderGroupCount * sbtHandleSizeAligned;
 
   std::vector<u8> sbtResults(sbtSize);

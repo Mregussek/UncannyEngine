@@ -8,13 +8,23 @@ namespace uncanny::vulkan
 
 FBottomLevelAccelerationStructure::FBottomLevelAccelerationStructure(
     VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
-    : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes)
+    : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes),
+      m_VertexBuffer(pPhysicalDeviceAttributes, vkDevice),
+      m_IndexBuffer(pPhysicalDeviceAttributes, vkDevice)
 {
   m_Transform = {
       1.0f, 0.0f, 0.0f, 0.0f,
       0.0f, 1.0f, 0.0f, 0.0f,
       0.0f, 0.0f, 1.0f, 0.0f
   };
+}
+
+
+void FBottomLevelAccelerationStructure::Destroy()
+{
+  FAccelerationStructure::Destroy();
+  m_VertexBuffer.Free();
+  m_IndexBuffer.Free();
 }
 
 
@@ -32,25 +42,26 @@ void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices,
 {
   VkBufferUsageFlags bufferUsageFlags =
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-  FBuffer vertexBuffer(m_pPhysicalDeviceAttributes, m_Device);
-  FBuffer indexBuffer(m_pPhysicalDeviceAttributes, m_Device);
+  m_VertexBuffer.Allocate(vertices.size() * sizeof(FRenderVertex),
+                          bufferUsageFlags | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  m_VertexBuffer.FillStaged(vertices.data(), sizeof(FRenderVertex), vertices.size(), commandPool, queue);
 
-  vertexBuffer.Allocate(vertices.size() * sizeof(FRenderVertex), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  vertexBuffer.FillStaged(vertices.data(), sizeof(FRenderVertex), vertices.size(), commandPool, queue);
+  m_IndexBuffer.Allocate(indices.size() * sizeof(u32),
+                         bufferUsageFlags | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  m_IndexBuffer.FillStaged(indices.data(), sizeof(u32), indices.size(), commandPool, queue);
 
-  indexBuffer.Allocate(indices.size() * sizeof(u32), bufferUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  indexBuffer.FillStaged(indices.data(), sizeof(u32), indices.size(), commandPool, queue);
-
-  u32 trianglesCount = indexBuffer.GetFilledElementsCount() / 3;
-  u32 vertexMaxCount = vertexBuffer.GetFilledElementsCount();
+  u32 trianglesCount = m_IndexBuffer.GetFilledElementsCount() / 3;
+  u32 vertexMaxCount = m_VertexBuffer.GetFilledElementsCount();
 
   VkDeviceOrHostAddressConstKHR vertexBufferDeviceAddress{
-      .deviceAddress = vertexBuffer.GetDeviceAddress()
+      .deviceAddress = m_VertexBuffer.GetDeviceAddress()
   };
   VkDeviceOrHostAddressConstKHR indexBufferDeviceAddress{
-      .deviceAddress = indexBuffer.GetDeviceAddress()
+      .deviceAddress = m_IndexBuffer.GetDeviceAddress()
   };
 
   VkAccelerationStructureGeometryKHR geometryInfo{
@@ -63,7 +74,7 @@ void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices,
               .pNext = nullptr,
               .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
               .vertexData = vertexBufferDeviceAddress,
-              .vertexStride = vertexBuffer.GetFilledStride(),
+              .vertexStride = m_VertexBuffer.GetFilledStride(),
               .maxVertex = vertexMaxCount,
               .indexType = VK_INDEX_TYPE_UINT32,
               .indexData = indexBufferDeviceAddress,
