@@ -15,6 +15,7 @@ namespace uncanny
 struct FVertex
 {
   math::Vector3f position{};
+  math::Vector3f normal{};
 };
 
 

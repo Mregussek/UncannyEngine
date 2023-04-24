@@ -14,7 +14,7 @@ Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://
 ### Current state
 
 <p align="center">
-  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/06_RayTracingInSeveralBLASes.png">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/07_DrawingNormalsUsingRayTracing.png">
 </p>
 
 ## Build
@@ -32,7 +32,7 @@ Next you can choose proper startup project, every sample project that I have cre
 example: *06_RayTracingInSeveralBLASes*
 
 <p align="center">
-  <img style="width: 10vw; min-width: 330px;" src="Media/startup-project-selection.png">
+  <img style="width: 10vw; min-width: 400px;" src="Media/startup-project-selection.png">
 </p>
 
 Afterwards you can build project and you should running project :)

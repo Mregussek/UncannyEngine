@@ -43,9 +43,18 @@ private:
     for (u32 vertexIdx = 0; vertexIdx < pMesh->mNumVertices; vertexIdx++)
     {
       aiVector3D aiVertex = pMesh->mVertices[vertexIdx];
-      pReturnData->vertices.push_back(FVertex{ .position = { .x = aiVertex.x,
-                                                             .y = aiVertex.y,
-                                                             .z = aiVertex.z }});
+      aiVector3D aiNormal = pMesh->mNormals ? pMesh->mNormals[vertexIdx] : aiVector3D{ 0.f, 0.f, 0.f };
+      pReturnData->vertices.push_back(
+          FVertex{
+            .position = {
+                .x = aiVertex.x,
+                .y = aiVertex.y,
+                .z = aiVertex.z },
+            .normal = {
+                .x = aiNormal.x,
+                .y = aiNormal.y,
+                .z = aiNormal.z }
+          });
     }
 
     pReturnData->indices.reserve(pMesh->mNumFaces * 3);
@@ -57,6 +66,36 @@ private:
       {
         pReturnData->indices.push_back((u32)face.mIndices[kk]);
       }
+    }
+
+    // Calculate normals
+    if (pMesh->HasNormals())
+    {
+      return;
+    }
+    for (u32 idx = 0; idx < pReturnData->indices.size(); idx += 3)
+    {
+      const u32 vertexA = pReturnData->indices[idx];
+      const u32 vertexB = pReturnData->indices[idx + 1];
+      const u32 vertexC = pReturnData->indices[idx + 2];
+
+      const math::Vector3f edgeAB = pReturnData->vertices[vertexB].position - pReturnData->vertices[vertexA].position;
+      const math::Vector3f edgeAC = pReturnData->vertices[vertexC].position - pReturnData->vertices[vertexA].position;
+
+      // The cross product is perpendicular to both input vectors (normal to the plane).
+      // Flip the argument order if you need the opposite winding.
+      const math::Vector3f areaWeightedNormal = math::CrossProduct(edgeAB, edgeAC);
+
+      // Don't normalize this vector just yet. Its magnitude is proportional to the
+      // area of the triangle (times 2), so this helps ensure tiny/skinny triangles
+      // don't have an outsized impact on the final normal per vertex.
+      pReturnData->vertices[vertexA].normal = pReturnData->vertices[vertexA].normal + areaWeightedNormal;
+      pReturnData->vertices[vertexB].normal = pReturnData->vertices[vertexB].normal + areaWeightedNormal;
+      pReturnData->vertices[vertexC].normal = pReturnData->vertices[vertexC].normal + areaWeightedNormal;
+    }
+    for (FVertex& vertex : pReturnData->vertices)
+    {
+      vertex.normal = math::Normalize(vertex.normal);
     }
   }
 

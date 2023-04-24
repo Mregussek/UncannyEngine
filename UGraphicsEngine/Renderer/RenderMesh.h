@@ -15,6 +15,7 @@ namespace uncanny
 struct FRenderVertex
 {
   math::Vector3f position{};
+  math::Vector3f normal{};
 };
 
 

@@ -106,7 +106,7 @@ private:
             .width = 1600,
             .height = 900
         },
-        .name = "UncannyEngine Sandbox"
+        .name = "UncannyEngine Sample 07 DrawingNormalsUsingRayTracing"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
