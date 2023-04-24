@@ -53,6 +53,15 @@ public:
         FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
         m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
       }
+      {
+        FLightUniformData uniformData{};
+        uniformData.position = {
+            .x = cos(deltaTime) * m_Light.position.x - sin(deltaTime) * (m_Light.position.x) + m_Light.position.x,
+            .y = m_Light.position.y,
+            .z = sin(deltaTime) * m_Light.position.z - cos(deltaTime) * (m_Light.position.z) + m_Light.position.z,
+        };
+        m_LightUniformBuffer.Fill(&uniformData, sizeof(FLightUniformData), 1);
+      }
 
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
@@ -143,14 +152,14 @@ private:
 
     // Initializing ECS...
     m_EntityRegistry.Create();
-    std::span<const FEntity> entities = m_EntityRegistry.Register(3);
     {
       FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
-      FMeshAsset& sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
-      sponzaMeshAsset.LoadObj(sponza.GetString().c_str(), UTRUE);
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+      meshAsset.LoadObj(sponza.GetString().c_str(), UFALSE);
 
-      entities[0].Add<FRenderMeshComponent>(FRenderMeshComponent{
-        .id = sponzaMeshAsset.ID(),
+      FEntity entity = m_EntityRegistry.Register();
+      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+        .id = meshAsset.ID(),
         .position = { 0.f, 2.f, 0.f },
         .rotation = { 0.f, 0.f, 0.f },
         .scale = { -1.f, -1.f, -1.f }
@@ -158,11 +167,12 @@ private:
     }
     {
       FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
-      FMeshAsset& bunnyMeshAsset = m_AssetRegistry.RegisterMesh();
-      bunnyMeshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+      meshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
 
-      entities[1].Add<FRenderMeshComponent>(FRenderMeshComponent{
-          .id = bunnyMeshAsset.ID(),
+      FEntity entity = m_EntityRegistry.Register();
+      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = meshAsset.ID(),
           .position = { 0.f, 2.f, 0.f },
           .rotation = { 0.f, 90.f, 0.f },
           .scale = { -1.f, -1.f, -1.f }
@@ -173,7 +183,8 @@ private:
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
       meshAsset.LoadObj(teapot.GetString().c_str(), UFALSE);
 
-      entities[2].Add<FRenderMeshComponent>(FRenderMeshComponent{
+      FEntity entity = m_EntityRegistry.Register();
+      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
           .id = meshAsset.ID(),
           .position = { 6.f, 2.f, 0.f },
           .rotation = { 0.f, 90.f, 0.f },
@@ -251,13 +262,14 @@ private:
     }
 
     // Creating light buffer
-    m_Light.position = { -2.f, 3.f, 0.f };
+    m_Light.position = { -2.f, -3.f, 0.f };
 
     m_LightUniformBuffer = deviceFactory.CreateBuffer();
     {
-      m_LightUniformBuffer.Allocate(sizeof(FLight), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-      m_LightUniformBuffer.Fill(&m_Light, sizeof(FLight), 1);
+      FLightUniformData uniformData{ .position = m_Light.position };
+      m_LightUniformBuffer.Allocate(sizeof(FLightUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+      m_LightUniformBuffer.Fill(&uniformData, sizeof(FLightUniformData), 1);
     }
 
     // Creating scene descriptors...

@@ -41,12 +41,22 @@ void main()
     Vertex vertex2 = objectVertices.v[triangleIndices.z];
 
     const vec3 barycentricCoords = vec3(1.f - attribs.x - attribs.y, attribs.x, attribs.y);
-    const vec3 normal = normalize(vertex0.normal * barycentricCoords.x + vertex1.normal * barycentricCoords.y + vertex2.normal * barycentricCoords.z);
+
+    // Computing the coordinates of the hit position
+    const vec3 hitPos = vertex0.position * barycentricCoords.x + vertex1.position * barycentricCoords.y + vertex2.position * barycentricCoords.z;
+    // Transforming the position to world space
+    const vec3 worldHitPos = vec3(gl_ObjectToWorldEXT * vec4(hitPos, 1.0));
+
+    // Computing the normal at hit position
+    const vec3 hitNormal = vertex0.normal * barycentricCoords.x + vertex1.normal * barycentricCoords.y + vertex2.normal * barycentricCoords.z;
+    // Transforming the normal to world space
+    const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
     // Basic lighting
-    vec3 lightVector = normalize(light.position.xyz);
-    float dot_product = dot(lightVector, normal);
-    vec3 color = vertex0.color.rgb * dot_product;
+    vec3 lightVector = normalize(light.position);
+    // Lambertian
+    float dotNL = max(dot(worldHitNormal, lightVector), 0.0);
+    vec3 color = vertex0.color * dotNL;
 
-    payload = vec4(color.rgb, 0.0);
+    payload = vec4(color, 0.0);
 }

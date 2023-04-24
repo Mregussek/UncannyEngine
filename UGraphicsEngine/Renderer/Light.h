@@ -16,6 +16,12 @@ struct FLight
 };
 
 
+struct FLightUniformData
+{
+  math::Vector3f position{};
+};
+
+
 }
 
 
