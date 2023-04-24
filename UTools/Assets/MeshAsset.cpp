@@ -13,9 +13,9 @@ FMeshAsset::FMeshAsset(u64 id)
 }
 
 
-void FMeshAsset::LoadObj(const char* path)
+void FMeshAsset::LoadObj(const char* path, b8 flipNormals)
 {
-  FAssetLoader::LoadOBJ(path, &m_Data);
+  FAssetLoader::LoadOBJ(path, &m_Data, flipNormals);
 }
 
 

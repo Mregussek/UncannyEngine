@@ -1,11 +1,11 @@
 
 #include "UTools/Logger/Log.h"
+#include "UMath/Trig.h"
 #include "UTools/Window/WindowGLFW.h"
 #include "UTools/Filesystem/Path.h"
 #include "UTools/Filesystem/File.h"
 #include "UTools/Assets/AssetRegistry.h"
 #include "UTools/Assets/MeshAsset.h"
-#include "UTools/Assets/AssetLoader.h"
 #include "UTools/EntityComponentSystem/EntityRegistry.h"
 #include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
@@ -15,12 +15,12 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/AccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 #include "UGraphicsEngine/Renderer/Camera.h"
 #include "UGraphicsEngine/Renderer/RenderMesh.h"
+#include "UGraphicsEngine/Renderer/Light.h"
 
 using namespace uncanny;
 
@@ -47,10 +47,9 @@ public:
       }
 
       f32 deltaTime = m_Window->GetDeltaTime();
-
-      m_Camera.ProcessKeyboardInput(m_Window.get(), deltaTime);
-      m_Camera.ProcessMouseMovement(m_Window.get(), deltaTime);
       {
+        m_Camera.ProcessKeyboardInput(m_Window.get(), deltaTime);
+        m_Camera.ProcessMouseMovement(m_Window.get(), deltaTime);
         FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
         m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
       }
@@ -144,11 +143,11 @@ private:
 
     // Initializing ECS...
     m_EntityRegistry.Create();
-    std::span<const FEntity> entities = m_EntityRegistry.Register(2);
+    std::span<const FEntity> entities = m_EntityRegistry.Register(3);
     {
       FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
       FMeshAsset& sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
-      sponzaMeshAsset.LoadObj(sponza.GetString().c_str());
+      sponzaMeshAsset.LoadObj(sponza.GetString().c_str(), UTRUE);
 
       entities[0].Add<FRenderMeshComponent>(FRenderMeshComponent{
         .id = sponzaMeshAsset.ID(),
@@ -160,13 +159,25 @@ private:
     {
       FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
       FMeshAsset& bunnyMeshAsset = m_AssetRegistry.RegisterMesh();
-      bunnyMeshAsset.LoadObj(bunny.GetString().c_str());
+      bunnyMeshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
 
       entities[1].Add<FRenderMeshComponent>(FRenderMeshComponent{
           .id = bunnyMeshAsset.ID(),
           .position = { 0.f, 2.f, 0.f },
           .rotation = { 0.f, 90.f, 0.f },
           .scale = { -1.f, -1.f, -1.f }
+      });
+    }
+    {
+      FPath teapot = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "teapot", "teapot.obj"});
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+      meshAsset.LoadObj(teapot.GetString().c_str(), UFALSE);
+
+      entities[2].Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = meshAsset.ID(),
+          .position = { 6.f, 2.f, 0.f },
+          .rotation = { 0.f, 90.f, 0.f },
+          .scale = { -0.025f, -0.025f, -0.025f }
       });
     }
 
@@ -228,7 +239,7 @@ private:
     }
     m_OffscreenImage.CreateView();
 
-    // Creating objects buffers and descriptors
+    // Creating objects buffer
     m_ObjectsUniformBuffer = deviceFactory.CreateBuffer();
     {
       const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
@@ -239,25 +250,50 @@ private:
                                         m_CommandPool, pLogicalDevice->GetGraphicsQueue());
     }
 
-    m_ObjectsDescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
-    m_ObjectsDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
+    // Creating light buffer
+    m_Light.position = { -2.f, 3.f, 0.f };
+
+    m_LightUniformBuffer = deviceFactory.CreateBuffer();
+    {
+      m_LightUniformBuffer.Allocate(sizeof(FLight), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+      m_LightUniformBuffer.Fill(&m_Light, sizeof(FLight), 1);
+    }
+
+    // Creating scene descriptors...
+    m_SceneDescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
+    m_SceneDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
       .pImmutableSamplers = nullptr
     });
-    m_ObjectsDescriptorSetLayout.Create();
+    m_SceneDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
+        .pImmutableSamplers = nullptr
+    });
+    m_SceneDescriptorSetLayout.Create();
 
-    m_ObjectsDescriptorPool = deviceFactory.CreateDescriptorPool();
-    m_ObjectsDescriptorPool.Create(&m_ObjectsDescriptorSetLayout, 1);
-    m_ObjectsDescriptorPool.AllocateDescriptorSet();
+    m_SceneDescriptorPool = deviceFactory.CreateDescriptorPool();
+    m_SceneDescriptorPool.Create(&m_SceneDescriptorSetLayout, 1);
+    m_SceneDescriptorPool.AllocateDescriptorSet();
     {
-      u32 dstBinding = m_ObjectsDescriptorSetLayout.GetBindings()[0].binding;
-      VkDescriptorType type = m_ObjectsDescriptorSetLayout.GetBindings()[0].descriptorType;
-      m_ObjectsDescriptorPool.WriteBufferToDescriptorSet(m_ObjectsUniformBuffer.GetHandle(),
-                                                         VK_WHOLE_SIZE,
-                                                         dstBinding, type);
+      u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[0].binding;
+      VkDescriptorType type = m_SceneDescriptorSetLayout.GetBindings()[0].descriptorType;
+      m_SceneDescriptorPool.WriteBufferToDescriptorSet(m_ObjectsUniformBuffer.GetHandle(),
+                                                       VK_WHOLE_SIZE,
+                                                       dstBinding, type);
+    }
+    {
+      u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[1].binding;
+      VkDescriptorType type = m_SceneDescriptorSetLayout.GetBindings()[1].descriptorType;
+      m_SceneDescriptorPool.WriteBufferToDescriptorSet(m_LightUniformBuffer.GetHandle(),
+                                                       VK_WHOLE_SIZE,
+                                                       dstBinding, type);
     }
 
     // Creating ray tracing descriptors...
@@ -309,7 +345,7 @@ private:
     m_RayTracingPipelineLayout = deviceFactory.CreatePipelineLayout();
     {
       VkDescriptorSetLayout setLayouts[]{ m_RayTracingDescriptorSetLayout.GetHandle(),
-                                          m_ObjectsDescriptorSetLayout.GetHandle() };
+                                          m_SceneDescriptorSetLayout.GetHandle() };
       m_RayTracingPipelineLayout.Create(setLayouts);
     }
 
@@ -319,7 +355,7 @@ private:
     vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
     glslCompiler.Initialize();
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
-        .rayClosestHitPath = FPath::Append(shadersPath, "normals.rchit.spv"),
+        .rayClosestHitPath = FPath::Append(shadersPath, "colors.rchit.spv"),
         .rayGenerationPath = FPath::Append(shadersPath, "camera.rgen"),
         .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
         .pGlslCompiler = &glslCompiler,
@@ -361,12 +397,13 @@ private:
     m_RayTracingDescriptorSetLayout.Destroy();
     m_RayTracingDescriptorPool.Destroy();
 
-    m_ObjectsDescriptorSetLayout.Destroy();
-    m_ObjectsDescriptorPool.Destroy();
+    m_SceneDescriptorSetLayout.Destroy();
+    m_SceneDescriptorPool.Destroy();
 
     // Closing buffers
     m_CameraUniformBuffer.Free();
     m_ObjectsUniformBuffer.Free();
+    m_LightUniformBuffer.Free();
 
     // Destroying pipelines...
     m_RayTracingPipelineLayout.Destroy();
@@ -404,7 +441,7 @@ private:
     std::span<const VkImage> swapchainImages = m_Swapchain.GetImages();
     VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
     VkDescriptorSet descriptorSets[]{ m_RayTracingDescriptorPool.GetDescriptorSet(),
-                                      m_ObjectsDescriptorPool.GetDescriptorSet() };
+                                      m_SceneDescriptorPool.GetDescriptorSet() };
 
     for (u32 i = 0; i < swapchainImages.size(); i++)
     {
@@ -456,15 +493,18 @@ private:
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
 
-  vulkan::FDescriptorSetLayout m_ObjectsDescriptorSetLayout{};
-  vulkan::FDescriptorPool m_ObjectsDescriptorPool{};
+  vulkan::FDescriptorSetLayout m_SceneDescriptorSetLayout{};
+  vulkan::FDescriptorPool m_SceneDescriptorPool{};
   vulkan::FBuffer m_ObjectsUniformBuffer{};
+  vulkan::FBuffer m_LightUniformBuffer{};
 
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_CameraUniformBuffer{};
 
   FAssetRegistry m_AssetRegistry{};
   FEntityRegistry m_EntityRegistry{};
+
+  FLight m_Light{};
 
 };
 

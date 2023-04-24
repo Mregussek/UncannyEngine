@@ -16,6 +16,7 @@ struct FVertex
 {
   math::Vector3f position{};
   math::Vector3f normal{};
+  math::Vector3f color{};
 };
 
 
@@ -33,7 +34,7 @@ public:
   FMeshAsset() = delete;
   explicit FMeshAsset(u64 id);
 
-  void LoadObj(const char* path);
+  void LoadObj(const char* path, b8 flipNormals);
 
   [[nodiscard]] const std::vector<FMeshAssetData>& GetData() const { return m_Data; }
 

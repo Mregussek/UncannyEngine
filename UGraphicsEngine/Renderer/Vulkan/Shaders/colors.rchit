@@ -24,6 +24,7 @@ layout(location = 0) rayPayloadInEXT vec4 payload;
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { ivec3 i[]; };
 layout(set = 1, binding = 0, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
+layout(set = 1, binding = 1) uniform Light_ { vec3 position; } light;
 
 hitAttributeEXT vec3 attribs;
 
@@ -40,20 +41,12 @@ void main()
     Vertex vertex2 = objectVertices.v[triangleIndices.z];
 
     const vec3 barycentricCoords = vec3(1.f - attribs.x - attribs.y, attribs.x, attribs.y);
+    const vec3 normal = normalize(vertex0.normal * barycentricCoords.x + vertex1.normal * barycentricCoords.y + vertex2.normal * barycentricCoords.z);
 
-    // Computing the coordinates of the hit position
-    const vec3 hitPosition = vertex0.position * barycentricCoords.x +
-                             vertex1.position * barycentricCoords.y +
-                             vertex2.position * barycentricCoords.z;
-    // Transforming the position to world space
-    const vec3 hitWorldPosition = vec3(gl_ObjectToWorldEXT * vec4(hitPosition, 1.0));
+    // Basic lighting
+    vec3 lightVector = normalize(light.position.xyz);
+    float dot_product = dot(lightVector, normal);
+    vec3 color = vertex0.color.rgb * dot_product;
 
-    // Computing the normal at hit position
-    const vec3 normal = vertex0.normal * barycentricCoords.x +
-                        vertex1.normal * barycentricCoords.y +
-                        vertex2.normal * barycentricCoords.z;
-    // Transforming the normal to world space
-    const vec3 worldNormal = normalize(vec3(normal * gl_WorldToObjectEXT));
-
-    payload = vec4(worldNormal, 0.0);
+    payload = vec4(color.rgb, 0.0);
 }

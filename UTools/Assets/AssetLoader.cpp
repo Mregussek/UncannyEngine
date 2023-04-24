@@ -19,31 +19,35 @@ public:
   {
   }
 
-  void ProcessNode(aiNode* pNode, const aiScene* pScene)
+  void ProcessNode(aiNode* pNode, const aiScene* pScene, b8 flipNormals)
   {
     for(u32 i = 0; i < pNode->mNumMeshes; i++)
     {
       aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
       FMeshAssetData& rtnMeshData = m_pReturnData->emplace_back();
 
-      ProcessMesh(pMesh, pScene, &rtnMeshData);
+      ProcessMesh(pMesh, pScene, &rtnMeshData, flipNormals);
     }
 
     for(u32 i = 0; i < pNode->mNumChildren; i++)
     {
-      ProcessNode(pNode->mChildren[i], pScene);
+      ProcessNode(pNode->mChildren[i], pScene, flipNormals);
     }
   }
 
 private:
 
-  static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, FMeshAssetData* pReturnData)
+  static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, FMeshAssetData* pReturnData, b8 flipNormals)
   {
     pReturnData->vertices.reserve(pMesh->mNumVertices);
     for (u32 vertexIdx = 0; vertexIdx < pMesh->mNumVertices; vertexIdx++)
     {
       aiVector3D aiVertex = pMesh->mVertices[vertexIdx];
       aiVector3D aiNormal = pMesh->mNormals ? pMesh->mNormals[vertexIdx] : aiVector3D{ 0.f, 0.f, 0.f };
+      aiMaterial* aiMat = pScene->mMaterials[pMesh->mMaterialIndex];
+      aiColor3D color;
+      aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+
       pReturnData->vertices.push_back(
           FVertex{
             .position = {
@@ -53,7 +57,11 @@ private:
             .normal = {
                 .x = aiNormal.x,
                 .y = aiNormal.y,
-                .z = aiNormal.z }
+                .z = aiNormal.z },
+            .color = {
+                .x = color.r,
+                .y = color.g,
+                .z = color.b }
           });
     }
 
@@ -84,7 +92,8 @@ private:
 
       // The cross product is perpendicular to both input vectors (normal to the plane).
       // Flip the argument order if you need the opposite winding.
-      const math::Vector3f areaWeightedNormal = math::CrossProduct(edgeAB, edgeAC);
+      const math::Vector3f areaWeightedNormal = flipNormals ? math::CrossProduct(edgeAC, edgeAB) :
+          math::CrossProduct(edgeAB, edgeAC);
 
       // Don't normalize this vector just yet. Its magnitude is proportional to the
       // area of the triangle (times 2), so this helps ensure tiny/skinny triangles
@@ -105,7 +114,7 @@ private:
 };
 
 
-void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData)
+void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData, b8 flipNormals)
 {
   Assimp::Importer importer;
   const aiScene* aiScene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -119,7 +128,7 @@ void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshD
   }
 
   FAssimpSceneProcessor sceneProcessor(pMeshData);
-  sceneProcessor.ProcessNode(aiScene->mRootNode, aiScene);
+  sceneProcessor.ProcessNode(aiScene->mRootNode, aiScene, flipNormals);
 
   importer.FreeScene();
 }
