@@ -4,7 +4,6 @@
 
 
 #include <volk.h>
-#include <vector>
 #include <UTools/UTypes.h>
 
 
@@ -20,7 +19,7 @@ public:
 
   ~FShader();
 
-  void Create(const std::vector<u32>& spvSource);
+  void Create(const u32* pSpvSource, u32 codeSize);
 
   void Destroy();
 

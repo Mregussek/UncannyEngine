@@ -19,14 +19,14 @@ FShader::~FShader()
 }
 
 
-void FShader::Create(const std::vector<u32>& spvSource)
+void FShader::Create(const u32* pSpvSource, u32 codeSize)
 {
   VkShaderModuleCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
     .pNext = nullptr,
     .flags = 0,
-    .codeSize = sizeof(spvSource[0]) * spvSource.size(),
-    .pCode = spvSource.data()
+    .codeSize = codeSize,
+    .pCode = pSpvSource
   };
   VkResult result = vkCreateShaderModule(m_Device, &createInfo, nullptr, &m_ShaderModule);
   AssertVkAndThrow(result);

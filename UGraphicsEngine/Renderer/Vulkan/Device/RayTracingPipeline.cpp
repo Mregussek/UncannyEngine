@@ -34,9 +34,20 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
   auto CompileLoadAndCreateModule =
       [pCompiler = specification.pGlslCompiler](FShader& shaderModule, const FPath& path, EShaderCompilerStage stage)
   {
-    std::vector<char> glslSource = FFile::Read(path.GetString().c_str());
-    std::vector<u32> spvSource = pCompiler->Compile(glslSource.data(), stage);
-    shaderModule.Create(spvSource);
+
+    if (FPath::HasExtension(path, ".spv"))
+    {
+      std::vector<char> spvSource;
+      spvSource = FFile::ReadBinary(path.GetString().c_str());
+      shaderModule.Create(reinterpret_cast<const u32*>(spvSource.data()), spvSource.size());
+    }
+    else
+    {
+      std::vector<u32> spvSource;
+      std::vector<char> glslSource = FFile::Read(path.GetString().c_str());
+      spvSource = pCompiler->Compile(glslSource.data(), stage);
+      shaderModule.Create(spvSource.data(), sizeof(u32) * spvSource.size());
+    }
   };
 
   FShader rayGenerationModule(m_Device);

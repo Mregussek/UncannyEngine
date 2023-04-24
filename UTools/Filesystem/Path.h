@@ -4,7 +4,7 @@
 
 
 #include <string>
-#include <span>
+#include "UTools/UTypes.h"
 
 
 namespace uncanny
@@ -36,6 +36,8 @@ public:
   static FPath Append(const FPath& path, const char* pPathElement);
 
   static FPath Append(const FPath& path, std::initializer_list<const char*> pathElements);
+
+  static b32 HasExtension(const FPath& path, const char* ext);
 
   [[nodiscard]] const std::string& GetString() const { return m_Path; }
 

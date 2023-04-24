@@ -2,10 +2,15 @@
 #include "File.h"
 #include "UTools/Logger/Log.h"
 #include <stdexcept>
+#include <fstream>
 
 
 namespace uncanny
 {
+
+
+template<typename T>
+concept ConceptFileBufferType = std::is_same_v<T, char> or std::is_same_v<T, u32>;
 
 
 class FFileReader
@@ -27,7 +32,8 @@ public:
     fclose(pFile);
   }
 
-  void Read(std::vector<char>& buffer)
+  template<ConceptFileBufferType T>
+  void Read(std::vector<T>& buffer)
   {
     // determine file size
     fseek(pFile, 0, SEEK_END);
@@ -39,12 +45,6 @@ public:
 
     // Read file into vector
     size_t bytesRead = fread(buffer.data(), 1, size, pFile);
-    return;
-    if (bytesRead != size)
-    {
-      UERROR("Read error during loading!");
-      throw std::runtime_error("Read error during loading!");
-    }
   }
 
 private:
@@ -58,6 +58,15 @@ std::vector<char> FFile::Read(const char* pPath)
 {
   std::vector<char> outBuffer{};
   FFileReader reader(pPath, "r");
+  reader.Read(outBuffer);
+  return outBuffer;
+}
+
+
+std::vector<char> FFile::ReadBinary(const char* pPath)
+{
+  std::vector<char> outBuffer{};
+  FFileReader reader(pPath, "rb");
   reader.Read(outBuffer);
   return outBuffer;
 }

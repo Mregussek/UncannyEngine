@@ -49,7 +49,7 @@ struct glslang_program_raii_wrapper
 
 
 
-FGLSLShaderCompiler::FGLSLShaderCompiler(u32 targetVulkanVersion, b8 spirv14Supported)
+FGLSLShaderCompiler::FGLSLShaderCompiler(u32 targetVulkanVersion)
 {
   switch (targetVulkanVersion)
   {
@@ -66,16 +66,6 @@ FGLSLShaderCompiler::FGLSLShaderCompiler(u32 targetVulkanVersion, b8 spirv14Supp
       m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_0;
       break;
   }
-
-  if (spirv14Supported)
-  {
-    m_TargetSpirvVersion = GLSLANG_TARGET_SPV_1_4;
-  }
-  else
-  {
-    m_TargetSpirvVersion = GLSLANG_TARGET_SPV_1_3;
-  }
-  m_TargetSpirvVersion = GLSLANG_TARGET_SPV_1_5;
 }
 
 
@@ -102,9 +92,9 @@ std::vector<u32> FGLSLShaderCompiler::Compile(const char* glslSource, EShaderCom
     .client = GLSLANG_CLIENT_VULKAN,
     .client_version = m_TargetVulkanVersion,
     .target_language = GLSLANG_TARGET_SPV,
-    .target_language_version = m_TargetSpirvVersion,
+    .target_language_version = GLSLANG_TARGET_SPV_1_6,
     .code = glslSource,
-    .default_version = 100,
+    .default_version = 460,
     .default_profile = GLSLANG_NO_PROFILE,
     .force_default_version_and_profile = UFALSE,
     .forward_compatible = UFALSE,
@@ -129,7 +119,8 @@ std::vector<u32> FGLSLShaderCompiler::Compile(const char* glslSource, EShaderCom
   {
     UERROR("GLSL parsing failed:\n{}\n{}",
            glslang_shader_get_info_log(shaderRaiiWrapper.pShader),
-           glslang_shader_get_info_debug_log(shaderRaiiWrapper.pShader));
+           glslang_shader_get_info_debug_log(shaderRaiiWrapper.pShader),
+           glslang_shader_get_preprocessed_code(shaderRaiiWrapper.pShader));
     AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Cannot parse shader!");
   }
 

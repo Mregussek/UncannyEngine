@@ -80,12 +80,7 @@ std::vector<FSemaphore> FRenderDeviceFactory::CreateSemaphores(u32 count) const
 
 FGLSLShaderCompiler FRenderDeviceFactory::CreateGlslShaderCompiler() const
 {
-  b8 spirv14Supported = UFALSE;
-  if (m_pPhysicalDeviceAttributes->IsExtensionPresent(VK_KHR_SPIRV_1_4_EXTENSION_NAME))
-  {
-    spirv14Supported = UTRUE;
-  }
-  return FGLSLShaderCompiler{ m_pInstanceAttributes->GetFullVersion(), spirv14Supported };
+  return FGLSLShaderCompiler{ m_pInstanceAttributes->GetFullVersion() };
 }
 
 

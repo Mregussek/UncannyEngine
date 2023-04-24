@@ -34,11 +34,10 @@ public:
 
 private:
 
-  FGLSLShaderCompiler(u32 targetVulkanVersion, b8 spirv14Supported);
+  explicit FGLSLShaderCompiler(u32 targetVulkanVersion);
 
 
   glslang_target_client_version_t m_TargetVulkanVersion{};
-  glslang_target_language_version_t m_TargetSpirvVersion{};
 
 };
 

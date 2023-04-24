@@ -94,4 +94,11 @@ FPath FPath::Append(const FPath& path, std::initializer_list<const char*> pathEl
 }
 
 
+b32 FPath::HasExtension(const FPath& path, const char* ext)
+{
+  std::filesystem::path absolute{ path.m_Path };
+  return absolute.extension() == std::string{ ext };
+}
+
+
 }
