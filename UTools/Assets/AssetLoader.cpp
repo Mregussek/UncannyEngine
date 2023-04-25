@@ -27,11 +27,28 @@ public:
     for (u32 i = 0; i < pScene->mNumMaterials; i++)
     {
       aiMaterial* aiMat = pScene->mMaterials[i];
+
+      aiColor3D ambient;
+      aiMat->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+
       aiColor3D diffuse;
       aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
 
+      aiColor3D specular;
+      aiMat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+
+      aiColor3D emission;
+      aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emission);
+
+      aiColor3D reflective;
+      aiMat->Get(AI_MATKEY_COLOR_REFLECTIVE, reflective);
+
       m_pReturnMaterialData->push_back(FMaterialData{
-        .diffuse = { .x = diffuse.r, .y = diffuse.g, .z = diffuse.b }
+        .ambient = { .x = ambient.r, .y = ambient.g, .z = ambient.b },
+        .diffuse = { .x = diffuse.r, .y = diffuse.g, .z = diffuse.b },
+        .specular = { .x = specular.r, .y = specular.g, .z = specular.b },
+        .emission = { .x = emission.r, .y = emission.g, .z = emission.b },
+        .reflective = { .x = reflective.r, .y = reflective.g, .z = reflective.b },
       });
     }
   }

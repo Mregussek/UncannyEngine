@@ -30,7 +30,11 @@ struct FMeshAssetData
 
 struct FMaterialData
 {
+  math::Vector3f ambient{};
   math::Vector3f diffuse{};
+  math::Vector3f specular{};
+  math::Vector3f emission{};
+  math::Vector3f reflective{};
 };
 
 

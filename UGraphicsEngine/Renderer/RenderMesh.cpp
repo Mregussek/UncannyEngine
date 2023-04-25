@@ -71,7 +71,13 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
   {
     for (const FMaterialData& data : pMeshAsset->GetMaterials())
     {
-      rtnRenderData.materials.emplace_back(FRenderMaterialData{ .diffuse = data.diffuse });
+      rtnRenderData.materials.emplace_back(FRenderMaterialData{
+        .ambient = data.ambient,
+        .diffuse = data.diffuse,
+        .specular = data.specular,
+        .emission = data.emission,
+        .reflective = data.reflective
+      });
     }
   }
 

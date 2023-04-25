@@ -359,10 +359,10 @@ private:
     vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
     glslCompiler.Initialize();
     vulkan::FRayTracingShadowPipelineSpecification rayTracingShadowPipelineSpecification{
-        .rayClosestHitPath = FPath::Append(shadersPath, "shadows.rchit.spv"),
-        .rayGenerationPath = FPath::Append(shadersPath, "camera.rgen"),
-        .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
-        .rayShadowMissPath = FPath::Append(shadersPath, "shadows.rmiss"),
+        .rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv"),
+        .rayGenerationPath = FPath::Append(shadersPath, "sandbox.rgen.spv"),
+        .rayMissPath =  FPath::Append(shadersPath, "sandbox_complete_miss.rmiss.spv"),
+        .rayShadowMissPath = FPath::Append(shadersPath, "sandbox_shadow_miss.rmiss.spv"),
         .pGlslCompiler = &glslCompiler,
         .pPipelineLayout = &m_RayTracingPipelineLayout
     };

@@ -1,4 +1,6 @@
 
+#define M_PI 3.1415926535897932384626433832795
+
 struct Vertex
 {
     vec3 position;
@@ -8,7 +10,11 @@ struct Vertex
 
 struct Material
 {
+    vec3 ambient;
     vec3 diffuse;
+    vec3 specular;
+    vec3 emission;
+    vec3 reflective;
 };
 
 struct BottomStructureUniformData
@@ -22,4 +28,11 @@ struct BottomStructureUniformData
 struct LightData
 {
     vec3 position;
+};
+
+struct HitPayload
+{
+  vec3 rayOrigin;
+  vec3 rayDirection;
+  vec3 directColor;
 };
