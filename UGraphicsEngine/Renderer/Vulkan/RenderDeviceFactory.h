@@ -13,6 +13,7 @@
 #include "Device/GlslShaderCompiler.h"
 #include "Device/PipelineLayout.h"
 #include "Device/RayTracingPipeline.h"
+#include "Device/RayTracingShadowPipeline.h"
 #include "Synchronization/Semaphore.h"
 
 
@@ -57,6 +58,8 @@ public:
   [[nodiscard]] FPipelineLayout CreatePipelineLayout() const;
 
   [[nodiscard]] FRayTracingPipeline CreateRayTracingPipeline() const;
+
+  [[nodiscard]] FRayTracingShadowPipeline CreateRayTracingShadowPipeline() const;
 
 private:
 

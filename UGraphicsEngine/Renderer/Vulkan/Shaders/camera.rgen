@@ -13,14 +13,13 @@ layout(location = 0) rayPayloadEXT vec4 payload;
 
 void main() {
     const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5f);
-    const vec2 inUV = pixelCenter/vec2(gl_LaunchSizeEXT.xy);
+    const vec2 inUV = pixelCenter / vec2(gl_LaunchSizeEXT.xy);
     const vec2 d = inUV * 2.f - 1.f;
 
     const vec4 origin = cam.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
     const vec4 target = cam.projInverse * vec4(d.xy, 1.f, 1.f) ;
     const vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0.f) ;
 
-    payload = vec4(0.0);
     traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
                 gl_RayFlagsOpaqueEXT,   // rayFlags
                 0xff,                   // cullMask

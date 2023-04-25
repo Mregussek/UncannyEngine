@@ -110,6 +110,14 @@ FRayTracingPipeline FRenderDeviceFactory::CreateRayTracingPipeline() const
 }
 
 
+FRayTracingShadowPipeline FRenderDeviceFactory::CreateRayTracingShadowPipeline() const
+{
+  return FRayTracingShadowPipeline{ this,
+                                    m_pLogicalDevice->GetHandle(),
+                                    m_pLogicalDevice->GetAttributes().GetRayTracingProperties() };
+}
+
+
 void FRenderDeviceFactory::Initialize(const FInstanceAttributes* pInstanceAttributes,
                                       const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, const FLogicalDevice* pLogicalDevice)
 {

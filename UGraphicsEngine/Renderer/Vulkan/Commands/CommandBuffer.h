@@ -14,6 +14,7 @@ namespace uncanny::vulkan
 
 
 class FRayTracingPipeline;
+class FRayTracingShadowPipeline;
 
 
 class FCommandBuffer
@@ -50,6 +51,7 @@ public:
                           std::span<VkDescriptorSet> descriptorSets);
 
   void TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D);
+  void TraceRays(const FRayTracingShadowPipeline* pRayTracingShadowPipeline, VkExtent3D extent3D);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }

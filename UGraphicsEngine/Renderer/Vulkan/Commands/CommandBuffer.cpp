@@ -2,6 +2,7 @@
 #include "CommandBuffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingShadowPipeline.h"
 #include "UTools/Logger/Log.h"
 #undef MemoryBarrier
 
@@ -219,6 +220,36 @@ void FCommandBuffer::TraceRays(const FRayTracingPipeline* pRayTracingPipeline, V
     .deviceAddress = rayClosestHitBuffer.GetDeviceAddress(),
     .stride = rayClosestHitBuffer.GetFilledElementsCount(),
     .size = rayClosestHitBuffer.GetFilledElementsCount()
+  };
+
+  VkStridedDeviceAddressRegionKHR rayCallableSBT{};
+
+  vkCmdTraceRaysKHR(m_CommandBuffer, &rayGenSBT, &rayMissSBT, &rayHitSBT, &rayCallableSBT,
+                    extent3D.width, extent3D.height, extent3D.depth);
+}
+
+
+void FCommandBuffer::TraceRays(const FRayTracingShadowPipeline* pRayTracingShadowPipeline, VkExtent3D extent3D)
+{
+  const FBuffer& rayGenBuffer = pRayTracingShadowPipeline->GetRayGenBuffer();
+  VkStridedDeviceAddressRegionKHR rayGenSBT{
+      .deviceAddress = rayGenBuffer.GetDeviceAddress(),
+      .stride = rayGenBuffer.GetFilledElementsCount(),
+      .size = rayGenBuffer.GetFilledElementsCount()
+  };
+
+  const FBuffer& rayMissBuffer = pRayTracingShadowPipeline->GetRayMissBuffer();
+  VkStridedDeviceAddressRegionKHR rayMissSBT{
+      .deviceAddress = rayMissBuffer.GetDeviceAddress(),
+      .stride = rayMissBuffer.GetFilledElementsCount() / 2,
+      .size = rayMissBuffer.GetFilledElementsCount()
+  };
+
+  const FBuffer& rayClosestHitBuffer = pRayTracingShadowPipeline->GetRayClosestHitBuffer();
+  VkStridedDeviceAddressRegionKHR rayHitSBT{
+      .deviceAddress = rayClosestHitBuffer.GetDeviceAddress(),
+      .stride = rayClosestHitBuffer.GetFilledElementsCount(),
+      .size = rayClosestHitBuffer.GetFilledElementsCount()
   };
 
   VkStridedDeviceAddressRegionKHR rayCallableSBT{};
