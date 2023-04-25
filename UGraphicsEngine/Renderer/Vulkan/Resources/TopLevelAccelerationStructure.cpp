@@ -40,7 +40,9 @@ void FTopLevelAccelerationStructure::Build(std::span<const FBottomLevelAccelerat
     });
     m_BottomUniformData.push_back(FBottomLevelStructureReferenceUniformData{
       .vertexBufferDeviceAddress = bottomLevelStructures[i].GetVertexBuffer().GetDeviceAddress(),
-      .indexBufferDeviceAddress = bottomLevelStructures[i].GetIndexBuffer().GetDeviceAddress()
+      .indexBufferDeviceAddress = bottomLevelStructures[i].GetIndexBuffer().GetDeviceAddress(),
+      .materialBufferDeviceAddress = bottomLevelStructures[i].GetMaterialBuffer().GetDeviceAddress(),
+      .materialIndicesBufferDeviceAddress = bottomLevelStructures[i].GetMaterialIndicesBuffer().GetDeviceAddress(),
     });
   }
   Build(instances, commandPool, queue);

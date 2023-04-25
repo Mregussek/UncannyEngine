@@ -4,7 +4,7 @@
 
 
 #include "UTools/UTypes.h"
-#include "UMath/Vector3.h"
+#include "UMath/Matrix4x4.h"
 #include <vector>
 
 
@@ -23,7 +23,7 @@ struct FRenderVertex
 };
 
 
-struct FRenderMaterial
+struct FRenderMaterialData
 {
   math::Vector3f diffuse{};
 };
@@ -33,15 +33,15 @@ struct FRenderMeshData
 {
   std::vector<FRenderVertex> vertices{};
   std::vector<u32> indices{};
+  std::vector<u32> materialIndices{};
   math::Matrix4x4f transform{};
-  u32 materialIndex{};
 };
 
 
 struct FRenderData
 {
   std::vector<FRenderMeshData> meshes{};
-  std::vector<FRenderMaterial> materials{};
+  std::vector<FRenderMaterialData> materials{};
 };
 
 

@@ -151,6 +151,7 @@ void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshD
 
   FAssimpSceneProcessor sceneProcessor(pMeshData, pMaterialData);
   sceneProcessor.ProcessNode(aiScene->mRootNode, aiScene, flipNormals);
+  sceneProcessor.ProcessMaterial(aiScene);
 
   importer.FreeScene();
 }

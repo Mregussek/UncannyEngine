@@ -206,9 +206,8 @@ private:
     m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderDataVector.size());
     for (u32 i = 0; i < renderDataVector.size(); i++)
     {
-      m_BottomLevelASVector[i].Build(renderDataVector[i].meshes[0].vertices, renderDataVector[i].meshes[0].indices,
-                                     renderDataVector[i].meshes[0].transform, m_CommandPool,
-                                     pLogicalDevice->GetGraphicsQueue());
+      m_BottomLevelASVector[i].Build(renderDataVector[i].meshes[0], renderDataVector[i].materials,
+                                     m_CommandPool, pLogicalDevice->GetGraphicsQueue());
     }
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
     m_TopLevelAS.Build(m_BottomLevelASVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
@@ -369,7 +368,7 @@ private:
     vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
     glslCompiler.Initialize();
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
-        .rayClosestHitPath = FPath::Append(shadersPath, "colors.rchit.spv"),
+        .rayClosestHitPath = FPath::Append(shadersPath, "materials.rchit.spv"),
         .rayGenerationPath = FPath::Append(shadersPath, "camera.rgen"),
         .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
         .pGlslCompiler = &glslCompiler,

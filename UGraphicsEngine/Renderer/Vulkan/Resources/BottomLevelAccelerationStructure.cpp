@@ -10,7 +10,9 @@ FBottomLevelAccelerationStructure::FBottomLevelAccelerationStructure(
     VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
     : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes),
       m_VertexBuffer(pPhysicalDeviceAttributes, vkDevice),
-      m_IndexBuffer(pPhysicalDeviceAttributes, vkDevice)
+      m_IndexBuffer(pPhysicalDeviceAttributes, vkDevice),
+      m_MaterialBuffer(pPhysicalDeviceAttributes, vkDevice),
+      m_MaterialIndexBuffer(pPhysicalDeviceAttributes, vkDevice)
 {
   m_Transform = {
       1.0f, 0.0f, 0.0f, 0.0f,
@@ -25,21 +27,22 @@ void FBottomLevelAccelerationStructure::Destroy()
   FAccelerationStructure::Destroy();
   m_VertexBuffer.Free();
   m_IndexBuffer.Free();
+  m_MaterialBuffer.Free();
+  m_MaterialIndexBuffer.Free();
 }
 
 
-void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices, std::span<u32> indices,
-                                             math::Matrix4x4f transform, const FCommandPool& commandPool,
-                                             const FQueue& queue)
+void FBottomLevelAccelerationStructure::Build(const FRenderMeshData& meshData,
+                                              std::span<FRenderMaterialData> materials,
+                                              const FCommandPool& commandPool,
+                                              const FQueue& queue)
 {
-  AssignTransformMatrix(transform);
-  Build(vertices, indices, commandPool, queue);
-}
+  AssignTransformMatrix(meshData.transform);
 
+  const std::vector<FRenderVertex>& vertices = meshData.vertices;
+  const std::vector<u32>& indices = meshData.indices;
+  const std::vector<u32>& materialIndices = meshData.materialIndices;
 
-void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices, std::span<u32> indices,
-                                              const FCommandPool& commandPool, const FQueue& queue)
-{
   VkBufferUsageFlags bufferUsageFlags =
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
       VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -53,6 +56,16 @@ void FBottomLevelAccelerationStructure::Build(std::span<FRenderVertex> vertices,
                          bufferUsageFlags | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   m_IndexBuffer.FillStaged(indices.data(), sizeof(u32), indices.size(), commandPool, queue);
+
+  m_MaterialBuffer.Allocate(materials.size() * sizeof(FRenderMaterialData),
+                            bufferUsageFlags | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  m_MaterialBuffer.FillStaged(materials.data(), sizeof(FRenderMaterialData), materials.size(), commandPool, queue);
+
+  m_MaterialIndexBuffer.Allocate(materialIndices.size() * sizeof(u32),
+                            bufferUsageFlags | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  m_MaterialIndexBuffer.FillStaged(materialIndices.data(), sizeof(u32), materialIndices.size(), commandPool, queue);
 
   u32 trianglesCount = m_IndexBuffer.GetFilledElementsCount() / 3;
   u32 vertexMaxCount = m_VertexBuffer.GetFilledElementsCount();

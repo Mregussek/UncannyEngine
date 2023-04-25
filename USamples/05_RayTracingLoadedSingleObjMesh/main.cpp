@@ -124,8 +124,8 @@ private:
                               VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME },
         .apiVersion = VK_API_VERSION_1_3
     };
-
     m_RenderContext.Create(renderContextAttributes, m_Window);
+
     const vulkan::FRenderDeviceFactory& deviceFactory = m_RenderContext.GetFactory();
     const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
@@ -145,23 +145,30 @@ private:
     // Initializing ECS...
     m_EntityRegistry.Create();
     {
-      FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
-      FMeshAsset &sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
-      sponzaMeshAsset.LoadObj(sponza.GetString().c_str(), UFALSE);
+      FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+      meshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
 
       m_Entity = m_EntityRegistry.Register();
-      auto &renderMeshComponent = m_Entity.Add<FRenderMeshComponent>();
-      renderMeshComponent.id = sponzaMeshAsset.ID();
+      m_Entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = meshAsset.ID(),
+          .position = { 0.f, 0.f, 0.f },
+          .rotation = { 0.f, -180.f, 0.f },
+          .scale = { -1.f, -1.f, -1.f }
+      });
     }
 
     // Creating acceleration structures...
-    auto& renderMeshComponent = m_Entity.Get<FRenderMeshComponent>();
-    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(renderMeshComponent.id);
-    FRenderMesh renderMesh = FRenderMeshFactory::ConvertAssetToOneRenderMesh(&meshAsset);
+    {
+      auto& renderMeshComponent = m_Entity.Get<FRenderMeshComponent>();
+      const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(renderMeshComponent.id);
+      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset);
+      renderData.meshes[0].transform = renderMeshComponent.GetMatrix();
 
-    m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(renderMesh.vertices, renderMesh.indices, m_CommandPool,
-                          pLogicalDevice->GetGraphicsQueue());
+      m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
+      m_BottomLevelAS.Build(renderData.meshes[0], renderData.materials, m_CommandPool,
+                            pLogicalDevice->GetGraphicsQueue());
+    }
 
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
     m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
@@ -169,7 +176,7 @@ private:
     // Creating camera...
     {
       FPerspectiveCameraSpecification cameraSpecification{
-        .position = { 1.f, -0.5f, 4.f },
+        .position = { 0.f, 0.f, 4.f },
         .front = { 0.f, 0.f, 0.f },
         .worldUp = { 0.f, 1.f, 0.f },
         .fieldOfView = 45.f,

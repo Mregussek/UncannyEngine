@@ -15,6 +15,8 @@ struct FBottomLevelStructureReferenceUniformData
 {
   u64 vertexBufferDeviceAddress{ UUNUSED };
   u64 indexBufferDeviceAddress{ UUNUSED };
+  u64 materialBufferDeviceAddress{ UUNUSED };
+  u64 materialIndicesBufferDeviceAddress{ UUNUSED };
 };
 
 

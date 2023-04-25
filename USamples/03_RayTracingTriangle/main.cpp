@@ -122,11 +122,13 @@ private:
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
 
     // Creating acceleration structures...
-    FRenderMesh triangleMesh = FRenderMeshFactory::CreateTriangle();
+    FRenderMeshData triangleData = FRenderMeshFactory::CreateTriangle();
+    triangleData.transform = math::Identity<f32>();
+    math::Vector3f color{ 0.2f, 0.5f, 0.2f };
+    FRenderMaterialData materials[]{ { .diffuse = color } };
 
     m_BottomLevelAS = deviceFactory.CreateBottomLevelAS();
-    m_BottomLevelAS.Build(triangleMesh.vertices, triangleMesh.indices, m_CommandPool,
-                          pLogicalDevice->GetGraphicsQueue());
+    m_BottomLevelAS.Build(triangleData, materials, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
     m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
