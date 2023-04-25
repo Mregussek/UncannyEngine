@@ -14,9 +14,26 @@ class FAssimpSceneProcessor
 {
 public:
 
-  explicit FAssimpSceneProcessor(std::vector<FMeshAssetData>* pReturnData)
-    : m_pReturnData(pReturnData)
+  FAssimpSceneProcessor(std::vector<FMeshAssetData>* pReturnMeshData,
+                        std::vector<FMaterialData>* pReturnMaterialData)
+    : m_pReturnMeshData(pReturnMeshData),
+    m_pReturnMaterialData(pReturnMaterialData)
   {
+  }
+
+  void ProcessMaterial(const aiScene* pScene)
+  {
+    m_pReturnMaterialData->reserve(pScene->mNumMaterials);
+    for (u32 i = 0; i < pScene->mNumMaterials; i++)
+    {
+      aiMaterial* aiMat = pScene->mMaterials[i];
+      aiColor3D diffuse;
+      aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+
+      m_pReturnMaterialData->push_back(FMaterialData{
+        .diffuse = { .x = diffuse.r, .y = diffuse.g, .z = diffuse.b }
+      });
+    }
   }
 
   void ProcessNode(aiNode* pNode, const aiScene* pScene, b8 flipNormals)
@@ -24,7 +41,7 @@ public:
     for(u32 i = 0; i < pNode->mNumMeshes; i++)
     {
       aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
-      FMeshAssetData& rtnMeshData = m_pReturnData->emplace_back();
+      FMeshAssetData& rtnMeshData = m_pReturnMeshData->emplace_back();
 
       ProcessMesh(pMesh, pScene, &rtnMeshData, flipNormals);
     }
@@ -39,11 +56,14 @@ private:
 
   static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, FMeshAssetData* pReturnData, b8 flipNormals)
   {
+    pReturnData->materialIndex = pMesh->mMaterialIndex;
+
     pReturnData->vertices.reserve(pMesh->mNumVertices);
     for (u32 vertexIdx = 0; vertexIdx < pMesh->mNumVertices; vertexIdx++)
     {
       aiVector3D aiVertex = pMesh->mVertices[vertexIdx];
       aiVector3D aiNormal = pMesh->mNormals ? pMesh->mNormals[vertexIdx] : aiVector3D{ 0.f, 0.f, 0.f };
+
       aiMaterial* aiMat = pScene->mMaterials[pMesh->mMaterialIndex];
       aiColor3D color;
       aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
@@ -109,12 +129,14 @@ private:
   }
 
 
-  std::vector<FMeshAssetData>* m_pReturnData{ nullptr };
+  std::vector<FMeshAssetData>* m_pReturnMeshData{ nullptr };
+  std::vector<FMaterialData>* m_pReturnMaterialData{ nullptr };
 
 };
 
 
-void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData, b8 flipNormals)
+void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData,
+                           std::vector<FMaterialData>* pMaterialData, b8 flipNormals)
 {
   Assimp::Importer importer;
   const aiScene* aiScene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -127,7 +149,7 @@ void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshD
     return;
   }
 
-  FAssimpSceneProcessor sceneProcessor(pMeshData);
+  FAssimpSceneProcessor sceneProcessor(pMeshData, pMaterialData);
   sceneProcessor.ProcessNode(aiScene->mRootNode, aiScene, flipNormals);
 
   importer.FreeScene();

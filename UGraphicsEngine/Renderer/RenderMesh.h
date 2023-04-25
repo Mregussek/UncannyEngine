@@ -12,6 +12,9 @@ namespace uncanny
 {
 
 
+class FMeshAsset;
+
+
 struct FRenderVertex
 {
   math::Vector3f position{};
@@ -20,24 +23,35 @@ struct FRenderVertex
 };
 
 
-struct FRenderMesh
+struct FRenderMaterial
+{
+  math::Vector3f diffuse{};
+};
+
+
+struct FRenderMeshData
 {
   std::vector<FRenderVertex> vertices{};
   std::vector<u32> indices{};
   math::Matrix4x4f transform{};
+  u32 materialIndex{};
 };
 
 
-class FMeshAsset;
+struct FRenderData
+{
+  std::vector<FRenderMeshData> meshes{};
+  std::vector<FRenderMaterial> materials{};
+};
 
 
 class FRenderMeshFactory
 {
 public:
 
-  static FRenderMesh CreateTriangle();
+  static FRenderMeshData CreateTriangle();
 
-  static FRenderMesh ConvertAssetToOneRenderMesh(const FMeshAsset* pMeshAsset);
+  static FRenderData ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset);
 
 };
 

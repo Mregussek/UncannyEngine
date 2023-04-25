@@ -8,7 +8,7 @@ namespace uncanny
 {
 
 
-FRenderMesh FRenderMeshFactory::CreateTriangle()
+FRenderMeshData FRenderMeshFactory::CreateTriangle()
 {
   return {
     .vertices = {
@@ -27,32 +27,33 @@ FRenderMesh FRenderMeshFactory::CreateTriangle()
 }
 
 
-FRenderMesh FRenderMeshFactory::ConvertAssetToOneRenderMesh(const FMeshAsset* pMeshAsset)
+FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset)
 {
-  FRenderMesh rtn{};
+  FRenderData rtn{};
+  FRenderMeshData& meshData = rtn.meshes.emplace_back();
 
   u32 verticesReserveCount = 0;
   u32 indicesReserveCount = 0;
-  for (const FMeshAssetData& data : pMeshAsset->GetData())
+  for (const FMeshAssetData& data : pMeshAsset->GetMeshes())
   {
     verticesReserveCount += data.vertices.size();
     indicesReserveCount += data.indices.size();
   }
-  rtn.vertices.reserve(verticesReserveCount);
-  rtn.indices.reserve(indicesReserveCount);
+  meshData.vertices.reserve(verticesReserveCount);
+  meshData.indices.reserve(indicesReserveCount);
 
-  for (const FMeshAssetData& data : pMeshAsset->GetData())
+  for (const FMeshAssetData& data : pMeshAsset->GetMeshes())
   {
     for (const FVertex& vertex : data.vertices)
     {
-      rtn.vertices.push_back({ .position = vertex.position, .normal = vertex.normal, .color = vertex.color });
+      meshData.vertices.push_back({ .position = vertex.position, .normal = vertex.normal, .color = vertex.color });
     }
 
-    auto it = std::max_element(std::begin(rtn.indices), std::end(rtn.indices));
-    u32 maxElem = it != rtn.indices.end() ? *it + 1 : 0;
+    auto it = std::max_element(std::begin(meshData.indices), std::end(meshData.indices));
+    u32 maxElem = it != meshData.indices.end() ? *it + 1 : 0;
     for (u32 ind : data.indices)
     {
-      rtn.indices.push_back(maxElem + ind);
+      meshData.indices.push_back(maxElem + ind);
     }
   }
   return rtn;

@@ -15,7 +15,7 @@ FMeshAsset::FMeshAsset(u64 id)
 
 void FMeshAsset::LoadObj(const char* path, b8 flipNormals)
 {
-  FAssetLoader::LoadOBJ(path, &m_Data, flipNormals);
+  FAssetLoader::LoadOBJ(path, &m_Meshes, &m_Materials, flipNormals);
 }
 
 

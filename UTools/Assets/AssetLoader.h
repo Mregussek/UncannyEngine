@@ -17,7 +17,8 @@ class FAssetLoader
 {
 public:
 
-  static void LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData, b8 flipNormals);
+  static void LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshData,
+                      std::vector<FMaterialData>* pMaterialData, b8 flipNormals);
 
 };
 

@@ -24,6 +24,13 @@ struct FMeshAssetData
 {
   std::vector<FVertex> vertices{};
   std::vector<u32> indices{};
+  u32 materialIndex{ UUNUSED };
+};
+
+
+struct FMaterialData
+{
+  math::Vector3f diffuse{};
 };
 
 
@@ -36,13 +43,15 @@ public:
 
   void LoadObj(const char* path, b8 flipNormals);
 
-  [[nodiscard]] const std::vector<FMeshAssetData>& GetData() const { return m_Data; }
+  [[nodiscard]] const std::vector<FMeshAssetData>& GetMeshes() const { return m_Meshes; }
+  [[nodiscard]] const std::vector<FMaterialData>& GetMaterials() const { return m_Materials; }
 
   [[nodiscard]] u64 ID() const { return m_ID; }
 
 private:
 
-  std::vector<FMeshAssetData> m_Data{};
+  std::vector<FMeshAssetData> m_Meshes{};
+  std::vector<FMaterialData> m_Materials{};
   u64 m_ID{ UUNUSED };
 
 };

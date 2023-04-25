@@ -193,20 +193,22 @@ private:
     }
 
     // Creating acceleration structures...
-    std::vector<FRenderMesh> renderMeshes;
-    renderMeshes.reserve(m_EntityRegistry.GetEntities().size());
-    m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderMeshes](FRenderMeshComponent& component)
+    std::vector<FRenderData> renderDataVector;
+    renderDataVector.reserve(m_EntityRegistry.GetEntities().size());
+    m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
     {
       const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
-      auto& renderMesh = renderMeshes.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderMesh(&meshAsset));
-      renderMesh.transform = component.GetMatrix();
+      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset);
+      renderData.meshes[0].transform = component.GetMatrix();
+      renderDataVector.push_back(renderData);
     });
 
-    m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderMeshes.size());
-    for (u32 i = 0; i < renderMeshes.size(); i++)
+    m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderDataVector.size());
+    for (u32 i = 0; i < renderDataVector.size(); i++)
     {
-      m_BottomLevelASVector[i].Build(renderMeshes[i].vertices, renderMeshes[i].indices, renderMeshes[i].transform,
-                                     m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+      m_BottomLevelASVector[i].Build(renderDataVector[i].meshes[0].vertices, renderDataVector[i].meshes[0].indices,
+                                     renderDataVector[i].meshes[0].transform, m_CommandPool,
+                                     pLogicalDevice->GetGraphicsQueue());
     }
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
     m_TopLevelAS.Build(m_BottomLevelASVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
