@@ -51,15 +51,12 @@ void main()
     // Transforming the normal to world space
     const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
-    // Basic lighting
-    vec3 lightVector = normalize(lightData.data.position);
-    float dotNL = max(dot(lightVector, worldHitNormal), 0.2);
-    vec3 surfaceColor = triangleMaterial.diffuse * dotNL;
-
     // Shadow casting
     vec3 shadowRayOrigin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-    vec3 shadowRayDirection = lightVector;
+    vec3 shadowRayDirection = normalize(lightData.data.position - shadowRayOrigin);
     float shadowRayDistance = length(lightData.data.position - shadowRayOrigin) - 0.001f;
+    vec3 surfaceColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
+    
     uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
     IsInShadow = true;
     traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
