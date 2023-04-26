@@ -182,6 +182,28 @@ private:
           .scale = { -0.025f, -0.025f, -0.025f }
       });
     }
+    {
+      FPath mitsuba = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "mitsuba", "mitsuba-sphere.obj"});
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+      meshAsset.LoadObj(mitsuba.GetString().c_str(), UFALSE);
+      meshAsset.MakeReflective();
+
+      FEntity entity = m_EntityRegistry.Register();
+      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = meshAsset.ID(),
+          .position = { 3.f, 1.f, 2.f },
+          .rotation = { 0.f, -30.f, 0.f },
+          .scale = { -1.f, -1.f, -1.f }
+      });
+
+      FEntity entity2 = m_EntityRegistry.Register();
+      entity2.Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = meshAsset.ID(),
+          .position = { 3.f, 1.f, -2.f },
+          .rotation = { 0.f, 0.f, 0.f },
+          .scale = { -1.f, -1.f, -1.f }
+      });
+    }
 
     // Creating acceleration structures...
     std::vector<FRenderData> renderDataVector;
@@ -217,7 +239,8 @@ private:
         .pitch = 0.f,
         .movementSpeed = 5.f,
         .sensitivity = 100.f,
-        .zoom = 45.f
+        .zoom = 45.f,
+        .constrainPitch = UTRUE
       };
       m_Camera.Initialize(cameraSpecification);
     }

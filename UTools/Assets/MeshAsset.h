@@ -34,7 +34,9 @@ struct FMaterialData
   math::Vector3f diffuse{};
   math::Vector3f specular{};
   math::Vector3f emission{};
-  math::Vector3f reflective{};
+  f32 specularShininess{ 0.f };
+  f32 indexOfRefraction{ 0.f };
+  i32 illuminationModel{ 0 };
 };
 
 
@@ -46,6 +48,8 @@ public:
   explicit FMeshAsset(u64 id);
 
   void LoadObj(const char* path, b8 flipNormals);
+
+  void MakeReflective();
 
   [[nodiscard]] const std::vector<FMeshAssetData>& GetMeshes() const { return m_Meshes; }
   [[nodiscard]] const std::vector<FMaterialData>& GetMaterials() const { return m_Materials; }

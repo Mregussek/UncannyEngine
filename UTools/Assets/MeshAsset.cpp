@@ -19,4 +19,14 @@ void FMeshAsset::LoadObj(const char* path, b8 flipNormals)
 }
 
 
+void FMeshAsset::MakeReflective()
+{
+  for (FMaterialData& material : m_Materials)
+  {
+    material.diffuse = { 0.5f, 0.5f, 0.5f };
+    material.illuminationModel = 8;
+  }
+}
+
+
 }

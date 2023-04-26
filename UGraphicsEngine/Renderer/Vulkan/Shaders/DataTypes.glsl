@@ -14,7 +14,9 @@ struct Material
     vec3 diffuse;
     vec3 specular;
     vec3 emission;
-    vec3 reflective;
+    float specularShininess;
+    float indexOfRefraction;
+    int illuminationModel;
 };
 
 struct BottomStructureUniformData
@@ -35,4 +37,5 @@ struct HitPayload
   vec3 rayOrigin;
   vec3 rayDirection;
   vec3 directColor;
+  bool IsReflective;
 };

@@ -27,18 +27,29 @@ void main() {
     hitPayload.rayOrigin = origin.xyz;
     hitPayload.rayDirection = direction.xyz;
 
-    traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
-                gl_RayFlagsOpaqueEXT,   // rayFlags
-                0xff,                   // cullMask
-                0,                      // sbtRecordOffset
-                0,                      // sbtRecordStride
-                0,                      // missIndex
-                hitPayload.rayOrigin,   // origin
-                0.001f,                 // Tmin
-                hitPayload.rayDirection,// direction
-                10000.0f,               // Tmax
-                0                       // payload
-    );
+    vec3 rayColorValue = vec3(0);
+    int maxDepth = 2;
+    for (int i = 0; i < maxDepth; i++)
+    {
+        hitPayload.IsReflective = false;
+        traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
+                    gl_RayFlagsOpaqueEXT,   // rayFlags
+                    0xff,                   // cullMask
+                    0,                      // sbtRecordOffset
+                    0,                      // sbtRecordStride
+                    0,                      // missIndex
+                    hitPayload.rayOrigin,   // origin
+                    0.001f,                 // Tmin
+                    hitPayload.rayDirection,// direction
+                    10000.0f,               // Tmax
+                    0                       // payload
+        );
+        rayColorValue += hitPayload.directColor;
+        if (!hitPayload.IsReflective)
+        {
+            break;
+        }
+    }
 
-    imageStore(img, ivec2(gl_LaunchIDEXT.xy), vec4(hitPayload.directColor, 1.0));
+    imageStore(img, ivec2(gl_LaunchIDEXT.xy), vec4(rayColorValue, 1.0));
 }

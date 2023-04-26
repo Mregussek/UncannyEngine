@@ -55,14 +55,15 @@ void main()
     vec3 shadowRayOrigin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
     vec3 shadowRayDirection = normalize(lightData.data.position - shadowRayOrigin);
     float shadowRayDistance = length(lightData.data.position - shadowRayOrigin) - 0.001f;
-    vec3 surfaceColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
     
     uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
     IsInShadow = true;
+    float attenuation = 1.f;
+
     traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
                 rayFlags,               // rayFlags
                 0xff,                   // cullMask
-                1,                      // sbtRecordOffset
+                0,                      // sbtRecordOffset
                 0,                      // sbtRecordStride
                 1,                      // missIndex
                 shadowRayOrigin,        // origin
@@ -72,8 +73,18 @@ void main()
                 1                       // payload
     );
     if (IsInShadow) {
-        surfaceColor *= 0.1;
+        attenuation = 0.4f;
     }
 
-    hitPayload.directColor = surfaceColor;
+    vec3 diffuseColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
+    //diffuseColor += triangleMaterial.ambient;
+
+    hitPayload.directColor = diffuseColor * attenuation;
+    hitPayload.rayOrigin = shadowRayOrigin;
+    hitPayload.rayDirection = reflect(shadowRayDirection, worldHitNormal);
+
+    if (triangleMaterial.illuminationModel > 3)
+    {
+        hitPayload.IsReflective = true;
+    }
 }

@@ -40,15 +40,23 @@ public:
       aiColor3D emission;
       aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emission);
 
-      aiColor3D reflective;
-      aiMat->Get(AI_MATKEY_COLOR_REFLECTIVE, reflective);
+      f32 specularShininess{ 0.f };
+      aiMat->Get(AI_MATKEY_SHININESS, specularShininess);
+
+      f32 indexOfRefraction{ 0.f };
+      aiMat->Get(AI_MATKEY_REFRACTI, indexOfRefraction);
+
+      int illuminationModel = aiShadingMode_NoShading;
+      aiMat->Get(AI_MATKEY_SHADING_MODEL, illuminationModel);
 
       m_pReturnMaterialData->push_back(FMaterialData{
         .ambient = { .x = ambient.r, .y = ambient.g, .z = ambient.b },
         .diffuse = { .x = diffuse.r, .y = diffuse.g, .z = diffuse.b },
         .specular = { .x = specular.r, .y = specular.g, .z = specular.b },
         .emission = { .x = emission.r, .y = emission.g, .z = emission.b },
-        .reflective = { .x = reflective.r, .y = reflective.g, .z = reflective.b },
+        .specularShininess = specularShininess,
+        .indexOfRefraction = indexOfRefraction,
+        .illuminationModel = illuminationModel
       });
     }
   }
