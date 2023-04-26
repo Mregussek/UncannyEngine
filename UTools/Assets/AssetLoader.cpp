@@ -81,17 +81,16 @@ private:
 
   static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, FMeshAssetData* pReturnData, b8 flipNormals)
   {
-    pReturnData->materialIndex = pMesh->mMaterialIndex;
+    pReturnData->materialIndex = pMesh->mMaterialIndex - 1;
+    aiMaterial* aiMat = pScene->mMaterials[pReturnData->materialIndex];
+    aiColor3D color;
+    aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
     pReturnData->vertices.reserve(pMesh->mNumVertices);
     for (u32 vertexIdx = 0; vertexIdx < pMesh->mNumVertices; vertexIdx++)
     {
       aiVector3D aiVertex = pMesh->mVertices[vertexIdx];
       aiVector3D aiNormal = pMesh->mNormals ? pMesh->mNormals[vertexIdx] : aiVector3D{ 0.f, 0.f, 0.f };
-
-      aiMaterial* aiMat = pScene->mMaterials[pMesh->mMaterialIndex];
-      aiColor3D color;
-      aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
       pReturnData->vertices.push_back(
           FVertex{

@@ -144,6 +144,20 @@ private:
     // Initializing ECS...
     m_EntityRegistry.Create();
     {
+      FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Original.obj"});
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+      meshAsset.LoadObj(box.GetString().c_str(), UFALSE);
+
+      FEntity entity = m_EntityRegistry.Register();
+      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = meshAsset.ID(),
+          .position = { -2.f, 1.f, 0.f },
+          .rotation = { 0.f, -30.f, 0.f },
+          .scale = { -1.f, -1.f, -1.f }
+      });
+    }
+    /*
+    {
       FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
       meshAsset.LoadObj(sponza.GetString().c_str(), UFALSE);
@@ -204,22 +218,21 @@ private:
           .scale = { -1.f, -1.f, -1.f }
       });
     }
-
+    */
     // Creating acceleration structures...
     std::vector<FRenderData> renderDataVector;
     renderDataVector.reserve(m_EntityRegistry.GetEntities().size());
     m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
     {
       const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
-      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset);
-      renderData.meshes[0].transform = component.GetMatrix();
+      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix());
       renderDataVector.push_back(renderData);
     });
 
     m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderDataVector.size());
     for (u32 i = 0; i < renderDataVector.size(); i++)
     {
-      m_BottomLevelASVector[i].Build(renderDataVector[i].meshes[0], renderDataVector[i].materials,
+      m_BottomLevelASVector[i].Build(renderDataVector[i].mesh, renderDataVector[i].materials,
                                      m_CommandPool, pLogicalDevice->GetGraphicsQueue());
     }
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();

@@ -76,7 +76,7 @@ void main()
         attenuation = 0.4f;
     }
 
-    vec3 diffuseColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
+    vec3 diffuseColor = vertex0.color * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
     //diffuseColor += triangleMaterial.ambient;
 
     hitPayload.directColor = diffuseColor * attenuation;

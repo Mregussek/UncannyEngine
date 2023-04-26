@@ -29,12 +29,13 @@ FRenderMeshData FRenderMeshFactory::CreateTriangle()
 }
 
 
-FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset)
+FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset, math::Matrix4x4f transform)
 {
   FRenderData rtnRenderData{};
 
   {
-    FRenderMeshData& meshData = rtnRenderData.meshes.emplace_back();
+    FRenderMeshData& meshData = rtnRenderData.mesh;
+    meshData.transform = transform;
 
     // Reserve needed memory...
     u32 verticesReserveCount = 0;
@@ -46,17 +47,17 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
     }
     meshData.vertices.reserve(verticesReserveCount);
     meshData.indices.reserve(indicesReserveCount);
+    meshData.materialIndices.reserve(indicesReserveCount);
 
     // for every mesh process vertices and indices...
     for (const FMeshAssetData& data : pMeshAsset->GetMeshes())
     {
-      math::Vector3f diffuseColor = pMeshAsset->GetMaterials()[data.materialIndex].diffuse;
       for (const FVertex& vertex : data.vertices)
       {
         meshData.vertices.push_back({
           .position = vertex.position,
           .normal = vertex.normal,
-          .color = diffuseColor });
+          .color = vertex.color });
       }
 
       auto it = std::max_element(std::begin(meshData.indices), std::end(meshData.indices));

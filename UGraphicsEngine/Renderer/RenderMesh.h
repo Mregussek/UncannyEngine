@@ -54,7 +54,7 @@ struct FRenderMeshData
 
 struct FRenderData
 {
-  std::vector<FRenderMeshData> meshes{};
+  FRenderMeshData mesh{};
   std::vector<FRenderMaterialData> materials{};
 };
 
@@ -65,7 +65,7 @@ public:
 
   static FRenderMeshData CreateTriangle();
 
-  static FRenderData ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset);
+  static FRenderData ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset, math::Matrix4x4f transform);
 
 };
 
