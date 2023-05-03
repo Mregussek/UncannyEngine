@@ -13,14 +13,11 @@ FRenderMeshData FRenderMeshFactory::CreateTriangle()
   return {
     .vertices = {
         { .position = { .x = 1.f, .y = 1.f, .z = 0.f },
-          .normal = { 1.0f, 0.0f, 0.0f },
-          .color = { 0.0f, 0.0f, 1.0f } },
+          .normal = { 1.0f, 0.0f, 0.0f } },
         { .position = { .x = -1.f, .y = 1.f, .z = 0.f },
-          .normal = { 0.0f, 1.0f, 0.0f },
-          .color = { 1.0f, 0.0f, 0.0f } },
+          .normal = { 0.0f, 1.0f, 0.0f } },
         { .position = { .x = 0.f, .y = -1.f, .z = 0.f },
-          .normal = { 0.0f, 0.0f, 1.0f },
-          .color = { 0.0f, 1.0f, 0.0f } },
+          .normal = { 0.0f, 0.0f, 1.0f } },
     },
     .indices = { 0, 1, 2 },
     .materialIndices = { 0, 0, 0 },
@@ -57,8 +54,7 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
       {
         meshData.vertices.push_back({
           .position = vertex.position,
-          .normal = vertex.normal,
-          .color = vertex.color });
+          .normal = vertex.normal });
       }
 
       auto it = std::max_element(std::begin(meshData.indices), std::end(meshData.indices));

@@ -16,7 +16,6 @@ struct FVertex
 {
   math::Vector3f position{};
   math::Vector3f normal{};
-  math::Vector3f color{};
 };
 
 
@@ -48,8 +47,6 @@ public:
   explicit FMeshAsset(u64 id);
 
   void LoadObj(const char* path, b8 flipNormals);
-
-  void MakeReflective();
 
   [[nodiscard]] const std::vector<FMeshAssetData>& GetMeshes() const { return m_Meshes; }
   [[nodiscard]] const std::vector<FMaterialData>& GetMaterials() const { return m_Materials; }

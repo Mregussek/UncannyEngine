@@ -101,11 +101,7 @@ private:
             .normal = {
                 .x = aiNormal.x,
                 .y = aiNormal.y,
-                .z = aiNormal.z },
-            .color = {
-                .x = color.r,
-                .y = color.g,
-                .z = color.b }
+                .z = aiNormal.z }
           });
     }
 

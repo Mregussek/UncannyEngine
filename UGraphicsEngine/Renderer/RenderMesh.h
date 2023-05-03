@@ -19,7 +19,6 @@ struct FRenderVertex
 {
   math::Vector3f position{};
   math::Vector3f normal{};
-  math::Vector3f color{};
 };
 
 

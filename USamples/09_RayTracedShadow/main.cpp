@@ -189,15 +189,14 @@ private:
     m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
     {
       const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
-      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset);
-      renderData.meshes[0].transform = component.GetMatrix();
+      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix());
       renderDataVector.push_back(renderData);
     });
 
     m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderDataVector.size());
     for (u32 i = 0; i < renderDataVector.size(); i++)
     {
-      m_BottomLevelASVector[i].Build(renderDataVector[i].meshes[0], renderDataVector[i].materials,
+      m_BottomLevelASVector[i].Build(renderDataVector[i].mesh, renderDataVector[i].materials,
                                      m_CommandPool, pLogicalDevice->GetGraphicsQueue());
     }
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
