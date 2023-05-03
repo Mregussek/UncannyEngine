@@ -14,7 +14,7 @@ Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://
 ### Current state
 
 <p align="center">
-  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/09_RayTracedShadow.png">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/00_Sandbox.png">
 </p>
 
 ## Build
