@@ -151,12 +151,11 @@ private:
       FEntity entity = m_EntityRegistry.Register();
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
           .id = meshAsset.ID(),
-          .position = { -2.f, 1.f, 0.f },
+          .position = { 4.f, 1.9f, 2.f },
           .rotation = { 0.f, -30.f, 0.f },
           .scale = { -1.f, -1.f, -1.f }
       });
     }
-    /*
     {
       FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
@@ -191,34 +190,11 @@ private:
       FEntity entity = m_EntityRegistry.Register();
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
           .id = meshAsset.ID(),
-          .position = { 6.f, 2.f, 0.f },
+          .position = { 7.f, 2.f, 0.f },
           .rotation = { 0.f, 90.f, 0.f },
           .scale = { -0.025f, -0.025f, -0.025f }
       });
     }
-    {
-      FPath mitsuba = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "mitsuba", "mitsuba-sphere.obj"});
-      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(mitsuba.GetString().c_str(), UFALSE);
-      meshAsset.MakeReflective();
-
-      FEntity entity = m_EntityRegistry.Register();
-      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
-          .id = meshAsset.ID(),
-          .position = { 3.f, 1.f, 2.f },
-          .rotation = { 0.f, -30.f, 0.f },
-          .scale = { -1.f, -1.f, -1.f }
-      });
-
-      FEntity entity2 = m_EntityRegistry.Register();
-      entity2.Add<FRenderMeshComponent>(FRenderMeshComponent{
-          .id = meshAsset.ID(),
-          .position = { 3.f, 1.f, -2.f },
-          .rotation = { 0.f, 0.f, 0.f },
-          .scale = { -1.f, -1.f, -1.f }
-      });
-    }
-    */
     // Creating acceleration structures...
     std::vector<FRenderData> renderDataVector;
     renderDataVector.reserve(m_EntityRegistry.GetEntities().size());

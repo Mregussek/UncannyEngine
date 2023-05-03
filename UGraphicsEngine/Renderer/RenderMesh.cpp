@@ -38,6 +38,8 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
     meshData.transform = transform;
 
     // Reserve needed memory...
+    meshData.materialIndices.reserve(pMeshAsset->GetMeshes().size());
+
     u32 verticesReserveCount = 0;
     u32 indicesReserveCount = 0;
     for (const FMeshAssetData& data : pMeshAsset->GetMeshes())
@@ -47,7 +49,6 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
     }
     meshData.vertices.reserve(verticesReserveCount);
     meshData.indices.reserve(indicesReserveCount);
-    meshData.materialIndices.reserve(indicesReserveCount);
 
     // for every mesh process vertices and indices...
     for (const FMeshAssetData& data : pMeshAsset->GetMeshes())
@@ -65,11 +66,17 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
       for (u32 ind : data.indices)
       {
         meshData.indices.push_back(maxElem + ind);
+      }
+
+      for (u32 i = 0; i < data.indices.size(); i += 3)
+      {
         meshData.materialIndices.push_back(data.materialIndex);
       }
     }
   }
   {
+    rtnRenderData.materials.reserve(pMeshAsset->GetMaterials().size());
+
     for (const FMaterialData& data : pMeshAsset->GetMaterials())
     {
       rtnRenderData.materials.emplace_back(FRenderMaterialData{

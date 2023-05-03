@@ -59,7 +59,6 @@ void main()
     uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
     IsInShadow = true;
     float attenuation = 1.f;
-
     traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
                 rayFlags,               // rayFlags
                 0xff,                   // cullMask
@@ -76,8 +75,8 @@ void main()
         attenuation = 0.4f;
     }
 
-    vec3 diffuseColor = vertex0.color * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
-    //diffuseColor += triangleMaterial.ambient;
+    vec3 diffuseColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
+    diffuseColor += 0.5f * triangleMaterial.ambient;
 
     hitPayload.directColor = diffuseColor * attenuation;
     hitPayload.rayOrigin = shadowRayOrigin;

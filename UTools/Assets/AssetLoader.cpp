@@ -81,7 +81,7 @@ private:
 
   static void ProcessMesh(aiMesh* pMesh, const aiScene* pScene, FMeshAssetData* pReturnData, b8 flipNormals)
   {
-    pReturnData->materialIndex = pMesh->mMaterialIndex - 1;
+    pReturnData->materialIndex = pMesh->mMaterialIndex;
     aiMaterial* aiMat = pScene->mMaterials[pReturnData->materialIndex];
     aiColor3D color;
     aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
