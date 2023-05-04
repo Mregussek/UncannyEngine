@@ -42,7 +42,10 @@ struct PerFrameUniformData
 
 struct HitPayload
 {
-  vec3 rayOrigin;
-  vec3 rayDirection;
-  vec3 directColor;
+    vec3 rayOrigin;
+    vec3 rayDirection;
+    vec3 rayColor;
+    uint raySeed;
+    float t;
+    bool isScattered;
 };

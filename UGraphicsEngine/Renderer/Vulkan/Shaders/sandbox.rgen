@@ -13,14 +13,16 @@ layout(binding = 2, set = 0) uniform PerFrameUniformData_ { PerFrameUniformData 
 layout(location = 0) rayPayloadEXT HitPayload hitPayload;
 
 void main() {
-    vec3 pixelColorValue = vec3(0);
-    uint maxSamplesPerPixel = 5;
-    uint maxRayBouncesCount = 1;
-    float pixelRandomSeed = ubo.d.randomSeed;
+    vec3 pixelColorValue = vec3(0.f);
+    uint maxSamplesPerPixel = 3;
+    uint maxRayBouncesCount = 2;
+    uint pixelRandomSeed = ubo.d.randomSeed;
 
     for (uint s = 0; s < maxSamplesPerPixel; s++)
     {
-        const vec2 pixel = vec2(gl_LaunchIDEXT.x + GoldNoise(gl_LaunchIDEXT.xy, pixelRandomSeed), gl_LaunchIDEXT.y + GoldNoise(gl_LaunchIDEXT.xy, pixelRandomSeed));
+        hitPayload.raySeed = InitRandomSeed(InitRandomSeed(gl_LaunchIDEXT.x, gl_LaunchIDEXT.y), pixelRandomSeed);
+
+        const vec2 pixel = vec2(gl_LaunchIDEXT.x + RandomFloat(pixelRandomSeed), gl_LaunchIDEXT.y + RandomFloat(pixelRandomSeed));
         const vec2 uv = (pixel / vec2(gl_LaunchSizeEXT.xy)) * 2.f - 1.f;
 
         const vec4 origin = ubo.d.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
@@ -31,7 +33,7 @@ void main() {
         hitPayload.rayDirection = direction.xyz;
 
         vec3 rayColorValue = vec3(1);
-        for (int i = 0; i < maxRayBouncesCount; i++)
+        for (int b = 0; b < maxRayBouncesCount; b++)
         {
             traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
                         gl_RayFlagsOpaqueEXT,   // rayFlags
@@ -45,13 +47,19 @@ void main() {
                         10000.0f,               // Tmax
                         0                       // payload
             );
-            rayColorValue *= hitPayload.directColor;
+            rayColorValue *= hitPayload.rayColor;
+
+            // Trace missed, or end of trace.
+            if (hitPayload.t < 0 || !hitPayload.isScattered)
+            {
+                break;
+            }
         }
         pixelColorValue += rayColorValue;
     }
 
     // Divide the color by number of samples
-    float samplesScale = 1.f / maxSamplesPerPixel;
+    float samplesScale = 1.f / float(maxSamplesPerPixel);
     pixelColorValue *= samplesScale;
 
     // Gamma Correction

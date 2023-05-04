@@ -8,6 +8,7 @@
 #extension GL_GOOGLE_include_directive : enable
 
 #include "DataTypes.glsl"
+#include "Random.glsl"
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 layout(location = 1) rayPayloadEXT bool IsInShadow;
@@ -22,6 +23,11 @@ layout(set = 1, binding = 0, scalar) buffer BottomStructureUniformData_ { Bottom
 layout(set = 1, binding = 1) uniform LightData_ { LightData data; } lightData;
 
 hitAttributeEXT vec3 attribs;
+
+vec3 Mix(vec3 v0, vec3 v1, vec3 v2, vec3 barycentricCoords)
+{
+    return v0 * barycentricCoords.x + v1 * barycentricCoords.y + v2 * barycentricCoords.z;
+}
 
 void main()
 {
@@ -42,20 +48,31 @@ void main()
     const vec3 barycentricCoords = vec3(1.f - attribs.x - attribs.y, attribs.x, attribs.y);
 
     // Computing the coordinates of the hit position
-    const vec3 hitPos = vertex0.position * barycentricCoords.x + vertex1.position * barycentricCoords.y + vertex2.position * barycentricCoords.z;
+    const vec3 hitPos = Mix(vertex0.position, vertex1.position, vertex2.position, barycentricCoords);
     // Transforming the position to world space
     const vec3 worldHitPos = vec3(gl_ObjectToWorldEXT * vec4(hitPos, 1.0));
 
     // Computing the normal at hit position
-    const vec3 hitNormal = vertex0.normal * barycentricCoords.x + vertex1.normal * barycentricCoords.y + vertex2.normal * barycentricCoords.z;
+    const vec3 hitNormal = Mix(vertex0.normal, vertex1.normal, vertex2.normal, barycentricCoords);
     // Transforming the normal to world space
     const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
-    // Shadow casting
-    vec3 shadowRayOrigin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-    vec3 shadowRayDirection = normalize(lightData.data.position - shadowRayOrigin);
-    float shadowRayDistance = length(lightData.data.position - shadowRayOrigin) - 0.001f;
-    
+    const bool IsScattered = dot(gl_WorldRayDirectionEXT, worldHitNormal) < 0;
+    const vec3 Color = triangleMaterial.diffuse;
+    const vec3 ShadowRayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
+    const vec3 ScatteredDirection = worldHitNormal + RandomInUnitSphere(hitPayload.raySeed);
+
+    hitPayload.rayOrigin = ShadowRayOrigin;
+    hitPayload.rayDirection = ScatteredDirection;
+    hitPayload.rayColor = Color;
+    hitPayload.t = gl_HitTEXT;
+    hitPayload.isScattered = IsScattered;
+
+    hitPayload.rayColor += triangleMaterial.emissive;
+    return;
+
+    vec3 shadowRayDirection = normalize(lightData.data.position - ShadowRayOrigin);
+    float shadowRayDistance = length(lightData.data.position - ShadowRayOrigin) - 0.001f;
     uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
     IsInShadow = true;
     float attenuation = 1.f;
@@ -65,21 +82,17 @@ void main()
                 0,                      // sbtRecordOffset
                 0,                      // sbtRecordStride
                 1,                      // missIndex
-                shadowRayOrigin,        // origin
+                ShadowRayOrigin,        // origin
                 0.001f,                 // Tmin
                 shadowRayDirection,     // direction
                 shadowRayDistance,      // Tmax
                 1                       // payload
     );
-    if (IsInShadow)
-    {
+    if (IsInShadow) {
         attenuation = 0.4f;
     }
 
-    vec3 diffuseSurfaceColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
-    diffuseSurfaceColor += triangleMaterial.emissive;
+    hitPayload.rayColor *= attenuation;
 
-    hitPayload.directColor = diffuseSurfaceColor * attenuation;
-    hitPayload.rayOrigin = shadowRayOrigin;
-    hitPayload.rayDirection = reflect(shadowRayDirection, worldHitNormal);
+    return;
 }
