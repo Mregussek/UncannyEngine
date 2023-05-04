@@ -76,10 +76,10 @@ void main()
         attenuation = 0.4f;
     }
 
-    vec3 diffuseColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
-    //diffuseColor += 0.5f * triangleMaterial.ambient;
+    vec3 diffuseSurfaceColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
+    diffuseSurfaceColor += triangleMaterial.emissive;
 
-    hitPayload.directColor = diffuseColor * attenuation;
+    hitPayload.directColor = diffuseSurfaceColor * attenuation;
     hitPayload.rayOrigin = shadowRayOrigin;
     hitPayload.rayDirection = reflect(shadowRayDirection, worldHitNormal);
 }

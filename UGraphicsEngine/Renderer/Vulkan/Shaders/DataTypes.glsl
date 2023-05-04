@@ -12,7 +12,7 @@ struct Material
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    vec3 emission;
+    vec3 emissive;
     vec3 reflective;
     float shininess;
     float reflectivity;
