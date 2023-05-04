@@ -32,8 +32,10 @@ struct FMaterialData
   math::Vector3f ambient{};
   math::Vector3f diffuse{};
   math::Vector3f specular{};
-  math::Vector3f emission{};
-  f32 specularShininess{ 0.f };
+  math::Vector3f emissive{};
+  math::Vector3f reflective{};
+  f32 shininess{ 0.f };
+  f32 reflectivity{ 0.f };
   f32 indexOfRefraction{ 0.f };
   i32 illuminationModel{ 0 };
 };

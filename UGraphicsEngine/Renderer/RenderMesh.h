@@ -24,20 +24,14 @@ struct FRenderVertex
 
 struct FRenderMaterialData
 {
-  // Ambient color of the material. Typically scaled by the amount of ambient light
   math::Vector3f ambient{};
-  // Diffuse color of the material. Typically scaled by the amount of incoming diffuse light (e.g. gouraud shading)
   math::Vector3f diffuse{};
-  // Specular color of the material. Typically scaled by the amount of incoming specular light (e.g. phong shading)
   math::Vector3f specular{};
-  // Emissive color of the material. Amount of light emitted by the object. In real time applications it will usually
-  // not affect surrounding objects, but raytracing applications may wish to treat emissive objects as light sources.
-  math::Vector3f emission{};
-  // Defines the shininess of a phong-shaded material. This is actually the exponent of the phong specular equation
-  f32 specularShininess{ 0.f };
-  // Defines the Index Of Refraction for the material.
+  math::Vector3f emissive{};
+  math::Vector3f reflective{};
+  f32 shininess{ 0.f };
+  f32 reflectivity{ 0.f };
   f32 indexOfRefraction{ 0.f };
-  // Phong, Blinn, Gouraud etc.
   i32 illuminationModel{ 0 };
 };
 

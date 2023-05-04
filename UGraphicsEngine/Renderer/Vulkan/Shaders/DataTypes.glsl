@@ -13,7 +13,9 @@ struct Material
     vec3 diffuse;
     vec3 specular;
     vec3 emission;
-    float specularShininess;
+    vec3 reflective;
+    float shininess;
+    float reflectivity;
     float indexOfRefraction;
     int illuminationModel;
 };

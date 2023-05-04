@@ -37,24 +37,41 @@ public:
       aiColor3D specular;
       aiMat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
 
-      aiColor3D emission;
-      aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emission);
+      f32 shininess{ 0.f };
+      aiMat->Get(AI_MATKEY_SHININESS, shininess);
 
-      f32 specularShininess{ 0.f };
-      aiMat->Get(AI_MATKEY_SHININESS, specularShininess);
+      f32 shininessStrength{ 0.f };
+      aiMat->Get(AI_MATKEY_SHININESS_STRENGTH, shininessStrength);
+
+      aiColor3D transparent;
+      aiMat->Get(AI_MATKEY_COLOR_TRANSPARENT, transparent);
+
+      f32 transparencyFactor{ 0.f };
+      aiMat->Get(AI_MATKEY_TRANSPARENCYFACTOR, transparencyFactor);
+
+      aiColor3D reflective;
+      aiMat->Get(AI_MATKEY_COLOR_REFLECTIVE, reflective);
+
+      f32 reflectivity{ 0.f };
+      aiMat->Get(AI_MATKEY_REFLECTIVITY, reflectivity);
+
+      aiColor3D emissive;
+      aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
 
       f32 indexOfRefraction{ 0.f };
       aiMat->Get(AI_MATKEY_REFRACTI, indexOfRefraction);
 
-      int illuminationModel = aiShadingMode_NoShading;
+      i32 illuminationModel = aiShadingMode_NoShading;
       aiMat->Get(AI_MATKEY_SHADING_MODEL, illuminationModel);
 
       m_pReturnMaterialData->push_back(FMaterialData{
         .ambient = { .x = ambient.r, .y = ambient.g, .z = ambient.b },
         .diffuse = { .x = diffuse.r, .y = diffuse.g, .z = diffuse.b },
         .specular = { .x = specular.r, .y = specular.g, .z = specular.b },
-        .emission = { .x = emission.r, .y = emission.g, .z = emission.b },
-        .specularShininess = specularShininess,
+        .emissive = { .x = emissive.r, .y = emissive.g, .z = emissive.b },
+        .reflective = { .x = reflective.r, .y = reflective.g, .z = reflective.b },
+        .shininess = shininess,
+        .reflectivity = reflectivity,
         .indexOfRefraction = indexOfRefraction,
         .illuminationModel = illuminationModel
       });
