@@ -31,6 +31,13 @@ struct LightData
     vec3 position;
 };
 
+struct PerFrameUniformData
+{
+    mat4 projInverse;
+    mat4 viewInverse;
+    uint randomSeed;
+};
+
 struct HitPayload
 {
   vec3 rayOrigin;

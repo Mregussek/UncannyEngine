@@ -4,34 +4,28 @@
 #extension GL_GOOGLE_include_directive : enable
 
 #include "DataTypes.glsl"
+#include "Random.glsl"
 
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, rgba32f) uniform image2D img;
-layout(binding = 2, set = 0) uniform CameraProperties
-{
-    mat4 projInverse;
-    mat4 viewInverse;
-} cam;
+layout(binding = 2, set = 0) uniform PerFrameUniformData_ { PerFrameUniformData d; } ubo;
 
 layout(location = 0) rayPayloadEXT HitPayload hitPayload;
-
-float RandomValue(vec2 co){
-    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-}
 
 void main() {
     vec3 pixelColorValue = vec3(0);
     uint maxSamplesPerPixel = 5;
     uint maxRayBouncesCount = 1;
+    float pixelRandomSeed = ubo.d.randomSeed;
 
     for (uint s = 0; s < maxSamplesPerPixel; s++)
     {
-        const vec2 pixel = vec2(gl_LaunchIDEXT.x + RandomValue(gl_LaunchIDEXT.xy), gl_LaunchIDEXT.y + RandomValue(gl_LaunchIDEXT.xy));
+        const vec2 pixel = vec2(gl_LaunchIDEXT.x + GoldNoise(gl_LaunchIDEXT.xy, pixelRandomSeed), gl_LaunchIDEXT.y + GoldNoise(gl_LaunchIDEXT.xy, pixelRandomSeed));
         const vec2 uv = (pixel / vec2(gl_LaunchSizeEXT.xy)) * 2.f - 1.f;
 
-        const vec4 origin = cam.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
-        const vec4 target = cam.projInverse * vec4(uv.xy, 1.f, 1.f) ;
-        const vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0.f) ;
+        const vec4 origin = ubo.d.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
+        const vec4 target = ubo.d.projInverse * vec4(uv.xy, 1.f, 1.f) ;
+        const vec4 direction = ubo.d.viewInverse * vec4(normalize(target.xyz), 0.f) ;
 
         hitPayload.rayOrigin = origin.xyz;
         hitPayload.rayDirection = direction.xyz;

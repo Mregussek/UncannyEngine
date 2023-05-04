@@ -47,11 +47,12 @@ public:
       }
 
       f32 deltaTime = m_Window->GetDeltaTime();
-      {
+
+      { // Update per frame data...
         m_Camera.ProcessKeyboardInput(m_Window.get(), deltaTime);
         m_Camera.ProcessMouseMovement(m_Window.get(), deltaTime);
         FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-        m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
       }
 
       m_Swapchain.WaitForNextImage();
@@ -85,7 +86,7 @@ public:
         m_Camera.UpdateAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
         {
           FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-          m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+          m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
         }
 
         RecordCommands();
@@ -234,13 +235,12 @@ private:
       m_Camera.Initialize(cameraSpecification);
     }
 
-    m_CameraUniformBuffer = deviceFactory.CreateBuffer();
-
-    m_CameraUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+    m_PerFrameUniformBuffer = deviceFactory.CreateBuffer();
+    m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     {
       FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-      m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+      m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
 
     // Creating off screen buffer...
@@ -352,8 +352,8 @@ private:
     {
       u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[2].binding;
       VkDescriptorType type = m_RayTracingDescriptorSetLayout.GetBindings()[2].descriptorType;
-      m_RayTracingDescriptorPool.WriteBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
-                                                            m_CameraUniformBuffer.GetFilledStride(),
+      m_RayTracingDescriptorPool.WriteBufferToDescriptorSet(m_PerFrameUniformBuffer.GetHandle(),
+                                                            m_PerFrameUniformBuffer.GetFilledStride(),
                                                             dstBinding, type);
     }
 
@@ -366,7 +366,7 @@ private:
     }
 
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                       "Shaders" });
+                                                                       "Shaders", "spv" });
     m_RayTracingShadowPipeline = deviceFactory.CreateRayTracingShadowPipeline();
     vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
     glslCompiler.Initialize();
@@ -418,7 +418,7 @@ private:
     m_SceneDescriptorPool.Destroy();
 
     // Closing buffers
-    m_CameraUniformBuffer.Free();
+    m_PerFrameUniformBuffer.Free();
     m_ObjectsUniformBuffer.Free();
     m_LightUniformBuffer.Free();
 
@@ -516,7 +516,7 @@ private:
   vulkan::FBuffer m_LightUniformBuffer{};
 
   FPerspectiveCamera m_Camera{};
-  vulkan::FBuffer m_CameraUniformBuffer{};
+  vulkan::FBuffer m_PerFrameUniformBuffer{};
 
   FAssetRegistry m_AssetRegistry{};
   FEntityRegistry m_EntityRegistry{};

@@ -35,6 +35,7 @@ struct FPerspectiveCameraUniformData
 {
   math::Matrix4x4f inversePerspective{};
   math::Matrix4x4f inverseView{};
+  u32 randomSeed{ 0 };
 };
 
 

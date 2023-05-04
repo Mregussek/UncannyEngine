@@ -1,6 +1,7 @@
 
 #include "Camera.h"
 #include "UMath/Trig.h"
+#include "UTools/RandomGenerator.h"
 
 
 namespace uncanny
@@ -37,7 +38,8 @@ math::Matrix4x4f FPerspectiveCamera::GetProjection() const
 FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
 {
   return { .inversePerspective = math::Inverse(GetProjection()),
-           .inverseView = math::Inverse(GetView()) };
+           .inverseView = math::Inverse(GetView()),
+           .randomSeed = FRandomGenerator::GetSeed() };
 }
 
 
