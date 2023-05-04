@@ -15,41 +15,54 @@ layout(binding = 2, set = 0) uniform CameraProperties
 
 layout(location = 0) rayPayloadEXT HitPayload hitPayload;
 
+float RandomValue(vec2 co){
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
 void main() {
-    const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5f);
-    const vec2 inUV = pixelCenter / vec2(gl_LaunchSizeEXT.xy);
-    const vec2 d = inUV * 2.f - 1.f;
+    vec3 pixelColorValue = vec3(0);
+    uint maxSamplesPerPixel = 5;
+    uint maxRayBouncesCount = 1;
 
-    const vec4 origin = cam.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
-    const vec4 target = cam.projInverse * vec4(d.xy, 1.f, 1.f) ;
-    const vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0.f) ;
-
-    hitPayload.rayOrigin = origin.xyz;
-    hitPayload.rayDirection = direction.xyz;
-
-    vec3 rayColorValue = vec3(0);
-    int maxDepth = 2;
-    for (int i = 0; i < maxDepth; i++)
+    for (uint s = 0; s < maxSamplesPerPixel; s++)
     {
-        hitPayload.IsReflective = false;
-        traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
-                    gl_RayFlagsOpaqueEXT,   // rayFlags
-                    0xff,                   // cullMask
-                    0,                      // sbtRecordOffset
-                    0,                      // sbtRecordStride
-                    0,                      // missIndex
-                    hitPayload.rayOrigin,   // origin
-                    0.001f,                 // Tmin
-                    hitPayload.rayDirection,// direction
-                    10000.0f,               // Tmax
-                    0                       // payload
-        );
-        rayColorValue += hitPayload.directColor;
-        if (!hitPayload.IsReflective)
+        const vec2 pixel = vec2(gl_LaunchIDEXT.x + RandomValue(gl_LaunchIDEXT.xy), gl_LaunchIDEXT.y + RandomValue(gl_LaunchIDEXT.xy));
+        const vec2 uv = (pixel / vec2(gl_LaunchSizeEXT.xy)) * 2.f - 1.f;
+
+        const vec4 origin = cam.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
+        const vec4 target = cam.projInverse * vec4(uv.xy, 1.f, 1.f) ;
+        const vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0.f) ;
+
+        hitPayload.rayOrigin = origin.xyz;
+        hitPayload.rayDirection = direction.xyz;
+
+        vec3 rayColorValue = vec3(1);
+        for (int i = 0; i < maxRayBouncesCount; i++)
         {
-            break;
+            traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
+                        gl_RayFlagsOpaqueEXT,   // rayFlags
+                        0xff,                   // cullMask
+                        0,                      // sbtRecordOffset
+                        0,                      // sbtRecordStride
+                        0,                      // missIndex
+                        hitPayload.rayOrigin,   // origin
+                        0.001f,                 // Tmin
+                        hitPayload.rayDirection,// direction
+                        10000.0f,               // Tmax
+                        0                       // payload
+            );
+            rayColorValue *= hitPayload.directColor;
         }
+        pixelColorValue += rayColorValue;
     }
 
-    imageStore(img, ivec2(gl_LaunchIDEXT.xy), vec4(rayColorValue, 1.0));
+    // Divide the color by number of samples
+    float samplesScale = 1.f / maxSamplesPerPixel;
+    pixelColorValue *= samplesScale;
+
+    // Gamma Correction
+    pixelColorValue = sqrt(pixelColorValue);
+    pixelColorValue = clamp(pixelColorValue, 0.f, 0.999f);
+
+    imageStore(img, ivec2(gl_LaunchIDEXT.xy), vec4(pixelColorValue, 1.0));
 }

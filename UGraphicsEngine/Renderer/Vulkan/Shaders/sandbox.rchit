@@ -71,19 +71,15 @@ void main()
                 shadowRayDistance,      // Tmax
                 1                       // payload
     );
-    if (IsInShadow) {
+    if (IsInShadow)
+    {
         attenuation = 0.4f;
     }
 
     vec3 diffuseColor = triangleMaterial.diffuse * max(dot(normalize(lightData.data.position), worldHitNormal), 0.2f);
-    diffuseColor += 0.5f * triangleMaterial.ambient;
+    //diffuseColor += 0.5f * triangleMaterial.ambient;
 
     hitPayload.directColor = diffuseColor * attenuation;
     hitPayload.rayOrigin = shadowRayOrigin;
     hitPayload.rayDirection = reflect(shadowRayDirection, worldHitNormal);
-
-    if (triangleMaterial.illuminationModel > 3)
-    {
-        hitPayload.IsReflective = true;
-    }
 }

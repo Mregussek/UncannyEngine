@@ -12,12 +12,12 @@
 layout(location = 0) rayPayloadInEXT vec4 payload;
 layout(location = 2) rayPayloadEXT bool shadowed;
 
-layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
-
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { ivec3 i[]; };
 layout(buffer_reference, scalar) buffer Materials { Material m[]; };
 layout(buffer_reference, scalar) buffer MaterialIndices { uint i[]; };
+
+layout(set = 0, binding = 0) uniform accelerationStructureEXT topLevelAS;
 layout(set = 1, binding = 0, scalar) buffer BottomStructureUniformData_ { BottomStructureUniformData d[]; } bottomASData;
 layout(set = 1, binding = 1) uniform LightData_ { LightData data; } lightData;
 

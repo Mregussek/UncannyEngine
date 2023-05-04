@@ -36,5 +36,4 @@ struct HitPayload
   vec3 rayOrigin;
   vec3 rayDirection;
   vec3 directColor;
-  bool IsReflective;
 };
