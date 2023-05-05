@@ -77,7 +77,6 @@ public:
 
         VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
         m_OffscreenImage.Recreate(swapchainExtent);
-
         {
           u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[1].binding;
           m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
@@ -131,8 +130,6 @@ private:
 
     m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
-    u32 backBufferCount = m_Swapchain.GetBackBufferCount();
-    VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
 
     // Creating command pools
     m_CommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
@@ -140,7 +137,7 @@ private:
                          VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
     // Creating command buffers...
-    m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+    m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 
     // Initializing ECS...
     m_EntityRegistry.Create();
@@ -215,8 +212,20 @@ private:
     m_TopLevelAS = deviceFactory.CreateTopLevelAS();
     m_TopLevelAS.Build(m_BottomLevelASVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
+    // Creating objects buffer
+    m_ObjectsUniformBuffer = deviceFactory.CreateBuffer();
+    {
+      const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
+      m_ObjectsUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
+                                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      m_ObjectsUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]), blasUniformData.size(),
+                                        m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+    }
+
     // Creating camera...
     {
+      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
       FPerspectiveCameraSpecification cameraSpecification{
         .position = { -4.f, 0.f, 0.f },
         .front = { 0.f, 0.f, 0.f },
@@ -246,24 +255,15 @@ private:
     // Creating off screen buffer...
     m_OffscreenImage = deviceFactory.CreateImage();
     {
+      VkFormat swapchainFormat = m_Swapchain.GetFormat();
+      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
       VkImageUsageFlags flags =
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-      m_OffscreenImage.Allocate(VK_FORMAT_B8G8R8A8_UNORM, swapchainExtent, flags, VK_IMAGE_LAYOUT_PREINITIALIZED,
+      m_OffscreenImage.Allocate(swapchainFormat, swapchainExtent, flags, VK_IMAGE_LAYOUT_PREINITIALIZED,
                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies);
     }
     m_OffscreenImage.CreateView();
-
-    // Creating objects buffer
-    m_ObjectsUniformBuffer = deviceFactory.CreateBuffer();
-    {
-      const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
-      m_ObjectsUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
-                                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-      m_ObjectsUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]), blasUniformData.size(),
-                                        m_CommandPool, pLogicalDevice->GetGraphicsQueue());
-    }
 
     // Creating light buffer
     m_Light.position = { -1.f, -1.f, 0.2f };

@@ -115,6 +115,7 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
   result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, m_Images.data());
   AssertVkAndThrow(result);
 
+  m_Format = createInfo.imageFormat;
   m_CurrentFrame = 0;
   m_ImageIndex = 0;
   m_OutOfDate = UFALSE;
