@@ -9,10 +9,10 @@ namespace uncanny::vulkan
 FBottomLevelAccelerationStructure::FBottomLevelAccelerationStructure(
     VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
     : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes),
-      m_VertexBuffer(pPhysicalDeviceAttributes, vkDevice),
-      m_IndexBuffer(pPhysicalDeviceAttributes, vkDevice),
-      m_MaterialBuffer(pPhysicalDeviceAttributes, vkDevice),
-      m_MaterialIndexBuffer(pPhysicalDeviceAttributes, vkDevice)
+      m_VertexBuffer(vkDevice, pPhysicalDeviceAttributes),
+      m_IndexBuffer(vkDevice, pPhysicalDeviceAttributes),
+      m_MaterialBuffer(vkDevice, pPhysicalDeviceAttributes),
+      m_MaterialIndexBuffer(vkDevice, pPhysicalDeviceAttributes)
 {
   m_Transform = {
       1.0f, 0.0f, 0.0f, 0.0f,

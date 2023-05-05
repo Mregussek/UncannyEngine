@@ -1,6 +1,6 @@
 
-#ifndef UNCANNYENGINE_RAYTRACINGPIPELINE_H
-#define UNCANNYENGINE_RAYTRACINGPIPELINE_H
+#ifndef UNCANNYENGINE_FRAYTRACINGSHADOWPIPELINE_H
+#define UNCANNYENGINE_FRAYTRACINGSHADOWPIPELINE_H
 
 
 #include <volk.h>
@@ -12,31 +12,34 @@ namespace uncanny::vulkan
 {
 
 
-class FRenderDeviceFactory;
 class FGLSLShaderCompiler;
 class FPipelineLayout;
 
 
-struct FRayTracingPipelineSpecification
+struct FRayTracingShadowPipelineSpecification
 {
   FPath rayClosestHitPath{ "" };
   FPath rayGenerationPath{ "" };
   FPath rayMissPath{ "" };
+  FPath rayShadowMissPath{ "" };
   FGLSLShaderCompiler* pGlslCompiler{ nullptr };
-  FPipelineLayout* pPipelineLayout{};
+  FPipelineLayout* pPipelineLayout{ nullptr };
+  const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties{ nullptr };
 };
 
 
-class FRayTracingPipeline
+class FRayTracingShadowPipeline
 {
+private:
 
   friend class FRenderDeviceFactory;
 
 public:
 
-  FRayTracingPipeline() = default;
+  FRayTracingShadowPipeline() = default;
+  FRayTracingShadowPipeline(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
 
-  void Create(const FRayTracingPipelineSpecification& specification);
+  void Create(const FRayTracingShadowPipelineSpecification& specification);
 
   void Destroy();
 
@@ -47,20 +50,17 @@ public:
 
 private:
 
-  FRayTracingPipeline(const FRenderDeviceFactory* pFactory, VkDevice vkDevice,
-                      const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& properties);
+  void CreatePipeline(const FRayTracingShadowPipelineSpecification& specification);
+  void CreateShaderBindingTable(const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties);
 
-  void CreatePipeline(const FRayTracingPipelineSpecification& specification);
-  void CreateShaderBindingTable();
+private:
 
-
-  VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_Properties{};
   FBuffer m_RayGenBuffer{};
   FBuffer m_RayMissBuffer{};
   FBuffer m_RayClosestHitBuffer{};
+  const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
   VkPipeline m_Pipeline{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
-  const FRenderDeviceFactory* m_pFactory{ nullptr };
   u32 m_ShaderGroupCount{ 0 };
 
 };
@@ -69,4 +69,4 @@ private:
 }
 
 
-#endif //UNCANNYENGINE_RAYTRACINGPIPELINE_H
+#endif //UNCANNYENGINE_FRAYTRACINGSHADOWPIPELINE_H

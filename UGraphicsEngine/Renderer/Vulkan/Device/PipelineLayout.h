@@ -19,6 +19,7 @@ class FPipelineLayout
 public:
 
   FPipelineLayout() = default;
+  explicit FPipelineLayout(VkDevice vkDevice);
 
   void Create(VkDescriptorSetLayout setLayout);
   void Create(std::span<VkDescriptorSetLayout> setLayouts);
@@ -28,9 +29,6 @@ public:
   [[nodiscard]] VkPipelineLayout GetHandle() const { return m_PipelineLayout; }
 
 private:
-
-  explicit FPipelineLayout(VkDevice vkDevice);
-
 
   VkPipelineLayout m_PipelineLayout{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };

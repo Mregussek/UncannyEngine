@@ -26,6 +26,7 @@ class FGLSLShaderCompiler
 
 public:
 
+  explicit FGLSLShaderCompiler(u32 targetVulkanVersion);
   ~FGLSLShaderCompiler();
 
   void Initialize();
@@ -33,9 +34,6 @@ public:
   std::vector<u32> Compile(const char* glslSource, EShaderCompilerStage stage) const;
 
 private:
-
-  explicit FGLSLShaderCompiler(u32 targetVulkanVersion);
-
 
   glslang_target_client_version_t m_TargetVulkanVersion{};
 

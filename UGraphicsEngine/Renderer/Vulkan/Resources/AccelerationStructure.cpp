@@ -12,7 +12,7 @@ FAccelerationStructure::FAccelerationStructure(VkDevice vkDevice,
                                                const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
   : m_Device(vkDevice),
   m_pPhysicalDeviceAttributes(pPhysicalDeviceAttributes),
-  m_AccelerationMemoryBuffer(pPhysicalDeviceAttributes, vkDevice)
+  m_AccelerationMemoryBuffer(vkDevice, pPhysicalDeviceAttributes)
 {
 }
 
@@ -74,7 +74,7 @@ void FAccelerationStructure::Build(VkAccelerationStructureTypeKHR type,
                                    const VkAccelerationStructureGeometryKHR* pGeometry,
                                    u32 primitiveCount, const FCommandPool& commandPool, const FQueue& queue)
 {
-  FBuffer scratchBuffer(m_pPhysicalDeviceAttributes, m_Device);
+  FBuffer scratchBuffer(m_Device, m_pPhysicalDeviceAttributes);
   scratchBuffer.Allocate(m_ScratchSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
   VkDeviceOrHostAddressKHR scratchDeviceAddress{

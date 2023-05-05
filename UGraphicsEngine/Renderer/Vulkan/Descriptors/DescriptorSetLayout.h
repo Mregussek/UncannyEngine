@@ -20,6 +20,7 @@ class FDescriptorSetLayout
 public:
 
   FDescriptorSetLayout() = default;
+  explicit FDescriptorSetLayout(VkDevice vkDevice);
 
   void AddBinding(u32 binding, VkDescriptorType type, u32 count, VkShaderStageFlags stageFlags,
                   const VkSampler* pImmutableSamplers);
@@ -34,9 +35,6 @@ public:
   [[nodiscard]] const std::vector<VkDescriptorSetLayoutBinding>& GetBindings() const { return m_Bindings; }
 
 private:
-
-  explicit FDescriptorSetLayout(VkDevice vkDevice);
-
 
   std::vector<VkDescriptorSetLayoutBinding> m_Bindings{};
   VkDescriptorSetLayout m_DescriptorSetLayout{ VK_NULL_HANDLE };

@@ -17,6 +17,8 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAccelerationStructure.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 #include "UGraphicsEngine/Renderer/Camera.h"
 #include "UGraphicsEngine/Renderer/RenderMesh.h"
@@ -125,7 +127,7 @@ private:
     };
 
     m_RenderContext.Create(renderContextAttributes, m_Window);
-    const vulkan::FRenderDeviceFactory& deviceFactory = m_RenderContext.GetFactory();
+    const vulkan::FPhysicalDevice* pPhysicalDevice = m_RenderContext.GetPhysicalDevice();
     const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
     m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
@@ -139,7 +141,7 @@ private:
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 
-    // Initializing ECS...
+    // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
     {
       FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Original.obj"});
@@ -193,34 +195,38 @@ private:
           .scale = { -0.025f, -0.025f, -0.025f }
       });
     }
-    // Creating acceleration structures...
+
+    // Converting asset meshes and materials into render meshes and materials
     std::vector<FRenderData> renderDataVector;
     renderDataVector.reserve(m_EntityRegistry.GetEntities().size());
     m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
     {
       const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
-      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix());
-      renderDataVector.push_back(renderData);
+      renderDataVector.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix()));
     });
 
-    m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderDataVector.size());
-    for (u32 i = 0; i < renderDataVector.size(); i++)
+    // Creating acceleration structures...
+    m_BottomLevelAccelerationVector.reserve(renderDataVector.size());
+    for (auto& data : renderDataVector)
     {
-      m_BottomLevelASVector[i].Build(renderDataVector[i].mesh, renderDataVector[i].materials,
-                                     m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+      auto& bottomAS = m_BottomLevelAccelerationVector.emplace_back(pLogicalDevice->GetHandle(),
+                                                                    &pPhysicalDevice->GetAttributes());
+      bottomAS.Build(data.mesh, data.materials, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
     }
-    m_TopLevelAS = deviceFactory.CreateTopLevelAS();
-    m_TopLevelAS.Build(m_BottomLevelASVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+    m_TopLevelAS = vulkan::FTopLevelAccelerationStructure(pLogicalDevice->GetHandle(),
+                                                          &pPhysicalDevice->GetAttributes());
+    m_TopLevelAS.Build(m_BottomLevelAccelerationVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
     // Creating objects buffer
-    m_ObjectsUniformBuffer = deviceFactory.CreateBuffer();
+    m_BLASReferenceUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
-      m_ObjectsUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
-                                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-      m_ObjectsUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]), blasUniformData.size(),
-                                        m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+      m_BLASReferenceUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
+                                            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      m_BLASReferenceUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]),
+                                              blasUniformData.size(), m_CommandPool,
+                                              pLogicalDevice->GetGraphicsQueue());
     }
 
     // Creating camera...
@@ -244,7 +250,7 @@ private:
       m_Camera.Initialize(cameraSpecification);
     }
 
-    m_PerFrameUniformBuffer = deviceFactory.CreateBuffer();
+    m_PerFrameUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     {
@@ -253,7 +259,7 @@ private:
     }
 
     // Creating off screen buffer...
-    m_OffscreenImage = deviceFactory.CreateImage();
+    m_OffscreenImage = vulkan::FImage(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       VkFormat swapchainFormat = m_Swapchain.GetFormat();
       VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
@@ -268,7 +274,7 @@ private:
     // Creating light buffer
     m_Light.position = { -1.f, -1.f, 0.2f };
 
-    m_LightUniformBuffer = deviceFactory.CreateBuffer();
+    m_LightUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       FLightUniformData uniformData{ .position = m_Light.position };
       m_LightUniformBuffer.Allocate(sizeof(FLightUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -277,7 +283,7 @@ private:
     }
 
     // Creating scene descriptors...
-    m_SceneDescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
+    m_SceneDescriptorSetLayout = vulkan::FDescriptorSetLayout(pLogicalDevice->GetHandle());
     m_SceneDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -294,13 +300,13 @@ private:
     });
     m_SceneDescriptorSetLayout.Create();
 
-    m_SceneDescriptorPool = deviceFactory.CreateDescriptorPool();
+    m_SceneDescriptorPool = vulkan::FDescriptorPool(pLogicalDevice->GetHandle());
     m_SceneDescriptorPool.Create(&m_SceneDescriptorSetLayout, 1);
     m_SceneDescriptorPool.AllocateDescriptorSet();
     {
       u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[0].binding;
       VkDescriptorType type = m_SceneDescriptorSetLayout.GetBindings()[0].descriptorType;
-      m_SceneDescriptorPool.WriteBufferToDescriptorSet(m_ObjectsUniformBuffer.GetHandle(),
+      m_SceneDescriptorPool.WriteBufferToDescriptorSet(m_BLASReferenceUniformBuffer.GetHandle(),
                                                        VK_WHOLE_SIZE,
                                                        dstBinding, type);
     }
@@ -313,7 +319,7 @@ private:
     }
 
     // Creating ray tracing descriptors...
-    m_RayTracingDescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
+    m_RayTracingDescriptorSetLayout = vulkan::FDescriptorSetLayout(pLogicalDevice->GetHandle());
     m_RayTracingDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
@@ -337,7 +343,7 @@ private:
     });
     m_RayTracingDescriptorSetLayout.Create();
 
-    m_RayTracingDescriptorPool = deviceFactory.CreateDescriptorPool();
+    m_RayTracingDescriptorPool = vulkan::FDescriptorPool(pLogicalDevice->GetHandle());
     m_RayTracingDescriptorPool.Create(&m_RayTracingDescriptorSetLayout, 1);
     m_RayTracingDescriptorPool.AllocateDescriptorSet();
 
@@ -358,27 +364,34 @@ private:
     }
 
     // Creating ray tracing pipeline...
-    m_RayTracingPipelineLayout = deviceFactory.CreatePipelineLayout();
+    m_RayTracingPipelineLayout = vulkan::FPipelineLayout(pLogicalDevice->GetHandle());
     {
       VkDescriptorSetLayout setLayouts[]{ m_RayTracingDescriptorSetLayout.GetHandle(),
                                           m_SceneDescriptorSetLayout.GetHandle() };
       m_RayTracingPipelineLayout.Create(setLayouts);
     }
 
-    FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                       "Shaders", "spv" });
-    m_RayTracingShadowPipeline = deviceFactory.CreateRayTracingShadowPipeline();
-    vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
-    glslCompiler.Initialize();
-    vulkan::FRayTracingShadowPipelineSpecification rayTracingShadowPipelineSpecification{
-        .rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv"),
-        .rayGenerationPath = FPath::Append(shadersPath, "sandbox.rgen.spv"),
-        .rayMissPath =  FPath::Append(shadersPath, "sandbox_complete_miss.rmiss.spv"),
-        .rayShadowMissPath = FPath::Append(shadersPath, "sandbox_shadow_miss.rmiss.spv"),
-        .pGlslCompiler = &glslCompiler,
-        .pPipelineLayout = &m_RayTracingPipelineLayout
-    };
-    m_RayTracingShadowPipeline.Create(rayTracingShadowPipelineSpecification);
+    {
+      m_RayTracingPipeline = vulkan::FRayTracingShadowPipeline(pLogicalDevice->GetHandle(),
+                                                               &pPhysicalDevice->GetAttributes());
+
+      FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
+                                                                         "Shaders", "spv" });
+
+      vulkan::FGLSLShaderCompiler glslCompiler{ m_RenderContext.GetInstance()->GetAttributes().GetFullVersion() };
+      glslCompiler.Initialize();
+
+      vulkan::FRayTracingShadowPipelineSpecification rayTracingShadowPipelineSpecification{
+          .rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv"),
+          .rayGenerationPath = FPath::Append(shadersPath, "sandbox.rgen.spv"),
+          .rayMissPath =  FPath::Append(shadersPath, "sandbox_complete_miss.rmiss.spv"),
+          .rayShadowMissPath = FPath::Append(shadersPath, "sandbox_shadow_miss.rmiss.spv"),
+          .pGlslCompiler = &glslCompiler,
+          .pPipelineLayout = &m_RayTracingPipelineLayout,
+          .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties()
+      };
+      m_RayTracingPipeline.Create(rayTracingShadowPipelineSpecification);
+    }
 
     // Recording commands
     RecordCommands();
@@ -404,7 +417,7 @@ private:
     m_CommandPool.Destroy();
 
     // Destroying rendering resources...
-    for (vulkan::FBottomLevelAccelerationStructure& bottomAS : m_BottomLevelASVector)
+    for (vulkan::FBottomLevelAccelerationStructure& bottomAS : m_BottomLevelAccelerationVector)
     {
       bottomAS.Destroy();
     }
@@ -419,12 +432,12 @@ private:
 
     // Closing buffers
     m_PerFrameUniformBuffer.Free();
-    m_ObjectsUniformBuffer.Free();
+    m_BLASReferenceUniformBuffer.Free();
     m_LightUniformBuffer.Free();
 
     // Destroying pipelines...
     m_RayTracingPipelineLayout.Destroy();
-    m_RayTracingShadowPipeline.Destroy();
+    m_RayTracingPipeline.Destroy();
 
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
@@ -471,10 +484,10 @@ private:
                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
                                 subresourceRange,
                                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
-      cmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingShadowPipeline.GetHandle());
+      cmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipeline.GetHandle());
       cmdBuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
                                 descriptorSets);
-      cmdBuf.TraceRays(&m_RayTracingShadowPipeline, offscreenExtent);
+      cmdBuf.TraceRays(&m_RayTracingPipeline, offscreenExtent);
       cmdBuf.ImageMemoryBarrier(offscreenImage,
                                 VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                                 VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -503,16 +516,16 @@ private:
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
 
   vulkan::FImage m_OffscreenImage{};
-  std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelASVector{};
+  std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelAccelerationVector{};
   vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
+  vulkan::FBuffer m_BLASReferenceUniformBuffer{};
   vulkan::FDescriptorSetLayout m_RayTracingDescriptorSetLayout{};
   vulkan::FDescriptorPool m_RayTracingDescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
-  vulkan::FRayTracingShadowPipeline m_RayTracingShadowPipeline{};
+  vulkan::FRayTracingShadowPipeline m_RayTracingPipeline{};
 
   vulkan::FDescriptorSetLayout m_SceneDescriptorSetLayout{};
   vulkan::FDescriptorPool m_SceneDescriptorPool{};
-  vulkan::FBuffer m_ObjectsUniformBuffer{};
   vulkan::FBuffer m_LightUniformBuffer{};
 
   FPerspectiveCamera m_Camera{};

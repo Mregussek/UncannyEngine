@@ -9,7 +9,7 @@ namespace uncanny::vulkan
 {
 
 
-FImage::FImage(const FPhysicalDeviceAttributes *pPhysicalDeviceAttributes, VkDevice vkDevice)
+FImage::FImage(VkDevice vkDevice, const FPhysicalDeviceAttributes *pPhysicalDeviceAttributes)
   : m_pPhysicalDeviceAttributes(pPhysicalDeviceAttributes),
   m_Device(vkDevice)
 {

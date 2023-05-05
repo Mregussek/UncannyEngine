@@ -23,6 +23,7 @@ class FDescriptorPool
 public:
 
   FDescriptorPool() = default;
+  explicit FDescriptorPool(VkDevice vkDevice);
 
   void Create(const FDescriptorSetLayout* pSetLayout, u32 maxSetsCount);
 
@@ -40,9 +41,6 @@ public:
   [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
 private:
-
-  explicit FDescriptorPool(VkDevice vkDevice);
-
 
   const FDescriptorSetLayout* m_pSetLayout{ nullptr };
   VkDescriptorPool m_DescriptorPool{ VK_NULL_HANDLE };

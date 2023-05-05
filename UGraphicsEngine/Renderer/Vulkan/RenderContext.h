@@ -12,7 +12,6 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Context/PhysicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Context/WindowSurface.h"
-#include "UGraphicsEngine/Renderer/Vulkan/RenderDeviceFactory.h"
 
 
 namespace uncanny::vulkan
@@ -49,10 +48,10 @@ public:
   /// @brief Destroys whole FRenderContext object (closes Vulkan API)
   void Destroy();
 
+  [[nodiscard]] const FInstance* GetInstance() const { return &m_Instance; }
   [[nodiscard]] const FPhysicalDevice* GetPhysicalDevice() const { return &m_PhysicalDevice; }
   [[nodiscard]] const FLogicalDevice* GetLogicalDevice() const { return &m_LogicalDevice; }
   [[nodiscard]] const FWindowSurface* GetWindowSurface() const { return &m_WindowSurface; }
-  [[nodiscard]] const FRenderDeviceFactory& GetFactory() const { return m_DeviceFactory; }
 
 private:
 
@@ -62,7 +61,6 @@ private:
   FVolkHandler m_VolkHandler{};
   FLogicalDevice m_LogicalDevice{};
   FWindowSurface m_WindowSurface{};
-  FRenderDeviceFactory m_DeviceFactory{};
   /// @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };
 

@@ -26,6 +26,8 @@ class FImage
 public:
 
   FImage() = default;
+  FImage(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
+
   ~FImage();
 
   void Allocate(VkFormat format, VkExtent2D extent2D, VkImageUsageFlags usage, VkImageLayout initialLayout,
@@ -42,10 +44,9 @@ public:
 
 private:
 
-  FImage(const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, VkDevice vkDevice);
-
   void ActualAllocate();
 
+private:
 
   FMemory m_Memory{};
   const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };

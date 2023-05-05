@@ -13,7 +13,6 @@ namespace uncanny::vulkan
 {
 
 
-class FRayTracingPipeline;
 class FRayTracingShadowPipeline;
 
 
@@ -50,7 +49,6 @@ public:
   void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
                           std::span<VkDescriptorSet> descriptorSets);
 
-  void TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D);
   void TraceRays(const FRayTracingShadowPipeline* pRayTracingShadowPipeline, VkExtent3D extent3D);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }

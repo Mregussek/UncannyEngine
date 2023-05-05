@@ -54,7 +54,7 @@ void FTopLevelAccelerationStructure::Build(std::span<VkAccelerationStructureInst
 {
   u32 instancesCount = instances.size();
 
-  FBuffer instanceBuffer(m_pPhysicalDeviceAttributes, m_Device);
+  FBuffer instanceBuffer(m_Device, m_pPhysicalDeviceAttributes);
   VkBufferUsageFlags usageFlags =
       VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |

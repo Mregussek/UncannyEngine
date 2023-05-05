@@ -66,8 +66,6 @@ void FRenderContext::Create(FRenderContextAttributes attributes, const std::shar
   {
     AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
   }
-
-  m_DeviceFactory.Initialize(&m_Instance.GetAttributes(), &(GetPhysicalDevice()->GetAttributes()), GetLogicalDevice());
 }
 
 

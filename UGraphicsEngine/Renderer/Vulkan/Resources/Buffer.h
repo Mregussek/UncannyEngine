@@ -28,7 +28,7 @@ class FBuffer
 public:
 
   FBuffer() = default;
-  FBuffer(const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes, VkDevice vkDevice);
+  FBuffer(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
   ~FBuffer();
 
   void Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags);
