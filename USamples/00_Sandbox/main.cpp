@@ -283,7 +283,6 @@ private:
     }
 
     // Creating scene descriptors...
-    m_SceneDescriptorSetLayout = vulkan::FDescriptorSetLayout(pLogicalDevice->GetHandle());
     m_SceneDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -298,10 +297,9 @@ private:
         .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
         .pImmutableSamplers = nullptr
     });
-    m_SceneDescriptorSetLayout.Create();
+    m_SceneDescriptorSetLayout.Create(pLogicalDevice->GetHandle());
 
-    m_SceneDescriptorPool = vulkan::FDescriptorPool(pLogicalDevice->GetHandle());
-    m_SceneDescriptorPool.Create(&m_SceneDescriptorSetLayout, 1);
+    m_SceneDescriptorPool.Create(pLogicalDevice->GetHandle(), &m_SceneDescriptorSetLayout, 1);
     m_SceneDescriptorPool.AllocateDescriptorSet();
     {
       u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[0].binding;
@@ -319,7 +317,6 @@ private:
     }
 
     // Creating ray tracing descriptors...
-    m_RayTracingDescriptorSetLayout = vulkan::FDescriptorSetLayout(pLogicalDevice->GetHandle());
     m_RayTracingDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
@@ -341,10 +338,9 @@ private:
         .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
         .pImmutableSamplers = nullptr
     });
-    m_RayTracingDescriptorSetLayout.Create();
+    m_RayTracingDescriptorSetLayout.Create(pLogicalDevice->GetHandle());
 
-    m_RayTracingDescriptorPool = vulkan::FDescriptorPool(pLogicalDevice->GetHandle());
-    m_RayTracingDescriptorPool.Create(&m_RayTracingDescriptorSetLayout, 1);
+    m_RayTracingDescriptorPool.Create(pLogicalDevice->GetHandle(), &m_RayTracingDescriptorSetLayout, 1);
     m_RayTracingDescriptorPool.AllocateDescriptorSet();
 
     {
@@ -364,22 +360,17 @@ private:
     }
 
     // Creating ray tracing pipeline...
-    m_RayTracingPipelineLayout = vulkan::FPipelineLayout(pLogicalDevice->GetHandle());
     {
       VkDescriptorSetLayout setLayouts[]{ m_RayTracingDescriptorSetLayout.GetHandle(),
                                           m_SceneDescriptorSetLayout.GetHandle() };
-      m_RayTracingPipelineLayout.Create(setLayouts);
+      m_RayTracingPipelineLayout.Create(pLogicalDevice->GetHandle(), setLayouts);
     }
 
     {
-      m_RayTracingPipeline = vulkan::FRayTracingShadowPipeline(pLogicalDevice->GetHandle(),
-                                                               &pPhysicalDevice->GetAttributes());
-
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                          "Shaders", "spv" });
-
-      vulkan::FGLSLShaderCompiler glslCompiler{ m_RenderContext.GetInstance()->GetAttributes().GetFullVersion() };
-      glslCompiler.Initialize();
+      vulkan::FGLSLShaderCompiler glslCompiler{};
+      glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
 
       vulkan::FRayTracingShadowPipelineSpecification rayTracingShadowPipelineSpecification{
           .rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv"),
@@ -388,7 +379,9 @@ private:
           .rayShadowMissPath = FPath::Append(shadersPath, "sandbox_shadow_miss.rmiss.spv"),
           .pGlslCompiler = &glslCompiler,
           .pPipelineLayout = &m_RayTracingPipelineLayout,
-          .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties()
+          .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties(),
+          .vkDevice = pLogicalDevice->GetHandle(),
+          .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
       };
       m_RayTracingPipeline.Create(rayTracingShadowPipelineSpecification);
     }
@@ -522,7 +515,7 @@ private:
   vulkan::FDescriptorSetLayout m_RayTracingDescriptorSetLayout{};
   vulkan::FDescriptorPool m_RayTracingDescriptorPool{};
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
-  vulkan::FRayTracingShadowPipeline m_RayTracingPipeline{};
+  vulkan::FRayTracingPipeline m_RayTracingPipeline{};
 
   vulkan::FDescriptorSetLayout m_SceneDescriptorSetLayout{};
   vulkan::FDescriptorPool m_SceneDescriptorPool{};

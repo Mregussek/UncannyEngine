@@ -49,35 +49,28 @@ struct glslang_program_raii_wrapper
 
 
 
-FGLSLShaderCompiler::FGLSLShaderCompiler(u32 targetVulkanVersion)
-{
-  switch (targetVulkanVersion)
-  {
-    case VK_API_VERSION_1_3:
-      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_3;
-      break;
-    case VK_API_VERSION_1_2:
-      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_2;
-      break;
-    case VK_API_VERSION_1_1:
-      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_1;
-      break;
-    default:
-      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_0;
-      break;
-  }
-}
-
-
 FGLSLShaderCompiler::~FGLSLShaderCompiler()
 {
-  glslang_finalize_process();
+  Close();
 }
 
 
-void FGLSLShaderCompiler::Initialize()
+void FGLSLShaderCompiler::Initialize(u32 targetVulkanVersion)
 {
+  ParseVulkanVersion(targetVulkanVersion);
   glslang_initialize_process();
+  m_Initialized = UTRUE;
+}
+
+
+void FGLSLShaderCompiler::Close()
+{
+  if (not m_Initialized)
+  {
+    return;
+  }
+
+  glslang_finalize_process();
 }
 
 
@@ -148,6 +141,26 @@ std::vector<u32> FGLSLShaderCompiler::Compile(const char* glslSource, EShaderCom
   }
 
   return spirvCode;
+}
+
+
+void FGLSLShaderCompiler::ParseVulkanVersion(u32 targetVulkanVersion)
+{
+  switch (targetVulkanVersion)
+  {
+    case VK_API_VERSION_1_3:
+      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_3;
+      break;
+    case VK_API_VERSION_1_2:
+      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_2;
+      break;
+    case VK_API_VERSION_1_1:
+      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_1;
+      break;
+    default:
+      m_TargetVulkanVersion = GLSLANG_TARGET_VULKAN_1_0;
+      break;
+  }
 }
 
 

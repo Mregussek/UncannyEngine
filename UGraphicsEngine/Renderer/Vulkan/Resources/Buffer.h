@@ -16,15 +16,9 @@ namespace uncanny::vulkan
 class FPhysicalDeviceAttributes;
 
 
-/*
- * @brief
- * If it will be used as device local don't forget about TRANSFER_DST buffer usage flag
- */
+/// @details If it will be used as device local don't forget about TRANSFER_DST buffer usage flag
 class FBuffer
 {
-
-  friend class FRenderDeviceFactory;
-
 public:
 
   FBuffer() = default;

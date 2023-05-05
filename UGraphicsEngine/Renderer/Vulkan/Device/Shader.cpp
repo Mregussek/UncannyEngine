@@ -7,20 +7,16 @@ namespace uncanny::vulkan
 {
 
 
-FShader::FShader(VkDevice vkDevice)
-  : m_Device(vkDevice)
-{
-}
-
-
 FShader::~FShader()
 {
   Destroy();
 }
 
 
-void FShader::Create(const u32* pSpvSource, u32 codeSize)
+void FShader::Create(const u32* pSpvSource, u32 codeSize, VkDevice vkDevice)
 {
+  m_Device = vkDevice;
+
   VkShaderModuleCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
     .pNext = nullptr,
@@ -38,6 +34,7 @@ void FShader::Destroy()
   if (m_ShaderModule != VK_NULL_HANDLE)
   {
     vkDestroyShaderModule(m_Device, m_ShaderModule, nullptr);
+    m_ShaderModule = VK_NULL_HANDLE;
   }
 }
 

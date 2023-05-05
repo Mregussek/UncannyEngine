@@ -11,49 +11,51 @@ namespace uncanny::vulkan
 {
 
 
-FRayTracingShadowPipeline::FRayTracingShadowPipeline(VkDevice vkDevice,
-                                                     const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
-    : m_Device(vkDevice),
-      m_pPhysicalDeviceAttributes(pPhysicalDeviceAttributes)
+FRayTracingPipeline::~FRayTracingPipeline()
 {
+  Destroy();
 }
 
 
-void FRayTracingShadowPipeline::Create(const FRayTracingShadowPipelineSpecification& specification)
+void FRayTracingPipeline::Create(const FRayTracingShadowPipelineSpecification& specification)
 {
+  m_Device = specification.vkDevice;
+  m_pPhysicalDeviceAttributes = specification.pPhysicalDeviceAttributes;
+
   CreatePipeline(specification);
   CreateShaderBindingTable(specification.pProperties);
 }
 
 
-void FRayTracingShadowPipeline::CreatePipeline(const FRayTracingShadowPipelineSpecification& specification)
+void FRayTracingPipeline::CreatePipeline(const FRayTracingShadowPipelineSpecification& specification)
 {
   auto CompileLoadAndCreateModule =
-      [pCompiler = specification.pGlslCompiler](FShader& shaderModule, const FPath& path, EShaderCompilerStage stage)
+      [pCompiler = specification.pGlslCompiler, vkDevice = specification.vkDevice]
+      (FShader& shaderModule, const FPath& path, EShaderCompilerStage stage)
       {
 
         if (FPath::HasExtension(path, ".spv"))
         {
           std::vector<char> spvSource;
           spvSource = FFile::ReadBinary(path.GetString().c_str());
-          shaderModule.Create(reinterpret_cast<const u32*>(spvSource.data()), spvSource.size());
+          shaderModule.Create(reinterpret_cast<const u32*>(spvSource.data()), spvSource.size(), vkDevice);
         }
         else
         {
           std::vector<u32> spvSource;
           std::vector<char> glslSource = FFile::Read(path.GetString().c_str());
           spvSource = pCompiler->Compile(glslSource.data(), stage);
-          shaderModule.Create(spvSource.data(), sizeof(u32) * spvSource.size());
+          shaderModule.Create(spvSource.data(), sizeof(u32) * spvSource.size(), vkDevice);
         }
       };
 
-  FShader rayGenerationModule(m_Device);
+  FShader rayGenerationModule{};
   CompileLoadAndCreateModule(rayGenerationModule, specification.rayGenerationPath, EShaderCompilerStage::RAYGEN);
-  FShader rayMissModule(m_Device);
+  FShader rayMissModule{};
   CompileLoadAndCreateModule(rayMissModule, specification.rayMissPath, EShaderCompilerStage::MISS);
-  FShader rayShadowMissModule(m_Device);
+  FShader rayShadowMissModule{};
   CompileLoadAndCreateModule(rayShadowMissModule, specification.rayShadowMissPath, EShaderCompilerStage::MISS);
-  FShader rayClosestHitModule(m_Device);
+  FShader rayClosestHitModule{};
   CompileLoadAndCreateModule(rayClosestHitModule, specification.rayClosestHitPath, EShaderCompilerStage::CLOSESTHIT);
 
   VkPipelineShaderStageCreateInfo rayGenStageInfo{
@@ -162,8 +164,7 @@ void FRayTracingShadowPipeline::CreatePipeline(const FRayTracingShadowPipelineSp
 }
 
 
-void FRayTracingShadowPipeline::CreateShaderBindingTable(
-    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties)
+void FRayTracingPipeline::CreateShaderBindingTable(const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties)
 {
   /*
     SBT Layout used in this sample:
@@ -206,11 +207,12 @@ void FRayTracingShadowPipeline::CreateShaderBindingTable(
 }
 
 
-void FRayTracingShadowPipeline::Destroy()
+void FRayTracingPipeline::Destroy()
 {
   if (m_Pipeline != VK_NULL_HANDLE)
   {
     vkDestroyPipeline(m_Device, m_Pipeline, nullptr);
+    m_Pipeline = VK_NULL_HANDLE;
   }
 
   m_RayGenBuffer.Free();

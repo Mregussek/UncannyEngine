@@ -11,9 +11,7 @@ namespace uncanny::vulkan
 {
 
 
-/*
- * @brief Memory should not be exposed to the end user, FBuffer and FImage should be owners.
- */
+/// @details Memory should not be exposed to the end user, FBuffer and FImage should be owners.
 class FMemory
 {
 public:

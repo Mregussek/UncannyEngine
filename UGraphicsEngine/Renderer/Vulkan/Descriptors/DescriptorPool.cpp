@@ -2,34 +2,34 @@
 #include "DescriptorPool.h"
 #include "DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
-#include <algorithm>
 
 
 namespace uncanny::vulkan
 {
 
 
-FDescriptorPool::FDescriptorPool(VkDevice vkDevice)
-  : m_Device(vkDevice)
+FDescriptorPool::~FDescriptorPool()
 {
+  Destroy();
 }
 
 
-void FDescriptorPool::Create(const FDescriptorSetLayout* pSetLayout, u32 maxSetsCount)
+void FDescriptorPool::Create(VkDevice vkDevice, const FDescriptorSetLayout* pSetLayout, u32 maxSetsCount)
 {
+  m_Device = vkDevice;
   m_pSetLayout = pSetLayout;
 
   const auto& bindings = m_pSetLayout->GetBindings();
 
   std::vector<VkDescriptorPoolSize> poolSizes{};
   poolSizes.reserve(bindings.size());
-  std::ranges::for_each(bindings, [&poolSizes, maxSetsCount](const VkDescriptorSetLayoutBinding& binding)
+  for (const VkDescriptorSetLayoutBinding& binding : bindings)
   {
     poolSizes.push_back(VkDescriptorPoolSize{
-      .type = binding.descriptorType,
-      .descriptorCount = binding.descriptorCount
+        .type = binding.descriptorType,
+        .descriptorCount = binding.descriptorCount
     });
-  });
+  }
 
   VkDescriptorPoolCreateInfo descriptorPoolInfo{
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -50,6 +50,7 @@ void FDescriptorPool::Destroy()
   if (m_DescriptorPool != VK_NULL_HANDLE)
   {
     vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
+    m_DescriptorPool = VK_NULL_HANDLE;
   }
 }
 

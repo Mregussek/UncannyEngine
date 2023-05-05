@@ -145,10 +145,10 @@ void FSwapchain::Destroy()
 }
 
 
-b8 FSwapchain::IsRecreatePossible()
+b8 FSwapchain::IsRecreatePossible() const
 {
-  m_CurrentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
-  if (m_CurrentExtent.width == 0 or m_CurrentExtent.height == 0)
+  VkExtent2D currentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
+  if (currentExtent.width == 0 or currentExtent.height == 0)
   {
     UWARN("Cannot recreate swapchain, as current extent is ({}, {})", m_CurrentExtent.width, m_CurrentExtent.height);
     return UFALSE;
@@ -189,6 +189,7 @@ void FSwapchain::WaitForNextImage()
     default:
       AssertVkAndThrow(result);
   }
+  m_CurrentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
 }
 
 
@@ -224,6 +225,7 @@ void FSwapchain::Present()
   {
     m_CurrentFrame = 0;
   }
+  m_CurrentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
 }
 
 

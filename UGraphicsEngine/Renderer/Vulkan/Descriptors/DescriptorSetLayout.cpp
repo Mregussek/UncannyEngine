@@ -7,9 +7,9 @@ namespace uncanny::vulkan
 {
 
 
-FDescriptorSetLayout::FDescriptorSetLayout(VkDevice vkDevice)
-  : m_Device(vkDevice)
+FDescriptorSetLayout::~FDescriptorSetLayout()
 {
+  Destroy();
 }
 
 
@@ -32,8 +32,10 @@ void FDescriptorSetLayout::AddBinding(VkDescriptorSetLayoutBinding layoutBinding
 }
 
 
-void FDescriptorSetLayout::Create()
+void FDescriptorSetLayout::Create(VkDevice vkDevice)
 {
+  m_Device = vkDevice;
+
   VkDescriptorSetLayoutCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
     .pNext = nullptr,
@@ -52,6 +54,7 @@ void FDescriptorSetLayout::Destroy()
   if (m_DescriptorSetLayout != VK_NULL_HANDLE)
   {
     vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
+    m_DescriptorSetLayout = VK_NULL_HANDLE;
   }
 }
 

@@ -8,21 +8,23 @@ namespace uncanny::vulkan
 {
 
 
-FPipelineLayout::FPipelineLayout(VkDevice vkDevice)
-  : m_Device(vkDevice)
+FPipelineLayout::~FPipelineLayout()
 {
+  Destroy();
 }
 
 
-void FPipelineLayout::Create(VkDescriptorSetLayout setLayout)
+void FPipelineLayout::Create(VkDevice vkDevice, VkDescriptorSetLayout setLayout)
 {
   std::span<VkDescriptorSetLayout> span(&setLayout, 1);
-  Create(span);
+  Create(vkDevice, span);
 }
 
 
-void FPipelineLayout::Create(std::span<VkDescriptorSetLayout> setLayouts)
+void FPipelineLayout::Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts)
 {
+  m_Device = vkDevice;
+
   VkPipelineLayoutCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .pNext = nullptr,
@@ -43,6 +45,7 @@ void FPipelineLayout::Destroy()
   if (m_PipelineLayout != VK_NULL_HANDLE)
   {
     vkDestroyPipelineLayout(m_Device, m_PipelineLayout, nullptr);
+    m_PipelineLayout = VK_NULL_HANDLE;
   }
 }
 

@@ -13,9 +13,14 @@ namespace uncanny::vulkan
 {
 
 
-class FRayTracingShadowPipeline;
+class FRayTracingPipeline;
 
 
+/// @brief FCommandBuffer is wrapper class for VkCommandBuffer. User is responsible for lifetime, but FCommandPool
+// creates object. Optionally destructor is called and freed.
+/// @details FCommandPool is responsible for allocation command buffer. This class can only be freed.
+/// All methods should be straightforward and I decided not to document them as user should be aware of
+/// VkCommandBuffer functionality.
 class FCommandBuffer
 {
 public:
@@ -49,7 +54,7 @@ public:
   void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
                           std::span<VkDescriptorSet> descriptorSets);
 
-  void TraceRays(const FRayTracingShadowPipeline* pRayTracingShadowPipeline, VkExtent3D extent3D);
+  void TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }
@@ -60,8 +65,6 @@ private:
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };
   VkDevice m_Device{ VK_NULL_HANDLE };
   VkPipelineStageFlags m_LastWaitStageFlag{ VK_PIPELINE_STAGE_NONE };
-  b8 m_Recording{ UFALSE };
-  b8 m_Freed{ UFALSE };
 
 };
 

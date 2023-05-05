@@ -15,11 +15,9 @@ class FShader
 {
 public:
 
-  explicit FShader(VkDevice vkDevice);
-
   ~FShader();
 
-  void Create(const u32* pSpvSource, u32 codeSize);
+  void Create(const u32* pSpvSource, u32 codeSize, VkDevice vkDevice);
 
   void Destroy();
 

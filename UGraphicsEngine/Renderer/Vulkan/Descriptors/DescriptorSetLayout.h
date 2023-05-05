@@ -14,19 +14,15 @@ namespace uncanny::vulkan
 
 class FDescriptorSetLayout
 {
-
-  friend class FRenderDeviceFactory;
-
 public:
 
-  FDescriptorSetLayout() = default;
-  explicit FDescriptorSetLayout(VkDevice vkDevice);
+  ~FDescriptorSetLayout();
 
   void AddBinding(u32 binding, VkDescriptorType type, u32 count, VkShaderStageFlags stageFlags,
                   const VkSampler* pImmutableSamplers);
   void AddBinding(VkDescriptorSetLayoutBinding layoutBinding);
 
-  void Create();
+  void Create(VkDevice vkDevice);
 
   void Destroy();
 

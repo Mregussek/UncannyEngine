@@ -165,6 +165,7 @@ private:
     }
   }
 
+private:
 
   std::vector<FMeshAssetData>* m_pReturnMeshData{ nullptr };
   std::vector<FMaterialData>* m_pReturnMaterialData{ nullptr };
@@ -191,6 +192,8 @@ void FAssetLoader::LoadOBJ(const char* path, std::vector<FMeshAssetData>* pMeshD
   sceneProcessor.ProcessMaterial(aiScene);
 
   importer.FreeScene();
+
+  UDEBUG("Loaded .obj file: {}", path);
 }
 
 

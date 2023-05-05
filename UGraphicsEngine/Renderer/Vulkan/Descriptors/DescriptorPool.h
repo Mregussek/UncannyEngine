@@ -17,15 +17,11 @@ class FDescriptorSetLayout;
 
 class FDescriptorPool
 {
-
-  friend class FRenderDeviceFactory;
-
 public:
 
-  FDescriptorPool() = default;
-  explicit FDescriptorPool(VkDevice vkDevice);
+  ~FDescriptorPool();
 
-  void Create(const FDescriptorSetLayout* pSetLayout, u32 maxSetsCount);
+  void Create(VkDevice vkDevice, const FDescriptorSetLayout* pSetLayout, u32 maxSetsCount);
 
   void Destroy();
 
@@ -43,9 +39,9 @@ public:
 private:
 
   const FDescriptorSetLayout* m_pSetLayout{ nullptr };
+  VkDevice m_Device{ VK_NULL_HANDLE };
   VkDescriptorPool m_DescriptorPool{ VK_NULL_HANDLE };
   VkDescriptorSet m_DescriptorSet{ VK_NULL_HANDLE };
-  VkDevice m_Device{ VK_NULL_HANDLE };
 
 };
 

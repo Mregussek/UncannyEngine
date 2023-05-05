@@ -7,6 +7,12 @@ namespace uncanny::vulkan
 {
 
 
+FCommandPool::~FCommandPool()
+{
+  Destroy();
+}
+
+
 void FCommandPool::Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice, VkCommandPoolCreateFlags flags)
 {
   m_QueueFamilyIndex = queueFamilyIndex;
@@ -28,6 +34,7 @@ void FCommandPool::Destroy()
   if (m_CommandPool != VK_NULL_HANDLE)
   {
     vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
+    m_CommandPool = VK_NULL_HANDLE;
   }
 }
 

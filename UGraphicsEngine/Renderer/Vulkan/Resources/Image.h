@@ -19,10 +19,6 @@ class FPhysicalDeviceAttributes;
 
 class FImage
 {
-
-  // I want factory to access this specific constructor for phys dev attributes and passing logical device
-  friend class FRenderDeviceFactory;
-
 public:
 
   FImage() = default;
@@ -56,7 +52,6 @@ private:
   VkImageCreateInfo m_CreateInfo{};
   VkMemoryPropertyFlags m_MemoryFlags{ 0 };
   std::vector<FQueueFamilyIndex> m_QueueFamilies{};
-  b8 m_Freed{ UFALSE };
   b8 m_UsingView{ UFALSE };
 
 };

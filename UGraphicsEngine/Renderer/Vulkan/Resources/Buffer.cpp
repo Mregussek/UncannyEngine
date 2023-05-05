@@ -69,16 +69,12 @@ void FBuffer::Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemo
 
 void FBuffer::Free()
 {
-  if (m_Freed)
-  {
-    return;
-  }
   if (m_Buffer != VK_NULL_HANDLE)
   {
     vkDestroyBuffer(m_Device, m_Buffer, nullptr);
+    m_Buffer = VK_NULL_HANDLE;
   }
   m_Memory.Free();
-  m_Freed = UTRUE;
 }
 
 

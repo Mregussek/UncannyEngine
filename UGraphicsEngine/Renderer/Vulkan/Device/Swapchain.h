@@ -28,7 +28,7 @@ public:
               const FWindowSurface* pWindowSurface);
   void Destroy();
 
-  [[nodiscard]] b8 IsRecreatePossible();
+  [[nodiscard]] b8 IsRecreatePossible() const;
   void Recreate();
 
   void WaitForNextImage();

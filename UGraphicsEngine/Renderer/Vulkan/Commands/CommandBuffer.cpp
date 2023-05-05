@@ -10,8 +10,8 @@ namespace uncanny::vulkan
 {
 
 
-FCommandBuffer::FCommandBuffer(VkDevice vkDevice, VkCommandPool vkCommandPool, VkCommandBuffer vkCommandBuffer)
-  : m_CommandBuffer(vkCommandBuffer),
+FCommandBuffer::FCommandBuffer(VkDevice vkDevice, VkCommandPool vkCommandPool, VkCommandBuffer vkCommandBuffer) :
+  m_CommandBuffer(vkCommandBuffer),
   m_Device(vkDevice),
   m_CommandPool(vkCommandPool)
 {
@@ -26,26 +26,16 @@ FCommandBuffer::~FCommandBuffer()
 
 void FCommandBuffer::Free()
 {
-  if (m_Freed)
-  {
-    return;
-  }
-
   if (m_CommandBuffer != VK_NULL_HANDLE)
   {
     vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &m_CommandBuffer);
-    m_Freed = UTRUE;
+    m_CommandBuffer = VK_NULL_HANDLE;
   }
 }
 
 
 void FCommandBuffer::BeginRecording()
 {
-  if (m_Recording)
-  {
-    UWARN("Command buffer is during recording commands, returning...");
-    return;
-  }
   VkCommandBufferBeginInfo beginInfo{
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
     .pNext = nullptr,
@@ -54,17 +44,11 @@ void FCommandBuffer::BeginRecording()
   };
   VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
   AssertVkAndThrow(result);
-  m_Recording = UTRUE;
 }
 
 
 void FCommandBuffer::BeginOneTimeRecording()
 {
-  if (m_Recording)
-  {
-    UWARN("Command buffer is during recording commands, returning...");
-    return;
-  }
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .pNext = nullptr,
@@ -73,20 +57,13 @@ void FCommandBuffer::BeginOneTimeRecording()
   };
   VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
   AssertVkAndThrow(result);
-  m_Recording = UTRUE;
 }
 
 
 void FCommandBuffer::EndRecording()
 {
-  if (not m_Recording)
-  {
-    UWARN("Command buffer is not during recording, returing...");
-    return;
-  }
   VkResult result = vkEndCommandBuffer(m_CommandBuffer);
   AssertVkAndThrow(result);
-  m_Recording = UFALSE;
 }
 
 
@@ -112,7 +89,7 @@ void FCommandBuffer::ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, V
                                         VkImageSubresourceRange subresourceRange,
                                         VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 {
-  VkImageMemoryBarrier barrier{
+  VkImageMemoryBarrier imageMemoryBarrier{
     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
     .pNext = nullptr,
     .srcAccessMask = srcFlags,
@@ -126,7 +103,7 @@ void FCommandBuffer::ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, V
   };
 
   vkCmdPipelineBarrier(m_CommandBuffer, srcStage, dstStage, VkDependencyFlags{ 0 },
-                       0, nullptr, 0, nullptr, 1, &barrier);
+                       0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 
   m_LastWaitStageFlag = dstStage;
 }
@@ -165,8 +142,9 @@ void FCommandBuffer::CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubres
 }
 
 
-void FCommandBuffer::BuildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR* pBuildGeometryInfo,
-                                                const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
+void FCommandBuffer::BuildAccelerationStructure(
+    const VkAccelerationStructureBuildGeometryInfoKHR* pBuildGeometryInfo,
+    const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
 {
   vkCmdBuildAccelerationStructuresKHR(m_CommandBuffer, 1, pBuildGeometryInfo, ppBuildRangeInfos);
 }
@@ -198,23 +176,23 @@ void FCommandBuffer::BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelin
 }
 
 
-void FCommandBuffer::TraceRays(const FRayTracingShadowPipeline* pRayTracingShadowPipeline, VkExtent3D extent3D)
+void FCommandBuffer::TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D)
 {
-  const FBuffer& rayGenBuffer = pRayTracingShadowPipeline->GetRayGenBuffer();
+  const FBuffer& rayGenBuffer = pRayTracingPipeline->GetRayGenBuffer();
   VkStridedDeviceAddressRegionKHR rayGenSBT{
       .deviceAddress = rayGenBuffer.GetDeviceAddress(),
       .stride = rayGenBuffer.GetFilledElementsCount(),
       .size = rayGenBuffer.GetFilledElementsCount()
   };
 
-  const FBuffer& rayMissBuffer = pRayTracingShadowPipeline->GetRayMissBuffer();
+  const FBuffer& rayMissBuffer = pRayTracingPipeline->GetRayMissBuffer();
   VkStridedDeviceAddressRegionKHR rayMissSBT{
       .deviceAddress = rayMissBuffer.GetDeviceAddress(),
       .stride = rayMissBuffer.GetFilledElementsCount() / 2,
       .size = rayMissBuffer.GetFilledElementsCount()
   };
 
-  const FBuffer& rayClosestHitBuffer = pRayTracingShadowPipeline->GetRayClosestHitBuffer();
+  const FBuffer& rayClosestHitBuffer = pRayTracingPipeline->GetRayClosestHitBuffer();
   VkStridedDeviceAddressRegionKHR rayHitSBT{
       .deviceAddress = rayClosestHitBuffer.GetDeviceAddress(),
       .stride = rayClosestHitBuffer.GetFilledElementsCount(),

@@ -13,9 +13,13 @@ namespace uncanny::vulkan
 {
 
 
+/// @brief FCommandPool is a wrapper class for VkCommandPool functionality. User is completely responsible for lifetime
+/// via Create() and Destroy() methods.
 class FCommandPool
 {
 public:
+
+  ~FCommandPool();
 
   void Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice, VkCommandPoolCreateFlags flags);
   void Destroy();
@@ -23,7 +27,6 @@ public:
   void Reset();
 
   [[nodiscard]] FCommandBuffer AllocatePrimaryCommandBuffer() const;
-
   [[nodiscard]] std::vector<FCommandBuffer> AllocatePrimaryCommandBuffers(u32 count) const;
 
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_QueueFamilyIndex; }

@@ -25,19 +25,16 @@ struct FRayTracingShadowPipelineSpecification
   FGLSLShaderCompiler* pGlslCompiler{ nullptr };
   FPipelineLayout* pPipelineLayout{ nullptr };
   const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties{ nullptr };
+  VkDevice vkDevice{ VK_NULL_HANDLE };
+  const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes{ nullptr };
 };
 
 
-class FRayTracingShadowPipeline
+class FRayTracingPipeline
 {
-private:
-
-  friend class FRenderDeviceFactory;
-
 public:
 
-  FRayTracingShadowPipeline() = default;
-  FRayTracingShadowPipeline(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
+  ~FRayTracingPipeline();
 
   void Create(const FRayTracingShadowPipelineSpecification& specification);
 

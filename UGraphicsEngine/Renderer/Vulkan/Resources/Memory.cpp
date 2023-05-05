@@ -60,6 +60,7 @@ void FMemory::Free()
   if (m_DeviceMemory != VK_NULL_HANDLE)
   {
     vkFreeMemory(m_Device, m_DeviceMemory, nullptr);
+    m_DeviceMemory = VK_NULL_HANDLE;
   }
 }
 

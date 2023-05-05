@@ -13,16 +13,12 @@ namespace uncanny::vulkan
 
 class FPipelineLayout
 {
-
-  friend class FRenderDeviceFactory;
-
 public:
 
-  FPipelineLayout() = default;
-  explicit FPipelineLayout(VkDevice vkDevice);
+  ~FPipelineLayout();
 
-  void Create(VkDescriptorSetLayout setLayout);
-  void Create(std::span<VkDescriptorSetLayout> setLayouts);
+  void Create(VkDevice vkDevice, VkDescriptorSetLayout setLayout);
+  void Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts);
 
   void Destroy();
 
