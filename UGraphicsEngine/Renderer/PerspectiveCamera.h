@@ -71,7 +71,7 @@ private:
   u32 m_NotMovingCameraFrameCounter{ 0 };
 
   u32 m_MaxFrameCounterLimit{ 2048 };
-  u32 m_MaxRayBounces{ 4 };
+  u32 m_MaxRayBounces{ 6 };
   u32 m_MaxSamplesPerPixel{ 6 };
 
   b8 m_FirstMouseMove{ UFALSE };
