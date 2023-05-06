@@ -374,7 +374,7 @@ private:
       vulkan::FGLSLShaderCompiler glslCompiler{};
       glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
 
-      vulkan::FRayTracingShadowPipelineSpecification rayTracingShadowPipelineSpecification{
+      vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
           .rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv"),
           .rayGenerationPath = FPath::Append(shadersPath, "sandbox.rgen.spv"),
           .rayMissPath =  FPath::Append(shadersPath, "sandbox_complete_miss.rmiss.spv"),
@@ -385,7 +385,7 @@ private:
           .vkDevice = pLogicalDevice->GetHandle(),
           .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
       };
-      m_RayTracingPipeline.Create(rayTracingShadowPipelineSpecification);
+      m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
     }
 
     // Recording commands

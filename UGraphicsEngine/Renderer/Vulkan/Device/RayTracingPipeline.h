@@ -16,7 +16,7 @@ class FGLSLShaderCompiler;
 class FPipelineLayout;
 
 
-struct FRayTracingShadowPipelineSpecification
+struct FRayTracingPipelineSpecification
 {
   FPath rayClosestHitPath{ "" };
   FPath rayGenerationPath{ "" };
@@ -36,7 +36,7 @@ public:
 
   ~FRayTracingPipeline();
 
-  void Create(const FRayTracingShadowPipelineSpecification& specification);
+  void Create(const FRayTracingPipelineSpecification& specification);
 
   void Destroy();
 
@@ -47,7 +47,7 @@ public:
 
 private:
 
-  void CreatePipeline(const FRayTracingShadowPipelineSpecification& specification);
+  void CreatePipeline(const FRayTracingPipelineSpecification& specification);
   void CreateShaderBindingTable(const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties);
 
 private:

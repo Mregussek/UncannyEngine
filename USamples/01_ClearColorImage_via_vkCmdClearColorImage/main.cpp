@@ -64,6 +64,7 @@ private:
   void Start() {
     FLog::create();
 
+    // Creating window...
     FWindowConfiguration windowConfiguration{
         .resizable = UTRUE,
         .fullscreen = UFALSE,
@@ -71,27 +72,33 @@ private:
             .width = 1600,
             .height = 900
         },
-        .name = "UncannyEngine Sample 01 ClearColorImage_via_vkCmdClearColorImage"
+        .name = "UncannyEngine Sample 04 RayTracingTriangleWithCamera"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
+    // Initialing renderer...
     vulkan::FRenderContextAttributes renderContextAttributes{
-      .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
-      .instanceExtensions = { VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-                              VK_KHR_SURFACE_EXTENSION_NAME,
-                              VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
-      .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME },
-      .apiVersion = VK_API_VERSION_1_3
+        .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
+        .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
+                               VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+                               VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
+        .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                              VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+                              VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+                              VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+                              VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME },
+        .pWindow = m_Window.get(),
+        .apiVersion = VK_API_VERSION_1_3
     };
+    m_RenderContext.Create(renderContextAttributes);
 
-    m_RenderContext.Create(renderContextAttributes, m_Window);
+    const vulkan::FPhysicalDevice* pPhysicalDevice = m_RenderContext.GetPhysicalDevice();
+    const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
-    m_Swapchain.Create(2,
-                       m_RenderContext.GetLogicalDevice()->GetHandle(),
-                       &m_RenderContext.GetLogicalDevice()->GetPresentQueue(),
+    // Creating swapchain...
+    m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
-    u32 backBufferCount = m_Swapchain.GetBackBufferCount();
 
     // Creating command pools
     m_GraphicsCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetGraphicsFamilyIndex(),
@@ -99,7 +106,7 @@ private:
                                  0);
 
     // Creating command buffers...
-    m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+    m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
     RecordRenderCommands();
   }
 

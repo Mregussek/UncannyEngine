@@ -17,7 +17,7 @@ FRayTracingPipeline::~FRayTracingPipeline()
 }
 
 
-void FRayTracingPipeline::Create(const FRayTracingShadowPipelineSpecification& specification)
+void FRayTracingPipeline::Create(const FRayTracingPipelineSpecification& specification)
 {
   m_Device = specification.vkDevice;
   m_pPhysicalDeviceAttributes = specification.pPhysicalDeviceAttributes;
@@ -27,7 +27,7 @@ void FRayTracingPipeline::Create(const FRayTracingShadowPipelineSpecification& s
 }
 
 
-void FRayTracingPipeline::CreatePipeline(const FRayTracingShadowPipelineSpecification& specification)
+void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification& specification)
 {
   auto CompileLoadAndCreateModule =
       [pCompiler = specification.pGlslCompiler, vkDevice = specification.vkDevice]

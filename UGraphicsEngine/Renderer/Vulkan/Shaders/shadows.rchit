@@ -10,7 +10,7 @@
 #include "DataTypes.glsl"
 
 layout(location = 0) rayPayloadInEXT vec4 payload;
-layout(location = 2) rayPayloadEXT bool shadowed;
+layout(location = 1) rayPayloadEXT bool shadowed;
 
 layout(buffer_reference, scalar) buffer Vertices { Vertex v[]; };
 layout(buffer_reference, scalar) buffer Indices { ivec3 i[]; };
@@ -51,31 +51,30 @@ void main()
     // Transforming the normal to world space
     const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
-    // Basic lighting
-    vec3 lightVector = normalize(lightData.data.position);
-    // Lambertian
-    float dotNL = max(dot(lightVector, worldHitNormal), 0.2);
-    vec3 color = triangleMaterial.diffuse * dotNL;
-
     // Shadow casting
+    const vec3 ShadowRayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
+    vec3 shadowRayDirection = normalize(lightData.data.position - ShadowRayOrigin);
+    float shadowRayDistance = length(lightData.data.position - ShadowRayOrigin) - 0.001f;
     uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
-    vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
     shadowed = true;
-    traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
-                rayFlags,               // rayFlags
-                0xff,                   // cullMask
-                1,                      // sbtRecordOffset
-                0,                      // sbtRecordStride
-                1,                      // missIndex
-                origin.xyz,             // origin
-                0.001f,                 // Tmin
-                lightVector,            // direction
-                10000.0f,               // Tmax
-                2                       // payload
+    float attenuation = 1.f;
+    traceRayEXT(topLevelAS,     // accelerationStructureEXT topLevel
+        rayFlags,               // rayFlags
+        0xff,                   // cullMask
+        0,                      // sbtRecordOffset
+        0,                      // sbtRecordStride
+        1,                      // missIndex
+        ShadowRayOrigin,        // origin
+        0.001f,                 // Tmin
+        shadowRayDirection,     // direction
+        shadowRayDistance,      // Tmax
+        1                       // payload
     );
     if (shadowed) {
-        color *= 0.3;
+        attenuation = 0.4f;
     }
+
+    vec3 color = triangleMaterial.diffuse * attenuation;
 
     payload = vec4(color, 0.0);
 }

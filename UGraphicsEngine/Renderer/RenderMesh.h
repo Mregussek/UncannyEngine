@@ -56,7 +56,7 @@ class FRenderMeshFactory
 {
 public:
 
-  static FRenderMeshData CreateTriangle();
+  static FRenderData CreateTriangle();
 
   static FRenderData ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset, math::Matrix4x4f transform);
 

@@ -81,6 +81,7 @@ private:
   void Start() {
     FLog::create();
 
+    // Creating window...
     FWindowConfiguration windowConfiguration{
         .resizable = UTRUE,
         .fullscreen = UFALSE,
@@ -88,27 +89,33 @@ private:
             .width = 1600,
             .height = 900
         },
-        .name = "UncannyEngine Sample 02 CopyRenderTargetImageIntoSwapchainImage"
+        .name = "UncannyEngine Sample 04 RayTracingTriangleWithCamera"
     };
     m_Window = std::make_shared<FWindowGLFW>();
     m_Window->Create(windowConfiguration);
 
+    // Initialing renderer...
     vulkan::FRenderContextAttributes renderContextAttributes{
-      .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
-      .instanceExtensions = { VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-                              VK_KHR_SURFACE_EXTENSION_NAME,
-                              VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
-      .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME },
-      .apiVersion = VK_API_VERSION_1_3
+        .instanceLayers = { "VK_LAYER_KHRONOS_validation" },
+        .instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME,
+                               VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+                               VK_EXT_DEBUG_UTILS_EXTENSION_NAME },
+        .deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                              VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+                              VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+                              VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+                              VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME },
+        .pWindow = m_Window.get(),
+        .apiVersion = VK_API_VERSION_1_3
     };
+    m_RenderContext.Create(renderContextAttributes);
 
-    m_RenderContext.Create(renderContextAttributes, m_Window);
+    const vulkan::FPhysicalDevice* pPhysicalDevice = m_RenderContext.GetPhysicalDevice();
+    const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
-    m_Swapchain.Create(2,
-                       m_RenderContext.GetLogicalDevice()->GetHandle(),
-                       &m_RenderContext.GetLogicalDevice()->GetPresentQueue(),
+    // Creating swapchain...
+    m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
-    u32 backBufferCount = m_Swapchain.GetBackBufferCount();
 
     // Creating command pools
     m_GraphicsCommandPool.Create(m_RenderContext.GetLogicalDevice()->GetGraphicsFamilyIndex(),
@@ -118,28 +125,36 @@ private:
                                  m_RenderContext.GetLogicalDevice()->GetHandle(),
                                  0);
 
-    // Creating render target images...
-    m_RenderTargetImages = m_RenderContext.GetFactory().CreateImages(backBufferCount);
-    std::ranges::for_each(m_RenderTargetImages, [this](vulkan::FImage& image)
+    // Creating all back buffer dependent resources
+    u32 backBufferCount = m_Swapchain.GetBackBufferCount();
+    m_RenderTargetImages.reserve(backBufferCount);
+    m_RenderSemaphores.reserve(backBufferCount);
+    for (u32 i = 0; i < backBufferCount; i++)
     {
-      VkExtent2D extent = m_Swapchain.GetCurrentExtent();
-      VkFormat format = VK_FORMAT_B8G8R8A8_UNORM;
-      VkImageUsageFlags usage =
-          VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-      VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-      VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-      vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
-                                                 m_TransferCommandPool.GetFamilyIndex() };
-      image.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
-    });
-
-    // Creating synchronization objects...
-    m_RenderSemaphores = m_RenderContext.GetFactory().CreateSemaphores(backBufferCount);
+      { // render target images...
+        vulkan::FImage& image = m_RenderTargetImages.emplace_back(pLogicalDevice->GetHandle(),
+                                                                  &pPhysicalDevice->GetAttributes());
+        VkExtent2D extent = m_Swapchain.GetCurrentExtent();
+        VkFormat format = m_Swapchain.GetFormat();
+        VkImageUsageFlags usage =
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        VkImageLayout initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+        VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
+                                                   m_TransferCommandPool.GetFamilyIndex() };
+        image.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
+      }
+      { // semaphores...
+        vulkan::FSemaphore& semaphore = m_RenderSemaphores.emplace_back();
+        semaphore.Create(pLogicalDevice->GetHandle());
+      }
+    }
 
     // Creating command buffers...
     m_RenderCommandBuffers = m_GraphicsCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
     m_TransferCommandBuffers = m_TransferCommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+
     RecordRenderCommands();
     RecordTransferCommands();
   }

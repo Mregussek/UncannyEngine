@@ -1,11 +1,11 @@
 
 #include "UTools/Logger/Log.h"
+#include "UMath/Trig.h"
 #include "UTools/Window/WindowGLFW.h"
 #include "UTools/Filesystem/Path.h"
 #include "UTools/Filesystem/File.h"
 #include "UTools/Assets/AssetRegistry.h"
 #include "UTools/Assets/MeshAsset.h"
-#include "UTools/Assets/AssetLoader.h"
 #include "UTools/EntityComponentSystem/EntityRegistry.h"
 #include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
@@ -15,12 +15,14 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RayTracingPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Descriptors/DescriptorPool.h"
-#include "UGraphicsEngine/Renderer/Vulkan/Resources/AccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Buffer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/Image.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAccelerationStructure.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
-#include "UGraphicsEngine/Renderer/Camera.h"
+#include "UGraphicsEngine/Renderer/PerspectiveCamera.h"
 #include "UGraphicsEngine/Renderer/RenderMesh.h"
+#include "UGraphicsEngine/Renderer/Light.h"
 
 using namespace uncanny;
 
@@ -48,11 +50,10 @@ public:
 
       f32 deltaTime = m_Window->GetDeltaTime();
 
-      m_Camera.ProcessKeyboardInput(m_Window.get(), deltaTime);
-      m_Camera.ProcessMouseMovement(m_Window.get(), deltaTime);
+      m_Camera.ProcessMovement(m_Window.get(), deltaTime);
       {
         FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-        m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
       }
 
       m_Swapchain.WaitForNextImage();
@@ -86,7 +87,7 @@ public:
         m_Camera.UpdateAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
         {
           FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-          m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+          m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
         }
 
         RecordCommands();
@@ -99,6 +100,7 @@ private:
   void Start() {
     FLog::create();
 
+    // Creating window...
     FWindowConfiguration windowConfiguration{
         .resizable = UTRUE,
         .fullscreen = UFALSE,
@@ -122,17 +124,17 @@ private:
                               VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
                               VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
                               VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME },
+        .pWindow = m_Window.get(),
         .apiVersion = VK_API_VERSION_1_3
     };
+    m_RenderContext.Create(renderContextAttributes);
 
-    m_RenderContext.Create(renderContextAttributes, m_Window);
-    const vulkan::FRenderDeviceFactory& deviceFactory = m_RenderContext.GetFactory();
+    const vulkan::FPhysicalDevice* pPhysicalDevice = m_RenderContext.GetPhysicalDevice();
     const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
+    // Creating swapchain...
     m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
-    u32 backBufferCount = m_Swapchain.GetBackBufferCount();
-    VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
 
     // Creating command pools
     m_CommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
@@ -140,9 +142,9 @@ private:
                          VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
     // Creating command buffers...
-    m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(backBufferCount);
+    m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 
-    // Initializing ECS...
+    // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
     std::span<const FEntity> entities = m_EntityRegistry.Register(2);
     {
@@ -176,22 +178,24 @@ private:
     m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
     {
       const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
-      FRenderData renderData = FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset);
-      renderData.meshes[0].transform = component.GetMatrix();
-      renderDataVector.push_back(renderData);
+      renderDataVector.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix()));
     });
 
-    m_BottomLevelASVector = deviceFactory.CreateBottomLevelASVector(renderDataVector.size());
-    for (u32 i = 0; i < renderDataVector.size(); i++)
+    // Creating acceleration structures...
+    m_BottomLevelASVector.reserve(renderDataVector.size());
+    for (auto& data : renderDataVector)
     {
-      m_BottomLevelASVector[i].Build(renderDataVector[i].meshes[0], renderDataVector[i].materials,
-                                     m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+      auto& bottomAS = m_BottomLevelASVector.emplace_back(pLogicalDevice->GetHandle(),
+                                                          &pPhysicalDevice->GetAttributes());
+      bottomAS.Build(data.mesh, data.materials, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
     }
-    m_TopLevelAS = deviceFactory.CreateTopLevelAS();
+    m_TopLevelAS = vulkan::FTopLevelAccelerationStructure(pLogicalDevice->GetHandle(),
+                                                          &pPhysicalDevice->GetAttributes());
     m_TopLevelAS.Build(m_BottomLevelASVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
     // Creating camera...
     {
+      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
       FPerspectiveCameraSpecification cameraSpecification{
         .position = { -4.f, 0.f, 0.f },
         .front = { 0.f, 0.f, 0.f },
@@ -209,30 +213,28 @@ private:
       m_Camera.Initialize(cameraSpecification);
     }
 
-    m_CameraUniformBuffer = deviceFactory.CreateBuffer();
-
-    m_CameraUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    m_PerFrameUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
+    m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     {
       FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-      m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+      m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
 
     // Creating off screen buffer...
-    m_OffscreenImage = deviceFactory.CreateImage();
+    m_OffscreenImage = vulkan::FImage(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
+      VkFormat swapchainFormat = m_Swapchain.GetFormat();
+      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
-      m_OffscreenImage.Allocate(VK_FORMAT_B8G8R8A8_UNORM,
-                                swapchainExtent,
-                                VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                                VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                                queueFamilies);
+      VkImageUsageFlags flags =
+          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+      m_OffscreenImage.Allocate(swapchainFormat, swapchainExtent, flags, VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies);
     }
     m_OffscreenImage.CreateView();
 
     // Creating descriptors...
-    m_DescriptorSetLayout = deviceFactory.CreateDescriptorSetLayout();
     {
       u32 binding = 0;
       VkDescriptorType type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
@@ -254,10 +256,9 @@ private:
       VkShaderStageFlags stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
       m_DescriptorSetLayout.AddBinding(binding, type, count, stageFlags, nullptr);
     }
-    m_DescriptorSetLayout.Create();
+    m_DescriptorSetLayout.Create(pLogicalDevice->GetHandle());
 
-    m_DescriptorPool = deviceFactory.CreateDescriptorPool();
-    m_DescriptorPool.Create(&m_DescriptorSetLayout, 1);
+    m_DescriptorPool.Create(pLogicalDevice->GetHandle(), &m_DescriptorSetLayout, 1);
     m_DescriptorPool.AllocateDescriptorSet();
 
     {
@@ -270,26 +271,30 @@ private:
     }
     {
       u32 dstBinding = m_DescriptorSetLayout.GetBindings()[2].binding;
-      m_DescriptorPool.WriteBufferToDescriptorSet(m_CameraUniformBuffer.GetHandle(),
-                                                  m_CameraUniformBuffer.GetFilledStride(), dstBinding,
+      m_DescriptorPool.WriteBufferToDescriptorSet(m_PerFrameUniformBuffer.GetHandle(),
+                                                  m_PerFrameUniformBuffer.GetFilledStride(), dstBinding,
                                                   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
     }
 
     // Creating pipeline...
-    m_RayTracingPipelineLayout = deviceFactory.CreatePipelineLayout();
-    m_RayTracingPipelineLayout.Create(m_DescriptorSetLayout.GetHandle());
+    m_RayTracingPipelineLayout.Create(pLogicalDevice->GetHandle(), m_DescriptorSetLayout.GetHandle());
 
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders" });
-    m_RayTracingPipeline = deviceFactory.CreateRayTracingPipeline();
-    vulkan::FGLSLShaderCompiler glslCompiler = deviceFactory.CreateGlslShaderCompiler();
-    glslCompiler.Initialize();
+    FPath shadersSpvPath = FPath::Append(shadersPath, { "spv" });
+    vulkan::FGLSLShaderCompiler glslCompiler{};
+    glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
+
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
         .rayClosestHitPath = FPath::Append(shadersPath, "default.rchit"),
-        .rayGenerationPath = FPath::Append(shadersPath, "camera.rgen"),
-        .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
+        .rayGenerationPath = FPath::Append(shadersSpvPath, "camera.rgen.spv"),
+        .rayMissPath = FPath::Append(shadersPath, "default.rmiss"),
+        .rayShadowMissPath = FPath::Append(shadersPath, "shadows.rmiss"),
         .pGlslCompiler = &glslCompiler,
-        .pPipelineLayout = &m_RayTracingPipelineLayout
+        .pPipelineLayout = &m_RayTracingPipelineLayout,
+        .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties(),
+        .vkDevice = pLogicalDevice->GetHandle(),
+        .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
     };
     m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
 
@@ -328,7 +333,7 @@ private:
     m_DescriptorPool.Destroy();
 
     // Closing buffers
-    m_CameraUniformBuffer.Free();
+    m_PerFrameUniformBuffer.Free();
 
     // Destroying pipelines...
     m_RayTracingPipelineLayout.Destroy();
@@ -414,7 +419,7 @@ private:
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
   vulkan::FRayTracingPipeline m_RayTracingPipeline{};
   FPerspectiveCamera m_Camera{};
-  vulkan::FBuffer m_CameraUniformBuffer{};
+  vulkan::FBuffer m_PerFrameUniformBuffer{};
 
   FAssetRegistry m_AssetRegistry{};
 

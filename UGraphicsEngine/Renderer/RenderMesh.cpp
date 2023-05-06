@@ -8,21 +8,24 @@ namespace uncanny
 {
 
 
-FRenderMeshData FRenderMeshFactory::CreateTriangle()
+FRenderData FRenderMeshFactory::CreateTriangle()
 {
-  return {
-    .vertices = {
-        { .position = { .x = 1.f, .y = 1.f, .z = 0.f },
-          .normal = { 1.0f, 0.0f, 0.0f } },
-        { .position = { .x = -1.f, .y = 1.f, .z = 0.f },
-          .normal = { 0.0f, 1.0f, 0.0f } },
-        { .position = { .x = 0.f, .y = -1.f, .z = 0.f },
-          .normal = { 0.0f, 0.0f, 1.0f } },
-    },
-    .indices = { 0, 1, 2 },
-    .materialIndices = { 0, 0, 0 },
-    .transform = math::Identity<f32>()
+  FRenderData rtn{};
+  rtn.mesh = {
+      .vertices = {
+          { .position = { .x = 1.f, .y = 1.f, .z = 0.f },
+              .normal = { 1.0f, 0.0f, 0.0f } },
+          { .position = { .x = -1.f, .y = 1.f, .z = 0.f },
+              .normal = { 0.0f, 1.0f, 0.0f } },
+          { .position = { .x = 0.f, .y = -1.f, .z = 0.f },
+              .normal = { 0.0f, 0.0f, 1.0f } },
+      },
+      .indices = { 0, 1, 2 },
+      .materialIndices = { 0, 0, 0 },
+      .transform = math::Identity<f32>()
   };
+  rtn.materials = { FRenderMaterialData{ .diffuse = { 0.2f, 0.5f, 0.2f } } };
+  return rtn;
 }
 
 
