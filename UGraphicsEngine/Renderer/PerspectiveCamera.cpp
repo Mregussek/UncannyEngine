@@ -95,6 +95,26 @@ void FPerspectiveCamera::ProcessMouseMovement(IWindow* pWindow, f32 deltaTime)
 }
 
 
+void FPerspectiveCamera::ProcessMovement(IWindow* pWindow, f32 deltaTime)
+{
+  ProcessKeyboardInput(pWindow, deltaTime);
+  ProcessMouseMovement(pWindow, deltaTime);
+
+  if (HasMoved())
+  {
+    m_NotMovingCameraFrameCounter = 0;
+  }
+  else
+  {
+    constexpr u32 maxFrameCounterLimit = 2048;
+    if (m_NotMovingCameraFrameCounter < maxFrameCounterLimit)
+    {
+      m_NotMovingCameraFrameCounter += 1;
+    }
+  }
+}
+
+
 math::Matrix4x4f FPerspectiveCamera::GetView() const
 {
   return math::LookAt(m_Specification.position,
@@ -116,7 +136,8 @@ FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
   return {
     .inversePerspective = math::Inverse(GetProjection()),
     .inverseView = math::Inverse(GetView()),
-    .randomSeed = FRandomGenerator::GetSeed() };
+    .randomSeed = FRandomGenerator::GetSeed(),
+    .notMovingCameraFrameCount = m_NotMovingCameraFrameCounter };
 }
 
 

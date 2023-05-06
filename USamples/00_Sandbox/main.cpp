@@ -50,9 +50,7 @@ public:
 
       f32 deltaTime = m_Window->GetDeltaTime();
 
-      m_Camera.ProcessKeyboardInput(m_Window.get(), deltaTime);
-      m_Camera.ProcessMouseMovement(m_Window.get(), deltaTime);
-      if (m_Camera.HasMoved())
+      m_Camera.ProcessMovement(m_Window.get(), deltaTime);
       {
         FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
         m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);

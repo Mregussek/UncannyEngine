@@ -36,6 +36,7 @@ struct FPerspectiveCameraUniformData
   math::Matrix4x4f inversePerspective{};
   math::Matrix4x4f inverseView{};
   u32 randomSeed{ 0 };
+  u32 notMovingCameraFrameCount{ 0 };
 };
 
 
@@ -45,9 +46,7 @@ public:
 
   void Initialize(const FPerspectiveCameraSpecification& specification);
 
-  void ProcessKeyboardInput(IWindow* pWindow, f32 deltaTime);
-
-  void ProcessMouseMovement(IWindow* pWindow, f32 deltaTime);
+  void ProcessMovement(IWindow* pWindow, f32 deltaTime);
 
   void UpdateAspectRatio(f32 aspectRatio) { m_Specification.aspectRatio = aspectRatio; }
 
@@ -58,10 +57,16 @@ public:
 
 private:
 
+  void ProcessKeyboardInput(IWindow* pWindow, f32 deltaTime);
+  void ProcessMouseMovement(IWindow* pWindow, f32 deltaTime);
+
+private:
+
   FPerspectiveCameraSpecification m_Specification{};
   math::Vector3f m_Up{};
   math::Vector3f m_Right{};
   FMousePosition m_LastMousePos{};
+  u32 m_NotMovingCameraFrameCounter{ 0 };
   b8 m_FirstMouseMove{ UFALSE };
   b8 m_IsKeyboardPressed{ UFALSE };
   b8 m_IsMousePressed{ UFALSE };

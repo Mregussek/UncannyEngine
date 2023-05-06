@@ -8,27 +8,28 @@
 
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, rgba32f) uniform image2D outputImage;
-layout(binding = 2, set = 0) uniform PerFrameUniformData_ { PerFrameUniformData d; } ubo;
+layout(binding = 2, set = 0) uniform PerFrameUniformData_ { PerFrameUniformData d; } perFrameData;
 
 layout(location = 0) rayPayloadEXT HitPayload hitPayload;
 
 void main() {
     vec3 pixelColorValue = vec3(0.f);
-    uint maxSamplesPerPixel = 3;
-    uint maxRayBouncesCount = 2;
-    uint pixelRandomSeed = ubo.d.randomSeed;
+    uint maxSamplesPerPixel = 6;
+    uint maxRayBouncesCount = 4;
+    uint pixelRandomSeed = perFrameData.d.randomSeed;
 
-    const vec4 origin = ubo.d.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
+    const vec4 origin = perFrameData.d.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);
 
     for (uint s = 0; s < maxSamplesPerPixel; s++)
     {
         hitPayload.raySeed = InitRandomSeed(InitRandomSeed(gl_LaunchIDEXT.x, gl_LaunchIDEXT.y), pixelRandomSeed);
 
-        const vec2 pixel = vec2(gl_LaunchIDEXT.x + RandomFloat(pixelRandomSeed), gl_LaunchIDEXT.y + RandomFloat(pixelRandomSeed));
-        const vec2 uv = (pixel / vec2(gl_LaunchSizeEXT.xy)) * 2.f - 1.f;
+        const vec2 pixelSample = gl_LaunchIDEXT.xy + vec2(RandomFloat(pixelRandomSeed), RandomFloat(pixelRandomSeed));
+        const vec2 launchSizeScale = vec2(1.f, 1.f) / gl_LaunchSizeEXT.xy;
+        const vec2 uv = pixelSample * launchSizeScale * 2.f - 1.f;
 
-        const vec4 target = ubo.d.projInverse * vec4(uv.xy, 1.f, 1.f) ;
-        const vec4 direction = ubo.d.viewInverse * vec4(normalize(target.xyz), 0.f) ;
+        const vec4 target = perFrameData.d.projInverse * vec4(uv.xy, 1.f, 1.f) ;
+        const vec4 direction = perFrameData.d.viewInverse * vec4(normalize(target.xyz), 0.f) ;
 
         hitPayload.rayOrigin = origin.xyz;
         hitPayload.rayDirection = direction.xyz;
@@ -59,9 +60,6 @@ void main() {
         pixelColorValue += rayColorValue;
     }
 
-    //vec4 accumulatedColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy));
-    //pixelColorValue += vec3(accumulatedColor);
-
     // Divide the color by number of samples
     float samplesScale = 1.f / float(maxSamplesPerPixel);
     pixelColorValue = vec3(pixelColorValue) * samplesScale;
@@ -69,6 +67,14 @@ void main() {
     // Gamma Correction
     pixelColorValue = sqrt(pixelColorValue);
     pixelColorValue = clamp(pixelColorValue, 0.f, 0.999f);
+
+    // Add accumulated pixel color
+    vec4 accumulatedColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy));
+    accumulatedColor *= perFrameData.d.notMovingCameraFrameCount;
+
+    pixelColorValue += vec3(accumulatedColor);
+    float frameScale = 1.f / float(perFrameData.d.notMovingCameraFrameCount + 1);
+    pixelColorValue *= frameScale;
 
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(pixelColorValue, 1.0));
 }
