@@ -49,15 +49,12 @@ public:
 
   void ProcessMouseMovement(IWindow* pWindow, f32 deltaTime);
 
-  void ProcessMouseScroll(IWindow* pWindow, f32 deltaTime);
-
   void UpdateAspectRatio(f32 aspectRatio) { m_Specification.aspectRatio = aspectRatio; }
 
   [[nodiscard]] math::Matrix4x4f GetView() const;
-
   [[nodiscard]] math::Matrix4x4f GetProjection() const;
-
   [[nodiscard]] FPerspectiveCameraUniformData GetUniformData() const;
+  [[nodiscard]] b32 HasMoved() const;
 
 private:
 
@@ -66,6 +63,8 @@ private:
   math::Vector3f m_Right{};
   FMousePosition m_LastMousePos{};
   b8 m_FirstMouseMove{ UFALSE };
+  b8 m_IsKeyboardPressed{ UFALSE };
+  b8 m_IsMousePressed{ UFALSE };
 
 };
 

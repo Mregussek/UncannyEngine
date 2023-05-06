@@ -8,66 +8,51 @@ namespace uncanny
 {
 
 
-static void updateCameraVectors(const FPerspectiveCameraSpecification& specs, math::Vector3f* pOutFront,
+static void updateCameraVectors(f32 yaw, f32 pitch, math::Vector3f worldUp, math::Vector3f* pOutFront,
                                 math::Vector3f* pOutRight, math::Vector3f* pOutUp);
 
 
 void FPerspectiveCamera::Initialize(const FPerspectiveCameraSpecification& specification)
 {
   m_Specification = specification;
-  updateCameraVectors(m_Specification, &m_Specification.front, &m_Right, &m_Up);
-}
-
-
-math::Matrix4x4f FPerspectiveCamera::GetView() const
-{
-  return math::LookAt(m_Specification.position,
-                      m_Specification.position + m_Specification.front,
-                      m_Up);
-}
-
-math::Matrix4x4f FPerspectiveCamera::GetProjection() const
-{
-  return math::Perspective(m_Specification.fieldOfView,
-                           m_Specification.aspectRatio,
-                           m_Specification.near,
-                           m_Specification.far);
-}
-
-
-FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
-{
-  return { .inversePerspective = math::Inverse(GetProjection()),
-           .inverseView = math::Inverse(GetView()),
-           .randomSeed = FRandomGenerator::GetSeed() };
+  updateCameraVectors(m_Specification.yaw, m_Specification.pitch, m_Specification.worldUp, &m_Specification.front,
+                      &m_Right, &m_Up);
 }
 
 
 void FPerspectiveCamera::ProcessKeyboardInput(IWindow* pWindow, uncanny::f32 deltaTime)
 {
+  m_IsKeyboardPressed = UFALSE;
+
   const FKeyboardButtonsPressed& keyboardPressed = pWindow->GetKeyboardButtonsPressed();
   f32 velocity{ m_Specification.movementSpeed * deltaTime };
+
   if (keyboardPressed.w)
   {
     m_Specification.position = m_Specification.position +  m_Specification.front * velocity;
+    m_IsKeyboardPressed = UTRUE;
   }
   else if (keyboardPressed.s)
   {
     m_Specification.position =  m_Specification.position - m_Specification.front * velocity;
+    m_IsKeyboardPressed = UTRUE;
   }
   if (keyboardPressed.a)
   {
     m_Specification.position = m_Specification.position - m_Right * velocity;
+    m_IsKeyboardPressed = UTRUE;
   }
   else if (keyboardPressed.d)
   {
     m_Specification.position = m_Specification.position + m_Right * velocity;
+    m_IsKeyboardPressed = UTRUE;
   }
 }
 
 
 void FPerspectiveCamera::ProcessMouseMovement(IWindow* pWindow, f32 deltaTime)
 {
+  m_IsMousePressed = UFALSE;
   if (not pWindow->GetMouseButtonsPressed().right)
   {
     m_FirstMouseMove = UTRUE;
@@ -104,35 +89,53 @@ void FPerspectiveCamera::ProcessMouseMovement(IWindow* pWindow, f32 deltaTime)
     }
   }
 
-  updateCameraVectors(m_Specification, &m_Specification.front, &m_Right, &m_Up);
+  updateCameraVectors(m_Specification.yaw, m_Specification.pitch, m_Specification.worldUp, &m_Specification.front,
+                      &m_Right, &m_Up);
+  m_IsMousePressed = UTRUE;
 }
 
 
-void FPerspectiveCamera::ProcessMouseScroll(IWindow* pWindow, f32 deltaTime)
+math::Matrix4x4f FPerspectiveCamera::GetView() const
 {
-  FMouseScrollPosition scrollPosition = pWindow->GetMouseScrollPosition();
-  m_Specification.zoom -= (f32)scrollPosition.y;
-  if (m_Specification.zoom < 1.0f) {
-    m_Specification.zoom = 1.0f;
-  }
-  else if (m_Specification.zoom > 45.0f) {
-    m_Specification.zoom = 45.0f;
-  }
+  return math::LookAt(m_Specification.position,
+                      m_Specification.position + m_Specification.front,
+                      m_Up);
+}
+
+math::Matrix4x4f FPerspectiveCamera::GetProjection() const
+{
+  return math::Perspective(m_Specification.fieldOfView,
+                           m_Specification.aspectRatio,
+                           m_Specification.near,
+                           m_Specification.far);
 }
 
 
-void updateCameraVectors(const FPerspectiveCameraSpecification& specs, math::Vector3f* pOutFront,
+FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
+{
+  return {
+    .inversePerspective = math::Inverse(GetProjection()),
+    .inverseView = math::Inverse(GetView()),
+    .randomSeed = FRandomGenerator::GetSeed() };
+}
+
+
+b32 FPerspectiveCamera::HasMoved() const
+{
+  return m_IsKeyboardPressed or m_IsMousePressed;
+}
+
+
+void updateCameraVectors(f32 yaw, f32 pitch, math::Vector3f worldUp, math::Vector3f* pOutFront,
                          math::Vector3f* pOutRight, math::Vector3f* pOutUp)
 {
-  f32 yaw{ specs.yaw };
-  f32 pitch{ specs.pitch };
   math::Vector3f front{
     .x = cos(math::radians(yaw)) * cos(math::radians(pitch)),
     .y = sin(math::radians(pitch)),
     .z = sin(math::radians(yaw)) * cos(math::radians(pitch))
   };
   *pOutFront = math::Normalize(front);
-  *pOutRight = math::Normalize(math::CrossProduct(*pOutFront, specs.worldUp));
+  *pOutRight = math::Normalize(math::CrossProduct(*pOutFront, worldUp));
   *pOutUp = math::Normalize(math::CrossProduct(*pOutRight, *pOutFront));
 }
 
