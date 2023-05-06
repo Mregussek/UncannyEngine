@@ -14,8 +14,8 @@ layout(location = 0) rayPayloadEXT HitPayload hitPayload;
 
 void main() {
     vec3 pixelColorValue = vec3(0.f);
-    uint maxSamplesPerPixel = 6;
-    uint maxRayBouncesCount = 4;
+    uint maxSamplesPerPixel = perFrameData.d.maxSamplesPerPixel;
+    uint maxRayBouncesCount = perFrameData.d.maxRayBounces;
     uint pixelRandomSeed = perFrameData.d.randomSeed;
 
     const vec4 origin = perFrameData.d.viewInverse * vec4(0.f, 0.f, 0.f, 1.f);

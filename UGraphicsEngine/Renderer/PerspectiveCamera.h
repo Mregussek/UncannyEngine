@@ -37,6 +37,8 @@ struct FPerspectiveCameraUniformData
   math::Matrix4x4f inverseView{};
   u32 randomSeed{ 0 };
   u32 notMovingCameraFrameCount{ 0 };
+  u32 maxRayBounces{ 0 };
+  u32 maxSamplesPerPixel{ 0 };
 };
 
 
@@ -67,6 +69,11 @@ private:
   math::Vector3f m_Right{};
   FMousePosition m_LastMousePos{};
   u32 m_NotMovingCameraFrameCounter{ 0 };
+
+  u32 m_MaxFrameCounterLimit{ 2048 };
+  u32 m_MaxRayBounces{ 4 };
+  u32 m_MaxSamplesPerPixel{ 6 };
+
   b8 m_FirstMouseMove{ UFALSE };
   b8 m_IsKeyboardPressed{ UFALSE };
   b8 m_IsMousePressed{ UFALSE };

@@ -106,8 +106,7 @@ void FPerspectiveCamera::ProcessMovement(IWindow* pWindow, f32 deltaTime)
   }
   else
   {
-    constexpr u32 maxFrameCounterLimit = 2048;
-    if (m_NotMovingCameraFrameCounter < maxFrameCounterLimit)
+    if (m_NotMovingCameraFrameCounter < m_MaxFrameCounterLimit)
     {
       m_NotMovingCameraFrameCounter += 1;
     }
@@ -137,7 +136,9 @@ FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
     .inversePerspective = math::Inverse(GetProjection()),
     .inverseView = math::Inverse(GetView()),
     .randomSeed = FRandomGenerator::GetSeed(),
-    .notMovingCameraFrameCount = m_NotMovingCameraFrameCounter };
+    .notMovingCameraFrameCount = m_NotMovingCameraFrameCounter,
+    .maxRayBounces = m_MaxRayBounces,
+    .maxSamplesPerPixel = m_MaxSamplesPerPixel };
 }
 
 

@@ -39,6 +39,8 @@ struct PerFrameUniformData
     mat4 viewInverse;
     uint randomSeed;
     uint notMovingCameraFrameCount;
+    uint maxRayBounces;
+    uint maxSamplesPerPixel;
 };
 
 struct HitPayload
