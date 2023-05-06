@@ -19,6 +19,12 @@ static FMemoryTypeIndexResult FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperti
                                                   VkMemoryPropertyFlags flags);
 
 
+FMemory::~FMemory()
+{
+  Free();
+}
+
+
 void FMemory::Allocate(VkDevice vkDevice, VkPhysicalDeviceMemoryProperties memoryProperties,
                        VkMemoryRequirements requirements, VkMemoryPropertyFlags memoryFlags, b8 useDeviceAddress)
 {

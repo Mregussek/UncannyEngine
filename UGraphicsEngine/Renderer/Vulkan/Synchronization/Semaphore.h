@@ -14,6 +14,8 @@ class FSemaphore
 {
 public:
 
+  ~FSemaphore();
+
   void Create(VkDevice vkDevice);
   void Destroy();
 

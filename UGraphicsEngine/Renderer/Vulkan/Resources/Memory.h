@@ -16,6 +16,8 @@ class FMemory
 {
 public:
 
+  ~FMemory();
+
   void Allocate(VkDevice vkDevice, VkPhysicalDeviceMemoryProperties memoryProperties, VkMemoryRequirements requirements,
                 VkMemoryPropertyFlags memoryFlags, b8 useDeviceAddress);
   void Free();

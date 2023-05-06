@@ -7,6 +7,12 @@ namespace uncanny::vulkan
 {
 
 
+FSemaphore::~FSemaphore()
+{
+  Destroy();
+}
+
+
 void FSemaphore::Create(VkDevice vkDevice)
 {
   m_Device = vkDevice;
@@ -27,6 +33,7 @@ void FSemaphore::Destroy()
   if (m_Semaphore != VK_NULL_HANDLE)
   {
     vkDestroySemaphore(m_Device, m_Semaphore, nullptr);
+    m_Semaphore = VK_NULL_HANDLE;
   }
 }
 

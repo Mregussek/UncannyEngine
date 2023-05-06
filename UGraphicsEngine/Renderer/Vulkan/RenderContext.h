@@ -25,6 +25,7 @@ struct FRenderContextAttributes
   std::vector<const char*> instanceLayers{};
   std::vector<const char*> instanceExtensions{};
   std::vector<const char*> deviceExtensions{};
+  const IWindow* pWindow{ nullptr };
   u32 apiVersion{ UUNUSED };
 };
 
@@ -42,8 +43,7 @@ public:
   /// @brief Creates context
   /// @details Chooses proper Vulkan API version, adds required layers and extensions, chooses physical
   /// device and then creates logical device along with window surface.
-  /// @param pWindow pointer to window interface (needed for window surface creation)
-  void Create(FRenderContextAttributes attributes, const std::shared_ptr<IWindow>& pWindow);
+  void Create(FRenderContextAttributes attributes);
 
   /// @brief Destroys whole FRenderContext object (closes Vulkan API)
   void Destroy();

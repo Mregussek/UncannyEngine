@@ -39,8 +39,8 @@ void FFence::Destroy()
 
 
 void FFence::WaitAndReset() const {
-  VkBool32 waitForAll{ VK_TRUE };
-  u64 timeout{ std::numeric_limits<u64>::max() };
+  constexpr VkBool32 waitForAll{ VK_TRUE };
+  constexpr u64 timeout{ std::numeric_limits<u64>::max() };
   vkWaitForFences(m_Device, 1, &m_Fence, waitForAll, timeout);
   vkResetFences(m_Device, 1, &m_Fence);
 }
