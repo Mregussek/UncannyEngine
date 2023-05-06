@@ -125,6 +125,7 @@ void FAccelerationStructure::Destroy()
   if (m_AccelerationStructure != VK_NULL_HANDLE)
   {
     vkDestroyAccelerationStructureKHR(m_Device, m_AccelerationStructure, nullptr);
+    m_AccelerationStructure = VK_NULL_HANDLE;
   }
 
   m_AccelerationMemoryBuffer.Free();

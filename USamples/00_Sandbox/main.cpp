@@ -100,6 +100,7 @@ private:
   void Start() {
     FLog::create();
 
+    // Creating window...
     FWindowConfiguration windowConfiguration{
         .resizable = UTRUE,
         .fullscreen = UFALSE,
@@ -135,7 +136,7 @@ private:
     m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
 
-    // Creating command pools
+    // Creating command pools...
     m_CommandPool.Create(pLogicalDevice->GetGraphicsFamilyIndex(),
                          pLogicalDevice->GetHandle(),
                          VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -198,7 +199,7 @@ private:
       });
     }
 
-    // Converting asset meshes and materials into render meshes and materials
+    // Converting asset meshes and materials into render meshes and materials...
     std::vector<FRenderData> renderDataVector;
     renderDataVector.reserve(m_EntityRegistry.GetEntities().size());
     m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
@@ -219,7 +220,7 @@ private:
                                                           &pPhysicalDevice->GetAttributes());
     m_TopLevelAS.Build(m_BottomLevelAccelerationVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
 
-    // Creating objects buffer
+    // Creating blas reference uniform buffer...
     m_BLASReferenceUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
@@ -411,7 +412,7 @@ private:
     // Closing Command Pools...
     m_CommandPool.Destroy();
 
-    // Destroying rendering resources...
+    // Destroying acceleration structures resources...
     for (vulkan::FBottomLevelAccelerationStructure& bottomAS : m_BottomLevelAccelerationVector)
     {
       bottomAS.Destroy();
@@ -425,7 +426,7 @@ private:
     m_SceneDescriptorSetLayout.Destroy();
     m_SceneDescriptorPool.Destroy();
 
-    // Closing buffers
+    // Freeing buffers...
     m_PerFrameUniformBuffer.Free();
     m_BLASReferenceUniformBuffer.Free();
     m_LightUniformBuffer.Free();
@@ -434,13 +435,15 @@ private:
     m_RayTracingPipelineLayout.Destroy();
     m_RayTracingPipeline.Destroy();
 
+    // Closing renderer...
     m_Swapchain.Destroy();
     m_RenderContext.Destroy();
 
+    // Destroying ECS and Asset systems...
     m_EntityRegistry.Destroy();
-
     m_AssetRegistry.Clear();
 
+    // Destroying window...
     m_Window->Destroy();
   }
 

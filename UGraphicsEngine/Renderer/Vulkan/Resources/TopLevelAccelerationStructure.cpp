@@ -10,7 +10,6 @@ FTopLevelAccelerationStructure::FTopLevelAccelerationStructure(
     VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
     : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes)
 {
-
 }
 
 

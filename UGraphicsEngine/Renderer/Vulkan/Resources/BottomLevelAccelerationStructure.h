@@ -35,11 +35,11 @@ private:
 
 private:
 
-  VkTransformMatrixKHR m_Transform{};
   FBuffer m_VertexBuffer{};
   FBuffer m_IndexBuffer{};
   FBuffer m_MaterialBuffer{};
   FBuffer m_MaterialIndexBuffer{};
+  VkTransformMatrixKHR m_Transform{};
 
 };
 

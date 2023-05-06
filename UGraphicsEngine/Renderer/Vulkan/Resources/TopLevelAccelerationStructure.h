@@ -33,13 +33,15 @@ public:
   void Build(std::span<const FBottomLevelAccelerationStructure> bottomLevelStructures, const FCommandPool& commandPool,
              const FQueue& queue);
 
-  void Build(std::span<VkAccelerationStructureInstanceKHR> instances, const FCommandPool& commandPool,
-             const FQueue& queue);
-
   [[nodiscard]] const std::vector<FBottomLevelStructureReferenceUniformData>& GetBLASReferenceUniformData() const
   {
     return m_BottomUniformData;
   }
+
+private:
+
+  void Build(std::span<VkAccelerationStructureInstanceKHR> instances, const FCommandPool& commandPool,
+             const FQueue& queue);
 
 private:
 
