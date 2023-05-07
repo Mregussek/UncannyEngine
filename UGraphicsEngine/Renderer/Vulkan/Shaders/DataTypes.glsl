@@ -13,12 +13,10 @@ struct Material
     vec3 diffuse;
     vec3 specular;
     vec3 emissive;
-    vec3 reflective;
+    vec3 transparent;
     float shininess;
     float opacity;
-    float reflectivity;
     float indexOfRefraction;
-    int illuminationModel;
 };
 
 struct BottomStructureUniformData

@@ -31,6 +31,14 @@ struct FPerspectiveCameraSpecification
 };
 
 
+struct FCameraRayTracingSpecification
+{
+  u32 maxFrameCounterLimit{ 2048 };
+  u32 maxRayBounces{ 6 };
+  u32 maxSamplesPerPixel{ 6 };
+};
+
+
 struct FPerspectiveCameraUniformData
 {
   math::Matrix4x4f inversePerspective{};
@@ -50,7 +58,14 @@ public:
 
   void ProcessMovement(IWindow* pWindow, f32 deltaTime);
 
-  void UpdateAspectRatio(f32 aspectRatio) { m_Specification.aspectRatio = aspectRatio; }
+  void SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification)
+  {
+    m_RayTracingSpecification = rayTracingSpecification;
+  }
+  void SetAspectRatio(f32 aspectRatio)
+  {
+    m_Specification.aspectRatio = aspectRatio;
+  }
 
   [[nodiscard]] math::Matrix4x4f GetView() const;
   [[nodiscard]] math::Matrix4x4f GetProjection() const;
@@ -65,14 +80,12 @@ private:
 private:
 
   FPerspectiveCameraSpecification m_Specification{};
+  FCameraRayTracingSpecification m_RayTracingSpecification{};
+
   math::Vector3f m_Up{};
   math::Vector3f m_Right{};
   FMousePosition m_LastMousePos{};
   u32 m_NotMovingCameraFrameCounter{ 0 };
-
-  u32 m_MaxFrameCounterLimit{ 2048 };
-  u32 m_MaxRayBounces{ 6 };
-  u32 m_MaxSamplesPerPixel{ 6 };
 
   b8 m_FirstMouseMove{ UFALSE };
   b8 m_IsKeyboardPressed{ UFALSE };

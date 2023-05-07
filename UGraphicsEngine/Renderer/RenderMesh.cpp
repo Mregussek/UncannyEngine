@@ -83,12 +83,10 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
         .diffuse = data.diffuse,
         .specular = data.specular,
         .emissive = data.emissive,
-        .reflective = data.reflective,
+        .transparent = data.transparent,
         .shininess = data.shininess,
         .opacity = data.opacity,
-        .reflectivity = data.reflectivity,
-        .indexOfRefraction = data.indexOfRefraction,
-        .illuminationModel = data.illuminationModel
+        .indexOfRefraction = data.indexOfRefraction
       });
     }
   }

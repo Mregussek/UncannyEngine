@@ -84,7 +84,7 @@ public:
           m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
         }
 
-        m_Camera.UpdateAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
+        m_Camera.SetAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
         {
           FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
           m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
@@ -201,6 +201,13 @@ private:
         .constrainPitch = UTRUE
       };
       m_Camera.Initialize(cameraSpecification);
+
+      FCameraRayTracingSpecification rayTracingSpecification{
+        .maxFrameCounterLimit = 4096,
+        .maxRayBounces = 6,
+        .maxSamplesPerPixel = 4
+      };
+      m_Camera.SetRayTracingSpecification(rayTracingSpecification);
     }
 
     m_PerFrameUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());

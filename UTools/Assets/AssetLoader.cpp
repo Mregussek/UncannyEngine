@@ -27,34 +27,41 @@ public:
     for (u32 i = 0; i < pScene->mNumMaterials; i++)
     {
       aiMaterial* aiMat = pScene->mMaterials[i];
+      aiString materialName = aiMat->GetName();
 
+      // Ka -> The ambient color
       aiColor3D ambient;
       aiMat->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
 
+      // Kd -> The diffuse color
       aiColor3D diffuse;
       aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
 
+      // Ks -> The specular color
       aiColor3D specular;
       aiMat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
 
+      // Ke -> The emissive color
+      aiColor3D emissive;
+      aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
+
+      // Tf -> transparency filter
+      aiColor3D transparent;
+      aiMat->Get(AI_MATKEY_COLOR_TRANSPARENT, transparent);
+
+      // Ns -> shininess / specular exponent
       f32 shininess{ 0.f };
       aiMat->Get(AI_MATKEY_SHININESS, shininess);
 
       f32 opacity{ 0.f };
       aiMat->Get(AI_MATKEY_OPACITY, opacity);
 
-      aiColor3D reflective;
-      aiMat->Get(AI_MATKEY_COLOR_REFLECTIVE, reflective);
-
-      f32 reflectivity{ 0.f };
-      aiMat->Get(AI_MATKEY_REFLECTIVITY, reflectivity);
-
-      aiColor3D emissive;
-      aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
-
+      // Ni -> index of refraction.
       f32 indexOfRefraction{ 0.f };
       aiMat->Get(AI_MATKEY_REFRACTI, indexOfRefraction);
 
+      // In general, it is illum, but it is proven that this does not work :/
+      // https://computergraphics.stackexchange.com/questions/9724/how-to-read-illum-value-from-mtl-file-using-assimp-library
       i32 illuminationModel = aiShadingMode_NoShading;
       aiMat->Get(AI_MATKEY_SHADING_MODEL, illuminationModel);
 
@@ -63,12 +70,10 @@ public:
         .diffuse = { .x = diffuse.r, .y = diffuse.g, .z = diffuse.b },
         .specular = { .x = specular.r, .y = specular.g, .z = specular.b },
         .emissive = { .x = emissive.r, .y = emissive.g, .z = emissive.b },
-        .reflective = { .x = reflective.r, .y = reflective.g, .z = reflective.b },
+        .transparent = { .x = transparent.r, .y = transparent.g, .z = transparent.b },
         .shininess = shininess,
         .opacity = opacity,
-        .reflectivity = reflectivity,
-        .indexOfRefraction = indexOfRefraction,
-        .illuminationModel = illuminationModel
+        .indexOfRefraction = indexOfRefraction
       });
     }
   }

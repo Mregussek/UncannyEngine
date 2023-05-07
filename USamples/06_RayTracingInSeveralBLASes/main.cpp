@@ -84,7 +84,7 @@ public:
           m_DescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
         }
 
-        m_Camera.UpdateAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
+        m_Camera.SetAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
         {
           FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
           m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
