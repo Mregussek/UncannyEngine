@@ -73,7 +73,8 @@ public:
         .transparent = { .x = transparent.r, .y = transparent.g, .z = transparent.b },
         .shininess = shininess,
         .opacity = opacity,
-        .indexOfRefraction = indexOfRefraction
+        .indexOfRefraction = indexOfRefraction,
+        .illuminationModel = illuminationModel
       });
     }
   }

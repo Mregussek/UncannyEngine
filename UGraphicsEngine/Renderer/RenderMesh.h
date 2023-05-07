@@ -32,6 +32,7 @@ struct FRenderMaterialData
   f32 shininess{ 0.f };
   f32 opacity{ 0.f };
   f32 indexOfRefraction{ 0.f };
+  i32 illuminationModel{ 0 };
 };
 
 

@@ -17,6 +17,7 @@ struct Material
     float shininess;
     float opacity;
     float indexOfRefraction;
+    int illuminationModel;
 };
 
 struct BottomStructureUniformData

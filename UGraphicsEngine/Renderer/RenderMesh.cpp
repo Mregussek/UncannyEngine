@@ -86,7 +86,8 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
         .transparent = data.transparent,
         .shininess = data.shininess,
         .opacity = data.opacity,
-        .indexOfRefraction = data.indexOfRefraction
+        .indexOfRefraction = data.indexOfRefraction,
+        .illuminationModel = data.illuminationModel
       });
     }
   }
