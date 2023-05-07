@@ -146,7 +146,7 @@ private:
     // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
     {
-      FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Original.obj"});
+      FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Sphere.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
       meshAsset.LoadObj(box.GetString().c_str(), UFALSE);
 
@@ -154,7 +154,20 @@ private:
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
           .id = meshAsset.ID(),
           .position = { 4.f, 1.9f, 2.f },
-          .rotation = { 0.f, -30.f, 0.f },
+          .rotation = { 0.f, 75.f, 0.f },
+          .scale = { -1.f, -1.f, -1.f }
+      });
+    }
+    {
+      FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Mirror.obj"});
+      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
+      meshAsset.LoadObj(box.GetString().c_str(), UFALSE);
+
+      FEntity entity = m_EntityRegistry.Register();
+      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
+          .id = meshAsset.ID(),
+          .position = { 4.f, 1.9f, -2.f },
+          .rotation = { 0.f, 120.f, 0.f },
           .scale = { -1.f, -1.f, -1.f }
       });
     }

@@ -40,14 +40,8 @@ public:
       f32 shininess{ 0.f };
       aiMat->Get(AI_MATKEY_SHININESS, shininess);
 
-      f32 shininessStrength{ 0.f };
-      aiMat->Get(AI_MATKEY_SHININESS_STRENGTH, shininessStrength);
-
-      aiColor3D transparent;
-      aiMat->Get(AI_MATKEY_COLOR_TRANSPARENT, transparent);
-
-      f32 transparencyFactor{ 0.f };
-      aiMat->Get(AI_MATKEY_TRANSPARENCYFACTOR, transparencyFactor);
+      f32 opacity{ 0.f };
+      aiMat->Get(AI_MATKEY_OPACITY, opacity);
 
       aiColor3D reflective;
       aiMat->Get(AI_MATKEY_COLOR_REFLECTIVE, reflective);
@@ -71,6 +65,7 @@ public:
         .emissive = { .x = emissive.r, .y = emissive.g, .z = emissive.b },
         .reflective = { .x = reflective.r, .y = reflective.g, .z = reflective.b },
         .shininess = shininess,
+        .opacity = opacity,
         .reflectivity = reflectivity,
         .indexOfRefraction = indexOfRefraction,
         .illuminationModel = illuminationModel

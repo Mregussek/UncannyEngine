@@ -6,6 +6,7 @@
 #include "UTools/UTypes.h"
 #include <type_traits>
 #include "UMath/Matrix4x4.h"
+#include "UMath/Trig.h"
 
 
 namespace uncanny
@@ -25,8 +26,10 @@ struct FRenderMeshComponent : public FEntityComponent
   [[nodiscard]] math::Matrix4x4f GetMatrix() const
   {
     return {
-        math::Translation(position) * math::Rotation(rotation.x, {1.f, 0.f, 0.f}) *
-        math::Rotation(rotation.y, {0.f, 1.f, 0.f}) * math::Rotation(rotation.z, {0.f, 0.f, 1.f}) *
+        math::Translation(position) *
+        math::Rotation(math::radians(rotation.x), {1.f, 0.f, 0.f}) *
+        math::Rotation(math::radians(rotation.y), {0.f, 1.f, 0.f}) *
+        math::Rotation(math::radians(rotation.z), {0.f, 0.f, 1.f}) *
         math::Scale(scale)
     };
   }

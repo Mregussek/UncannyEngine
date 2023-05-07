@@ -15,6 +15,7 @@ struct Material
     vec3 emissive;
     vec3 reflective;
     float shininess;
+    float opacity;
     float reflectivity;
     float indexOfRefraction;
     int illuminationModel;

@@ -85,6 +85,7 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
         .emissive = data.emissive,
         .reflective = data.reflective,
         .shininess = data.shininess,
+        .opacity = data.opacity,
         .reflectivity = data.reflectivity,
         .indexOfRefraction = data.indexOfRefraction,
         .illuminationModel = data.illuminationModel

@@ -57,42 +57,16 @@ void main()
     // Transforming the normal to world space
     const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
+    // Lambertian material
     const bool IsScattered = dot(gl_WorldRayDirectionEXT, worldHitNormal) < 0;
-    const vec3 Color = triangleMaterial.diffuse;
+    const vec3 Color = triangleMaterial.diffuse + triangleMaterial.emissive;
     const vec3 ShadowRayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
     const vec3 ScatteredDirection = worldHitNormal + RandomInUnitSphere(hitPayload.raySeed);
 
+    // Saving payload
     hitPayload.rayOrigin = ShadowRayOrigin;
     hitPayload.rayDirection = ScatteredDirection;
     hitPayload.rayColor = Color;
     hitPayload.t = gl_HitTEXT;
     hitPayload.isScattered = IsScattered;
-
-    hitPayload.rayColor += triangleMaterial.emissive;
-    return;
-
-    vec3 shadowRayDirection = normalize(lightData.data.position - ShadowRayOrigin);
-    float shadowRayDistance = length(lightData.data.position - ShadowRayOrigin) - 0.001f;
-    uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT;
-    IsInShadow = true;
-    float attenuation = 1.f;
-    traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
-                rayFlags,               // rayFlags
-                0xff,                   // cullMask
-                0,                      // sbtRecordOffset
-                0,                      // sbtRecordStride
-                1,                      // missIndex
-                ShadowRayOrigin,        // origin
-                0.001f,                 // Tmin
-                shadowRayDirection,     // direction
-                shadowRayDistance,      // Tmax
-                1                       // payload
-    );
-    if (IsInShadow) {
-        attenuation = 0.4f;
-    }
-
-    hitPayload.rayColor *= attenuation;
-
-    return;
 }
