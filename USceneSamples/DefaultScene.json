@@ -1,0 +1,117 @@
+
+{
+  "Scene": {
+    "Entities": [
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "CornellBox", "CornellBox-Sphere.obj"
+          ],
+          "position": {
+            "x": 4.0,
+            "y": 1.9,
+            "z": 2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 75.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "CornellBox", "CornellBox-Mirror.obj"
+          ],
+          "position": {
+            "x": 4.0,
+            "y": 1.9,
+            "z": -2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 120.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sponza", "sponza.obj"
+          ],
+          "position": {
+            "x": 0.0,
+            "y": 2.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "bunny", "bunny.obj"
+          ],
+          "position": {
+            "x": 0.0,
+            "y": 2.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "teapot", "teapot.obj"
+          ],
+          "position": {
+            "x": 7.0,
+            "y": 2.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.025,
+            "y": -0.025,
+            "z": -0.025
+          }
+        }
+      }
+    ]
+  }
+}

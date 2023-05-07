@@ -19,6 +19,7 @@ struct FEntityComponent { };
 struct FRenderMeshComponent : public FEntityComponent
 {
   u64 id{ UUNUSED };
+
   math::Vector3f position{};
   math::Vector3f rotation{};
   math::Vector3f scale{};

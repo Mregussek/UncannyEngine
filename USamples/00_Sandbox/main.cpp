@@ -6,6 +6,7 @@
 #include "UTools/Filesystem/File.h"
 #include "UTools/Assets/AssetRegistry.h"
 #include "UTools/Assets/MeshAsset.h"
+#include "UTools/EntityComponentSystem/EntityRegistryLoader.h"
 #include "UTools/EntityComponentSystem/EntityRegistry.h"
 #include "UTools/EntityComponentSystem/Entity.h"
 #include "UGraphicsEngine/Renderer/Vulkan/RenderContext.h"
@@ -145,71 +146,8 @@ private:
 
     // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
-    {
-      FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Sphere.obj"});
-      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(box.GetString().c_str(), UFALSE);
-
-      FEntity entity = m_EntityRegistry.Register();
-      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
-          .id = meshAsset.ID(),
-          .position = { 4.f, 1.9f, 2.f },
-          .rotation = { 0.f, 75.f, 0.f },
-          .scale = { -1.f, -1.f, -1.f }
-      });
-    }
-    {
-      FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Mirror.obj"});
-      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(box.GetString().c_str(), UFALSE);
-
-      FEntity entity = m_EntityRegistry.Register();
-      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
-          .id = meshAsset.ID(),
-          .position = { 4.f, 1.9f, -2.f },
-          .rotation = { 0.f, 120.f, 0.f },
-          .scale = { -1.f, -1.f, -1.f }
-      });
-    }
-    {
-      FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
-      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(sponza.GetString().c_str(), UFALSE);
-
-      FEntity entity = m_EntityRegistry.Register();
-      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
-        .id = meshAsset.ID(),
-        .position = { 0.f, 2.f, 0.f },
-        .rotation = { 0.f, 0.f, 0.f },
-        .scale = { -1.f, -1.f, -1.f }
-      });
-    }
-    {
-      FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
-      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
-
-      FEntity entity = m_EntityRegistry.Register();
-      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
-          .id = meshAsset.ID(),
-          .position = { 0.f, 2.f, 0.f },
-          .rotation = { 0.f, 90.f, 0.f },
-          .scale = { -1.f, -1.f, -1.f }
-      });
-    }
-    {
-      FPath teapot = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "teapot", "teapot.obj"});
-      FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(teapot.GetString().c_str(), UFALSE);
-
-      FEntity entity = m_EntityRegistry.Register();
-      entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
-          .id = meshAsset.ID(),
-          .position = { 7.f, 2.f, 0.f },
-          .rotation = { 0.f, 90.f, 0.f },
-          .scale = { -0.025f, -0.025f, -0.025f }
-      });
-    }
+    FPath sceneJsonPath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
+    FEntityRegistryLoader::LoadJsonScene(sceneJsonPath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
     // Converting asset meshes and materials into render meshes and materials...
     std::vector<FRenderData> renderDataVector;
