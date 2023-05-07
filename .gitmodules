@@ -13,3 +13,6 @@
 [submodule "UTools/3rdparty/json"]
 	path = UTools/3rdparty/json
 	url = https://github.com/nlohmann/json.git
+[submodule "UTools/3rdparty/assimp"]
+	path = UTools/3rdparty/assimp
+	url = https://github.com/Mregussek/assimp
