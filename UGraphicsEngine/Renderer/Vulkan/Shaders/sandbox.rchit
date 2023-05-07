@@ -105,6 +105,7 @@ void main()
     }
     else if (triangleMaterial.illuminationModel == 4) // emissive material
     {
+        hitPayload.rayColor = normalize(hitPayload.rayColor);
         hitPayload.isScattered = false;
     }
     else // lambertian
