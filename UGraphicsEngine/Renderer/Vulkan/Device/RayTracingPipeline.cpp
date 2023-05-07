@@ -1,6 +1,7 @@
 
 #include "RayTracingPipeline.h"
 #include "UTools/Filesystem/File.h"
+#include "UTools/Logger/Log.h"
 #include "Shader.h"
 #include "GlslShaderCompiler.h"
 #include "PipelineLayout.h"
@@ -33,17 +34,19 @@ void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification&
       [pCompiler = specification.pGlslCompiler, vkDevice = specification.vkDevice]
       (FShader& shaderModule, const FPath& path, EShaderCompilerStage stage)
       {
+        const char* shaderPath = path.GetString().c_str();
+        UDEBUG("Loading shader: {}", shaderPath);
 
         if (FPath::HasExtension(path, ".spv"))
         {
           std::vector<char> spvSource;
-          spvSource = FFile::ReadBinary(path.GetString().c_str());
+          spvSource = FFile::ReadBinary(shaderPath);
           shaderModule.Create(reinterpret_cast<const u32*>(spvSource.data()), spvSource.size(), vkDevice);
         }
         else
         {
           std::vector<u32> spvSource;
-          std::vector<char> glslSource = FFile::Read(path.GetString().c_str());
+          std::vector<char> glslSource = FFile::Read(shaderPath);
           spvSource = pCompiler->Compile(glslSource.data(), stage);
           shaderModule.Create(spvSource.data(), sizeof(u32) * spvSource.size(), vkDevice);
         }

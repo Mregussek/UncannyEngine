@@ -40,16 +40,19 @@ void FEntityRegistryLoader::LoadJsonScene(const char* path, FEntityRegistry* pEn
       pathIdx++;
     }
 
+    // Loading position...
     math::Vector3f position{
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["position"]["x"].get<float>(),
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["position"]["y"].get<float>(),
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["position"]["z"].get<float>()
     };
+    // Loading rotation...
     math::Vector3f rotation{
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["rotation"]["x"].get<float>(),
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["rotation"]["y"].get<float>(),
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["rotation"]["z"].get<float>()
     };
+    // Loading scale...
     math::Vector3f scale{
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["scale"]["x"].get<float>(),
         data["Scene"]["Entities"][entityIdx]["RenderMeshComponent"]["scale"]["y"].get<float>(),
