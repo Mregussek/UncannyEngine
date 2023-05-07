@@ -91,7 +91,7 @@ newmtl Tailight
 	d 1.000
 	Tr 0.000
 	Tf 1.000 1.000 1.000 
-	illum 2
+	illum 4
 	Ka 0.000 0.000 0.000
 	Kd 0.800 0.009 0.000
 	Ks 0.080 0.001 0.000
@@ -115,7 +115,7 @@ newmtl Glass
 	d 0.800
 	Tr 0.200
 	Tf 0.800 0.800 0.800 
-	illum 2
+	illum 5
 	Ka 0.000 0.000 0.000
 	Kd 0.000 0.000 0.000
 	Ks 0.450 0.450 0.450
@@ -139,7 +139,7 @@ newmtl HeadlightMatte
 	d 1.000
 	Tr 0.000
 	Tf 1.000 1.000 1.000 
-	illum 2
+	illum 4
 	Ka 0.000 0.000 0.000
 	Kd 0.800 0.800 0.800
 	Ks 0.200 0.200 0.200
@@ -163,7 +163,7 @@ newmtl HeadlightGlass
 	d 0.200
 	Tr 0.800
 	Tf 0.200 0.200 0.200 
-	illum 2
+	illum 4
 	Ka 0.000 0.000 0.000
 	Kd 0.000 0.000 0.000
 	Ks 0.630 0.630 0.630
@@ -175,7 +175,7 @@ newmtl HeadlightChrome
 	d 1.000
 	Tr 0.000
 	Tf 1.000 1.000 1.000 
-	illum 2
+	illum 4
 	Ka 0.000 0.000 0.000
 	Kd 0.033 0.033 0.033
 	Ks 0.017 0.017 0.017
@@ -187,7 +187,7 @@ newmtl HeadLightAngelEye
 	d 1.000
 	Tr 0.000
 	Tf 1.000 1.000 1.000 
-	illum 2
+	illum 4
 	Ka 0.000 0.000 0.000
 	Kd 1.000 0.747 0.500
 	Ks 0.050 0.037 0.025
@@ -199,7 +199,7 @@ newmtl HeadLightGlass
 	d 1.000
 	Tr 0.000
 	Tf 1.000 1.000 1.000 
-	illum 2
+	illum 4
 	Ka 0.000 0.000 0.000
 	Kd 0.787 0.861 1.000
 	Ks 0.394 0.431 0.500
@@ -223,7 +223,7 @@ newmtl Mirror
 	d 1.000
 	Tr 0.000
 	Tf 1.000 1.000 1.000 
-	illum 2
+	illum 5
 	Ka 0.000 0.000 0.000
 	Kd 0.000 0.000 0.000
 	Ks 0.950 0.950 0.950

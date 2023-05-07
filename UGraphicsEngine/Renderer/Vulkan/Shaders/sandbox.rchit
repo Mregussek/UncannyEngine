@@ -69,7 +69,7 @@ void main()
     // Lambertian material
     hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
     hitPayload.t = gl_HitTEXT;
-    hitPayload.rayColor = triangleMaterial.diffuse + triangleMaterial.emissive;
+    hitPayload.rayColor = triangleMaterial.diffuse + triangleMaterial.specular + triangleMaterial.emissive;
 
     if (triangleMaterial.illuminationModel == 5) // metallic
     {
