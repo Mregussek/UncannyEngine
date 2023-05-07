@@ -103,7 +103,11 @@ void main()
         hitPayload.rayColor += 1.f;
         hitPayload.isScattered = true;
     }
-    else
+    else if (triangleMaterial.illuminationModel == 4) // emissive material
+    {
+        hitPayload.isScattered = false;
+    }
+    else // lambertian
     {
         const bool IsScattered = dot(gl_WorldRayDirectionEXT, worldHitNormal) < 0;
         const vec3 ScatteredDirection = worldHitNormal + RandomInUnitSphere(hitPayload.raySeed);

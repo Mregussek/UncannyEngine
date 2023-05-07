@@ -103,6 +103,10 @@ void main()
         hitPayload.rayColor += 1.f;
         hitPayload.isScattered = true;
     }
+    else if (triangleMaterial.illuminationModel == 4) // emissive material
+    {
+        hitPayload.isScattered = false;
+    }
     else
     {
         const bool IsScattered = dot(gl_WorldRayDirectionEXT, worldHitNormal) < 0;

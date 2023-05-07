@@ -204,8 +204,8 @@ private:
 
       FCameraRayTracingSpecification rayTracingSpecification{
         .maxFrameCounterLimit = 4096,
-        .maxRayBounces = 8,
-        .maxSamplesPerPixel = 4
+        .maxRayBounces = 10,
+        .maxSamplesPerPixel = 2
       };
       m_Camera.SetRayTracingSpecification(rayTracingSpecification);
     }
