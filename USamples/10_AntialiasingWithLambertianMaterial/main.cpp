@@ -154,7 +154,7 @@ private:
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
           .id = meshAsset.ID(),
           .position = { 4.f, 1.9f, 2.f },
-          .rotation = { 0.f, -30.f, 0.f },
+          .rotation = { 0.f, 90.f, 0.f },
           .scale = { -1.f, -1.f, -1.f }
       });
     }
