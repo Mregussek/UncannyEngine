@@ -16,3 +16,6 @@
 [submodule "UTools/3rdparty/assimp"]
 	path = UTools/3rdparty/assimp
 	url = https://github.com/Mregussek/assimp
+[submodule "UGraphicsEngine/3rdparty/imgui"]
+	path = UGraphicsEngine/3rdparty/imgui
+	url = https://github.com/ocornut/imgui.git

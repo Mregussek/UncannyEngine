@@ -166,7 +166,7 @@ private:
 
       FCameraRayTracingSpecification rayTracingSpecification{
           .maxFrameCounterLimit = 4096,
-          .maxRayBounces = 5,
+          .maxRayBounces = 4,
           .maxSamplesPerPixel = 3
       };
       m_Camera.SetRayTracingSpecification(rayTracingSpecification);
@@ -174,9 +174,9 @@ private:
 
     // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
-    FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
+    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
     //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Original.json" });
-    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
+    FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
     //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
     FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
