@@ -75,11 +75,16 @@ void main()
     {
         const vec3 reflected = reflect(gl_WorldRayDirectionEXT, worldHitNormal);
         const bool isScattered = dot(reflected, worldHitNormal) > 0;
-        const vec3 scatter = reflected + 0.f * RandomInUnitSphere(hitPayload.raySeed);
+        const vec3 scatter = reflected;
 
-        hitPayload.rayColor += 1.f;
         hitPayload.rayDirection = scatter;
         hitPayload.isScattered = isScattered;
+
+        const bool randomSampling = false;
+        if (randomSampling)
+        {
+            hitPayload.rayDirection += 0.1f * RandomInUnitSphere(hitPayload.raySeed);
+        }
     }
     else if (triangleMaterial.illuminationModel == 7) // dielectic
     {
@@ -100,7 +105,6 @@ void main()
             hitPayload.rayDirection = refracted;
         }
 
-        hitPayload.rayColor += 1.f;
         hitPayload.isScattered = true;
     }
     else if (triangleMaterial.illuminationModel == 4) // emissive material

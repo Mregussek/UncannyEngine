@@ -144,10 +144,41 @@ private:
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 
+    // Creating camera...
+    {
+      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
+      FPerspectiveCameraSpecification cameraSpecification{
+          .position = { -4.f, 0.f, 0.f },
+          .front = { 0.f, 0.f, 0.f },
+          .worldUp = { 0.f, 1.f, 0.f },
+          .fieldOfView = 45.f,
+          .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
+          .near = 0.1f,
+          .far = 10.f,
+          .yaw = 0.f,
+          .pitch = 0.f,
+          .movementSpeed = 5.f,
+          .sensitivity = 100.f,
+          .zoom = 45.f,
+          .constrainPitch = UTRUE
+      };
+      m_Camera.Initialize(cameraSpecification);
+
+      FCameraRayTracingSpecification rayTracingSpecification{
+          .maxFrameCounterLimit = 4096,
+          .maxRayBounces = 5,
+          .maxSamplesPerPixel = 3
+      };
+      m_Camera.SetRayTracingSpecification(rayTracingSpecification);
+    }
+
     // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
-    FPath sceneJsonPath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
-    FEntityRegistryLoader::LoadJsonScene(sceneJsonPath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
+    FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
+    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Original.json" });
+    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
+    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
+    FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
     // Converting asset meshes and materials into render meshes and materials...
     std::vector<FRenderData> renderDataVector;
@@ -182,34 +213,7 @@ private:
                                               pLogicalDevice->GetGraphicsQueue());
     }
 
-    // Creating camera...
-    {
-      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
-      FPerspectiveCameraSpecification cameraSpecification{
-        .position = { -4.f, 0.f, 0.f },
-        .front = { 0.f, 0.f, 0.f },
-        .worldUp = { 0.f, 1.f, 0.f },
-        .fieldOfView = 45.f,
-        .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
-        .near = 0.1f,
-        .far = 10.f,
-        .yaw = 0.f,
-        .pitch = 0.f,
-        .movementSpeed = 5.f,
-        .sensitivity = 100.f,
-        .zoom = 45.f,
-        .constrainPitch = UTRUE
-      };
-      m_Camera.Initialize(cameraSpecification);
-
-      FCameraRayTracingSpecification rayTracingSpecification{
-        .maxFrameCounterLimit = 4096,
-        .maxRayBounces = 5,
-        .maxSamplesPerPixel = 2
-      };
-      m_Camera.SetRayTracingSpecification(rayTracingSpecification);
-    }
-
+    // Creating per frame buffer for camera...
     m_PerFrameUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);

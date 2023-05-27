@@ -50,5 +50,6 @@ struct HitPayload
     vec3 rayColor;
     uint raySeed;
     float t;
+    int bounceNum;
     bool isScattered;
 };
