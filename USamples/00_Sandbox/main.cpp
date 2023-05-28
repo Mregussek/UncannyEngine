@@ -68,6 +68,9 @@ public:
       VkFence fence{ m_Swapchain.GetFence().GetHandle() };
       graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores, fence);
 
+      //m_ImGuiRenderer.Update();
+      //RecordCommandsUI();
+
       m_Swapchain.Present();
 
       if (m_Swapchain.IsOutOfDate() and m_Swapchain.IsRecreatePossible())
@@ -149,6 +152,7 @@ private:
 
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
+    m_UiCommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 
     // Creating camera...
     {
@@ -386,6 +390,9 @@ private:
       };
 
       m_ImGuiRenderer.Create(imGuiRendererSpecification);
+
+      m_ImGuiRenderer.Update();
+      RecordCommandsUI();
     }
   }
 
@@ -400,6 +407,10 @@ private:
     m_ImGuiRenderer.Destroy();
     m_RenderPass.Destroy();
     m_DepthImage.Free();
+    std::ranges::for_each(m_UiCommandBuffers, [](vulkan::FCommandBuffer& cmdBuf)
+    {
+      cmdBuf.Free();
+    });
 
     // Closing render target images...
     m_OffscreenImage.Free();
@@ -508,11 +519,43 @@ private:
   }
 
 
+  void RecordCommandsUI()
+  {
+    std::span<const VkFramebuffer> framebuffers = m_Swapchain.GetFramebuffers();
+    VkRect2D renderArea{ .offset = { .x = 0, .y = 0 }, .extent = m_Swapchain.GetCurrentExtent() };
+    std::array<VkClearValue, 2> clearValues{};
+
+    for (u32 i = 0; i < framebuffers.size(); i++)
+    {
+      vulkan::FCommandBuffer& cmdBuf = m_UiCommandBuffers[i];
+
+      cmdBuf.BeginRecording();
+
+      VkRenderPassBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .pNext = nullptr,
+        .renderPass = m_RenderPass.GetHandle(),
+        .framebuffer = framebuffers[i],
+        .renderArea = renderArea,
+        .clearValueCount = clearValues.size(),
+        .pClearValues = clearValues.data()
+      };
+      vkCmdBeginRenderPass(cmdBuf.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+      m_ImGuiRenderer.RecordCommands(cmdBuf);
+
+      vkCmdEndRenderPass(cmdBuf.GetHandle());
+      cmdBuf.EndRecording();
+    }
+  }
+
+
   std::shared_ptr<IWindow> m_Window;
   vulkan::FRenderContext m_RenderContext{};
   vulkan::FSwapchain m_Swapchain{};
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
+  std::vector<vulkan::FCommandBuffer> m_UiCommandBuffers{};
 
   vulkan::FImage m_OffscreenImage{};
   std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelAccelerationVector{};
