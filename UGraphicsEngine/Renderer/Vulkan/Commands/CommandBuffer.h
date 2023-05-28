@@ -44,6 +44,8 @@ public:
   void ClearColorImage(VkImage image, VkClearColorValue clearValue, VkImageSubresourceRange subresourceRange);
 
   void CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubresourceLayers subresourceLayers, VkExtent2D extent);
+  void CopyBufferToImage(VkBuffer srcBuffer, VkImage dstImage, VkImageSubresourceLayers subresourceLayers,
+                         VkExtent2D extent2D);
 
   void BuildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR* pBuildGeometryInfo,
                                   const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos);

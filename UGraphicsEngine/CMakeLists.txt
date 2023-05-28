@@ -13,6 +13,29 @@ set(ENV{GLSLANG_3RDPARTY_DIR} "${UGRAPHICSENGINE_PATH}/3rdparty/glslang")
 add_subdirectory($ENV{GLSLANG_3RDPARTY_DIR})
 set(GLSLANG_3RDPARTY_LIBS glslang SPIRV)
 
+# Dear ImGui
+set(ENV{IMGUI_3RDPARTY_DIR} "${UGRAPHICSENGINE_PATH}/3rdparty/imgui")
+set(IMGUI_SOURCE_FILES
+        $ENV{IMGUI_3RDPARTY_DIR}/backends/imgui_impl_glfw.cpp
+        $ENV{IMGUI_3RDPARTY_DIR}/backends/imgui_impl_vulkan.cpp
+        $ENV{IMGUI_3RDPARTY_DIR}/imgui.cpp
+        $ENV{IMGUI_3RDPARTY_DIR}/imgui_demo.cpp
+        $ENV{IMGUI_3RDPARTY_DIR}/imgui_draw.cpp
+        $ENV{IMGUI_3RDPARTY_DIR}/imgui_widgets.cpp
+        $ENV{IMGUI_3RDPARTY_DIR}/imgui_tables.cpp
+        )
+set(IMGUI_HEADER_FILES
+        $ENV{IMGUI_3RDPARTY_DIR}/backends/imgui_impl_glfw.h
+        $ENV{IMGUI_3RDPARTY_DIR}/backends/imgui_impl_vulkan.h
+        $ENV{IMGUI_3RDPARTY_DIR}/imgui.h
+        $ENV{IMGUI_3RDPARTY_DIR}/imconfig.h
+        $ENV{IMGUI_3RDPARTY_DIR}/imgui_internal.h
+        $ENV{IMGUI_3RDPARTY_DIR}/imstb_rectpack.h
+        $ENV{IMGUI_3RDPARTY_DIR}/imstb_textedit.h
+        $ENV{IMGUI_3RDPARTY_DIR}/imstb_truetype.h
+        )
+set(IMGUI_LIBRARY_FILES ${IMGUI_SOURCE_FILES} ${IMGUI_HEADER_FILES})
+
 # OpenGL
 find_package(OpenGL REQUIRED)
 
@@ -27,6 +50,7 @@ list(FILTER ENGINE_LIBRARY_SOURCES EXCLUDE REGEX "${UGRAPHICSENGINE_PATH}/3rdpar
 # Create a library for UncannyGraphicsEngine
 add_library(UncannyGraphicsEngine
         ${ENGINE_LIBRARY_SOURCES}
+        ${IMGUI_LIBRARY_FILES}
         )
 set_target_properties(UncannyGraphicsEngine
         PROPERTIES
@@ -39,6 +63,7 @@ target_include_directories(UncannyGraphicsEngine
         $ENV{VOLK_3RDPARTY_DIR}
         $ENV{GLSLANG_3RDPARTY_DIR}
         $ENV{VULKAN_SDK}/include
+        $ENV{IMGUI_3RDPARTY_DIR}
         )
 target_link_libraries(UncannyGraphicsEngine
         PRIVATE

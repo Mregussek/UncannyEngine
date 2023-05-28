@@ -122,6 +122,32 @@ void FDescriptorPool::WriteStorageImageToDescriptorSet(VkImageView storageView, 
 }
 
 
+void FDescriptorPool::WriteSamplerToDescriptorSet(VkSampler sampler, VkImageView view, VkImageLayout layout,
+                                                  u32 dstBinding)
+{
+  VkDescriptorImageInfo writeImage{
+      .sampler = sampler,
+      .imageView = view,
+      .imageLayout = layout
+  };
+
+  VkWriteDescriptorSet writeDescriptorSet{
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .pNext = nullptr,
+      .dstSet = m_DescriptorSet,
+      .dstBinding = dstBinding,
+      .dstArrayElement = 0,
+      .descriptorCount = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .pImageInfo = &writeImage,
+      .pBufferInfo = nullptr,
+      .pTexelBufferView = nullptr
+  };
+
+  vkUpdateDescriptorSets(m_Device, 1, &writeDescriptorSet, 0, nullptr);
+}
+
+
 void FDescriptorPool::WriteBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding,
                                                  VkDescriptorType descriptorBufferType) const
 {

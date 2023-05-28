@@ -15,6 +15,9 @@ glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\default.rgen -o .\spv\def
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\default.rmiss -o .\spv\default.rmiss.spv
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\default.rchit -o .\spv\default.rchit.spv
 
+glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\ui.vert -o .\spv\ui.vert.spv
+glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\ui.frag -o .\spv\ui.frag.spv
+
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\sandbox_shadow_miss.rmiss -o .\spv\sandbox_shadow_miss.rmiss.spv
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\sandbox_complete_miss.rmiss -o .\spv\sandbox_complete_miss.rmiss.spv
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\sandbox.rgen -o .\spv\sandbox.rgen.spv

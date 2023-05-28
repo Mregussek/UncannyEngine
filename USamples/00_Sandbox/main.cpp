@@ -21,6 +21,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
+#include "UGraphicsEngine/Renderer/Vulkan/ImGui/ImGuiRenderer.h"
 #include "UGraphicsEngine/Renderer/PerspectiveCamera.h"
 #include "UGraphicsEngine/Renderer/RenderMesh.h"
 #include "UGraphicsEngine/Renderer/Light.h"
@@ -352,6 +353,23 @@ private:
 
     // Recording commands
     RecordCommands();
+
+    {
+      FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
+                                                                         "Shaders", "spv" });
+
+      vulkan::FImGuiRendererSpecification imGuiRendererSpecification{
+        .vertexShader = FPath::Append(shadersPath, "ui.vert.spv"),
+        .fragmentShader = FPath::Append(shadersPath, "ui.frag.spv"),
+        .vkDevice = pLogicalDevice->GetHandle(),
+        .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes(),
+        .pTransferCommandPool = &m_CommandPool,
+        .pTransferQueue = &pLogicalDevice->GetGraphicsQueue(),
+        .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
+      };
+
+      m_ImGuiRenderer.Create(imGuiRendererSpecification);
+    }
   }
 
   void Destroy()
@@ -360,6 +378,9 @@ private:
     {
       m_RenderContext.GetLogicalDevice()->WaitIdle();
     }
+
+    // Closing imgui
+    m_ImGuiRenderer.Destroy();
 
     // Closing render target images...
     m_OffscreenImage.Free();
@@ -486,6 +507,8 @@ private:
   vulkan::FDescriptorSetLayout m_SceneDescriptorSetLayout{};
   vulkan::FDescriptorPool m_SceneDescriptorPool{};
   vulkan::FBuffer m_LightUniformBuffer{};
+
+  vulkan::FImGuiRenderer m_ImGuiRenderer{};
 
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_PerFrameUniformBuffer{};

@@ -23,6 +23,26 @@ void FPipelineLayout::Create(VkDevice vkDevice, VkDescriptorSetLayout setLayout)
 
 void FPipelineLayout::Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts)
 {
+  Create(vkDevice, setLayouts, {});
+}
+
+
+void FPipelineLayout::Create(VkDevice vkDevice, VkPushConstantRange pushConstantRange)
+{
+  std::span<VkPushConstantRange> span(&pushConstantRange, 1);
+  Create(vkDevice, span);
+}
+
+
+void FPipelineLayout::Create(VkDevice vkDevice, std::span<VkPushConstantRange> pushConstantRanges)
+{
+  Create(vkDevice, {}, pushConstantRanges);
+}
+
+
+void FPipelineLayout::Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts,
+                             std::span<VkPushConstantRange> pushConstantRanges)
+{
   m_Device = vkDevice;
 
   VkPipelineLayoutCreateInfo createInfo{
@@ -31,8 +51,8 @@ void FPipelineLayout::Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout>
       .flags = 0,
       .setLayoutCount = (u32)setLayouts.size(),
       .pSetLayouts = setLayouts.data(),
-      .pushConstantRangeCount = 0,
-      .pPushConstantRanges = nullptr
+      .pushConstantRangeCount = (u32)pushConstantRanges.size(),
+      .pPushConstantRanges = pushConstantRanges.data()
   };
 
   VkResult result = vkCreatePipelineLayout(m_Device, &createInfo, nullptr, &m_PipelineLayout);

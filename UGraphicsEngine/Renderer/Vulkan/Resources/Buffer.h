@@ -36,7 +36,6 @@ public:
   [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
   [[nodiscard]] u32 GetFilledStride() const { return m_Stride; }
   [[nodiscard]] u32 GetFilledElementsCount() const { return m_ElementsCount; }
-  [[nodiscard]] u32 GetFilledElementsSizeInBytes() const { return m_ElementsSizeInBytes; }
 
 private:
 
@@ -50,7 +49,6 @@ private:
   u32 m_ElementsCount{ UUNUSED };
   u64 m_ElementsSizeInBytes{ UUNUSED };
   VkMemoryPropertyFlags m_MemoryPropertyFlags{ 0 };
-  b8 m_Freed{ UFALSE };
 
 };
 

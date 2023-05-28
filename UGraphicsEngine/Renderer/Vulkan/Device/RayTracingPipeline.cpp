@@ -30,36 +30,18 @@ void FRayTracingPipeline::Create(const FRayTracingPipelineSpecification& specifi
 
 void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification& specification)
 {
-  auto CompileLoadAndCreateModule =
-      [pCompiler = specification.pGlslCompiler, vkDevice = specification.vkDevice]
-      (FShader& shaderModule, const FPath& path, EShaderCompilerStage stage)
-      {
-        const char* shaderPath = path.GetString().c_str();
-        UDEBUG("Loading shader: {}", shaderPath);
-
-        if (FPath::HasExtension(path, ".spv"))
-        {
-          std::vector<char> spvSource;
-          spvSource = FFile::ReadBinary(shaderPath);
-          shaderModule.Create(reinterpret_cast<const u32*>(spvSource.data()), spvSource.size(), vkDevice);
-        }
-        else
-        {
-          std::vector<u32> spvSource;
-          std::vector<char> glslSource = FFile::Read(shaderPath);
-          spvSource = pCompiler->Compile(glslSource.data(), stage);
-          shaderModule.Create(spvSource.data(), sizeof(u32) * spvSource.size(), vkDevice);
-        }
-      };
-
   FShader rayGenerationModule{};
-  CompileLoadAndCreateModule(rayGenerationModule, specification.rayGenerationPath, EShaderCompilerStage::RAYGEN);
+  FShader::ParseAndCreateModule(rayGenerationModule, specification.rayGenerationPath, EShaderCompilerStage::RAYGEN,
+                                specification.pGlslCompiler, specification.vkDevice);
   FShader rayMissModule{};
-  CompileLoadAndCreateModule(rayMissModule, specification.rayMissPath, EShaderCompilerStage::MISS);
+  FShader::ParseAndCreateModule(rayMissModule, specification.rayMissPath, EShaderCompilerStage::MISS,
+                                specification.pGlslCompiler, specification.vkDevice);
   FShader rayShadowMissModule{};
-  CompileLoadAndCreateModule(rayShadowMissModule, specification.rayShadowMissPath, EShaderCompilerStage::MISS);
+  FShader::ParseAndCreateModule(rayShadowMissModule, specification.rayShadowMissPath, EShaderCompilerStage::MISS,
+                                specification.pGlslCompiler, specification.vkDevice);
   FShader rayClosestHitModule{};
-  CompileLoadAndCreateModule(rayClosestHitModule, specification.rayClosestHitPath, EShaderCompilerStage::CLOSESTHIT);
+  FShader::ParseAndCreateModule(rayClosestHitModule, specification.rayClosestHitPath, EShaderCompilerStage::CLOSESTHIT,
+                                specification.pGlslCompiler, specification.vkDevice);
 
   VkPipelineShaderStageCreateInfo rayGenStageInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,

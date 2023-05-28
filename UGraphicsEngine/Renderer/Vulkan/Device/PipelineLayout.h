@@ -17,12 +17,22 @@ public:
 
   ~FPipelineLayout();
 
+  // Create methods usable for set layouts...
   void Create(VkDevice vkDevice, VkDescriptorSetLayout setLayout);
   void Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts);
+
+  // Create methods usable for push constants...
+  void Create(VkDevice vkDevice, VkPushConstantRange pushConstantRange);
+  void Create(VkDevice vkDevice, std::span<VkPushConstantRange> pushConstantRanges);
 
   void Destroy();
 
   [[nodiscard]] VkPipelineLayout GetHandle() const { return m_PipelineLayout; }
+
+private:
+
+  void Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts,
+              std::span<VkPushConstantRange> pushConstantRanges);
 
 private:
 

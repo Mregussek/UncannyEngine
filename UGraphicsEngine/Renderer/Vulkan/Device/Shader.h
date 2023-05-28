@@ -5,6 +5,8 @@
 
 #include <volk.h>
 #include <UTools/UTypes.h>
+#include "GlslShaderCompiler.h"
+#include "UTools/Filesystem/Path.h"
 
 
 namespace uncanny::vulkan
@@ -16,6 +18,9 @@ class FShader
 public:
 
   ~FShader();
+
+  static void ParseAndCreateModule(FShader& shaderModule, const FPath& path, EShaderCompilerStage stage,
+                                   const FGLSLShaderCompiler* pGlslCompiler, VkDevice vkDevice);
 
   void Create(const u32* pSpvSource, u32 codeSize, VkDevice vkDevice);
 

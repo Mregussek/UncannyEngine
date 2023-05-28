@@ -31,6 +31,8 @@ public:
 
   void WriteStorageImageToDescriptorSet(VkImageView storageView, u32 dstBinding) const;
 
+  void WriteSamplerToDescriptorSet(VkSampler sampler, VkImageView view, VkImageLayout layout, u32 dstBinding);
+
   void WriteBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding,
                                   VkDescriptorType descriptorBufferType) const;
 

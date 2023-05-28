@@ -142,6 +142,21 @@ void FCommandBuffer::CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubres
 }
 
 
+void FCommandBuffer::CopyBufferToImage(VkBuffer srcBuffer, VkImage dstImage, VkImageSubresourceLayers subresourceLayers,
+                                       VkExtent2D extent2D)
+{
+  VkBufferImageCopy bufferImageCopy{
+    .imageSubresource = subresourceLayers,
+    .imageExtent = { .width = extent2D.width, .height = extent2D.height, .depth = 1 }
+  };
+  vkCmdCopyBufferToImage(m_CommandBuffer,
+                         srcBuffer, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         1, &bufferImageCopy);
+
+  m_LastWaitStageFlag = VK_PIPELINE_STAGE_TRANSFER_BIT;
+}
+
+
 void FCommandBuffer::BuildAccelerationStructure(
     const VkAccelerationStructureBuildGeometryInfoKHR* pBuildGeometryInfo,
     const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
