@@ -34,6 +34,8 @@ public:
   void Create(const FGraphicsPipelineSpecification& specification);
   void Destroy();
 
+  [[nodiscard]] VkPipeline GetHandle() const { return m_Pipeline; }
+
 private:
 
   void CreateCache();

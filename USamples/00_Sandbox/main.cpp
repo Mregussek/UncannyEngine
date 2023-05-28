@@ -91,6 +91,11 @@ public:
           m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
         }
 
+        m_DepthImage.Recreate(swapchainExtent);
+
+        m_Swapchain.CreateViews();
+        m_Swapchain.CreateFramebuffers(m_RenderPass.GetHandle(), m_DepthImage.GetHandleView());
+
         RecordCommands();
       }
     }
@@ -358,6 +363,15 @@ private:
     {
       m_RenderPass.Create(m_Swapchain.GetFormat(), VK_FORMAT_D32_SFLOAT, pLogicalDevice->GetHandle());
 
+      m_DepthImage = vulkan::FImage(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
+      m_DepthImage.Allocate(VK_FORMAT_D32_SFLOAT, m_Swapchain.GetCurrentExtent(),
+                            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                            VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, {});
+      m_DepthImage.CreateView();
+
+      m_Swapchain.CreateViews();
+      m_Swapchain.CreateFramebuffers(m_RenderPass.GetHandle(), m_DepthImage.GetHandleView());
+
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                          "Shaders", "spv" });
       vulkan::FImGuiRendererSpecification imGuiRendererSpecification{
@@ -385,6 +399,7 @@ private:
     // Closing imgui
     m_ImGuiRenderer.Destroy();
     m_RenderPass.Destroy();
+    m_DepthImage.Free();
 
     // Closing render target images...
     m_OffscreenImage.Free();
@@ -513,6 +528,7 @@ private:
   vulkan::FBuffer m_LightUniformBuffer{};
 
   vulkan::FRenderPass m_RenderPass{};
+  vulkan::FImage m_DepthImage{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
 
   FPerspectiveCamera m_Camera{};

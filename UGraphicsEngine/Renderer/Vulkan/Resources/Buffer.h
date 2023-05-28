@@ -28,6 +28,9 @@ public:
   void Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags);
   void Free();
 
+  void* Map();
+  void Unmap();
+
   void Fill(const void* pData, u32 elementSizeof, u32 elementsCount);
   void FillStaged(const void* pData, u32 elementSizeof, u32 elementsCount, const FCommandPool& transferCommandPool,
                   const FQueue& transferQueue);
@@ -36,6 +39,8 @@ public:
   [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
   [[nodiscard]] u32 GetFilledStride() const { return m_Stride; }
   [[nodiscard]] u32 GetFilledElementsCount() const { return m_ElementsCount; }
+
+  [[nodiscard]] b32 IsValid() const { return m_Buffer != VK_NULL_HANDLE; }
 
 private:
 

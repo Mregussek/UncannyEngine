@@ -26,6 +26,9 @@ public:
 
   void Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pPresentQueue,
               const FWindowSurface* pWindowSurface);
+  void CreateViews();
+  void CreateFramebuffers(VkRenderPass renderPass, VkImageView depthView);
+
   void Destroy();
 
   [[nodiscard]] b8 IsRecreatePossible() const;
@@ -36,6 +39,8 @@ public:
 
   [[nodiscard]] b8 IsOutOfDate() const { return m_OutOfDate; }
   [[nodiscard]] std::span<const VkImage> GetImages() const { return m_Images; }
+  [[nodiscard]] std::span<const VkImageView> GetViews() const { return m_ImageViews; }
+  [[nodiscard]] std::span<const VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }
   [[nodiscard]] u32 GetBackBufferCount() const { return m_BackBufferCount; }
   [[nodiscard]] u32 GetCurrentFrameIndex() const { return m_CurrentFrame; }
   [[nodiscard]] VkExtent2D GetCurrentExtent() const { return m_CurrentExtent; }
@@ -54,12 +59,19 @@ public:
 private:
 
   void CreateOnlySwapchain(VkSwapchainKHR oldSwapchain);
+  void RetrieveNewlyCreatedImages();
 
+  void DestroyViews();
+  void DestroyFramebuffers();
+
+private:
 
   std::vector<FFence> m_Fences{};
   std::vector<FSemaphore> m_ImageAvailableSemaphores{};
   std::vector<FSemaphore> m_PresentableImagesReadySemaphores{};
   std::vector<VkImage> m_Images{};
+  std::vector<VkImageView> m_ImageViews{};
+  std::vector<VkFramebuffer> m_Framebuffers{};
   VkSwapchainKHR m_Swapchain{ VK_NULL_HANDLE };
   VkDevice m_Device{ nullptr };
   const FQueue* m_pPresentQueue{ nullptr };

@@ -108,40 +108,138 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
   VkResult result = vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_Swapchain);
   AssertVkAndThrow(result);
 
-  u32 count{ 0 };
-  result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, nullptr);
-  AssertVkAndThrow(result);
-  m_Images.resize(count);
-  result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, m_Images.data());
-  AssertVkAndThrow(result);
-
   m_Format = createInfo.imageFormat;
+  RetrieveNewlyCreatedImages();
+
   m_CurrentFrame = 0;
   m_ImageIndex = 0;
   m_OutOfDate = UFALSE;
 }
 
 
+void FSwapchain::RetrieveNewlyCreatedImages()
+{
+  u32 count{ 0 };
+  VkResult result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, nullptr);
+  AssertVkAndThrow(result);
+  m_Images.resize(count);
+  result = vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &count, m_Images.data());
+  AssertVkAndThrow(result);
+}
+
+
+void FSwapchain::CreateViews()
+{
+  m_ImageViews.reserve(m_Images.size());
+
+  for (VkImage vkImage : m_Images)
+  {
+    VkImageViewCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .image = vkImage,
+      .viewType = VK_IMAGE_VIEW_TYPE_2D,
+      .format = GetFormat(),
+      .components = VkComponentMapping{
+        .r = VK_COMPONENT_SWIZZLE_R,
+        .g = VK_COMPONENT_SWIZZLE_G,
+        .b = VK_COMPONENT_SWIZZLE_B,
+        .a = VK_COMPONENT_SWIZZLE_A
+      },
+      .subresourceRange = VkImageSubresourceRange{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      }
+    };
+
+    VkImageView imageView{ VK_NULL_HANDLE };
+    VkResult result = vkCreateImageView(m_Device, &createInfo, nullptr, &imageView);
+    AssertVkAndThrow(result);
+
+    m_ImageViews.push_back(imageView);
+  }
+}
+
+
+void FSwapchain::CreateFramebuffers(VkRenderPass renderPass, VkImageView depthView)
+{
+  // Depth/Stencil attachment is the same for all framebuffers
+  std::array<VkImageView, 2> attachments{ VK_NULL_HANDLE, depthView };
+
+  m_Framebuffers.reserve(m_ImageViews.size());
+
+  for (VkImageView vkImageView : m_ImageViews)
+  {
+    attachments[0] = vkImageView;
+
+    VkFramebufferCreateInfo createInfo{
+      .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .renderPass = renderPass,
+      .attachmentCount = attachments.size(),
+      .pAttachments = attachments.data(),
+      .width = GetCurrentExtent().width,
+      .height = GetCurrentExtent().height,
+      .layers = 1
+    };
+
+    VkFramebuffer framebuffer{ VK_NULL_HANDLE };
+    VkResult result = vkCreateFramebuffer(m_Device, &createInfo, nullptr, &framebuffer);
+    AssertVkAndThrow(result);
+
+    m_Framebuffers.push_back(framebuffer);
+  }
+}
+
+
 void FSwapchain::Destroy()
 {
+  DestroyFramebuffers();
+  DestroyViews();
+
   if (m_Swapchain != VK_NULL_HANDLE)
   {
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
   }
-  m_Images.clear();
-  m_Images.shrink_to_fit();
   for(u32 i = 0; i < m_BackBufferCount; i++)
   {
     m_Fences[i].Destroy();
     m_ImageAvailableSemaphores[i].Destroy();
     m_PresentableImagesReadySemaphores[i].Destroy();
   }
-  m_Fences.clear();
-  m_Fences.shrink_to_fit();
-  m_ImageAvailableSemaphores.clear();
-  m_ImageAvailableSemaphores.shrink_to_fit();
-  m_PresentableImagesReadySemaphores.clear();
-  m_PresentableImagesReadySemaphores.shrink_to_fit();
+}
+
+
+void FSwapchain::DestroyFramebuffers()
+{
+  for (VkFramebuffer vkFramebuffer : m_Framebuffers)
+  {
+    if (vkFramebuffer != VK_NULL_HANDLE)
+    {
+      vkDestroyFramebuffer(m_Device, vkFramebuffer, nullptr);
+    }
+  }
+
+  m_Framebuffers.clear();
+}
+
+
+void FSwapchain::DestroyViews()
+{
+  for (VkImageView vkImageView : m_ImageViews)
+  {
+    if (vkImageView != VK_NULL_HANDLE)
+    {
+      vkDestroyImageView(m_Device, vkImageView, nullptr);
+    }
+  }
+
+  m_ImageViews.clear();
 }
 
 
@@ -159,7 +257,11 @@ b8 FSwapchain::IsRecreatePossible() const
 
 void FSwapchain::Recreate()
 {
+  DestroyFramebuffers();
+  DestroyViews();
+
   m_Images.clear();
+
   VkSwapchainKHR oldSwapchain = m_Swapchain;
   m_Swapchain = VK_NULL_HANDLE;
 

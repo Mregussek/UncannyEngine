@@ -42,11 +42,16 @@ public:
   void Create(const FImGuiRendererSpecification& specification);
   void Destroy();
 
+  void Update();
+  void RecordCommands(const FCommandBuffer& commandBuffer);
+
 private:
 
   void CreateFontData(const FCommandPool& transferCommandPool, const FQueue& transferQueue);
   void CreateDescriptors();
   void CreatePipeline(const FImGuiRendererSpecification& specification);
+
+  void UpdateBuffers();
 
 private:
 
@@ -60,6 +65,8 @@ private:
   FDescriptorPool m_DescriptorPool{};
   FPipelineLayout m_PipelineLayout{};
   FGraphicsPipeline m_GraphicsPipeline{};
+  u32 m_VertexCount{ 0 };
+  u32 m_IndexCount{ 0 };
   b8 m_IsCreated{ UFALSE };
 
 };

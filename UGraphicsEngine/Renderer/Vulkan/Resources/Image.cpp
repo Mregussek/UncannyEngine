@@ -100,6 +100,11 @@ void FImage::CreateView()
     }
   };
 
+  if (m_CreateInfo.usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+  {
+    createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+  }
+
   VkResult result = vkCreateImageView(m_Device, &createInfo, nullptr, &m_ImageView);
   AssertVkAndThrow(result);
 

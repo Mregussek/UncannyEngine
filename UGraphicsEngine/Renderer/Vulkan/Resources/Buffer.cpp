@@ -78,18 +78,21 @@ void FBuffer::Free()
 }
 
 
-void FBuffer::Fill(const void* pData, u32 elementSizeof, u32 elementsCount)
+void* FBuffer::Map()
 {
-  m_Stride = elementSizeof;
-  m_ElementsCount = elementsCount;
-  m_ElementsSizeInBytes = m_Stride * m_ElementsCount;
-
-  VkDeviceSize offset{ 0 };
-  VkMemoryMapFlags flags{ 0 };
+  constexpr VkDeviceSize offset{ 0 };
+  constexpr VkMemoryMapFlags flags{ 0 };
   void* pMapPtr{ nullptr };
 
   vkMapMemory(m_Device, m_Memory.GetHandle(), offset, m_AllocatedMemorySize, flags, &pMapPtr);
-  memcpy(pMapPtr, pData, m_ElementsSizeInBytes);
+
+  return pMapPtr;
+}
+
+
+void FBuffer::Unmap()
+{
+  constexpr VkDeviceSize offset{ 0 };
 
   if ((m_MemoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
   {
@@ -105,6 +108,18 @@ void FBuffer::Fill(const void* pData, u32 elementSizeof, u32 elementsCount)
   }
 
   vkUnmapMemory(m_Device, m_Memory.GetHandle());
+}
+
+
+void FBuffer::Fill(const void* pData, u32 elementSizeof, u32 elementsCount)
+{
+  m_Stride = elementSizeof;
+  m_ElementsCount = elementsCount;
+  m_ElementsSizeInBytes = m_Stride * m_ElementsCount;
+
+  void* pMapPtr = Map();
+  memcpy(pMapPtr, pData, m_ElementsSizeInBytes);
+  Unmap();
 }
 
 
