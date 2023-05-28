@@ -354,10 +354,12 @@ private:
     // Recording commands
     RecordCommands();
 
+    // Creating imgui
     {
+      m_RenderPass.Create(m_Swapchain.GetFormat(), VK_FORMAT_D32_SFLOAT, pLogicalDevice->GetHandle());
+
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                          "Shaders", "spv" });
-
       vulkan::FImGuiRendererSpecification imGuiRendererSpecification{
         .vertexShader = FPath::Append(shadersPath, "ui.vert.spv"),
         .fragmentShader = FPath::Append(shadersPath, "ui.frag.spv"),
@@ -365,6 +367,7 @@ private:
         .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes(),
         .pTransferCommandPool = &m_CommandPool,
         .pTransferQueue = &pLogicalDevice->GetGraphicsQueue(),
+        .pRenderPass = &m_RenderPass,
         .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
       };
 
@@ -381,6 +384,7 @@ private:
 
     // Closing imgui
     m_ImGuiRenderer.Destroy();
+    m_RenderPass.Destroy();
 
     // Closing render target images...
     m_OffscreenImage.Free();
@@ -508,6 +512,7 @@ private:
   vulkan::FDescriptorPool m_SceneDescriptorPool{};
   vulkan::FBuffer m_LightUniformBuffer{};
 
+  vulkan::FRenderPass m_RenderPass{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
 
   FPerspectiveCamera m_Camera{};

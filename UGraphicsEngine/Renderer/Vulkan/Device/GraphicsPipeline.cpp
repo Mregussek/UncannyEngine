@@ -32,6 +32,12 @@ void FGraphicsPipeline::Destroy()
     vkDestroyPipelineCache(m_Device, m_PipelineCache, nullptr);
     m_PipelineCache = VK_NULL_HANDLE;
   }
+
+  if (m_Pipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(m_Device, m_Pipeline, nullptr);
+    m_Pipeline = VK_NULL_HANDLE;
+  }
 }
 
 
@@ -206,11 +212,14 @@ void FGraphicsPipeline::CreatePipeline(const FGraphicsPipelineSpecification& spe
     .pColorBlendState = &colorBlendState,
     .pDynamicState = &dynamicState,
     .layout = specification.pipelineLayout,
-    .renderPass = VK_NULL_HANDLE,
+    .renderPass = specification.renderPass,
     .subpass = 0,
     .basePipelineHandle = VK_NULL_HANDLE,
     .basePipelineIndex = 0
   };
+
+  VkResult result = vkCreateGraphicsPipelines(m_Device, m_PipelineCache, 1, &createInfo, nullptr, &m_Pipeline);
+  AssertVkAndThrow(result);
 }
 
 

@@ -12,6 +12,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandPool.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/PipelineLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/GraphicsPipeline.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Device/RenderPass.h"
 #include "UTools/Filesystem/Path.h"
 
 
@@ -27,6 +28,7 @@ struct FImGuiRendererSpecification
   const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes{ nullptr };
   const FCommandPool* pTransferCommandPool{ nullptr };
   const FQueue* pTransferQueue{ nullptr };
+  const FRenderPass* pRenderPass{ nullptr };
   u32 targetVulkanVersion{ UUNUSED };
 };
 

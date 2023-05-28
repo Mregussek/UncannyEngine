@@ -25,14 +25,14 @@ public:
   void Create(VkDevice vkDevice, VkPushConstantRange pushConstantRange);
   void Create(VkDevice vkDevice, std::span<VkPushConstantRange> pushConstantRanges);
 
+  // Create methods for both...
+  void Create(VkDevice vkDevice, VkDescriptorSetLayout setLayout, VkPushConstantRange pushConstantRange);
+  void Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts,
+              std::span<VkPushConstantRange> pushConstantRanges);
+
   void Destroy();
 
   [[nodiscard]] VkPipelineLayout GetHandle() const { return m_PipelineLayout; }
-
-private:
-
-  void Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts,
-              std::span<VkPushConstantRange> pushConstantRanges);
 
 private:
 

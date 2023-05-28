@@ -40,6 +40,14 @@ void FPipelineLayout::Create(VkDevice vkDevice, std::span<VkPushConstantRange> p
 }
 
 
+void FPipelineLayout::Create(VkDevice vkDevice, VkDescriptorSetLayout setLayout, VkPushConstantRange pushConstantRange)
+{
+  std::span<VkDescriptorSetLayout> setLayouts(&setLayout, 1);
+  std::span<VkPushConstantRange> pushConstants(&pushConstantRange, 1);
+  Create(vkDevice, setLayouts, pushConstants);
+}
+
+
 void FPipelineLayout::Create(VkDevice vkDevice, std::span<VkDescriptorSetLayout> setLayouts,
                              std::span<VkPushConstantRange> pushConstantRanges)
 {

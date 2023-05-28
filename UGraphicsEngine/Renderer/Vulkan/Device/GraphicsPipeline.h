@@ -19,6 +19,7 @@ struct FGraphicsPipelineSpecification
   FPath vertexShader{ "" };
   FPath fragmentShader{ "" };
   VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };
+  VkRenderPass renderPass{ VK_NULL_HANDLE };
   VkDevice vkDevice{ VK_NULL_HANDLE };
   u32 targetVulkanVersion{ UUNUSED };
 };

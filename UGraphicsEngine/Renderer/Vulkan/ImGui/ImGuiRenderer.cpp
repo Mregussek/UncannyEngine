@@ -123,7 +123,7 @@ void FImGuiRenderer::CreatePipeline(const FImGuiRendererSpecification& specifica
     .offset = 0,
     .size = sizeof(FPushConstBlock)
   };
-  m_PipelineLayout.Create(m_Device, pushConstantRange);
+  m_PipelineLayout.Create(m_Device, m_DescriptorSetLayout.GetHandle(), pushConstantRange);
 
   VkVertexInputBindingDescription vertexInputBindingDescription[]{
       VkVertexInputBindingDescription{
@@ -140,14 +140,14 @@ void FImGuiRenderer::CreatePipeline(const FImGuiRendererSpecification& specifica
         .offset = (u32)offsetof(ImDrawVert, pos)
       },
       VkVertexInputAttributeDescription{
-        .location = 0,
-        .binding = 1,
+        .location = 1,
+        .binding = 0,
         .format = VK_FORMAT_R32G32_SFLOAT,
         .offset = (u32)offsetof(ImDrawVert, uv)
       },
       VkVertexInputAttributeDescription{
-        .location = 0,
-        .binding = 2,
+        .location = 2,
+        .binding = 0,
         .format = VK_FORMAT_R8G8B8A8_UNORM,
         .offset = (u32)offsetof(ImDrawVert, col)
       }
@@ -155,9 +155,11 @@ void FImGuiRenderer::CreatePipeline(const FImGuiRendererSpecification& specifica
 
   FGraphicsPipelineSpecification pipelineSpecification{
     .vertexInputBindingDescriptions = vertexInputBindingDescription,
-    .vertexInputAttributeDescriptions =vertexInputAttributeDescription,
+    .vertexInputAttributeDescriptions = vertexInputAttributeDescription,
     .vertexShader = specification.vertexShader,
     .fragmentShader = specification.fragmentShader,
+    .pipelineLayout = m_PipelineLayout.GetHandle(),
+    .renderPass = specification.pRenderPass->GetHandle(),
     .vkDevice = m_Device,
     .targetVulkanVersion = specification.targetVulkanVersion
   };
