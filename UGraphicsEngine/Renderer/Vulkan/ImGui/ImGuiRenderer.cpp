@@ -28,7 +28,20 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
   m_Device = specification.vkDevice;
   m_pPhysicalDeviceAttributes = specification.pPhysicalDeviceAttributes;
 
+  m_FontImage = FImage(m_Device, m_pPhysicalDeviceAttributes);
+  m_Sampler = FSampler(m_Device);
+  m_VertexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
+  m_IndexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
+
+  m_Semaphores.resize(specification.backBufferCount);
+  for(u32 i = 0; i < specification.backBufferCount; i++)
+  {
+    m_Semaphores[i].Create(m_Device);
+  }
+
   ImGui::CreateContext();
+
+  UpdateDisplaySize(specification.displaySize);
   CreateFontData(*specification.pTransferCommandPool, *specification.pTransferQueue);
   CreateDescriptors();
   CreatePipeline(specification);
@@ -40,6 +53,10 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
 void FImGuiRenderer::Destroy()
 {
   ImGui::DestroyContext();
+  for(FSemaphore& semaphore : m_Semaphores)
+  {
+    semaphore.Destroy();
+  }
   m_VertexBuffer.Free();
   m_IndexBuffer.Free();
   m_FontImage.Free();
@@ -56,6 +73,13 @@ void FImGuiRenderer::Update()
 {
   ImGui::NewFrame();
 
+  //ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
+  //ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_FirstUseEver);
+
+  //ImGui::Begin("Vulkan Example");
+  //ImGui::Text("Mateusz Rzeczyca");
+  //ImGui::End();
+
   //SRS - ShowDemoWindow() sets its own initial position and size, cannot override here
   ImGui::ShowDemoWindow();
 
@@ -63,6 +87,13 @@ void FImGuiRenderer::Update()
   ImGui::Render();
 
   UpdateBuffers();
+}
+
+
+void FImGuiRenderer::UpdateDisplaySize(VkExtent2D extent)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2((f32)extent.width, (f32)extent.height);
 }
 
 
@@ -189,7 +220,7 @@ void FImGuiRenderer::CreateFontData(const FCommandPool& transferCommandPool, con
   // Create font image for copy
   VkExtent2D fontExtent{ .width = (u32)texWidth, .height = (u32)texHeight };
   FQueueFamilyIndex queueFamilyIndex[]{ VK_QUEUE_FAMILY_IGNORED };
-  m_FontImage = FImage(m_Device, m_pPhysicalDeviceAttributes);
+
   m_FontImage.Allocate(VK_FORMAT_R8G8B8A8_UNORM, fontExtent,
                        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                        VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -237,7 +268,6 @@ void FImGuiRenderer::CreateFontData(const FCommandPool& transferCommandPool, con
   transferQueue.Submit({}, waitStageFlags, commandBuffer, {}, VK_NULL_HANDLE);
   transferQueue.WaitIdle();
 
-  m_Sampler = FSampler(m_Device);
   m_Sampler.Create();
 }
 

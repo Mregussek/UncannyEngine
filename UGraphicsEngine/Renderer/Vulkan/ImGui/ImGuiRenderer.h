@@ -13,6 +13,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/PipelineLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/GraphicsPipeline.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RenderPass.h"
+#include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 #include "UTools/Filesystem/Path.h"
 
 
@@ -29,6 +30,8 @@ struct FImGuiRendererSpecification
   const FCommandPool* pTransferCommandPool{ nullptr };
   const FQueue* pTransferQueue{ nullptr };
   const FRenderPass* pRenderPass{ nullptr };
+  VkExtent2D displaySize{};
+  u32 backBufferCount{ UUNUSED };
   u32 targetVulkanVersion{ UUNUSED };
 };
 
@@ -45,18 +48,22 @@ public:
   void Update();
   void RecordCommands(const FCommandBuffer& commandBuffer);
 
+  [[nodiscard]] const std::vector<FSemaphore>& GetSemaphores() const { return m_Semaphores; }
+
 private:
 
   void CreateFontData(const FCommandPool& transferCommandPool, const FQueue& transferQueue);
   void CreateDescriptors();
   void CreatePipeline(const FImGuiRendererSpecification& specification);
 
+  void UpdateDisplaySize(VkExtent2D extent);
   void UpdateBuffers();
 
 private:
 
   VkDevice m_Device{ VK_NULL_HANDLE };
   const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
+  std::vector<FSemaphore> m_Semaphores{};
   FImage m_FontImage{};
   FSampler m_Sampler{};
   FBuffer m_VertexBuffer{};

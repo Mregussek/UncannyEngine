@@ -41,7 +41,8 @@ public:
   }
 
   void Run() {
-    while(not m_Window->IsGoingToClose()) {
+    while(not m_Window->IsGoingToClose())
+    {
       m_Window->UpdateState();
       m_Window->PollEvents();
 
@@ -61,15 +62,26 @@ public:
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
-      const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
-      VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
-      VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-      VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-      VkFence fence{ m_Swapchain.GetFence().GetHandle() };
-      graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores, fence);
+      const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
+
+      {
+        VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
+        VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        VkSemaphore signalSemaphores[]{ m_ImGuiRenderer.GetSemaphores()[frameIndex].GetHandle() };
+        graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores,
+                             VK_NULL_HANDLE);
+      }
 
       //m_ImGuiRenderer.Update();
       //RecordCommandsUI();
+
+      {
+        VkSemaphore waitSemaphores[]{ m_ImGuiRenderer.GetSemaphores()[frameIndex].GetHandle() };
+        VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
+        VkFence fence{ m_Swapchain.GetFence().GetHandle() };
+        graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_UiCommandBuffers[frameIndex], signalSemaphores, fence);
+      }
 
       m_Swapchain.Present();
 
@@ -386,6 +398,8 @@ private:
         .pTransferCommandPool = &m_CommandPool,
         .pTransferQueue = &pLogicalDevice->GetGraphicsQueue(),
         .pRenderPass = &m_RenderPass,
+        .displaySize = m_Swapchain.GetCurrentExtent(),
+        .backBufferCount = m_Swapchain.GetBackBufferCount(),
         .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
       };
 
@@ -555,7 +569,6 @@ private:
   vulkan::FSwapchain m_Swapchain{};
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
-  std::vector<vulkan::FCommandBuffer> m_UiCommandBuffers{};
 
   vulkan::FImage m_OffscreenImage{};
   std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelAccelerationVector{};
@@ -573,6 +586,7 @@ private:
   vulkan::FRenderPass m_RenderPass{};
   vulkan::FImage m_DepthImage{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
+  std::vector<vulkan::FCommandBuffer> m_UiCommandBuffers{};
 
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_PerFrameUniformBuffer{};
