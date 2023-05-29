@@ -45,12 +45,10 @@ public:
     {
       m_Window->UpdateState();
       m_Window->PollEvents();
-
       if (m_Window->IsMinimized())
       {
         continue;
       }
-
       f32 deltaTime = m_Window->GetDeltaTime();
 
       m_Camera.ProcessMovement(m_Window.get(), deltaTime);
@@ -62,6 +60,10 @@ public:
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
+      m_ImGuiRenderer.Update(m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
+                             m_Window->GetMousePosition());
+      RecordCommandsUI(frameIndex);
+
       const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
 
       {
@@ -71,10 +73,6 @@ public:
         graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores,
                              VK_NULL_HANDLE);
       }
-
-      //m_ImGuiRenderer.Update();
-      //RecordCommandsUI();
-
       {
         VkSemaphore waitSemaphores[]{ m_ImGuiRenderer.GetSemaphores()[frameIndex].GetHandle() };
         VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -398,15 +396,11 @@ private:
         .pTransferCommandPool = &m_CommandPool,
         .pTransferQueue = &pLogicalDevice->GetGraphicsQueue(),
         .pRenderPass = &m_RenderPass,
-        .displaySize = m_Swapchain.GetCurrentExtent(),
         .backBufferCount = m_Swapchain.GetBackBufferCount(),
         .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
       };
 
       m_ImGuiRenderer.Create(imGuiRendererSpecification);
-
-      m_ImGuiRenderer.Update();
-      RecordCommandsUI();
     }
   }
 
@@ -533,34 +527,31 @@ private:
   }
 
 
-  void RecordCommandsUI()
+  void RecordCommandsUI(u32 frameIndex)
   {
-    std::span<const VkFramebuffer> framebuffers = m_Swapchain.GetFramebuffers();
+    VkFramebuffer framebuffer = m_Swapchain.GetFramebuffers()[frameIndex];
     VkRect2D renderArea{ .offset = { .x = 0, .y = 0 }, .extent = m_Swapchain.GetCurrentExtent() };
     std::array<VkClearValue, 2> clearValues{};
 
-    for (u32 i = 0; i < framebuffers.size(); i++)
-    {
-      vulkan::FCommandBuffer& cmdBuf = m_UiCommandBuffers[i];
+    vulkan::FCommandBuffer& cmdBuf = m_UiCommandBuffers[frameIndex];
 
-      cmdBuf.BeginRecording();
+    cmdBuf.BeginRecording();
 
-      VkRenderPassBeginInfo beginInfo{
+    VkRenderPassBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
         .renderPass = m_RenderPass.GetHandle(),
-        .framebuffer = framebuffers[i],
+        .framebuffer = framebuffer,
         .renderArea = renderArea,
         .clearValueCount = clearValues.size(),
         .pClearValues = clearValues.data()
-      };
-      vkCmdBeginRenderPass(cmdBuf.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    };
+    vkCmdBeginRenderPass(cmdBuf.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-      m_ImGuiRenderer.RecordCommands(cmdBuf);
+    m_ImGuiRenderer.RecordCommands(cmdBuf);
 
-      vkCmdEndRenderPass(cmdBuf.GetHandle());
-      cmdBuf.EndRecording();
-    }
+    vkCmdEndRenderPass(cmdBuf.GetHandle());
+    cmdBuf.EndRecording();
   }
 
 

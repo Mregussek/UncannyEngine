@@ -41,7 +41,6 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
 
   ImGui::CreateContext();
 
-  UpdateDisplaySize(specification.displaySize);
   CreateFontData(*specification.pTransferCommandPool, *specification.pTransferQueue);
   CreateDescriptors();
   CreatePipeline(specification);
@@ -69,8 +68,12 @@ void FImGuiRenderer::Destroy()
 }
 
 
-void FImGuiRenderer::Update()
+void FImGuiRenderer::Update(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed,
+                            FMousePosition mousePosition)
 {
+  UpdateDisplaySize(swapchainExtent);
+  UpdateMouseData(mouseButtonsPressed, mousePosition);
+
   ImGui::NewFrame();
 
   //ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
@@ -94,6 +97,16 @@ void FImGuiRenderer::UpdateDisplaySize(VkExtent2D extent)
 {
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2((f32)extent.width, (f32)extent.height);
+}
+
+
+void FImGuiRenderer::UpdateMouseData(FMouseButtonsPressed mouseButtonsPressed,
+                                     FMousePosition mousePosition)
+{
+  ImGuiIO& io = ImGui::GetIO();
+  io.MousePos = ImVec2((f32)mousePosition.x, (f32)mousePosition.y);
+  io.MouseDown[0] = mouseButtonsPressed.left;
+  io.MouseDown[1] = mouseButtonsPressed.right;
 }
 
 
@@ -219,12 +232,11 @@ void FImGuiRenderer::CreateFontData(const FCommandPool& transferCommandPool, con
 
   // Create font image for copy
   VkExtent2D fontExtent{ .width = (u32)texWidth, .height = (u32)texHeight };
-  FQueueFamilyIndex queueFamilyIndex[]{ VK_QUEUE_FAMILY_IGNORED };
 
   m_FontImage.Allocate(VK_FORMAT_R8G8B8A8_UNORM, fontExtent,
                        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                        VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                       queueFamilyIndex);
+                       {});
   m_FontImage.CreateView();
 
   // Staging buffer for font uploading

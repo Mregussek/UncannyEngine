@@ -6,6 +6,8 @@
 #include "UTools/UTypes.h"
 #ifdef WIN32
 #include <windows.h>
+#undef min
+#undef max
 #else
 #error unsupported platform
 #endif

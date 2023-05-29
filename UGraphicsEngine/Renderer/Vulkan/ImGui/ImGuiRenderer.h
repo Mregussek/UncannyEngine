@@ -15,6 +15,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Device/RenderPass.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
 #include "UTools/Filesystem/Path.h"
+#include "UTools/Window/IWindow.h"
 
 
 namespace uncanny::vulkan
@@ -30,7 +31,6 @@ struct FImGuiRendererSpecification
   const FCommandPool* pTransferCommandPool{ nullptr };
   const FQueue* pTransferQueue{ nullptr };
   const FRenderPass* pRenderPass{ nullptr };
-  VkExtent2D displaySize{};
   u32 backBufferCount{ UUNUSED };
   u32 targetVulkanVersion{ UUNUSED };
 };
@@ -45,7 +45,7 @@ public:
   void Create(const FImGuiRendererSpecification& specification);
   void Destroy();
 
-  void Update();
+  void Update(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
   void RecordCommands(const FCommandBuffer& commandBuffer);
 
   [[nodiscard]] const std::vector<FSemaphore>& GetSemaphores() const { return m_Semaphores; }
@@ -57,6 +57,7 @@ private:
   void CreatePipeline(const FImGuiRendererSpecification& specification);
 
   void UpdateDisplaySize(VkExtent2D extent);
+  void UpdateMouseData(FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
   void UpdateBuffers();
 
 private:
