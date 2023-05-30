@@ -96,8 +96,7 @@ void FImGuiRenderer::Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkF
   ImGui::Text("Mateusz Rzeczyca");
   ImGui::End();
 
-  //SRS - ShowDemoWindow() sets its own initial position and size, cannot override here
-  ImGui::ShowDemoWindow();
+  //ImGui::ShowDemoWindow();
 
   // Render to generate draw buffers
   ImGui::Render();
