@@ -60,10 +60,10 @@ private:
   void CreatePipeline(const FImGuiRendererSpecification& specification);
 
   void UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
-  void UpdateBuffers(u32 frameIndex);
+  b8 UpdateBuffers();
 
   void RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent);
-  void RecordDrawCommands(u32 frameIndex, const FCommandBuffer& commandBuffer);
+  void RecordDrawCommands(u32 frameIndex);
 
 private:
 
@@ -72,8 +72,8 @@ private:
   std::vector<FSemaphore> m_Semaphores{};
   FImage m_FontImage{};
   FSampler m_Sampler{};
-  std::vector<FBuffer> m_VertexBuffers{};
-  std::vector<FBuffer> m_IndexBuffers{};
+  FBuffer m_VertexBuffer{};
+  FBuffer m_IndexBuffer{};
   FDescriptorSetLayout m_DescriptorSetLayout{};
   FDescriptorPool m_DescriptorPool{};
   FPipelineLayout m_PipelineLayout{};

@@ -3,6 +3,7 @@
 #include "ImGuiRenderer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
 #include "UMath/Vector2.h"
+#include "UTools/Logger/Log.h"
 
 
 namespace uncanny::vulkan
@@ -31,14 +32,8 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
 
   m_FontImage = FImage(m_Device, m_pPhysicalDeviceAttributes);
   m_Sampler = FSampler(m_Device);
-
-  m_VertexBuffers.reserve(specification.backBufferCount);
-  m_IndexBuffers.reserve(specification.backBufferCount);
-  for (u32 i = 0; i < specification.backBufferCount; i++)
-  {
-    m_VertexBuffers.emplace_back(m_Device, m_pPhysicalDeviceAttributes);
-    m_IndexBuffers.emplace_back(m_Device, m_pPhysicalDeviceAttributes);
-  }
+  m_VertexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
+  m_IndexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
 
   m_Semaphores.resize(specification.backBufferCount);
   for(u32 i = 0; i < specification.backBufferCount; i++)
@@ -46,12 +41,12 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
     m_Semaphores[i].Create(m_Device);
   }
 
-  ImGui::CreateContext();
-
   m_RenderPass.Create(specification.swapchainFormat, VK_FORMAT_D32_SFLOAT, m_Device);
   m_CommandPool.Create(specification.graphicsQueueFamilyIndex, m_Device,
                        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(specification.backBufferCount);
+
+  ImGui::CreateContext();
 
   CreateFontData(*specification.pTransferCommandPool, *specification.pTransferQueue);
   CreateDescriptors();
@@ -68,18 +63,12 @@ void FImGuiRenderer::Destroy()
   {
     semaphore.Destroy();
   }
-  for (FBuffer& buffer : m_VertexBuffers)
-  {
-    buffer.Free();
-  }
-  for (FBuffer& buffer : m_IndexBuffers)
-  {
-    buffer.Free();
-  }
-  for (FCommandBuffer& commandBuffer : m_CommandBuffers)
+  for(FCommandBuffer& commandBuffer : m_CommandBuffers)
   {
     commandBuffer.Free();
   }
+  m_VertexBuffer.Free();
+  m_IndexBuffer.Free();
   m_CommandPool.Destroy();
   m_RenderPass.Destroy();
   m_FontImage.Free();
@@ -112,7 +101,7 @@ void FImGuiRenderer::Update(u32 frameIndex, VkFramebuffer swapchainFramebuffer, 
   // Render to generate draw buffers
   ImGui::Render();
 
-  UpdateBuffers(frameIndex);
+  b8 updatedBuffers = UpdateBuffers();
   RecordRenderPass(frameIndex, swapchainFramebuffer, swapchainExtent);
 }
 
@@ -134,43 +123,48 @@ void FImGuiRenderer::UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButto
 }
 
 
-void FImGuiRenderer::UpdateBuffers(u32 frameIndex)
+b8 FImGuiRenderer::UpdateBuffers()
 {
-  // Update vertex and index buffer containing the imGui elements when required
   ImDrawData* imDrawData = ImGui::GetDrawData();
-  if (!imDrawData)
+  if (not imDrawData)
   {
-    return;
+    return UFALSE;
   }
 
-  // Note: Alignment is done inside buffer creation
   VkDeviceSize vertexBufferSize = imDrawData->TotalVtxCount * sizeof(ImDrawVert);
   VkDeviceSize indexBufferSize = imDrawData->TotalIdxCount * sizeof(ImDrawIdx);
 
-  if ((vertexBufferSize == 0) or (indexBufferSize == 0)) {
-    return;
+  if ((vertexBufferSize == 0) or (indexBufferSize == 0))
+  {
+    return UFALSE;
   }
 
-  FBuffer& vertexBuffer = m_VertexBuffers[frameIndex];
-  FBuffer& indexBuffer = m_IndexBuffers[frameIndex];
+  b8 changedBuffers = UFALSE;
 
-  // Update buffers only if vertex or index count has been changed compared to current buffer size
-  if (not vertexBuffer.IsValid() or m_VertexCount != imDrawData->TotalVtxCount)
+  if ((not m_VertexBuffer.IsValid()) or (m_VertexCount != imDrawData->TotalVtxCount))
   {
-    vertexBuffer.Free();
-    vertexBuffer.Allocate(vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    UTRACE("vertex update {} {} {} {}", m_VertexCount, imDrawData->TotalVtxCount, vertexBufferSize,
+           m_VertexBuffer.GetAllocatedSize());
+    m_VertexBuffer.Free();
+    m_VertexBuffer.Allocate(vertexBufferSize * 2, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     m_VertexCount = imDrawData->TotalVtxCount;
+    changedBuffers = UTRUE;
   }
-  if (not indexBuffer.IsValid() or m_IndexCount < imDrawData->TotalIdxCount)
+  if ((not m_IndexBuffer.IsValid()) or (m_IndexCount != imDrawData->TotalIdxCount))
   {
-    indexBuffer.Free();
-    indexBuffer.Allocate(indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    UTRACE("index update {} {} {} {}", m_IndexCount, imDrawData->TotalIdxCount, indexBufferSize,
+           m_IndexBuffer.GetAllocatedSize());
+    m_IndexBuffer.Free();
+    m_IndexBuffer.Allocate(indexBufferSize * 2, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     m_IndexCount = imDrawData->TotalIdxCount;
+    changedBuffers = UTRUE;
   }
 
   {
-    auto* pVertexDst = static_cast<ImDrawVert*>(vertexBuffer.Map());
-    auto* pIndexDst = static_cast<ImDrawIdx*>(indexBuffer.Map());
+    auto* pVertexDst = static_cast<ImDrawVert*>(m_VertexBuffer.Map());
+    auto* pIndexDst = static_cast<ImDrawIdx*>(m_IndexBuffer.Map());
 
     std::span<ImDrawList*> cmdLists{ imDrawData->CmdLists, (u32)imDrawData->CmdListsCount };
     for (const ImDrawList* pCmdList : cmdLists)
@@ -181,9 +175,11 @@ void FImGuiRenderer::UpdateBuffers(u32 frameIndex)
       pIndexDst += pCmdList->IdxBuffer.Size;
     }
 
-    vertexBuffer.Unmap();
-    indexBuffer.Unmap();
+    m_VertexBuffer.Unmap();
+    m_IndexBuffer.Unmap();
   }
+
+  return changedBuffers;
 }
 
 
@@ -191,10 +187,9 @@ void FImGuiRenderer::RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFra
 {
   VkRect2D renderArea{ .offset = { .x = 0, .y = 0 }, .extent = swapchainExtent };
   std::array<VkClearValue, 2> clearValues{};
+  FCommandBuffer& commandBuffer = m_CommandBuffers[frameIndex];
 
-  FCommandBuffer& cmdBuf = m_CommandBuffers[frameIndex];
-
-  cmdBuf.BeginRecording();
+  commandBuffer.BeginRecording();
 
   VkRenderPassBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -205,18 +200,19 @@ void FImGuiRenderer::RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFra
       .clearValueCount = clearValues.size(),
       .pClearValues = clearValues.data()
   };
-  vkCmdBeginRenderPass(cmdBuf.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBeginRenderPass(commandBuffer.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-  RecordDrawCommands(frameIndex, cmdBuf);
+  RecordDrawCommands(frameIndex);
 
-  vkCmdEndRenderPass(cmdBuf.GetHandle());
-  cmdBuf.EndRecording();
+  vkCmdEndRenderPass(commandBuffer.GetHandle());
+  commandBuffer.EndRecording();
 }
 
 
-void FImGuiRenderer::RecordDrawCommands(u32 frameIndex, const FCommandBuffer& commandBuffer)
+void FImGuiRenderer::RecordDrawCommands(u32 frameIndex)
 {
   ImGuiIO& io = ImGui::GetIO();
+  FCommandBuffer& commandBuffer = m_CommandBuffers[frameIndex];
 
   VkDescriptorSet descriptorSet = m_DescriptorPool.GetDescriptorSet();
   vkCmdBindDescriptorSets(commandBuffer.GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout.GetHandle(), 0,
@@ -224,12 +220,7 @@ void FImGuiRenderer::RecordDrawCommands(u32 frameIndex, const FCommandBuffer& co
                           0, nullptr);
   vkCmdBindPipeline(commandBuffer.GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline.GetHandle());
 
-  VkViewport viewport{
-    .width = ImGui::GetIO().DisplaySize.x,
-    .height = ImGui::GetIO().DisplaySize.y,
-    .minDepth = 0.0f,
-    .maxDepth = 1.f
-  };
+  VkViewport viewport{ .width = io.DisplaySize.x, .height = io.DisplaySize.y, .minDepth = 0.0f, .maxDepth = 1.f };
   vkCmdSetViewport(commandBuffer.GetHandle(), 0, 1, &viewport);
 
   pushConstBlock = FPushConstBlock{
@@ -239,15 +230,16 @@ void FImGuiRenderer::RecordDrawCommands(u32 frameIndex, const FCommandBuffer& co
   vkCmdPushConstants(commandBuffer.GetHandle(), m_PipelineLayout.GetHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0,
                      sizeof(FPushConstBlock), &pushConstBlock);
 
+  VkBuffer vertexHandle = m_VertexBuffer.GetHandle();
+  std::span<VkBuffer> vertexHandles{ &vertexHandle, 1 };
+  VkDeviceSize offsets[]{ 0 };
+
+  vkCmdBindVertexBuffers(commandBuffer.GetHandle(), 0, vertexHandles.size(), vertexHandles.data(), offsets);
+  vkCmdBindIndexBuffer(commandBuffer.GetHandle(), m_IndexBuffer.GetHandle(), 0, VK_INDEX_TYPE_UINT16);
+
   ImDrawData* imDrawData = ImGui::GetDrawData();
   i32 vertexOffset = 0;
   u32 indexOffset = 0;
-
-  VkBuffer vertexHandle = m_VertexBuffers[frameIndex].GetHandle();
-  VkDeviceSize offsets[]{ 0 };
-
-  vkCmdBindVertexBuffers(commandBuffer.GetHandle(), 0, 1, &vertexHandle, offsets);
-  vkCmdBindIndexBuffer(commandBuffer.GetHandle(), m_IndexBuffers[frameIndex].GetHandle(), 0, VK_INDEX_TYPE_UINT16);
 
   std::span<ImDrawList*> commandsLists{ imDrawData->CmdLists, (u32)imDrawData->CmdListsCount };
   for (const ImDrawList* pCmdList : commandsLists)

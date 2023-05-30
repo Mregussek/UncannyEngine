@@ -36,6 +36,7 @@ public:
                   const FQueue& transferQueue);
 
   [[nodiscard]] VkBuffer GetHandle() const { return m_Buffer; }
+  [[nodiscard]] VkDeviceSize GetAllocatedSize() const { return m_AllocatedMemorySize; }
   [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
   [[nodiscard]] u32 GetFilledStride() const { return m_Stride; }
   [[nodiscard]] u32 GetFilledElementsCount() const { return m_ElementsCount; }
