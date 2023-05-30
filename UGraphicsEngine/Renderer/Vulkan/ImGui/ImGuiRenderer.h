@@ -56,8 +56,7 @@ private:
   void CreateDescriptors();
   void CreatePipeline(const FImGuiRendererSpecification& specification);
 
-  void UpdateDisplaySize(VkExtent2D extent);
-  void UpdateMouseData(FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
+  void UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
   void UpdateBuffers();
 
 private:

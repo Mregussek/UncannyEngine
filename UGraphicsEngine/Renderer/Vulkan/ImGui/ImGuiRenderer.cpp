@@ -71,8 +71,7 @@ void FImGuiRenderer::Destroy()
 void FImGuiRenderer::Update(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed,
                             FMousePosition mousePosition)
 {
-  UpdateDisplaySize(swapchainExtent);
-  UpdateMouseData(mouseButtonsPressed, mousePosition);
+  UpdateIO(swapchainExtent, mouseButtonsPressed, mousePosition);
 
   ImGui::NewFrame();
 
@@ -93,18 +92,18 @@ void FImGuiRenderer::Update(VkExtent2D swapchainExtent, FMouseButtonsPressed mou
 }
 
 
-void FImGuiRenderer::UpdateDisplaySize(VkExtent2D extent)
+void FImGuiRenderer::UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButtonsPressed,
+                              FMousePosition mousePosition)
 {
+  auto ConvertToRange = []<typename T>(T oldValue, T oldMin, T oldMax, T newMin, T newMax)
+  {
+    return ((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin) + newMin;
+  };
+
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2((f32)extent.width, (f32)extent.height);
-}
-
-
-void FImGuiRenderer::UpdateMouseData(FMouseButtonsPressed mouseButtonsPressed,
-                                     FMousePosition mousePosition)
-{
-  ImGuiIO& io = ImGui::GetIO();
-  io.MousePos = ImVec2((f32)mousePosition.x, (f32)mousePosition.y);
+  io.MousePos = ImVec2(ConvertToRange((f32)mousePosition.x, 0.f, 1.f, 0.f, (f32)extent.width),
+                       ConvertToRange((f32)mousePosition.y, 0.f, 1.f, 0.f, (f32)extent.height));
   io.MouseDown[0] = mouseButtonsPressed.left;
   io.MouseDown[1] = mouseButtonsPressed.right;
 }
