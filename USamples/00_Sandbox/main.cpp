@@ -57,13 +57,14 @@ public:
         m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
       }
 
+      const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
+
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
-      m_ImGuiRenderer.Update(frameIndex, m_Swapchain.GetFramebuffers()[frameIndex], m_Swapchain.GetCurrentExtent(),
-                             m_Window->GetMouseButtonsPressed(), m_Window->GetMousePosition());
-
-      const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
+      m_ImGuiRenderer.Update(frameIndex, graphicsQueue, m_Swapchain.GetFramebuffers()[frameIndex],
+                             m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
+                             m_Window->GetMousePosition());
 
       {
         VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };

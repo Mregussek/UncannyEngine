@@ -46,8 +46,8 @@ public:
   void Create(const FImGuiRendererSpecification& specification);
   void Destroy();
 
-  void Update(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent,
-              FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
+  void Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkFramebuffer swapchainFramebuffer,
+              VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
 
   [[nodiscard]] VkSemaphore GetSemaphore(u32 frameIndex) const { return m_Semaphores[frameIndex].GetHandle(); }
   [[nodiscard]] const FCommandBuffer& GetCommandBuffer(u32 frameIndex) const { return m_CommandBuffers[frameIndex]; }
@@ -60,7 +60,7 @@ private:
   void CreatePipeline(const FImGuiRendererSpecification& specification);
 
   void UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
-  b8 UpdateBuffers();
+  void UpdateBuffers(const FQueue& queueUsingBuffers);
 
   void RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent);
   void RecordDrawCommands(u32 frameIndex);
@@ -81,8 +81,6 @@ private:
   FGraphicsPipeline m_GraphicsPipeline{};
   FCommandPool m_CommandPool{};
   std::vector<FCommandBuffer> m_CommandBuffers{};
-  u32 m_VertexCount{ 0 };
-  u32 m_IndexCount{ 0 };
   b8 m_IsCreated{ UFALSE };
 
 };

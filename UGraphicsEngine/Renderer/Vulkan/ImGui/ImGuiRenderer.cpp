@@ -81,8 +81,9 @@ void FImGuiRenderer::Destroy()
 }
 
 
-void FImGuiRenderer::Update(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent,
-                            FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition)
+void FImGuiRenderer::Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkFramebuffer swapchainFramebuffer,
+                            VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed,
+                            FMousePosition mousePosition)
 {
   UpdateIO(swapchainExtent, mouseButtonsPressed, mousePosition);
 
@@ -101,7 +102,7 @@ void FImGuiRenderer::Update(u32 frameIndex, VkFramebuffer swapchainFramebuffer, 
   // Render to generate draw buffers
   ImGui::Render();
 
-  b8 updatedBuffers = UpdateBuffers();
+  UpdateBuffers(queueUsingBuffers);
   RecordRenderPass(frameIndex, swapchainFramebuffer, swapchainExtent);
 }
 
@@ -123,12 +124,12 @@ void FImGuiRenderer::UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButto
 }
 
 
-b8 FImGuiRenderer::UpdateBuffers()
+void FImGuiRenderer::UpdateBuffers(const FQueue& queueUsingBuffers)
 {
   ImDrawData* imDrawData = ImGui::GetDrawData();
   if (not imDrawData)
   {
-    return UFALSE;
+    return;
   }
 
   VkDeviceSize vertexBufferSize = imDrawData->TotalVtxCount * sizeof(ImDrawVert);
@@ -136,30 +137,22 @@ b8 FImGuiRenderer::UpdateBuffers()
 
   if ((vertexBufferSize == 0) or (indexBufferSize == 0))
   {
-    return UFALSE;
+    return;
   }
 
-  b8 changedBuffers = UFALSE;
-
-  if ((not m_VertexBuffer.IsValid()) or (m_VertexCount != imDrawData->TotalVtxCount))
+  if ((not m_VertexBuffer.IsValid()) or (vertexBufferSize > m_VertexBuffer.GetAllocatedSize()))
   {
-    UTRACE("vertex update {} {} {} {}", m_VertexCount, imDrawData->TotalVtxCount, vertexBufferSize,
-           m_VertexBuffer.GetAllocatedSize());
+    queueUsingBuffers.WaitIdle();
     m_VertexBuffer.Free();
     m_VertexBuffer.Allocate(vertexBufferSize * 2, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-    m_VertexCount = imDrawData->TotalVtxCount;
-    changedBuffers = UTRUE;
   }
-  if ((not m_IndexBuffer.IsValid()) or (m_IndexCount != imDrawData->TotalIdxCount))
+  if ((not m_IndexBuffer.IsValid()) or (indexBufferSize > m_IndexBuffer.GetAllocatedSize()))
   {
-    UTRACE("index update {} {} {} {}", m_IndexCount, imDrawData->TotalIdxCount, indexBufferSize,
-           m_IndexBuffer.GetAllocatedSize());
+    queueUsingBuffers.WaitIdle();
     m_IndexBuffer.Free();
     m_IndexBuffer.Allocate(indexBufferSize * 2, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-    m_IndexCount = imDrawData->TotalIdxCount;
-    changedBuffers = UTRUE;
   }
 
   {
@@ -178,8 +171,6 @@ b8 FImGuiRenderer::UpdateBuffers()
     m_VertexBuffer.Unmap();
     m_IndexBuffer.Unmap();
   }
-
-  return changedBuffers;
 }
 
 
