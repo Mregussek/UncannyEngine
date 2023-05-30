@@ -1,4 +1,5 @@
 
+#include <array>
 #include "ImGuiRenderer.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Commands/CommandBuffer.h"
 #include "UMath/Vector2.h"
@@ -30,8 +31,14 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
 
   m_FontImage = FImage(m_Device, m_pPhysicalDeviceAttributes);
   m_Sampler = FSampler(m_Device);
-  m_VertexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
-  m_IndexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
+
+  m_VertexBuffers.reserve(specification.backBufferCount);
+  m_IndexBuffers.reserve(specification.backBufferCount);
+  for (u32 i = 0; i < specification.backBufferCount; i++)
+  {
+    m_VertexBuffers.emplace_back(m_Device, m_pPhysicalDeviceAttributes);
+    m_IndexBuffers.emplace_back(m_Device, m_pPhysicalDeviceAttributes);
+  }
 
   m_Semaphores.resize(specification.backBufferCount);
   for(u32 i = 0; i < specification.backBufferCount; i++)
@@ -40,6 +47,11 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
   }
 
   ImGui::CreateContext();
+
+  m_RenderPass.Create(specification.swapchainFormat, VK_FORMAT_D32_SFLOAT, m_Device);
+  m_CommandPool.Create(specification.graphicsQueueFamilyIndex, m_Device,
+                       VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+  m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(specification.backBufferCount);
 
   CreateFontData(*specification.pTransferCommandPool, *specification.pTransferQueue);
   CreateDescriptors();
@@ -56,8 +68,20 @@ void FImGuiRenderer::Destroy()
   {
     semaphore.Destroy();
   }
-  m_VertexBuffer.Free();
-  m_IndexBuffer.Free();
+  for (FBuffer& buffer : m_VertexBuffers)
+  {
+    buffer.Free();
+  }
+  for (FBuffer& buffer : m_IndexBuffers)
+  {
+    buffer.Free();
+  }
+  for (FCommandBuffer& commandBuffer : m_CommandBuffers)
+  {
+    commandBuffer.Free();
+  }
+  m_CommandPool.Destroy();
+  m_RenderPass.Destroy();
   m_FontImage.Free();
   m_Sampler.Destroy();
   m_DescriptorSetLayout.Destroy();
@@ -68,19 +92,19 @@ void FImGuiRenderer::Destroy()
 }
 
 
-void FImGuiRenderer::Update(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed,
-                            FMousePosition mousePosition)
+void FImGuiRenderer::Update(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent,
+                            FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition)
 {
   UpdateIO(swapchainExtent, mouseButtonsPressed, mousePosition);
 
   ImGui::NewFrame();
 
   //ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
-  //ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_FirstUseEver);
 
-  //ImGui::Begin("Vulkan Example");
-  //ImGui::Text("Mateusz Rzeczyca");
-  //ImGui::End();
+  ImGui::Begin("Vulkan Example");
+  ImGui::Text("Mateusz Rzeczyca");
+  ImGui::End();
 
   //SRS - ShowDemoWindow() sets its own initial position and size, cannot override here
   ImGui::ShowDemoWindow();
@@ -88,7 +112,8 @@ void FImGuiRenderer::Update(VkExtent2D swapchainExtent, FMouseButtonsPressed mou
   // Render to generate draw buffers
   ImGui::Render();
 
-  UpdateBuffers();
+  UpdateBuffers(frameIndex);
+  RecordRenderPass(frameIndex, swapchainFramebuffer, swapchainExtent);
 }
 
 
@@ -109,7 +134,7 @@ void FImGuiRenderer::UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButto
 }
 
 
-void FImGuiRenderer::UpdateBuffers()
+void FImGuiRenderer::UpdateBuffers(u32 frameIndex)
 {
   // Update vertex and index buffer containing the imGui elements when required
   ImDrawData* imDrawData = ImGui::GetDrawData();
@@ -126,23 +151,26 @@ void FImGuiRenderer::UpdateBuffers()
     return;
   }
 
+  FBuffer& vertexBuffer = m_VertexBuffers[frameIndex];
+  FBuffer& indexBuffer = m_IndexBuffers[frameIndex];
+
   // Update buffers only if vertex or index count has been changed compared to current buffer size
-  if (not m_VertexBuffer.IsValid() or m_VertexCount != imDrawData->TotalVtxCount)
+  if (not vertexBuffer.IsValid() or m_VertexCount != imDrawData->TotalVtxCount)
   {
-    m_VertexBuffer.Free();
-    m_VertexBuffer.Allocate(vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    vertexBuffer.Free();
+    vertexBuffer.Allocate(vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     m_VertexCount = imDrawData->TotalVtxCount;
   }
-  if (not m_IndexBuffer.IsValid() or m_IndexCount < imDrawData->TotalIdxCount)
+  if (not indexBuffer.IsValid() or m_IndexCount < imDrawData->TotalIdxCount)
   {
-    m_IndexBuffer.Free();
-    m_IndexBuffer.Allocate(indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    indexBuffer.Free();
+    indexBuffer.Allocate(indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     m_IndexCount = imDrawData->TotalIdxCount;
   }
 
   {
-    auto* pVertexDst = static_cast<ImDrawVert*>(m_VertexBuffer.Map());
-    auto* pIndexDst = static_cast<ImDrawIdx*>(m_IndexBuffer.Map());
+    auto* pVertexDst = static_cast<ImDrawVert*>(vertexBuffer.Map());
+    auto* pIndexDst = static_cast<ImDrawIdx*>(indexBuffer.Map());
 
     std::span<ImDrawList*> cmdLists{ imDrawData->CmdLists, (u32)imDrawData->CmdListsCount };
     for (const ImDrawList* pCmdList : cmdLists)
@@ -153,13 +181,40 @@ void FImGuiRenderer::UpdateBuffers()
       pIndexDst += pCmdList->IdxBuffer.Size;
     }
 
-    m_VertexBuffer.Unmap();
-    m_IndexBuffer.Unmap();
+    vertexBuffer.Unmap();
+    indexBuffer.Unmap();
   }
 }
 
 
-void FImGuiRenderer::RecordCommands(const FCommandBuffer& commandBuffer)
+void FImGuiRenderer::RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent)
+{
+  VkRect2D renderArea{ .offset = { .x = 0, .y = 0 }, .extent = swapchainExtent };
+  std::array<VkClearValue, 2> clearValues{};
+
+  FCommandBuffer& cmdBuf = m_CommandBuffers[frameIndex];
+
+  cmdBuf.BeginRecording();
+
+  VkRenderPassBeginInfo beginInfo{
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      .pNext = nullptr,
+      .renderPass = m_RenderPass.GetHandle(),
+      .framebuffer = swapchainFramebuffer,
+      .renderArea = renderArea,
+      .clearValueCount = clearValues.size(),
+      .pClearValues = clearValues.data()
+  };
+  vkCmdBeginRenderPass(cmdBuf.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+  RecordDrawCommands(frameIndex, cmdBuf);
+
+  vkCmdEndRenderPass(cmdBuf.GetHandle());
+  cmdBuf.EndRecording();
+}
+
+
+void FImGuiRenderer::RecordDrawCommands(u32 frameIndex, const FCommandBuffer& commandBuffer)
 {
   ImGuiIO& io = ImGui::GetIO();
 
@@ -188,31 +243,31 @@ void FImGuiRenderer::RecordCommands(const FCommandBuffer& commandBuffer)
   i32 vertexOffset = 0;
   u32 indexOffset = 0;
 
-  VkBuffer vertexHandle = m_VertexBuffer.GetHandle();
+  VkBuffer vertexHandle = m_VertexBuffers[frameIndex].GetHandle();
   VkDeviceSize offsets[]{ 0 };
 
   vkCmdBindVertexBuffers(commandBuffer.GetHandle(), 0, 1, &vertexHandle, offsets);
-  vkCmdBindIndexBuffer(commandBuffer.GetHandle(), m_IndexBuffer.GetHandle(), 0, VK_INDEX_TYPE_UINT16);
+  vkCmdBindIndexBuffer(commandBuffer.GetHandle(), m_IndexBuffers[frameIndex].GetHandle(), 0, VK_INDEX_TYPE_UINT16);
 
-  for (i32 i = 0; i < imDrawData->CmdListsCount; i++)
+  std::span<ImDrawList*> commandsLists{ imDrawData->CmdLists, (u32)imDrawData->CmdListsCount };
+  for (const ImDrawList* pCmdList : commandsLists)
   {
-    const ImDrawList* pCmdList = imDrawData->CmdLists[i];
-    for (i32 j = 0; j < pCmdList->CmdBuffer.Size; j++)
+    std::span<ImDrawCmd> commands{ pCmdList->CmdBuffer.Data, (u32)pCmdList->CmdBuffer.Size };
+    for (const ImDrawCmd& pCmd : commands)
     {
-      const ImDrawCmd* pCmd = &pCmdList->CmdBuffer[j];
       VkRect2D scissorRect{
-        .offset = VkOffset2D{
-          .x = std::max((i32)(pCmd->ClipRect.x), 0),
-          .y = std::max((i32)(pCmd->ClipRect.y), 0)
-        },
-        .extent = VkExtent2D{
-          .width = (u32)(pCmd->ClipRect.z - pCmd->ClipRect.x),
-          .height = (u32)(pCmd->ClipRect.w - pCmd->ClipRect.y)
-        }
+          .offset = VkOffset2D{
+              .x = std::max((i32)(pCmd.ClipRect.x), 0),
+              .y = std::max((i32)(pCmd.ClipRect.y), 0)
+          },
+          .extent = VkExtent2D{
+              .width = (u32)(pCmd.ClipRect.z - pCmd.ClipRect.x),
+              .height = (u32)(pCmd.ClipRect.w - pCmd.ClipRect.y)
+          }
       };
       vkCmdSetScissor(commandBuffer.GetHandle(), 0, 1, &scissorRect);
-      vkCmdDrawIndexed(commandBuffer.GetHandle(), pCmd->ElemCount, 1, indexOffset, vertexOffset, 0);
-      indexOffset += pCmd->ElemCount;
+      vkCmdDrawIndexed(commandBuffer.GetHandle(), pCmd.ElemCount, 1, indexOffset, vertexOffset, 0);
+      indexOffset += pCmd.ElemCount;
     }
     vertexOffset += pCmdList->VtxBuffer.Size;
   }
@@ -339,7 +394,7 @@ void FImGuiRenderer::CreatePipeline(const FImGuiRendererSpecification& specifica
       .vertexShader = specification.vertexShader,
       .fragmentShader = specification.fragmentShader,
       .pipelineLayout = m_PipelineLayout.GetHandle(),
-      .renderPass = specification.pRenderPass->GetHandle(),
+      .renderPass = GetRenderPass(),
       .vkDevice = m_Device,
       .targetVulkanVersion = specification.targetVulkanVersion
   };

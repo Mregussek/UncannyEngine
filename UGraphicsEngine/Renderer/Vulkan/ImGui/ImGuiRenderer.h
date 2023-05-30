@@ -30,7 +30,8 @@ struct FImGuiRendererSpecification
   const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes{ nullptr };
   const FCommandPool* pTransferCommandPool{ nullptr };
   const FQueue* pTransferQueue{ nullptr };
-  const FRenderPass* pRenderPass{ nullptr };
+  VkFormat swapchainFormat{ VK_FORMAT_UNDEFINED };
+  vulkan::FQueueFamilyIndex graphicsQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
   u32 backBufferCount{ UUNUSED };
   u32 targetVulkanVersion{ UUNUSED };
 };
@@ -45,10 +46,12 @@ public:
   void Create(const FImGuiRendererSpecification& specification);
   void Destroy();
 
-  void Update(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
-  void RecordCommands(const FCommandBuffer& commandBuffer);
+  void Update(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent,
+              FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
 
-  [[nodiscard]] const std::vector<FSemaphore>& GetSemaphores() const { return m_Semaphores; }
+  [[nodiscard]] VkSemaphore GetSemaphore(u32 frameIndex) const { return m_Semaphores[frameIndex].GetHandle(); }
+  [[nodiscard]] const FCommandBuffer& GetCommandBuffer(u32 frameIndex) const { return m_CommandBuffers[frameIndex]; }
+  [[nodiscard]] VkRenderPass GetRenderPass() const { return m_RenderPass.GetHandle(); }
 
 private:
 
@@ -57,7 +60,10 @@ private:
   void CreatePipeline(const FImGuiRendererSpecification& specification);
 
   void UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
-  void UpdateBuffers();
+  void UpdateBuffers(u32 frameIndex);
+
+  void RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent);
+  void RecordDrawCommands(u32 frameIndex, const FCommandBuffer& commandBuffer);
 
 private:
 
@@ -66,12 +72,15 @@ private:
   std::vector<FSemaphore> m_Semaphores{};
   FImage m_FontImage{};
   FSampler m_Sampler{};
-  FBuffer m_VertexBuffer{};
-  FBuffer m_IndexBuffer{};
+  std::vector<FBuffer> m_VertexBuffers{};
+  std::vector<FBuffer> m_IndexBuffers{};
   FDescriptorSetLayout m_DescriptorSetLayout{};
   FDescriptorPool m_DescriptorPool{};
   FPipelineLayout m_PipelineLayout{};
+  vulkan::FRenderPass m_RenderPass{};
   FGraphicsPipeline m_GraphicsPipeline{};
+  FCommandPool m_CommandPool{};
+  std::vector<FCommandBuffer> m_CommandBuffers{};
   u32 m_VertexCount{ 0 };
   u32 m_IndexCount{ 0 };
   b8 m_IsCreated{ UFALSE };

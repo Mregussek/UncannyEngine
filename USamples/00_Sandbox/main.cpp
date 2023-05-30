@@ -60,25 +60,25 @@ public:
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
-      m_ImGuiRenderer.Update(m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
-                             m_Window->GetMousePosition());
-      RecordCommandsUI(frameIndex);
+      m_ImGuiRenderer.Update(frameIndex, m_Swapchain.GetFramebuffers()[frameIndex], m_Swapchain.GetCurrentExtent(),
+                             m_Window->GetMouseButtonsPressed(), m_Window->GetMousePosition());
 
       const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
 
       {
         VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
         VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        VkSemaphore signalSemaphores[]{ m_ImGuiRenderer.GetSemaphores()[frameIndex].GetHandle() };
+        VkSemaphore signalSemaphores[]{ m_ImGuiRenderer.GetSemaphore(frameIndex) };
         graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores,
                              VK_NULL_HANDLE);
       }
       {
-        VkSemaphore waitSemaphores[]{ m_ImGuiRenderer.GetSemaphores()[frameIndex].GetHandle() };
+        VkSemaphore waitSemaphores[]{ m_ImGuiRenderer.GetSemaphore(frameIndex) };
         VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
         VkFence fence{ m_Swapchain.GetFence().GetHandle() };
-        graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_UiCommandBuffers[frameIndex], signalSemaphores, fence);
+        graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_ImGuiRenderer.GetCommandBuffer(frameIndex),
+                             signalSemaphores, fence);
       }
 
       m_Swapchain.Present();
@@ -107,7 +107,7 @@ public:
         m_DepthImage.Recreate(swapchainExtent);
 
         m_Swapchain.CreateViews();
-        m_Swapchain.CreateFramebuffers(m_RenderPass.GetHandle(), m_DepthImage.GetHandleView());
+        m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
 
         RecordCommands();
       }
@@ -162,7 +162,6 @@ private:
 
     // Creating command buffers...
     m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
-    m_UiCommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(m_Swapchain.GetBackBufferCount());
 
     // Creating camera...
     {
@@ -375,16 +374,11 @@ private:
 
     // Creating imgui
     {
-      m_RenderPass.Create(m_Swapchain.GetFormat(), VK_FORMAT_D32_SFLOAT, pLogicalDevice->GetHandle());
-
       m_DepthImage = vulkan::FImage(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
       m_DepthImage.Allocate(VK_FORMAT_D32_SFLOAT, m_Swapchain.GetCurrentExtent(),
                             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                             VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, {});
       m_DepthImage.CreateView();
-
-      m_Swapchain.CreateViews();
-      m_Swapchain.CreateFramebuffers(m_RenderPass.GetHandle(), m_DepthImage.GetHandleView());
 
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                          "Shaders", "spv" });
@@ -395,12 +389,16 @@ private:
         .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes(),
         .pTransferCommandPool = &m_CommandPool,
         .pTransferQueue = &pLogicalDevice->GetGraphicsQueue(),
-        .pRenderPass = &m_RenderPass,
+        .swapchainFormat = m_Swapchain.GetFormat(),
+        .graphicsQueueFamilyIndex = pLogicalDevice->GetGraphicsFamilyIndex(),
         .backBufferCount = m_Swapchain.GetBackBufferCount(),
         .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
       };
 
       m_ImGuiRenderer.Create(imGuiRendererSpecification);
+
+      m_Swapchain.CreateViews();
+      m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
     }
   }
 
@@ -413,12 +411,7 @@ private:
 
     // Closing imgui
     m_ImGuiRenderer.Destroy();
-    m_RenderPass.Destroy();
     m_DepthImage.Free();
-    std::ranges::for_each(m_UiCommandBuffers, [](vulkan::FCommandBuffer& cmdBuf)
-    {
-      cmdBuf.Free();
-    });
 
     // Closing render target images...
     m_OffscreenImage.Free();
@@ -527,34 +520,6 @@ private:
   }
 
 
-  void RecordCommandsUI(u32 frameIndex)
-  {
-    VkFramebuffer framebuffer = m_Swapchain.GetFramebuffers()[frameIndex];
-    VkRect2D renderArea{ .offset = { .x = 0, .y = 0 }, .extent = m_Swapchain.GetCurrentExtent() };
-    std::array<VkClearValue, 2> clearValues{};
-
-    vulkan::FCommandBuffer& cmdBuf = m_UiCommandBuffers[frameIndex];
-
-    cmdBuf.BeginRecording();
-
-    VkRenderPassBeginInfo beginInfo{
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        .pNext = nullptr,
-        .renderPass = m_RenderPass.GetHandle(),
-        .framebuffer = framebuffer,
-        .renderArea = renderArea,
-        .clearValueCount = clearValues.size(),
-        .pClearValues = clearValues.data()
-    };
-    vkCmdBeginRenderPass(cmdBuf.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    m_ImGuiRenderer.RecordCommands(cmdBuf);
-
-    vkCmdEndRenderPass(cmdBuf.GetHandle());
-    cmdBuf.EndRecording();
-  }
-
-
   std::shared_ptr<IWindow> m_Window;
   vulkan::FRenderContext m_RenderContext{};
   vulkan::FSwapchain m_Swapchain{};
@@ -574,10 +539,8 @@ private:
   vulkan::FDescriptorPool m_SceneDescriptorPool{};
   vulkan::FBuffer m_LightUniformBuffer{};
 
-  vulkan::FRenderPass m_RenderPass{};
   vulkan::FImage m_DepthImage{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
-  std::vector<vulkan::FCommandBuffer> m_UiCommandBuffers{};
 
   FPerspectiveCamera m_Camera{};
   vulkan::FBuffer m_PerFrameUniformBuffer{};
