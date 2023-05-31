@@ -36,6 +36,10 @@ public:
   void BeginOneTimeRecording();
   void EndRecording();
 
+  void BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, VkRect2D renderArea,
+                       std::span<VkClearValue> clearValues);
+  void EndRenderPass();
+
   void MemoryBarrier(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage,
                      VkPipelineStageFlags dstStage);
   void ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, VkAccessFlags dstFlags, VkImageLayout oldLayout,
@@ -56,7 +60,19 @@ public:
   void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
                           std::span<VkDescriptorSet> descriptorSets);
 
+  void BindVertexBuffers(std::span<VkBuffer> vertexBuffers);
+  void BindIndexBuffer(VkBuffer indexBuffer, VkIndexType indexType);
+
+  void SetViewport(VkViewport viewport);
+  void SetViewports(std::span<VkViewport> viewports);
+
+  void SetScissor(VkRect2D scissor);
+
+  void PushConstants(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStage, u32 size, const void* pConstants);
+
   void TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D);
+
+  void DrawIndexed(u32 elementsCount, u32 firstIndex, u32 indexOffset, i32 vertexOffset, u32 firstInstance);
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }

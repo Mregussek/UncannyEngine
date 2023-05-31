@@ -67,6 +67,28 @@ void FCommandBuffer::EndRecording()
 }
 
 
+void FCommandBuffer::BeginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, VkRect2D renderArea,
+                                     std::span<VkClearValue> clearValues)
+{
+  VkRenderPassBeginInfo beginInfo{
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      .pNext = nullptr,
+      .renderPass = renderPass,
+      .framebuffer = framebuffer,
+      .renderArea = renderArea,
+      .clearValueCount = (u32)clearValues.size(),
+      .pClearValues = clearValues.data()
+  };
+  vkCmdBeginRenderPass(m_CommandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+
+void FCommandBuffer::EndRenderPass()
+{
+  vkCmdEndRenderPass(m_CommandBuffer);
+}
+
+
 void FCommandBuffer::MemoryBarrier(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage,
                                    VkPipelineStageFlags dstStage)
 {
@@ -191,6 +213,49 @@ void FCommandBuffer::BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelin
 }
 
 
+void FCommandBuffer::BindVertexBuffers(std::span<VkBuffer> vertexBuffers)
+{
+  constexpr u32 firstBinding = 0;
+  constexpr VkDeviceSize offsets[]{ 0 };
+  vkCmdBindVertexBuffers(m_CommandBuffer, firstBinding, vertexBuffers.size(), vertexBuffers.data(), offsets);
+}
+
+
+void FCommandBuffer::BindIndexBuffer(VkBuffer indexBuffer, VkIndexType indexType)
+{
+  constexpr VkDeviceSize offset{ 0 };
+  vkCmdBindIndexBuffer(m_CommandBuffer, indexBuffer, offset, indexType);
+}
+
+
+void FCommandBuffer::SetViewport(VkViewport viewport)
+{
+  std::span<VkViewport> span(&viewport, 1);
+  SetViewports(span);
+}
+
+
+void FCommandBuffer::SetViewports(std::span<VkViewport> viewports)
+{
+  constexpr u32 firstViewport = 0;
+  vkCmdSetViewport(m_CommandBuffer, firstViewport, viewports.size(), viewports.data());
+}
+
+
+void FCommandBuffer::SetScissor(VkRect2D scissor)
+{
+  vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);
+}
+
+
+void FCommandBuffer::PushConstants(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStage, u32 size,
+                                   const void* pConstants)
+{
+  constexpr u32 offset{ 0 };
+  vkCmdPushConstants(m_CommandBuffer, pipelineLayout, shaderStage, offset, size, pConstants);
+}
+
+
 void FCommandBuffer::TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D)
 {
   const FBuffer& rayGenBuffer = pRayTracingPipeline->GetRayGenBuffer();
@@ -218,6 +283,13 @@ void FCommandBuffer::TraceRays(const FRayTracingPipeline* pRayTracingPipeline, V
 
   vkCmdTraceRaysKHR(m_CommandBuffer, &rayGenSBT, &rayMissSBT, &rayHitSBT, &rayCallableSBT,
                     extent3D.width, extent3D.height, extent3D.depth);
+}
+
+
+void FCommandBuffer::DrawIndexed(u32 elementsCount, u32 firstIndex, u32 indexOffset, i32 vertexOffset,
+                                 u32 firstInstance)
+{
+  vkCmdDrawIndexed(m_CommandBuffer, elementsCount, firstIndex, indexOffset, vertexOffset, firstInstance);
 }
 
 

@@ -175,21 +175,11 @@ void FImGuiRenderer::RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFra
   FCommandBuffer& commandBuffer = m_CommandBuffers[frameIndex];
 
   commandBuffer.BeginRecording();
-
-  VkRenderPassBeginInfo beginInfo{
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      .pNext = nullptr,
-      .renderPass = m_RenderPass.GetHandle(),
-      .framebuffer = swapchainFramebuffer,
-      .renderArea = renderArea,
-      .clearValueCount = clearValues.size(),
-      .pClearValues = clearValues.data()
-  };
-  vkCmdBeginRenderPass(commandBuffer.GetHandle(), &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+  commandBuffer.BeginRenderPass(m_RenderPass.GetHandle(), swapchainFramebuffer, renderArea, clearValues);
 
   RecordDrawCommands(frameIndex);
 
-  vkCmdEndRenderPass(commandBuffer.GetHandle());
+  commandBuffer.EndRenderPass();
   commandBuffer.EndRecording();
 }
 
@@ -199,28 +189,23 @@ void FImGuiRenderer::RecordDrawCommands(u32 frameIndex)
   ImGuiIO& io = ImGui::GetIO();
   FCommandBuffer& commandBuffer = m_CommandBuffers[frameIndex];
 
-  VkDescriptorSet descriptorSet = m_DescriptorPool.GetDescriptorSet();
-  vkCmdBindDescriptorSets(commandBuffer.GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout.GetHandle(), 0,
-                          1, &descriptorSet,
-                          0, nullptr);
-  vkCmdBindPipeline(commandBuffer.GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline.GetHandle());
+  commandBuffer.BindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout.GetHandle(),
+                                  m_DescriptorPool.GetDescriptorSet());
+  commandBuffer.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline.GetHandle());
 
   VkViewport viewport{ .width = io.DisplaySize.x, .height = io.DisplaySize.y, .minDepth = 0.0f, .maxDepth = 1.f };
-  vkCmdSetViewport(commandBuffer.GetHandle(), 0, 1, &viewport);
+  commandBuffer.SetViewport(viewport);
 
   pushConstBlock = FPushConstBlock{
     .scale = math::Vector2f{ 2.f / io.DisplaySize.x, 2.f / io.DisplaySize.y },
     .translate = math::Vector2f{ -1.f, -1.f }
   };
-  vkCmdPushConstants(commandBuffer.GetHandle(), m_PipelineLayout.GetHandle(), VK_SHADER_STAGE_VERTEX_BIT, 0,
-                     sizeof(FPushConstBlock), &pushConstBlock);
+  commandBuffer.PushConstants(m_PipelineLayout.GetHandle(), VK_SHADER_STAGE_VERTEX_BIT, sizeof(FPushConstBlock),
+                              &pushConstBlock);
 
-  VkBuffer vertexHandle = m_VertexBuffer.GetHandle();
-  std::span<VkBuffer> vertexHandles{ &vertexHandle, 1 };
-  VkDeviceSize offsets[]{ 0 };
-
-  vkCmdBindVertexBuffers(commandBuffer.GetHandle(), 0, vertexHandles.size(), vertexHandles.data(), offsets);
-  vkCmdBindIndexBuffer(commandBuffer.GetHandle(), m_IndexBuffer.GetHandle(), 0, VK_INDEX_TYPE_UINT16);
+  VkBuffer vertexHandles[]{ m_VertexBuffer.GetHandle() };
+  commandBuffer.BindVertexBuffers(vertexHandles);
+  commandBuffer.BindIndexBuffer(m_IndexBuffer.GetHandle(),  VK_INDEX_TYPE_UINT16);
 
   ImDrawData* imDrawData = ImGui::GetDrawData();
   i32 vertexOffset = 0;
@@ -242,8 +227,8 @@ void FImGuiRenderer::RecordDrawCommands(u32 frameIndex)
               .height = (u32)(pCmd.ClipRect.w - pCmd.ClipRect.y)
           }
       };
-      vkCmdSetScissor(commandBuffer.GetHandle(), 0, 1, &scissorRect);
-      vkCmdDrawIndexed(commandBuffer.GetHandle(), pCmd.ElemCount, 1, indexOffset, vertexOffset, 0);
+      commandBuffer.SetScissor(scissorRect);
+      commandBuffer.DrawIndexed(pCmd.ElemCount, 1, indexOffset, vertexOffset, 0);
       indexOffset += pCmd.ElemCount;
     }
     vertexOffset += pCmdList->VtxBuffer.Size;
