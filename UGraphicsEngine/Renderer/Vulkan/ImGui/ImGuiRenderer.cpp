@@ -92,7 +92,7 @@ void FImGuiRenderer::BeginFrame(VkExtent2D swapchainExtent, FMouseButtonsPressed
 }
 
 
-void FImGuiRenderer::EndFrame(u32 frameIndex, const FQueue &queueUsingBuffers, VkFramebuffer swapchainFramebuffer)
+void FImGuiRenderer::EndFrame(u32 frameIndex, const FQueue& queueUsingBuffers, VkFramebuffer swapchainFramebuffer)
 {
   ImGui::Render();
 

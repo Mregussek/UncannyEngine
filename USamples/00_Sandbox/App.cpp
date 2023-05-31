@@ -32,10 +32,10 @@ void Application::Run() {
       m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
 
-    const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
-
     m_Swapchain.WaitForNextImage();
+
     u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
+    const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
 
     m_ImGuiRenderer.BeginFrame(m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
                                m_Window->GetMousePosition());
@@ -74,20 +74,15 @@ void Application::Run() {
 
       m_CommandPool.Reset();
 
-      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
-      m_OffscreenImage.Recreate(swapchainExtent);
+      m_OffscreenImage.Recreate(m_Swapchain.GetCurrentExtent());
       {
         u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[1].binding;
         m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
       }
 
-      m_Camera.SetAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
-      {
-        FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-        m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
-      }
+      m_Camera.SetAspectRatio(m_Swapchain.GetCurrentAspectRatio());
 
-      m_DepthImage.Recreate(swapchainExtent);
+      m_DepthImage.Recreate(m_Swapchain.GetCurrentExtent());
 
       m_Swapchain.CreateViews();
       m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
