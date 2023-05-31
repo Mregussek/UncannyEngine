@@ -46,8 +46,8 @@ public:
   void Create(const FImGuiRendererSpecification& specification);
   void Destroy();
 
-  void Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkFramebuffer swapchainFramebuffer,
-              VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
+  void BeginFrame(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
+  void EndFrame(u32 frameIndex, const FQueue& queueUsingBuffers, VkFramebuffer swapchainFramebuffer);
 
   [[nodiscard]] VkSemaphore GetSemaphore(u32 frameIndex) const { return m_Semaphores[frameIndex].GetHandle(); }
   [[nodiscard]] const FCommandBuffer& GetCommandBuffer(u32 frameIndex) const { return m_CommandBuffers[frameIndex]; }
@@ -62,7 +62,7 @@ private:
   void UpdateIO(VkExtent2D extent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
   void UpdateBuffers(const FQueue& queueUsingBuffers);
 
-  void RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent);
+  void RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer);
   void RecordDrawCommands(u32 frameIndex);
 
 private:

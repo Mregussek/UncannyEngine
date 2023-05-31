@@ -62,9 +62,16 @@ public:
       m_Swapchain.WaitForNextImage();
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
-      m_ImGuiRenderer.Update(frameIndex, graphicsQueue, m_Swapchain.GetFramebuffers()[frameIndex],
-                             m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
-                             m_Window->GetMousePosition());
+      m_ImGuiRenderer.BeginFrame(m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
+                                 m_Window->GetMousePosition());
+      {
+        ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Vulkan Example");
+        ImGui::Text("Mateusz Rzeczyca");
+        ImGui::End();
+        ImGui::ShowDemoWindow();
+      }
+      m_ImGuiRenderer.EndFrame(frameIndex, graphicsQueue, m_Swapchain.GetFramebuffers()[frameIndex]);
 
       {
         VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };

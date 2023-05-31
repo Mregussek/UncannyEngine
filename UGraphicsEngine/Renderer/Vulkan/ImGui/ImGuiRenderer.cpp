@@ -76,9 +76,8 @@ void FImGuiRenderer::Destroy()
 }
 
 
-void FImGuiRenderer::Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkFramebuffer swapchainFramebuffer,
-                            VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed,
-                            FMousePosition mousePosition)
+void FImGuiRenderer::BeginFrame(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed,
+                                FMousePosition mousePosition)
 {
   if (swapchainExtent.width == 0 or swapchainExtent.height == 0)
   {
@@ -89,20 +88,15 @@ void FImGuiRenderer::Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkF
   UpdateIO(swapchainExtent, mouseButtonsPressed, mousePosition);
 
   ImGui::NewFrame();
+}
 
-  ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_FirstUseEver);
 
-  ImGui::Begin("Vulkan Example");
-  ImGui::Text("Mateusz Rzeczyca");
-  ImGui::End();
-
-  ImGui::ShowDemoWindow();
-
-  // Render to generate draw buffers
+void FImGuiRenderer::EndFrame(u32 frameIndex, const FQueue &queueUsingBuffers, VkFramebuffer swapchainFramebuffer)
+{
   ImGui::Render();
 
   UpdateBuffers(queueUsingBuffers);
-  RecordRenderPass(frameIndex, swapchainFramebuffer, swapchainExtent);
+  RecordRenderPass(frameIndex, swapchainFramebuffer);
 }
 
 
@@ -173,9 +167,13 @@ void FImGuiRenderer::UpdateBuffers(const FQueue& queueUsingBuffers)
 }
 
 
-void FImGuiRenderer::RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer, VkExtent2D swapchainExtent)
+void FImGuiRenderer::RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer)
 {
-  VkRect2D renderArea{ .offset = { .x = 0, .y = 0 }, .extent = swapchainExtent };
+  ImGuiIO& io = ImGui::GetIO();
+  VkRect2D renderArea{
+    .offset = { .x = 0, .y = 0 },
+    .extent = { .width = (u32)io.DisplaySize.x, .height = (u32)io.DisplaySize.y }
+  };
   std::array<VkClearValue, 2> clearValues{};
   FCommandBuffer& commandBuffer = m_CommandBuffers[frameIndex];
 
