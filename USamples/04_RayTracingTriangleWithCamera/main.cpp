@@ -147,14 +147,12 @@ private:
     // Creating acceleration structures...
     FRenderData triangleData = FRenderMeshFactory::CreateTriangle();
 
-    m_BottomLevelAS = vulkan::FBottomLevelAccelerationStructure(pLogicalDevice->GetHandle(),
-                                                                &pPhysicalDevice->GetAttributes());
     m_BottomLevelAS.Build(triangleData.mesh, triangleData.materials, m_CommandPool,
-                          pLogicalDevice->GetGraphicsQueue());
+                          pLogicalDevice->GetGraphicsQueue(), pLogicalDevice->GetHandle(),
+                          &pPhysicalDevice->GetAttributes());
 
-    m_TopLevelAS = vulkan::FTopLevelAccelerationStructure(pLogicalDevice->GetHandle(),
-                                                          &pPhysicalDevice->GetAttributes());
-    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+    m_TopLevelAS.Build(m_BottomLevelAS, m_CommandPool, pLogicalDevice->GetGraphicsQueue(),
+                       pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
 
     // Creating camera...
     {
@@ -176,16 +174,15 @@ private:
       m_Camera.Initialize(cameraSpecification);
     }
 
-    m_PerFrameUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pLogicalDevice->GetHandle(),
+                                     &pPhysicalDevice->GetAttributes());
     {
       FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
       m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
 
     // Creating off screen buffer...
-    m_OffscreenImage = vulkan::FImage(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       VkFormat swapchainFormat = m_Swapchain.GetFormat();
       VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
@@ -193,7 +190,8 @@ private:
       VkImageUsageFlags flags =
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
       m_OffscreenImage.Allocate(swapchainFormat, swapchainExtent, flags, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies);
+                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies, pLogicalDevice->GetHandle(),
+                                &pPhysicalDevice->GetAttributes());
     }
     m_OffscreenImage.CreateView();
 

@@ -132,8 +132,7 @@ private:
     for (u32 i = 0; i < backBufferCount; i++)
     {
       { // render target images...
-        vulkan::FImage& image = m_RenderTargetImages.emplace_back(pLogicalDevice->GetHandle(),
-                                                                  &pPhysicalDevice->GetAttributes());
+        vulkan::FImage& image = m_RenderTargetImages.emplace_back();
         VkExtent2D extent = m_Swapchain.GetCurrentExtent();
         VkFormat format = m_Swapchain.GetFormat();
         VkImageUsageFlags usage =
@@ -143,7 +142,8 @@ private:
         VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         vulkan::FQueueFamilyIndex queueFamilies[]{ m_GraphicsCommandPool.GetFamilyIndex(),
                                                    m_TransferCommandPool.GetFamilyIndex() };
-        image.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies);
+        image.Allocate(format, extent, usage, initialLayout, memoryFlags, queueFamilies, pLogicalDevice->GetHandle(),
+                       &pPhysicalDevice->GetAttributes());
       }
       { // semaphores...
         vulkan::FSemaphore& semaphore = m_RenderSemaphores.emplace_back();
