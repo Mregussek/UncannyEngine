@@ -80,6 +80,12 @@ void FImGuiRenderer::Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkF
                             VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed,
                             FMousePosition mousePosition)
 {
+  if (swapchainExtent.width == 0 or swapchainExtent.height == 0)
+  {
+    UWARN("Cannot Update ImGui Renderer as extent is ({}, {})", swapchainExtent.width, swapchainExtent.height);
+    return;
+  }
+
   UpdateIO(swapchainExtent, mouseButtonsPressed, mousePosition);
 
   ImGui::NewFrame();
