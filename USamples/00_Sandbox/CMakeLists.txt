@@ -1,5 +1,5 @@
 
-add_executable(00_Sandbox main.cpp)
+add_executable(00_Sandbox main.cpp App.cpp App.h)
 target_include_directories(00_Sandbox
         PUBLIC
         ${PROJECT_SOURCE_DIR}
