@@ -87,4 +87,11 @@ void FTopLevelAccelerationStructure::Build(std::span<VkAccelerationStructureInst
 }
 
 
+void FTopLevelAccelerationStructure::Destroy()
+{
+  FAccelerationStructure::Destroy();
+  m_BottomUniformData.clear();
+}
+
+
 }

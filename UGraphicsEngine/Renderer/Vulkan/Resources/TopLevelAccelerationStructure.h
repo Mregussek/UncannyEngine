@@ -30,6 +30,8 @@ public:
   void Build(std::span<const FBottomLevelAccelerationStructure> bottomLevelStructures, const FCommandPool& commandPool,
              const FQueue& queue, VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
 
+  void Destroy();
+
   [[nodiscard]] const std::vector<FBottomLevelStructureReferenceUniformData>& GetBLASReferenceUniformData() const
   {
     return m_BottomUniformData;

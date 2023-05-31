@@ -5,7 +5,7 @@
 Application::Application()
 {
   CreateEngineResources();
-  CreateLevelResources();
+  CreateLevelResources(m_ScenePaths[m_SelectedScenePath]);
 }
 
 Application::~Application()
@@ -39,12 +39,27 @@ void Application::Run() {
 
     m_ImGuiRenderer.BeginFrame(m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
                                m_Window->GetMousePosition());
+    b8 shouldChangeScene = UFALSE;
     {
-      ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_FirstUseEver);
-      ImGui::Begin("Vulkan Example");
-      ImGui::Text("Mateusz Rzeczyca");
-      ImGui::End();
+      ImGui::SetNextWindowSize(ImVec2(500.f, 200.f), ImGuiCond_FirstUseEver);
+      ImGui::Begin("Inspector Uncanny Engine Window");
+
+      auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
+
+      ImGui::DragInt("Max Accumulation Color Frames Limit", (i32*)&rtxSpecs.maxFrameCounterLimit, 1, 1, 8392);
+      ImGui::DragInt("Max Ray Bounces", (i32*)&rtxSpecs.maxRayBounces, 1, 1, 32);
+      ImGui::DragInt("Max Samples Per Pixel", (i32*)&rtxSpecs.maxSamplesPerPixel, 1, 1, 32);
+
+      const i32 savedItem = m_SelectedScenePath;
+      ImGui::Combo("combo", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
+      if (savedItem != m_SelectedScenePath)
+      {
+        shouldChangeScene = UTRUE;
+      }
+
       ImGui::ShowDemoWindow();
+
+      ImGui::End();
     }
     m_ImGuiRenderer.EndFrame(frameIndex, graphicsQueue, m_Swapchain.GetFramebuffers()[frameIndex]);
 
@@ -72,13 +87,8 @@ void Application::Run() {
 
       m_Swapchain.Recreate();
 
-      m_CommandPool.Reset();
-
       m_OffscreenImage.Recreate(m_Swapchain.GetCurrentExtent());
-      {
-        u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[1].binding;
-        m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
-      }
+      m_WriteOffscreenImageToDescriptorSet(m_OffscreenImage.GetHandleView());
 
       m_Camera.SetAspectRatio(m_Swapchain.GetCurrentAspectRatio());
 
@@ -88,6 +98,13 @@ void Application::Run() {
       m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
 
       RecordRayTracingCommands();
+    }
+
+    if (shouldChangeScene)
+    {
+      m_RenderContext.GetLogicalDevice()->WaitIdle();
+      DestroyLevelResources();
+      CreateLevelResources(m_ScenePaths[m_SelectedScenePath]);
     }
   }
 }
@@ -267,7 +284,11 @@ void Application::CreateEngineResources() {
   }
   {
     u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[1].binding;
-    m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(m_OffscreenImage.GetHandleView(), dstBinding);
+    m_WriteOffscreenImageToDescriptorSet = [this, dstBinding](VkImageView offscreenView)
+    {
+      m_RayTracingDescriptorPool.WriteStorageImageToDescriptorSet(offscreenView, dstBinding);
+    };
+    m_WriteOffscreenImageToDescriptorSet(m_OffscreenImage.GetHandleView());
   }
   {
     u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[2].binding;
@@ -330,10 +351,27 @@ void Application::CreateEngineResources() {
     m_Swapchain.CreateViews();
     m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
   }
+
+  // Adding scenes to change
+  {
+    FPath sceneSamplesPath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples" });
+    m_ScenePaths.reserve(5);
+    m_ScenePathsCstr.reserve(5);
+
+    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "CornellBox_Spheres.json" }));
+    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "DefaultScene.json" }));
+    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "CornellBox_Original.json" }));
+    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "ConferenceRoom.json" }));
+
+    for (const FPath& scene : m_ScenePaths)
+    {
+      m_ScenePathsCstr.emplace_back(scene.GetString().c_str());
+    }
+  }
 }
 
 
-void Application::CreateLevelResources()
+void Application::CreateLevelResources(const FPath& scenePath)
 {
   const vulkan::FPhysicalDeviceAttributes& physicalDeviceAttributes =
       m_RenderContext.GetPhysicalDevice()->GetAttributes();
@@ -341,10 +379,6 @@ void Application::CreateLevelResources()
 
   // Registering entities with render mesh components and loading several obj files...
   m_EntityRegistry.Create();
-  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
-  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Original.json" });
-  FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
-  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
   FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
   // Converting asset meshes and materials into render meshes and materials...
@@ -464,6 +498,8 @@ void Application::DestroyEngineResources()
 
 void Application::RecordRayTracingCommands()
 {
+  m_CommandPool.Reset();
+
   VkExtent3D offscreenExtent = m_OffscreenImage.GetExtent3D();
   VkImage offscreenImage = m_OffscreenImage.GetHandle();
 

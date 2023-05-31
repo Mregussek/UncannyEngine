@@ -49,7 +49,7 @@ private:
 
   void CreateEngineResources();
 
-  void CreateLevelResources();
+  void CreateLevelResources(const FPath& scenePath);
   void DestroyLevelResources();
 
   void DestroyEngineResources();
@@ -83,6 +83,7 @@ private:
 
   vulkan::FDescriptorSetLayout m_RayTracingDescriptorSetLayout{};
   vulkan::FDescriptorPool m_RayTracingDescriptorPool{};
+  std::function<void(VkImageView)> m_WriteOffscreenImageToDescriptorSet{};
   std::function<void(VkAccelerationStructureKHR)> m_WriteTlasToDescriptorSet{};
 
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
@@ -90,6 +91,9 @@ private:
 
   vulkan::FImage m_DepthImage{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
+
+  std::vector<FPath> m_ScenePaths{};
+  std::vector<const char*> m_ScenePathsCstr{};
 
   // Level Resources that can be reinitialized when scene is changed at runtime
 
@@ -100,7 +104,7 @@ private:
   FAssetRegistry m_AssetRegistry{};
   FEntityRegistry m_EntityRegistry{};
 
-
+  i32 m_SelectedScenePath{ 0 };
 
 };
 

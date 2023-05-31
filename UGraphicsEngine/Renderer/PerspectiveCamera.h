@@ -72,6 +72,9 @@ public:
   [[nodiscard]] FPerspectiveCameraUniformData GetUniformData() const;
   [[nodiscard]] b32 HasMoved() const;
 
+  [[nodiscard]] FPerspectiveCameraSpecification& GetSpecification() { return m_Specification; }
+  [[nodiscard]] FCameraRayTracingSpecification& GetRayTracingSpecification() { return m_RayTracingSpecification; }
+
 private:
 
   void ProcessKeyboardInput(IWindow* pWindow, f32 deltaTime);
