@@ -21,8 +21,12 @@ class FAccelerationStructure
 {
 public:
 
-  FAccelerationStructure() = default;
-  FAccelerationStructure(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
+  [[nodiscard]] VkAccelerationStructureKHR GetHandle() const { return m_AccelerationStructure; }
+  [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
+
+  void Destroy();
+
+protected:
 
   void AcquireSizeForBuild(VkAccelerationStructureTypeKHR type, u32 trianglesCount,
                            const VkAccelerationStructureGeometryKHR* pGeometry);
@@ -32,11 +36,6 @@ public:
   void Build(VkAccelerationStructureTypeKHR type,
              const VkAccelerationStructureGeometryKHR* pGeometry,
              u32 primitiveCount, const FCommandPool& commandPool, const FQueue& queue);
-
-  void Destroy();
-
-  [[nodiscard]] VkAccelerationStructureKHR GetHandle() const { return m_AccelerationStructure; }
-  [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
 
 protected:
 

@@ -8,15 +8,6 @@ namespace uncanny::vulkan
 {
 
 
-FAccelerationStructure::FAccelerationStructure(VkDevice vkDevice,
-                                               const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
-  : m_Device(vkDevice),
-  m_pPhysicalDeviceAttributes(pPhysicalDeviceAttributes),
-  m_AccelerationMemoryBuffer(vkDevice, pPhysicalDeviceAttributes)
-{
-}
-
-
 void FAccelerationStructure::AcquireSizeForBuild(VkAccelerationStructureTypeKHR type, u32 trianglesCount,
                                                  const VkAccelerationStructureGeometryKHR* pGeometry)
 {
@@ -41,7 +32,8 @@ void FAccelerationStructure::Create(VkAccelerationStructureTypeKHR type)
 {
   VkBufferUsageFlags accelerationUsageFlags =
       VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-  m_AccelerationMemoryBuffer.Allocate(m_Size, accelerationUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  m_AccelerationMemoryBuffer.Allocate(m_Size, accelerationUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                      m_Device, m_pPhysicalDeviceAttributes);
 
   VkAccelerationStructureCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
@@ -74,9 +66,9 @@ void FAccelerationStructure::Build(VkAccelerationStructureTypeKHR type,
                                    const VkAccelerationStructureGeometryKHR* pGeometry,
                                    u32 primitiveCount, const FCommandPool& commandPool, const FQueue& queue)
 {
-  FBuffer scratchBuffer(m_Device, m_pPhysicalDeviceAttributes);
+  FBuffer scratchBuffer{};
   scratchBuffer.Allocate(m_ScratchSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Device, m_pPhysicalDeviceAttributes);
   VkDeviceOrHostAddressKHR scratchDeviceAddress{
       .deviceAddress = scratchBuffer.GetDeviceAddress()
   };

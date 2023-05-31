@@ -6,19 +6,9 @@ namespace uncanny::vulkan
 {
 
 
-FBottomLevelAccelerationStructure::FBottomLevelAccelerationStructure(
-    VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
-    : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes),
-      m_VertexBuffer(vkDevice, pPhysicalDeviceAttributes),
-      m_IndexBuffer(vkDevice, pPhysicalDeviceAttributes),
-      m_MaterialBuffer(vkDevice, pPhysicalDeviceAttributes),
-      m_MaterialIndexBuffer(vkDevice, pPhysicalDeviceAttributes)
+FBottomLevelAccelerationStructure::~FBottomLevelAccelerationStructure()
 {
-  m_Transform = {
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 1.0f, 0.0f
-  };
+  Destroy();
 }
 
 
@@ -32,11 +22,13 @@ void FBottomLevelAccelerationStructure::Destroy()
 }
 
 
-void FBottomLevelAccelerationStructure::Build(const FRenderMeshData& meshData,
-                                              std::span<FRenderMaterialData> materials,
-                                              const FCommandPool& commandPool,
-                                              const FQueue& queue)
+void FBottomLevelAccelerationStructure::Build(const FRenderMeshData& meshData, std::span<FRenderMaterialData> materials,
+                                              const FCommandPool& commandPool, const FQueue& queue, VkDevice vkDevice,
+                                              const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
 {
+  m_Device = vkDevice;
+  m_pPhysicalDeviceAttributes = pPhysicalDeviceAttributes;
+
   AssignTransformMatrix(meshData.transform);
 
   const std::vector<FRenderVertex>& vertices = meshData.vertices;
@@ -47,24 +39,22 @@ void FBottomLevelAccelerationStructure::Build(const FRenderMeshData& meshData,
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
       VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-  m_VertexBuffer.Allocate(vertices.size() * sizeof(FRenderVertex),
-                          bufferUsageFlags | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  m_VertexBuffer.Allocate(vertices.size() * sizeof(FRenderVertex), bufferUsageFlags | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Device, m_pPhysicalDeviceAttributes);
   m_VertexBuffer.FillStaged(vertices.data(), sizeof(FRenderVertex), vertices.size(), commandPool, queue);
 
-  m_IndexBuffer.Allocate(indices.size() * sizeof(u32),
-                         bufferUsageFlags | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  m_IndexBuffer.Allocate(indices.size() * sizeof(u32), bufferUsageFlags | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Device, m_pPhysicalDeviceAttributes);
   m_IndexBuffer.FillStaged(indices.data(), sizeof(u32), indices.size(), commandPool, queue);
 
   m_MaterialBuffer.Allocate(materials.size() * sizeof(FRenderMaterialData),
                             bufferUsageFlags | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Device, m_pPhysicalDeviceAttributes);
   m_MaterialBuffer.FillStaged(materials.data(), sizeof(FRenderMaterialData), materials.size(), commandPool, queue);
 
   m_MaterialIndexBuffer.Allocate(materialIndices.size() * sizeof(u32),
-                            bufferUsageFlags | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                                 bufferUsageFlags | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Device, m_pPhysicalDeviceAttributes);
   m_MaterialIndexBuffer.FillStaged(materialIndices.data(), sizeof(u32), materialIndices.size(), commandPool, queue);
 
   u32 trianglesCount = m_IndexBuffer.GetFilledElementsCount() / 3;

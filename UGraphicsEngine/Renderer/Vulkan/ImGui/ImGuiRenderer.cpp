@@ -30,11 +30,6 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
   m_Device = specification.vkDevice;
   m_pPhysicalDeviceAttributes = specification.pPhysicalDeviceAttributes;
 
-  m_FontImage = FImage(m_Device, m_pPhysicalDeviceAttributes);
-  m_Sampler = FSampler(m_Device);
-  m_VertexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
-  m_IndexBuffer = FBuffer(m_Device, m_pPhysicalDeviceAttributes);
-
   m_Semaphores.resize(specification.backBufferCount);
   for(u32 i = 0; i < specification.backBufferCount; i++)
   {
@@ -144,14 +139,14 @@ void FImGuiRenderer::UpdateBuffers(const FQueue& queueUsingBuffers)
     queueUsingBuffers.WaitIdle();
     m_VertexBuffer.Free();
     m_VertexBuffer.Allocate(vertexBufferSize * 2, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_Device, m_pPhysicalDeviceAttributes);
   }
   if ((not m_IndexBuffer.IsValid()) or (indexBufferSize > m_IndexBuffer.GetAllocatedSize()))
   {
     queueUsingBuffers.WaitIdle();
     m_IndexBuffer.Free();
     m_IndexBuffer.Allocate(indexBufferSize * 2, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_Device, m_pPhysicalDeviceAttributes);
   }
 
   {
@@ -271,15 +266,16 @@ void FImGuiRenderer::CreateFontData(const FCommandPool& transferCommandPool, con
 
   m_FontImage.Allocate(VK_FORMAT_R8G8B8A8_UNORM, fontExtent,
                        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                       VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                       {});
+                       VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, {},
+                       m_Device, m_pPhysicalDeviceAttributes);
   m_FontImage.CreateView();
 
   // Staging buffer for font uploading
   VkDeviceSize stagingSize = texWidth * texHeight * 4 * sizeof(char);
-  FBuffer stagingBuffer{ m_Device, m_pPhysicalDeviceAttributes };
+  FBuffer stagingBuffer{};
   stagingBuffer.Allocate(stagingSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                         m_Device, m_pPhysicalDeviceAttributes);
   stagingBuffer.Fill(fontData, 4 * sizeof(char), texWidth * texHeight);
 
   // Copy Buffer Into Image
@@ -316,7 +312,7 @@ void FImGuiRenderer::CreateFontData(const FCommandPool& transferCommandPool, con
   transferQueue.Submit({}, waitStageFlags, commandBuffer, {}, VK_NULL_HANDLE);
   transferQueue.WaitIdle();
 
-  m_Sampler.Create();
+  m_Sampler.Create(m_Device);
 }
 
 

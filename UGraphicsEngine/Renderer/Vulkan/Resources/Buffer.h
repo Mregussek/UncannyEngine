@@ -21,11 +21,10 @@ class FBuffer
 {
 public:
 
-  FBuffer() = default;
-  FBuffer(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
   ~FBuffer();
 
-  void Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags);
+  void Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags,
+                VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
   void Free();
 
   void* Map();

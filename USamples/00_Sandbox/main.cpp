@@ -213,37 +213,35 @@ private:
     m_BottomLevelAccelerationVector.reserve(renderDataVector.size());
     for (auto& data : renderDataVector)
     {
-      auto& bottomAS = m_BottomLevelAccelerationVector.emplace_back(pLogicalDevice->GetHandle(),
-                                                                    &pPhysicalDevice->GetAttributes());
-      bottomAS.Build(data.mesh, data.materials, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+      auto& bottomAS = m_BottomLevelAccelerationVector.emplace_back();
+      bottomAS.Build(data.mesh, data.materials, m_CommandPool, pLogicalDevice->GetGraphicsQueue(),
+                     pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     }
-    m_TopLevelAS = vulkan::FTopLevelAccelerationStructure(pLogicalDevice->GetHandle(),
-                                                          &pPhysicalDevice->GetAttributes());
-    m_TopLevelAS.Build(m_BottomLevelAccelerationVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue());
+    m_TopLevelAS.Build(m_BottomLevelAccelerationVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue(),
+                       pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
 
     // Creating blas reference uniform buffer...
-    m_BLASReferenceUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
       m_BLASReferenceUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
                                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, pLogicalDevice->GetHandle(),
+                                            &pPhysicalDevice->GetAttributes());
       m_BLASReferenceUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]),
                                               blasUniformData.size(), m_CommandPool,
                                               pLogicalDevice->GetGraphicsQueue());
     }
 
     // Creating per frame buffer for camera...
-    m_PerFrameUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pLogicalDevice->GetHandle(),
+                                     &pPhysicalDevice->GetAttributes());
     {
       FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
       m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
 
     // Creating off screen buffer...
-    m_OffscreenImage = vulkan::FImage(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       VkFormat swapchainFormat = m_Swapchain.GetFormat();
       VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
@@ -251,18 +249,19 @@ private:
       VkImageUsageFlags flags =
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
       m_OffscreenImage.Allocate(swapchainFormat, swapchainExtent, flags, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies);
+                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies,
+                                pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     }
     m_OffscreenImage.CreateView();
 
     // Creating light buffer
     m_Light.position = { -1.f, -1.f, 0.2f };
 
-    m_LightUniformBuffer = vulkan::FBuffer(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       FLightUniformData uniformData{ .position = m_Light.position };
       m_LightUniformBuffer.Allocate(sizeof(FLightUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                    pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
       m_LightUniformBuffer.Fill(&uniformData, sizeof(FLightUniformData), 1);
     }
 
@@ -375,10 +374,10 @@ private:
 
     // Creating imgui
     {
-      m_DepthImage = vulkan::FImage(pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
       m_DepthImage.Allocate(VK_FORMAT_D32_SFLOAT, m_Swapchain.GetCurrentExtent(),
                             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                            VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, {});
+                            VK_IMAGE_LAYOUT_UNDEFINED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, {},
+                            pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
       m_DepthImage.CreateView();
 
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",

@@ -6,24 +6,22 @@ namespace uncanny::vulkan
 {
 
 
-FTopLevelAccelerationStructure::FTopLevelAccelerationStructure(
-    VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
-    : FAccelerationStructure(vkDevice, pPhysicalDeviceAttributes)
-{
-}
-
-
 void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructure& bottomLevelStructure,
-                                           const FCommandPool& commandPool, const FQueue& queue)
+                                           const FCommandPool& commandPool, const FQueue& queue, VkDevice vkDevice,
+                                           const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
 {
   std::span<const FBottomLevelAccelerationStructure> span(&bottomLevelStructure, 1);
-  Build(span, commandPool, queue);
+  Build(span, commandPool, queue, vkDevice, pPhysicalDeviceAttributes);
 }
 
 
 void FTopLevelAccelerationStructure::Build(std::span<const FBottomLevelAccelerationStructure> bottomLevelStructures,
-                                           const FCommandPool& commandPool, const FQueue& queue)
+                                           const FCommandPool& commandPool, const FQueue& queue, VkDevice vkDevice,
+                                           const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
 {
+  m_Device = vkDevice;
+  m_pPhysicalDeviceAttributes = pPhysicalDeviceAttributes;
+
   std::vector<VkAccelerationStructureInstanceKHR> instances;
   instances.reserve(bottomLevelStructures.size());
   m_BottomUniformData.reserve(bottomLevelStructures.size());
@@ -53,13 +51,13 @@ void FTopLevelAccelerationStructure::Build(std::span<VkAccelerationStructureInst
 {
   u32 instancesCount = instances.size();
 
-  FBuffer instanceBuffer(m_Device, m_pPhysicalDeviceAttributes);
+  FBuffer instanceBuffer{};
   VkBufferUsageFlags usageFlags =
       VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
       VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   instanceBuffer.Allocate(sizeof(VkAccelerationStructureInstanceKHR) * instancesCount, usageFlags,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Device, m_pPhysicalDeviceAttributes);
   instanceBuffer.FillStaged(instances.data(), sizeof(VkAccelerationStructureInstanceKHR), instancesCount, commandPool,
                             queue);
   VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{

@@ -7,20 +7,16 @@ namespace uncanny::vulkan
 {
 
 
-FSampler::FSampler(VkDevice vkDevice)
-  : m_Device(vkDevice)
-{
-}
-
-
 FSampler::~FSampler()
 {
   Destroy();
 }
 
 
-void FSampler::Create()
+void FSampler::Create(VkDevice vkDevice)
 {
+  m_Device = vkDevice;
+
   VkSamplerCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
     .pNext = nullptr,

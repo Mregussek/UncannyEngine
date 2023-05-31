@@ -8,21 +8,17 @@ namespace uncanny::vulkan
 {
 
 
-FBuffer::FBuffer(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
-  : m_pPhysicalDeviceAttributes(pPhysicalDeviceAttributes),
-  m_Device(vkDevice)
-{
-}
-
-
 FBuffer::~FBuffer()
 {
   Free();
 }
 
 
-void FBuffer::Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags)
+void FBuffer::Allocate(VkDeviceSize memorySize, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryFlags,
+                       VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
 {
+  m_Device = vkDevice;
+  m_pPhysicalDeviceAttributes = pPhysicalDeviceAttributes;
   m_MemoryPropertyFlags = memoryFlags;
   m_AllocatedMemorySize = memorySize;
 
@@ -130,8 +126,9 @@ void FBuffer::FillStaged(const void* pData, u32 elementSizeof, u32 elementsCount
   m_ElementsCount = elementsCount;
   m_ElementsSizeInBytes = m_Stride * m_ElementsCount;
 
-  FBuffer stagingBuffer{ m_Device, m_pPhysicalDeviceAttributes };
-  stagingBuffer.Allocate(m_ElementsSizeInBytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  FBuffer stagingBuffer{};
+  stagingBuffer.Allocate(m_ElementsSizeInBytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                         m_Device, m_pPhysicalDeviceAttributes);
   stagingBuffer.Fill(pData, elementSizeof, elementsCount);
 
   FCommandBuffer commandBuffer = transferCommandPool.AllocatePrimaryCommandBuffer();
@@ -142,7 +139,7 @@ void FBuffer::FillStaged(const void* pData, u32 elementSizeof, u32 elementsCount
     .dstOffset = 0, // Optional
     .size = m_ElementsSizeInBytes
   };
-  vkCmdCopyBuffer(commandBuffer.GetHandle(), stagingBuffer.m_Buffer, m_Buffer, 1, &copyRegion);
+  vkCmdCopyBuffer(commandBuffer.GetHandle(), stagingBuffer.GetHandle(), m_Buffer, 1, &copyRegion);
 
   commandBuffer.EndRecording();
 

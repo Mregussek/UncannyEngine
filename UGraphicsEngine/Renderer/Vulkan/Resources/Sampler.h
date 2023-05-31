@@ -14,11 +14,9 @@ class FSampler
 {
 public:
 
-  FSampler() = default;
-  FSampler(VkDevice vkDevice);
   ~FSampler();
 
-  void Create();
+  void Create(VkDevice vkDevice);
   void Destroy();
 
   [[nodiscard]] VkSampler GetHandle() const { return m_Sampler; }

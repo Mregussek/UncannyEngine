@@ -9,13 +9,6 @@ namespace uncanny::vulkan
 {
 
 
-FImage::FImage(VkDevice vkDevice, const FPhysicalDeviceAttributes *pPhysicalDeviceAttributes)
-  : m_pPhysicalDeviceAttributes(pPhysicalDeviceAttributes),
-  m_Device(vkDevice)
-{
-}
-
-
 FImage::~FImage()
 {
   Free();
@@ -23,8 +16,11 @@ FImage::~FImage()
 
 
 void FImage::Allocate(VkFormat format, VkExtent2D extent2D, VkImageUsageFlags usage, VkImageLayout initialLayout,
-                      VkMemoryPropertyFlags memoryFlags, std::span<FQueueFamilyIndex> queueFamilies)
+                      VkMemoryPropertyFlags memoryFlags, std::span<FQueueFamilyIndex> queueFamilies,
+                      VkDevice vkDevice, const FPhysicalDeviceAttributes *pPhysicalDeviceAttributes)
 {
+  m_Device = vkDevice;
+  m_pPhysicalDeviceAttributes = pPhysicalDeviceAttributes;
   m_MemoryFlags = memoryFlags;
 
   VkImageCreateInfo createInfo{

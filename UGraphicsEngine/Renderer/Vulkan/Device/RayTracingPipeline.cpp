@@ -178,16 +178,16 @@ void FRayTracingPipeline::CreateShaderBindingTable(const VkPhysicalDeviceRayTrac
   VkBufferUsageFlags bufferUsageFlags =
       VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 
-  m_RayGenBuffer = vulkan::FBuffer(m_Device, m_pPhysicalDeviceAttributes);
-  m_RayGenBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  m_RayGenBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_Device,
+                          m_pPhysicalDeviceAttributes);
   m_RayGenBuffer.Fill(sbtResults.data(), sizeof(u8), sbtHandleSize);
 
-  m_RayMissBuffer = vulkan::FBuffer(m_Device, m_pPhysicalDeviceAttributes);
-  m_RayMissBuffer.Allocate(sbtHandleSize * 2, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  m_RayMissBuffer.Allocate(sbtHandleSize * 2, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_Device,
+                           m_pPhysicalDeviceAttributes);
   m_RayMissBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned, sizeof(u8), sbtHandleSize * 2);
 
-  m_RayClosestHitBuffer = vulkan::FBuffer(m_Device, m_pPhysicalDeviceAttributes);
-  m_RayClosestHitBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  m_RayClosestHitBuffer.Allocate(sbtHandleSize, bufferUsageFlags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_Device,
+                                 m_pPhysicalDeviceAttributes);
   m_RayClosestHitBuffer.Fill(sbtResults.data() + sbtHandleSizeAligned * 3, sizeof(u8), sbtHandleSize);
 }
 

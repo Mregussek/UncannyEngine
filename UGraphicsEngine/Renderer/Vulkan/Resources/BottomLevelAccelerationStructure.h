@@ -15,11 +15,10 @@ class FBottomLevelAccelerationStructure : public FAccelerationStructure
 {
 public:
 
-  FBottomLevelAccelerationStructure() = default;
-  FBottomLevelAccelerationStructure(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
+  ~FBottomLevelAccelerationStructure();
 
   void Build(const FRenderMeshData& meshData, std::span<FRenderMaterialData> materials, const FCommandPool& commandPool,
-             const FQueue& queue);
+             const FQueue& queue, VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
 
   void Destroy();
 
@@ -39,7 +38,11 @@ private:
   FBuffer m_IndexBuffer{};
   FBuffer m_MaterialBuffer{};
   FBuffer m_MaterialIndexBuffer{};
-  VkTransformMatrixKHR m_Transform{};
+  VkTransformMatrixKHR m_Transform{
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 1.0f, 0.0f
+  };
 
 };
 

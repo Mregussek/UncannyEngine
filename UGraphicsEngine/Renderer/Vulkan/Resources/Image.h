@@ -21,13 +21,11 @@ class FImage
 {
 public:
 
-  FImage() = default;
-  FImage(VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
-
   ~FImage();
 
   void Allocate(VkFormat format, VkExtent2D extent2D, VkImageUsageFlags usage, VkImageLayout initialLayout,
-                VkMemoryPropertyFlags memoryFlags, std::span<FQueueFamilyIndex> queueFamilies);
+                VkMemoryPropertyFlags memoryFlags, std::span<FQueueFamilyIndex> queueFamilies,
+                VkDevice vkDevice, const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes);
   void Free();
 
   void CreateView();
