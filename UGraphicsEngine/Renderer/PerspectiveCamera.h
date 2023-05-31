@@ -34,8 +34,8 @@ struct FPerspectiveCameraSpecification
 struct FCameraRayTracingSpecification
 {
   u32 maxFrameCounterLimit{ 2048 };
-  u32 maxRayBounces{ 6 };
-  u32 maxSamplesPerPixel{ 6 };
+  u32 maxRayBounces{ 2 };
+  u32 maxSamplesPerPixel{ 3 };
 };
 
 

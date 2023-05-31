@@ -4,12 +4,14 @@
 
 Application::Application()
 {
-  Start();
+  CreateEngineResources();
+  CreateLevelResources();
 }
 
 Application::~Application()
 {
-  Destroy();
+  DestroyLevelResources();
+  DestroyEngineResources();
 }
 
 
@@ -27,7 +29,7 @@ void Application::Run() {
     m_Camera.ProcessMovement(m_Window.get(), deltaTime);
     {
       FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-      m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+      m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
 
     const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
@@ -82,7 +84,7 @@ void Application::Run() {
       m_Camera.SetAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
       {
         FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+        m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
       }
 
       m_DepthImage.Recreate(swapchainExtent);
@@ -90,13 +92,13 @@ void Application::Run() {
       m_Swapchain.CreateViews();
       m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
 
-      RecordCommands();
+      RecordRayTracingCommands();
     }
   }
 }
 
 
-void Application::Start() {
+void Application::CreateEngineResources() {
   FLog::create();
 
   // Creating window...
@@ -171,67 +173,26 @@ void Application::Start() {
     m_Camera.SetRayTracingSpecification(rayTracingSpecification);
 
     // Creating per frame buffer for camera...
-    m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pLogicalDevice->GetHandle(),
-                                     &pPhysicalDevice->GetAttributes());
+    m_CameraUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                   pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     {
       FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-      m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+      m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
     }
-  }
-
-  // Registering entities with render mesh components and loading several obj files...
-  m_EntityRegistry.Create();
-  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
-  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Original.json" });
-  FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
-  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
-  FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
-
-  // Converting asset meshes and materials into render meshes and materials...
-  std::vector<FRenderData> renderDataVector;
-  renderDataVector.reserve(m_EntityRegistry.GetEntities().size());
-  m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
-                                                 {
-                                                   const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
-                                                   renderDataVector.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix()));
-                                                 });
-
-  // Creating acceleration structures...
-  m_BottomLevelAccelerationVector.reserve(renderDataVector.size());
-  for (auto& data : renderDataVector)
-  {
-    auto& bottomAS = m_BottomLevelAccelerationVector.emplace_back();
-    bottomAS.Build(data.mesh, data.materials, m_CommandPool, pLogicalDevice->GetGraphicsQueue(),
-                   pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
-  }
-  m_TopLevelAS.Build(m_BottomLevelAccelerationVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue(),
-                     pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
-
-  // Creating blas reference uniform buffer...
-  {
-    const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
-    m_BLASReferenceUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
-                                          VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, pLogicalDevice->GetHandle(),
-                                          &pPhysicalDevice->GetAttributes());
-    m_BLASReferenceUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]),
-                                            blasUniformData.size(), m_CommandPool,
-                                            pLogicalDevice->GetGraphicsQueue());
   }
 
   // Creating off screen buffer...
   {
-    vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
     VkImageUsageFlags flags =
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     m_OffscreenImage.Allocate(m_Swapchain.GetFormat(), m_Swapchain.GetCurrentExtent(), flags,
-                              VK_IMAGE_LAYOUT_PREINITIALIZED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies,
+                              VK_IMAGE_LAYOUT_PREINITIALIZED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, {},
                               pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
     m_OffscreenImage.CreateView();
   }
 
-  // Creating light buffer
+  // Creating light buffer (currently not used in my shaders!)
   m_Light.position = { -1.f, -1.f, 0.2f };
   {
     FLightUniformData uniformData{ .position = m_Light.position };
@@ -263,8 +224,10 @@ void Application::Start() {
   {
     u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[0].binding;
     VkDescriptorType type = m_SceneDescriptorSetLayout.GetBindings()[0].descriptorType;
-    VkBuffer bufferHandle = m_BLASReferenceUniformBuffer.GetHandle();
-    m_SceneDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
+    m_WriteBlasReferenceUniformToDescriptorSet = [this, dstBinding, type](VkBuffer bufferHandle)
+    {
+      m_SceneDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
+    };
   }
   {
     u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[1].binding;
@@ -302,7 +265,10 @@ void Application::Start() {
 
   {
     u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[0].binding;
-    m_RayTracingDescriptorPool.WriteTopLevelAsToDescriptorSet(m_TopLevelAS.GetHandle(), dstBinding);
+    m_WriteTlasToDescriptorSet = [this, dstBinding](VkAccelerationStructureKHR asHandle)
+    {
+      m_RayTracingDescriptorPool.WriteTopLevelAsToDescriptorSet(asHandle, dstBinding);
+    };
   }
   {
     u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[1].binding;
@@ -311,7 +277,7 @@ void Application::Start() {
   {
     u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[2].binding;
     VkDescriptorType type = m_RayTracingDescriptorSetLayout.GetBindings()[2].descriptorType;
-    VkBuffer bufferHandle = m_PerFrameUniformBuffer.GetHandle();
+    VkBuffer bufferHandle = m_CameraUniformBuffer.GetHandle();
     m_RayTracingDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
   }
 
@@ -321,7 +287,6 @@ void Application::Start() {
                                         m_SceneDescriptorSetLayout.GetHandle() };
     m_RayTracingPipelineLayout.Create(pLogicalDevice->GetHandle(), setLayouts);
   }
-
   {
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders", "spv" });
@@ -341,9 +306,6 @@ void Application::Start() {
     };
     m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
   }
-
-  // Recording commands
-  RecordCommands();
 
   // Creating imgui
   {
@@ -375,7 +337,87 @@ void Application::Start() {
   }
 }
 
-void Application::Destroy()
+
+void Application::CreateLevelResources()
+{
+  const vulkan::FPhysicalDeviceAttributes& physicalDeviceAttributes =
+      m_RenderContext.GetPhysicalDevice()->GetAttributes();
+  const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
+
+  // Registering entities with render mesh components and loading several obj files...
+  m_EntityRegistry.Create();
+  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
+  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Original.json" });
+  FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
+  //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
+  FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
+
+  // Converting asset meshes and materials into render meshes and materials...
+  std::vector<FRenderData> renderDataVector;
+  renderDataVector.reserve(m_EntityRegistry.GetEntities().size());
+  m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
+  {
+    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
+    renderDataVector.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix()));
+  });
+
+  // Creating acceleration structures...
+  m_BottomLevelAccelerationVector.reserve(renderDataVector.size());
+  for (auto& data : renderDataVector)
+  {
+    auto& bottomAS = m_BottomLevelAccelerationVector.emplace_back();
+    bottomAS.Build(data.mesh, data.materials, m_CommandPool, pLogicalDevice->GetGraphicsQueue(),
+                   pLogicalDevice->GetHandle(), &physicalDeviceAttributes);
+  }
+  m_TopLevelAS.Build(m_BottomLevelAccelerationVector, m_CommandPool, pLogicalDevice->GetGraphicsQueue(),
+                     pLogicalDevice->GetHandle(), &physicalDeviceAttributes);
+  m_WriteTlasToDescriptorSet(m_TopLevelAS.GetHandle());
+
+  // Creating blas reference uniform buffer...
+  const auto& blasUniformData = m_TopLevelAS.GetBLASReferenceUniformData();
+  m_BLASReferenceUniformBuffer.Allocate(blasUniformData.size() * sizeof(blasUniformData[0]),
+                                        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, pLogicalDevice->GetHandle(),
+                                        &physicalDeviceAttributes);
+  m_BLASReferenceUniformBuffer.FillStaged(blasUniformData.data(), sizeof(blasUniformData[0]),
+                                          blasUniformData.size(), m_CommandPool,
+                                          pLogicalDevice->GetGraphicsQueue());
+  m_WriteBlasReferenceUniformToDescriptorSet(m_BLASReferenceUniformBuffer.GetHandle());
+
+  // Recording commands
+  RecordRayTracingCommands();
+}
+
+
+void Application::DestroyLevelResources()
+{
+  if (m_RenderContext.GetLogicalDevice()->IsValid())
+  {
+    m_RenderContext.GetLogicalDevice()->WaitIdle();
+  }
+
+  // Destroying bottom level acceleration structures...
+  for (vulkan::FBottomLevelAccelerationStructure& bottomAS : m_BottomLevelAccelerationVector)
+  {
+    bottomAS.Destroy();
+  }
+  m_BottomLevelAccelerationVector.clear();
+
+  // Destroying top level acceleration structure...
+  m_TopLevelAS.Destroy();
+
+  // Free blas reference uniform buffer...
+  m_BLASReferenceUniformBuffer.Free();
+
+  // Destroying ECS...
+  m_EntityRegistry.Destroy();
+
+  // Destroying asset system...
+  m_AssetRegistry.Clear();
+}
+
+
+void Application::DestroyEngineResources()
 {
   if (m_RenderContext.GetLogicalDevice()->IsValid())
   {
@@ -394,16 +436,10 @@ void Application::Destroy()
   {
     cmdBuf.Free();
   });
+  m_CommandBuffers.clear();
 
   // Closing Command Pools...
   m_CommandPool.Destroy();
-
-  // Destroying acceleration structures resources...
-  for (vulkan::FBottomLevelAccelerationStructure& bottomAS : m_BottomLevelAccelerationVector)
-  {
-    bottomAS.Destroy();
-  }
-  m_TopLevelAS.Destroy();
 
   // Destroying descriptors...
   m_RayTracingDescriptorSetLayout.Destroy();
@@ -413,8 +449,7 @@ void Application::Destroy()
   m_SceneDescriptorPool.Destroy();
 
   // Freeing buffers...
-  m_PerFrameUniformBuffer.Free();
-  m_BLASReferenceUniformBuffer.Free();
+  m_CameraUniformBuffer.Free();
   m_LightUniformBuffer.Free();
 
   // Destroying pipelines...
@@ -425,10 +460,6 @@ void Application::Destroy()
   m_Swapchain.Destroy();
   m_RenderContext.Destroy();
 
-  // Destroying ECS and Asset systems...
-  m_EntityRegistry.Destroy();
-  m_AssetRegistry.Clear();
-
   // Destroying window...
   m_Window->Destroy();
 
@@ -436,7 +467,7 @@ void Application::Destroy()
   DeleteImGuiIni();
 }
 
-void Application::RecordCommands()
+void Application::RecordRayTracingCommands()
 {
   VkExtent3D offscreenExtent = m_OffscreenImage.GetExtent3D();
   VkImage offscreenImage = m_OffscreenImage.GetHandle();

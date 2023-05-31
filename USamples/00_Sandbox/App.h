@@ -47,45 +47,60 @@ public:
 
 private:
 
-  void Start();
+  void CreateEngineResources();
 
-  void Destroy();
+  void CreateLevelResources();
+  void DestroyLevelResources();
 
-  void RecordCommands();
+  void DestroyEngineResources();
+
+  void RecordRayTracingCommands();
 
   void DeleteImGuiIni();
 
 private:
 
+  // Engine Resources that are initialized once and then reused...
+
   std::shared_ptr<IWindow> m_Window;
   vulkan::FRenderContext m_RenderContext{};
   vulkan::FSwapchain m_Swapchain{};
+
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
 
+  FPerspectiveCamera m_Camera{};
+  vulkan::FBuffer m_CameraUniformBuffer{};
+
   vulkan::FImage m_OffscreenImage{};
-  std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelAccelerationVector{};
-  vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
-  vulkan::FBuffer m_BLASReferenceUniformBuffer{};
-  vulkan::FDescriptorSetLayout m_RayTracingDescriptorSetLayout{};
-  vulkan::FDescriptorPool m_RayTracingDescriptorPool{};
-  vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
-  vulkan::FRayTracingPipeline m_RayTracingPipeline{};
+
+  FLight m_Light{};
+  vulkan::FBuffer m_LightUniformBuffer{};
 
   vulkan::FDescriptorSetLayout m_SceneDescriptorSetLayout{};
   vulkan::FDescriptorPool m_SceneDescriptorPool{};
-  vulkan::FBuffer m_LightUniformBuffer{};
+  std::function<void(VkBuffer)> m_WriteBlasReferenceUniformToDescriptorSet{};
+
+  vulkan::FDescriptorSetLayout m_RayTracingDescriptorSetLayout{};
+  vulkan::FDescriptorPool m_RayTracingDescriptorPool{};
+  std::function<void(VkAccelerationStructureKHR)> m_WriteTlasToDescriptorSet{};
+
+  vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
+  vulkan::FRayTracingPipeline m_RayTracingPipeline{};
 
   vulkan::FImage m_DepthImage{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
 
-  FPerspectiveCamera m_Camera{};
-  vulkan::FBuffer m_PerFrameUniformBuffer{};
+  // Level Resources that can be reinitialized when scene is changed at runtime
+
+  std::vector<vulkan::FBottomLevelAccelerationStructure> m_BottomLevelAccelerationVector{};
+  vulkan::FTopLevelAccelerationStructure m_TopLevelAS{};
+  vulkan::FBuffer m_BLASReferenceUniformBuffer{};
 
   FAssetRegistry m_AssetRegistry{};
   FEntityRegistry m_EntityRegistry{};
 
-  FLight m_Light{};
+
 
 };
 

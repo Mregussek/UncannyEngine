@@ -15,6 +15,9 @@ namespace uncanny
 void FEntityRegistryLoader::LoadJsonScene(const char* path, FEntityRegistry* pEntityRegistry,
                                           FAssetRegistry* pAssetRegistry)
 {
+  pEntityRegistry->Destroy();
+  pAssetRegistry->Clear();
+
   std::ifstream jsonFileStream{ path };
   if (not jsonFileStream.is_open())
   {
