@@ -459,6 +459,9 @@ private:
 
     // Destroying window...
     m_Window->Destroy();
+
+    // imgui.ini causes app a crash, that is why I decided to delete at the end :/
+    DeleteImGuiIni();
   }
 
   void RecordCommands()
@@ -518,6 +521,12 @@ private:
                                 VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
       cmdBuf.EndRecording();
     }
+  }
+
+  void DeleteImGuiIni()
+  {
+    FPath imgui_ini = FPath::Append(FPath::GetExecutablePath(), "imgui.ini");
+    FPath::Delete(imgui_ini);
   }
 
 

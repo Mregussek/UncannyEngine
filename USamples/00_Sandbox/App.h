@@ -53,6 +53,8 @@ private:
 
   void RecordCommands();
 
+  void DeleteImGuiIni();
+
 private:
 
   std::shared_ptr<IWindow> m_Window;

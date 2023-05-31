@@ -2,6 +2,7 @@
 #include "Path.h"
 #include "UTools/Logger/Log.h"
 #include <filesystem>
+#include <utility>
 #if WIN32
   #define U_WIN32_USED 1
   #include <windows.h>
@@ -21,12 +22,12 @@ FPath::FPath(const char* pPath)
 
 
 FPath::FPath(std::string path)
-  : m_Path(path)
+  : m_Path(std::move(path))
 {
 }
 
 
-FPath FPath::GetExecutablePath()
+FPath FPath::GetExecutableFilePath()
 {
   if constexpr (U_WIN32_USED)
   {
@@ -54,10 +55,17 @@ FPath FPath::GetExecutablePath()
 }
 
 
+FPath FPath::GetExecutablePath()
+{
+  std::filesystem::path filepath{ GetExecutableFilePath().GetString() };
+  return FPath{ filepath.parent_path().string() };
+}
+
+
 FPath FPath::GetEngineProjectPath()
 {
   const char* uncannyEngine = "UncannyEngine";
-  FPath path = DiscardPathTillDirectory(GetExecutablePath(), uncannyEngine);
+  FPath path = DiscardPathTillDirectory(GetExecutableFilePath(), uncannyEngine);
   return Append(path, uncannyEngine);
 }
 
@@ -98,6 +106,26 @@ b32 FPath::HasExtension(const FPath& path, const char* ext)
 {
   std::filesystem::path absolute{ path.m_Path };
   return absolute.extension() == std::string{ ext };
+}
+
+
+b32 FPath::Exists(const FPath& path)
+{
+  std::filesystem::path filepath{ path.GetString() };
+  return std::filesystem::exists(filepath);
+}
+
+
+b32 FPath::Delete(const FPath &path)
+{
+  if (not Exists(path))
+  {
+    UERROR("Calling Delete() function on path {} that does not exist!", path.GetString());
+    return UFALSE;
+  }
+
+  std::filesystem::path filepath{ path.GetString() };
+  return std::filesystem::remove(filepath);
 }
 
 

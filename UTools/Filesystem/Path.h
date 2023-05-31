@@ -4,6 +4,7 @@
 
 
 #include <string>
+#include <filesystem>
 #include "UTools/UTypes.h"
 
 
@@ -20,6 +21,10 @@ public:
 
   /// @returns path to .exe file on win32 OS
   /// "C:\\Users\\mateu\\Projects\\UncannyEngine\\clion-build\\USamples\\00_Sandbox\\Debug\\00_Sandbox.exe"
+  static FPath GetExecutableFilePath();
+
+  /// @returns path to .exe file on win32 OS
+  /// "C:\\Users\\mateu\\Projects\\UncannyEngine\\clion-build\\USamples\\00_Sandbox\\Debug"
   static FPath GetExecutablePath();
 
   /// @brief Method gets and returns path to UncannyEngine project. Retrieves it from executable path.
@@ -38,6 +43,10 @@ public:
   static FPath Append(const FPath& path, std::initializer_list<const char*> pathElements);
 
   static b32 HasExtension(const FPath& path, const char* ext);
+
+  static b32 Exists(const FPath& path);
+
+  static b32 Delete(const FPath& path);
 
   [[nodiscard]] const std::string& GetString() const { return m_Path; }
 
