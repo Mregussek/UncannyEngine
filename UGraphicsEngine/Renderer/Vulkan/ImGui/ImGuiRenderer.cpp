@@ -90,14 +90,13 @@ void FImGuiRenderer::Update(u32 frameIndex, const FQueue& queueUsingBuffers, VkF
 
   ImGui::NewFrame();
 
-  //ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
   ImGui::SetNextWindowSize(ImVec2(100.f, 100.f), ImGuiCond_FirstUseEver);
 
   ImGui::Begin("Vulkan Example");
   ImGui::Text("Mateusz Rzeczyca");
   ImGui::End();
 
-  //ImGui::ShowDemoWindow();
+  ImGui::ShowDemoWindow();
 
   // Render to generate draw buffers
   ImGui::Render();

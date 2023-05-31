@@ -153,7 +153,8 @@ private:
     const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
     // Creating swapchain...
-    m_Swapchain.Create(2, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
+    constexpr u32 initialBackBufferCount = 2; // DO NOT USE IT LATER! Call m_Swapchain.GetBackBufferCount();
+    m_Swapchain.Create(initialBackBufferCount, pLogicalDevice->GetHandle(), &pLogicalDevice->GetPresentQueue(),
                        m_RenderContext.GetWindowSurface());
 
     // Creating command pools...
@@ -166,13 +167,12 @@ private:
 
     // Creating camera...
     {
-      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
       FPerspectiveCameraSpecification cameraSpecification{
           .position = { -4.f, 0.f, 0.f },
           .front = { 0.f, 0.f, 0.f },
           .worldUp = { 0.f, 1.f, 0.f },
           .fieldOfView = 45.f,
-          .aspectRatio = (f32)swapchainExtent.width / (f32)swapchainExtent.height,
+          .aspectRatio = m_Swapchain.GetCurrentAspectRatio(),
           .near = 0.1f,
           .far = 10.f,
           .yaw = 0.f,
@@ -190,6 +190,15 @@ private:
           .maxSamplesPerPixel = 3
       };
       m_Camera.SetRayTracingSpecification(rayTracingSpecification);
+
+      // Creating per frame buffer for camera...
+      m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pLogicalDevice->GetHandle(),
+                                       &pPhysicalDevice->GetAttributes());
+      {
+        FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
+        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+      }
     }
 
     // Registering entities with render mesh components and loading several obj files...
@@ -232,31 +241,19 @@ private:
                                               pLogicalDevice->GetGraphicsQueue());
     }
 
-    // Creating per frame buffer for camera...
-    m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pLogicalDevice->GetHandle(),
-                                     &pPhysicalDevice->GetAttributes());
-    {
-      FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-      m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
-    }
-
     // Creating off screen buffer...
     {
-      VkFormat swapchainFormat = m_Swapchain.GetFormat();
-      VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
       vulkan::FQueueFamilyIndex queueFamilies[]{ m_CommandPool.GetFamilyIndex() };
       VkImageUsageFlags flags =
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-      m_OffscreenImage.Allocate(swapchainFormat, swapchainExtent, flags, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies,
+      m_OffscreenImage.Allocate(m_Swapchain.GetFormat(), m_Swapchain.GetCurrentExtent(), flags,
+                                VK_IMAGE_LAYOUT_PREINITIALIZED, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, queueFamilies,
                                 pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
+      m_OffscreenImage.CreateView();
     }
-    m_OffscreenImage.CreateView();
 
     // Creating light buffer
     m_Light.position = { -1.f, -1.f, 0.2f };
-
     {
       FLightUniformData uniformData{ .position = m_Light.position };
       m_LightUniformBuffer.Allocate(sizeof(FLightUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -287,16 +284,14 @@ private:
     {
       u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[0].binding;
       VkDescriptorType type = m_SceneDescriptorSetLayout.GetBindings()[0].descriptorType;
-      m_SceneDescriptorPool.WriteBufferToDescriptorSet(m_BLASReferenceUniformBuffer.GetHandle(),
-                                                       VK_WHOLE_SIZE,
-                                                       dstBinding, type);
+      VkBuffer bufferHandle = m_BLASReferenceUniformBuffer.GetHandle();
+      m_SceneDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
     }
     {
       u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[1].binding;
       VkDescriptorType type = m_SceneDescriptorSetLayout.GetBindings()[1].descriptorType;
-      m_SceneDescriptorPool.WriteBufferToDescriptorSet(m_LightUniformBuffer.GetHandle(),
-                                                       VK_WHOLE_SIZE,
-                                                       dstBinding, type);
+      VkBuffer bufferHandle = m_LightUniformBuffer.GetHandle();
+      m_SceneDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
     }
 
     // Creating ray tracing descriptors...
@@ -337,9 +332,8 @@ private:
     {
       u32 dstBinding = m_RayTracingDescriptorSetLayout.GetBindings()[2].binding;
       VkDescriptorType type = m_RayTracingDescriptorSetLayout.GetBindings()[2].descriptorType;
-      m_RayTracingDescriptorPool.WriteBufferToDescriptorSet(m_PerFrameUniformBuffer.GetHandle(),
-                                                            m_PerFrameUniformBuffer.GetFilledStride(),
-                                                            dstBinding, type);
+      VkBuffer bufferHandle = m_PerFrameUniformBuffer.GetHandle();
+      m_RayTracingDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
     }
 
     // Creating ray tracing pipeline...
@@ -554,7 +548,6 @@ private:
 
 
 int main() {
-  //return 0;
   Application app{};
   app.Run();
 

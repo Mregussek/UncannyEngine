@@ -44,6 +44,7 @@ public:
   [[nodiscard]] u32 GetBackBufferCount() const { return m_BackBufferCount; }
   [[nodiscard]] u32 GetCurrentFrameIndex() const { return m_CurrentFrame; }
   [[nodiscard]] VkExtent2D GetCurrentExtent() const { return m_CurrentExtent; }
+  [[nodiscard]] f32 GetCurrentAspectRatio() const { return (f32)m_CurrentExtent.width / (f32)m_CurrentExtent.height; }
   [[nodiscard]] VkFormat GetFormat() const { return m_Format; }
 
   [[nodiscard]] const FFence& GetFence() const { return m_Fences[m_CurrentFrame]; }
