@@ -36,7 +36,8 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
     m_Semaphores[i].Create(m_Device);
   }
 
-  m_RenderPass.Create(specification.swapchainFormat, VK_FORMAT_D32_SFLOAT, m_Device);
+  constexpr b32 clearColorAttachmentEveryDraw = UFALSE;
+  m_RenderPass.Create(clearColorAttachmentEveryDraw, specification.swapchainFormat, VK_FORMAT_D32_SFLOAT, m_Device);
   m_CommandPool.Create(specification.graphicsQueueFamilyIndex, m_Device,
                        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   m_CommandBuffers = m_CommandPool.AllocatePrimaryCommandBuffers(specification.backBufferCount);

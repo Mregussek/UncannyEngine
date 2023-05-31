@@ -4,6 +4,7 @@
 
 
 #include <volk.h>
+#include "UTools/UTypes.h"
 
 
 namespace uncanny::vulkan
@@ -16,7 +17,7 @@ public:
 
   ~FRenderPass();
 
-  void Create(VkFormat swapchainFormat, VkFormat depthFormat, VkDevice vkDevice);
+  void Create(b32 clearColorAttachmentEveryDraw, VkFormat swapchainFormat, VkFormat depthFormat, VkDevice vkDevice);
   void Destroy();
 
   [[nodiscard]] VkRenderPass GetHandle() const { return m_RenderPass; }

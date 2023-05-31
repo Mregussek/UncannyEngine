@@ -14,7 +14,7 @@ FRenderPass::~FRenderPass()
 }
 
 
-void FRenderPass::Create(VkFormat swapchainFormat, VkFormat depthFormat, VkDevice vkDevice)
+void FRenderPass::Create(b32 clearColorAttachmentEveryDraw, VkFormat swapchainFormat, VkFormat depthFormat, VkDevice vkDevice)
 {
   m_Device = vkDevice;
 
@@ -42,6 +42,11 @@ void FRenderPass::Create(VkFormat swapchainFormat, VkFormat depthFormat, VkDevic
         .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
       }
   };
+
+  if (clearColorAttachmentEveryDraw)
+  {
+    attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  }
 
   VkAttachmentReference colorReference{
     .attachment = 0,
