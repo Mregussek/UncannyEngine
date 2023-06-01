@@ -14,6 +14,10 @@ Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://
 ### Current state
 
 <p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/00_Sandbox_ImGui_RayTracing.png">
+</p>
+
+<p align="center">
   <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/12_ImGuiWithRayTracing.png">
 </p>
 

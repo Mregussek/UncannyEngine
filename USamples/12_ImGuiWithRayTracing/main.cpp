@@ -212,8 +212,8 @@ private:
     m_EntityRegistry.Create();
     //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
     //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Original.json" });
-    FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
-    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
+    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
+    FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
     FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
     // Converting asset meshes and materials into render meshes and materials...
