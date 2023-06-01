@@ -20,6 +20,30 @@ void FPerspectiveCamera::Initialize(const FPerspectiveCameraSpecification& speci
 }
 
 
+void FPerspectiveCamera::ContinueAccumulatingPreviousColors()
+{
+  m_RayTracingSpecification.accumulatePreviousColors = UTRUE;
+}
+
+
+void FPerspectiveCamera::ResetAccumulatedFrameCounter()
+{
+  m_NotMovingCameraFrameCounter = 0;
+}
+
+
+void FPerspectiveCamera::SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification)
+{
+  m_RayTracingSpecification = rayTracingSpecification;
+}
+
+
+void FPerspectiveCamera::SetAspectRatio(f32 aspectRatio)
+{
+  m_Specification.aspectRatio = aspectRatio;
+}
+
+
 void FPerspectiveCamera::ProcessKeyboardInput(IWindow* pWindow, uncanny::f32 deltaTime)
 {
   m_IsKeyboardPressed = UFALSE;
@@ -103,13 +127,12 @@ void FPerspectiveCamera::ProcessMovement(IWindow* pWindow, f32 deltaTime)
   if (HasMoved())
   {
     m_NotMovingCameraFrameCounter = 0;
+    return;
   }
-  else
+
+  if (m_NotMovingCameraFrameCounter < m_RayTracingSpecification.maxFrameCounterLimit)
   {
-    if (m_NotMovingCameraFrameCounter < m_RayTracingSpecification.maxFrameCounterLimit)
-    {
-      m_NotMovingCameraFrameCounter += 1;
-    }
+    m_NotMovingCameraFrameCounter += 1;
   }
 }
 
@@ -120,6 +143,7 @@ math::Matrix4x4f FPerspectiveCamera::GetView() const
                       m_Specification.position + m_Specification.front,
                       m_Up);
 }
+
 
 math::Matrix4x4f FPerspectiveCamera::GetProjection() const
 {
@@ -138,7 +162,9 @@ FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
     .randomSeed = FRandomGenerator::GetSeed(),
     .notMovingCameraFrameCount = m_NotMovingCameraFrameCounter,
     .maxRayBounces = m_RayTracingSpecification.maxRayBounces,
-    .maxSamplesPerPixel = m_RayTracingSpecification.maxSamplesPerPixel };
+    .maxSamplesPerPixel = m_RayTracingSpecification.maxSamplesPerPixel,
+    .accumulateColor = m_RayTracingSpecification.accumulatePreviousColors
+  };
 }
 
 
@@ -152,9 +178,9 @@ void updateCameraVectors(f32 yaw, f32 pitch, math::Vector3f worldUp, math::Vecto
                          math::Vector3f* pOutRight, math::Vector3f* pOutUp)
 {
   math::Vector3f front{
-    .x = cos(math::radians(yaw)) * cos(math::radians(pitch)),
-    .y = sin(math::radians(pitch)),
-    .z = sin(math::radians(yaw)) * cos(math::radians(pitch))
+      .x = cos(math::radians(yaw)) * cos(math::radians(pitch)),
+      .y = sin(math::radians(pitch)),
+      .z = sin(math::radians(yaw)) * cos(math::radians(pitch))
   };
   *pOutFront = math::Normalize(front);
   *pOutRight = math::Normalize(math::CrossProduct(*pOutFront, worldUp));

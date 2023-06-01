@@ -41,6 +41,7 @@ struct PerFrameUniformData
     uint notMovingCameraFrameCount;
     uint maxRayBounces;
     uint maxSamplesPerPixel;
+    int accumulatePreviousColors;
 };
 
 struct HitPayload

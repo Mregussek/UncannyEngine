@@ -47,17 +47,19 @@ void Application::Run() {
       auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
 
       ImGui::DragInt("Max Accumulation Color Frames Limit", (i32*)&rtxSpecs.maxFrameCounterLimit, 1, 1, 8392);
+      if (ImGui::DragInt("Accumulate Previous Colors", (i32*)&rtxSpecs.accumulatePreviousColors, 1, 0, 1))
+      {
+        m_Camera.ResetAccumulatedFrameCounter();
+      }
       ImGui::DragInt("Max Ray Bounces", (i32*)&rtxSpecs.maxRayBounces, 1, 1, 32);
       ImGui::DragInt("Max Samples Per Pixel", (i32*)&rtxSpecs.maxSamplesPerPixel, 1, 1, 32);
 
       const i32 savedItem = m_SelectedScenePath;
-      ImGui::Combo("combo", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
+      ImGui::Combo("Select Scene", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
       if (savedItem != m_SelectedScenePath)
       {
         shouldChangeScene = UTRUE;
       }
-
-      ImGui::ShowDemoWindow();
 
       ImGui::End();
     }
@@ -98,6 +100,7 @@ void Application::Run() {
       m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
 
       RecordRayTracingCommands();
+      m_Camera.ResetAccumulatedFrameCounter();
     }
 
     if (shouldChangeScene)
@@ -105,6 +108,7 @@ void Application::Run() {
       m_RenderContext.GetLogicalDevice()->WaitIdle();
       DestroyLevelResources();
       CreateLevelResources(m_ScenePaths[m_SelectedScenePath]);
+      m_Camera.ResetAccumulatedFrameCounter();
     }
   }
 }
@@ -180,7 +184,8 @@ void Application::CreateEngineResources() {
     FCameraRayTracingSpecification rayTracingSpecification{
         .maxFrameCounterLimit = 4096,
         .maxRayBounces = 4,
-        .maxSamplesPerPixel = 3
+        .maxSamplesPerPixel = 3,
+        .accumulatePreviousColors = UFALSE
     };
     m_Camera.SetRayTracingSpecification(rayTracingSpecification);
 

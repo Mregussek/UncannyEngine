@@ -71,12 +71,15 @@ void main() {
     pixelColorValue = clamp(pixelColorValue, 0.f, 0.999f);
 
     // Add accumulated pixel color
-    vec4 accumulatedColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy));
-    accumulatedColor *= perFrameData.d.notMovingCameraFrameCount;
+    if (perFrameData.d.accumulatePreviousColors > 0)
+    {
+        vec4 accumulatedColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy));
+        accumulatedColor *= perFrameData.d.notMovingCameraFrameCount;
 
-    pixelColorValue += vec3(accumulatedColor);
-    float frameScale = 1.f / float(perFrameData.d.notMovingCameraFrameCount + 1);
-    pixelColorValue *= frameScale;
+        pixelColorValue += vec3(accumulatedColor);
+        float frameScale = 1.f / float(perFrameData.d.notMovingCameraFrameCount + 1);
+        pixelColorValue *= frameScale;
+    }
 
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(pixelColorValue, 1.0));
 }
