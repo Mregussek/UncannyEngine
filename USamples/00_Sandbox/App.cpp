@@ -39,7 +39,6 @@ void Application::Run() {
 
     m_ImGuiRenderer.BeginFrame(m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
                                m_Window->GetMousePosition());
-    b8 shouldChangeScene = UFALSE;
     {
       ImGui::SetNextWindowSize(ImVec2(500.f, 200.f), ImGuiCond_FirstUseEver);
       ImGui::Begin("Inspector Uncanny Engine Window");
@@ -47,18 +46,30 @@ void Application::Run() {
       auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
 
       ImGui::DragInt("Max Accumulation Color Frames Limit", (i32*)&rtxSpecs.maxFrameCounterLimit, 1, 1, 8392);
+
       if (ImGui::DragInt("Accumulate Previous Colors", (i32*)&rtxSpecs.accumulatePreviousColors, 1, 0, 1))
       {
         m_Camera.ResetAccumulatedFrameCounter();
       }
+      b32 changedSceneAndRemovedAccumulating =
+          m_SelectedAccumulatedColor > rtxSpecs.accumulatePreviousColors and m_ShouldChangeScene;
+      if (changedSceneAndRemovedAccumulating)
+      {
+        m_Camera.ContinueAccumulatingPreviousColors();
+      }
+      m_SelectedAccumulatedColor = rtxSpecs.accumulatePreviousColors;
+
       ImGui::DragInt("Max Ray Bounces", (i32*)&rtxSpecs.maxRayBounces, 1, 1, 32);
       ImGui::DragInt("Max Samples Per Pixel", (i32*)&rtxSpecs.maxSamplesPerPixel, 1, 1, 32);
 
+      ImGui::Separator();
+
+      m_ShouldChangeScene = UFALSE;
       const i32 savedItem = m_SelectedScenePath;
       ImGui::Combo("Select Scene", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
       if (savedItem != m_SelectedScenePath)
       {
-        shouldChangeScene = UTRUE;
+        m_ShouldChangeScene = UTRUE;
       }
 
       ImGui::End();
@@ -103,12 +114,13 @@ void Application::Run() {
       m_Camera.ResetAccumulatedFrameCounter();
     }
 
-    if (shouldChangeScene)
+    if (m_ShouldChangeScene)
     {
       m_RenderContext.GetLogicalDevice()->WaitIdle();
       DestroyLevelResources();
       CreateLevelResources(m_ScenePaths[m_SelectedScenePath]);
       m_Camera.ResetAccumulatedFrameCounter();
+      m_Camera.DontAccumulatePreviousColors();
     }
   }
 }
@@ -188,6 +200,7 @@ void Application::CreateEngineResources() {
         .accumulatePreviousColors = UFALSE
     };
     m_Camera.SetRayTracingSpecification(rayTracingSpecification);
+    m_SelectedAccumulatedColor = m_Camera.GetRayTracingSpecification().accumulatePreviousColors;
 
     // Creating per frame buffer for camera...
     m_CameraUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,

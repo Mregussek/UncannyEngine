@@ -104,7 +104,9 @@ private:
   FAssetRegistry m_AssetRegistry{};
   FEntityRegistry m_EntityRegistry{};
 
+  b32 m_ShouldChangeScene{ UFALSE };
   i32 m_SelectedScenePath{ 0 };
+  b32 m_SelectedAccumulatedColor{ UFALSE };
 
 };
 

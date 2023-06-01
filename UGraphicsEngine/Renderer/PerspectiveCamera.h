@@ -62,6 +62,7 @@ public:
 
   void ContinueAccumulatingPreviousColors();
   void ResetAccumulatedFrameCounter();
+  void DontAccumulatePreviousColors();
   [[nodiscard]] b32 ShouldAccumulatePreviousColors() const { return m_RayTracingSpecification.accumulatePreviousColors; }
 
   void SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification);

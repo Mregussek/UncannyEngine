@@ -32,6 +32,12 @@ void FPerspectiveCamera::ResetAccumulatedFrameCounter()
 }
 
 
+void FPerspectiveCamera::DontAccumulatePreviousColors()
+{
+  m_RayTracingSpecification.accumulatePreviousColors = UFALSE;
+}
+
+
 void FPerspectiveCamera::SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification)
 {
   m_RayTracingSpecification = rayTracingSpecification;
