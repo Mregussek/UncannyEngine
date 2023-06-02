@@ -39,44 +39,7 @@ void Application::Run() {
 
     m_ImGuiRenderer.BeginFrame(m_Swapchain.GetCurrentExtent(), m_Window->GetMouseButtonsPressed(),
                                m_Window->GetMousePosition());
-    {
-      ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
-      ImGui::SetNextWindowSize(ImVec2(500.f, 200.f), ImGuiCond_FirstUseEver);
-      ImGui::Begin("Inspector Uncanny Engine Window");
-
-      auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
-
-      b32 dragged = UFALSE;
-      dragged |= ImGui::DragInt("Accumulation Color Frames Limit", (i32*)&rtxSpecs.maxFrameCounterLimit, 1, 1, 8392);
-      dragged |= ImGui::DragInt("Accumulate Previous Colors", (i32*)&rtxSpecs.accumulatePreviousColors, 1, 0, 1);
-      dragged |= ImGui::DragInt("Max Ray Bounces", (i32*)&rtxSpecs.maxRayBounces, 1, 1, 32);
-      dragged |= ImGui::DragInt("Max Samples Per Pixel", (i32*)&rtxSpecs.maxSamplesPerPixel, 1, 1, 32);
-      if (dragged)
-      {
-        m_Camera.ResetAccumulatedFrameCounter();
-      }
-
-      // Handling change scene...
-      b32 changedSceneAndRemovedAccumulating =
-          m_SelectedAccumulatedColor > rtxSpecs.accumulatePreviousColors and m_ShouldChangeScene;
-      if (changedSceneAndRemovedAccumulating)
-      {
-        m_Camera.ContinueAccumulatingPreviousColors();
-      }
-      m_SelectedAccumulatedColor = rtxSpecs.accumulatePreviousColors;
-
-      ImGui::Separator();
-
-      m_ShouldChangeScene = UFALSE;
-      const i32 savedItem = m_SelectedScenePath;
-      ImGui::Combo("Select Scene", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
-      if (savedItem != m_SelectedScenePath)
-      {
-        m_ShouldChangeScene = UTRUE;
-      }
-
-      ImGui::End();
-    }
+    DrawImGui();
     m_ImGuiRenderer.EndFrame(frameIndex, graphicsQueue, m_Swapchain.GetFramebuffers()[frameIndex]);
 
     {
@@ -126,6 +89,47 @@ void Application::Run() {
       m_Camera.DontAccumulatePreviousColors();
     }
   }
+}
+
+
+void Application::DrawImGui()
+{
+  ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
+  ImGui::SetNextWindowSize(ImVec2(500.f, 200.f), ImGuiCond_FirstUseEver);
+  ImGui::Begin("Inspector Uncanny Engine Window");
+
+  auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
+
+  bool dragged = UFALSE;
+  dragged |= ImGui::DragInt("Accumulation Color Frames Limit", (i32*)&rtxSpecs.maxFrameCounterLimit, 1, 1, 8392);
+  dragged |= ImGui::DragInt("Accumulate Previous Colors", (i32*)&rtxSpecs.accumulatePreviousColors, 1, 0, 1);
+  dragged |= ImGui::DragInt("Max Ray Bounces", (i32*)&rtxSpecs.maxRayBounces, 1, 1, 32);
+  dragged |= ImGui::DragInt("Max Samples Per Pixel", (i32*)&rtxSpecs.maxSamplesPerPixel, 1, 1, 32);
+  if (dragged)
+  {
+    m_Camera.ResetAccumulatedFrameCounter();
+  }
+
+  // Handling change scene...
+  b32 changedSceneAndRemovedAccumulating =
+      m_SelectedAccumulatedColor > rtxSpecs.accumulatePreviousColors and m_ShouldChangeScene;
+  if (changedSceneAndRemovedAccumulating)
+  {
+    m_Camera.ContinueAccumulatingPreviousColors();
+  }
+  m_SelectedAccumulatedColor = rtxSpecs.accumulatePreviousColors;
+
+  ImGui::Separator();
+
+  m_ShouldChangeScene = UFALSE;
+  const i32 savedItem = m_SelectedScenePath;
+  ImGui::Combo("Select Scene", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
+  if (savedItem != m_SelectedScenePath)
+  {
+    m_ShouldChangeScene = UTRUE;
+  }
+
+  ImGui::End();
 }
 
 

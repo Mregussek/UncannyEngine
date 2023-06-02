@@ -56,6 +56,8 @@ private:
 
   void RecordRayTracingCommands();
 
+  void DrawImGui();
+
   void DeleteImGuiIni();
 
 private:
