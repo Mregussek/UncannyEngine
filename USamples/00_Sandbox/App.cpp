@@ -98,6 +98,11 @@ void Application::DrawImGui()
   ImGui::SetNextWindowSize(ImVec2(500.f, 200.f), ImGuiCond_FirstUseEver);
   ImGui::Begin("Inspector Uncanny Engine Window");
 
+  f32 frameRate = 1.f / m_Window->GetDeltaTime();
+  ImGui::Text("Frame rate: %f", frameRate);
+
+  ImGui::Separator();
+
   auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
 
   bool dragged = UFALSE;
