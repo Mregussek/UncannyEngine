@@ -89,7 +89,8 @@ private:
   std::function<void(VkAccelerationStructureKHR)> m_WriteTlasToDescriptorSet{};
 
   vulkan::FPipelineLayout m_RayTracingPipelineLayout{};
-  vulkan::FRayTracingPipeline m_RayTracingPipeline{};
+  std::vector<vulkan::FRayTracingPipeline> m_RayTracingPipelines{};
+  std::vector<const char*> m_RayTracingPipelinesCstr{};
 
   vulkan::FImage m_DepthImage{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
@@ -106,9 +107,15 @@ private:
   FAssetRegistry m_AssetRegistry{};
   FEntityRegistry m_EntityRegistry{};
 
-  b32 m_ShouldChangeScene{ UFALSE };
   i32 m_SelectedScenePath{ 0 };
+  b32 m_ShouldChangeScene{ UFALSE };
+
+  i32 m_SelectedRtxPipeline{ 0 };
+  b32 m_ShouldChangePipeline{ UFALSE };
+
   b32 m_SelectedAccumulatedColor{ UFALSE };
+
+
 
 };
 

@@ -8,6 +8,7 @@ Application::Application()
   CreateLevelResources(m_ScenePaths[m_SelectedScenePath]);
 }
 
+
 Application::~Application()
 {
   DestroyLevelResources();
@@ -88,6 +89,14 @@ void Application::Run() {
       m_Camera.ResetAccumulatedFrameCounter();
       m_Camera.DontAccumulatePreviousColors();
     }
+
+    if (m_ShouldChangePipeline)
+    {
+      m_RenderContext.GetLogicalDevice()->WaitIdle();
+      m_Camera.ResetAccumulatedFrameCounter();
+      m_Camera.DontAccumulatePreviousColors();
+      RecordRayTracingCommands();
+    }
   }
 }
 
@@ -117,7 +126,8 @@ void Application::DrawImGui()
 
   // Handling change scene...
   b32 changedSceneAndRemovedAccumulating =
-      m_SelectedAccumulatedColor > rtxSpecs.accumulatePreviousColors and m_ShouldChangeScene;
+      m_SelectedAccumulatedColor > rtxSpecs.accumulatePreviousColors and
+      (m_ShouldChangeScene or m_ShouldChangePipeline);
   if (changedSceneAndRemovedAccumulating)
   {
     m_Camera.ContinueAccumulatingPreviousColors();
@@ -126,12 +136,27 @@ void Application::DrawImGui()
 
   ImGui::Separator();
 
-  m_ShouldChangeScene = UFALSE;
-  const i32 savedItem = m_SelectedScenePath;
-  ImGui::Combo("Select Scene", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
-  if (savedItem != m_SelectedScenePath)
   {
-    m_ShouldChangeScene = UTRUE;
+    m_ShouldChangeScene = UFALSE;
+    const i32 savedItem = m_SelectedScenePath;
+    ImGui::Combo("Select Scene", &m_SelectedScenePath, m_ScenePathsCstr.data(), (i32)m_ScenePathsCstr.size());
+    if (savedItem != m_SelectedScenePath)
+    {
+      m_ShouldChangeScene = UTRUE;
+    }
+  }
+
+  ImGui::Separator();
+
+  {
+    m_ShouldChangePipeline = UFALSE;
+    const i32 savedItem = m_SelectedRtxPipeline;
+    ImGui::Combo("Select Pipeline", &m_SelectedRtxPipeline, m_RayTracingPipelinesCstr.data(),
+                 (i32)m_RayTracingPipelinesCstr.size());
+    if (savedItem != m_SelectedRtxPipeline)
+    {
+      m_ShouldChangePipeline = UTRUE;
+    }
   }
 
   ImGui::End();
@@ -350,7 +375,25 @@ void Application::CreateEngineResources() {
         .vkDevice = pLogicalDevice->GetHandle(),
         .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
     };
-    m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
+    m_RayTracingPipelines.reserve(3);
+    {
+      rayTracingPipelineSpecification.rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv");
+      vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines.emplace_back();
+      rtxPipeline.Create(rayTracingPipelineSpecification);
+      m_RayTracingPipelinesCstr.push_back("Default");
+    }
+    {
+      rayTracingPipelineSpecification.rayClosestHitPath = FPath::Append(shadersPath, "sandbox_normals.rchit.spv");
+      vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines.emplace_back();
+      rtxPipeline.Create(rayTracingPipelineSpecification);
+      m_RayTracingPipelinesCstr.emplace_back("Normals");
+    }
+    {
+      rayTracingPipelineSpecification.rayClosestHitPath = FPath::Append(shadersPath, "sandbox_worldspacepos.rchit.spv");
+      vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines.emplace_back();
+      rtxPipeline.Create(rayTracingPipelineSpecification);
+      m_RayTracingPipelinesCstr.emplace_back("World Space Positions");
+    }
   }
 
   // Creating imgui
@@ -491,10 +534,10 @@ void Application::DestroyEngineResources()
   m_OffscreenImage.Free();
 
   // Closing command buffers...
-  std::ranges::for_each(m_CommandBuffers, [](vulkan::FCommandBuffer& cmdBuf)
+  for (vulkan::FCommandBuffer& cmdBuf : m_CommandBuffers)
   {
     cmdBuf.Free();
-  });
+  }
   m_CommandBuffers.clear();
 
   // Closing Command Pools...
@@ -513,7 +556,10 @@ void Application::DestroyEngineResources()
 
   // Destroying pipelines...
   m_RayTracingPipelineLayout.Destroy();
-  m_RayTracingPipeline.Destroy();
+  for (vulkan::FRayTracingPipeline& rtxPipeline : m_RayTracingPipelines)
+  {
+    rtxPipeline.Destroy();
+  }
 
   // Closing renderer...
   m_Swapchain.Destroy();
@@ -551,6 +597,7 @@ void Application::RecordRayTracingCommands()
   VkExtent2D swapchainExtent = m_Swapchain.GetCurrentExtent();
   VkDescriptorSet descriptorSets[]{ m_RayTracingDescriptorPool.GetDescriptorSet(),
                                     m_SceneDescriptorPool.GetDescriptorSet() };
+  vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines[m_SelectedRtxPipeline];
 
   for (u32 i = 0; i < swapchainImages.size(); i++)
   {
@@ -563,10 +610,10 @@ void Application::RecordRayTracingCommands()
                               VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
                               subresourceRange,
                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
-    cmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipeline.GetHandle());
+    cmdBuf.BindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, rtxPipeline.GetHandle());
     cmdBuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_RayTracingPipelineLayout.GetHandle(),
                               descriptorSets);
-    cmdBuf.TraceRays(&m_RayTracingPipeline, offscreenExtent);
+    cmdBuf.TraceRays(&rtxPipeline, offscreenExtent);
     cmdBuf.ImageMemoryBarrier(offscreenImage,
                               VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                               VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
