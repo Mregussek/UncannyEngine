@@ -109,7 +109,7 @@ void Application::DrawImGui()
   ImGui::Begin("Inspector Uncanny Engine Window");
 
   f32 frameRate = 1.f / m_Window->GetDeltaTime();
-  ImGui::Text("Frame rate: %f", frameRate);
+  ImGui::Text("FPS: %f", frameRate);
 
   u32 accumulatedFrames = m_Camera.GetAccumulatedFramesCounter();
   ImGui::Text("Accumulated Frames: %u", accumulatedFrames);
