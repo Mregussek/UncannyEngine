@@ -104,8 +104,8 @@ void Application::Run() {
 
 void Application::DrawImGui()
 {
-  ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
-  ImGui::SetNextWindowSize(ImVec2(500.f, 300.f), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowPos(ImVec2(2.5f, 2.5f));
+  ImGui::SetNextWindowSize(ImVec2(500.f, 400.f), ImGuiCond_FirstUseEver);
   ImGui::Begin("Inspector Uncanny Engine Window");
 
   f32 frameRate = 1.f / m_Window->GetDeltaTime();
@@ -119,14 +119,14 @@ void Application::DrawImGui()
   auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
 
   bool dragged = UFALSE;
-  dragged |= ImGui::DragInt("Accumulation Color Frames Limit", (i32*)&rtxSpecs.maxFrameCounterLimit, 1, 1, 8392);
-  dragged |= ImGui::DragInt("Accumulate Previous Colors", (i32*)&rtxSpecs.accumulatePreviousColors, 1, 0, 1);
-  dragged |= ImGui::DragInt("Max Ray Bounces", (i32*)&rtxSpecs.maxRayBounces, 1, 1, 32);
-  dragged |= ImGui::DragInt("Max Samples Per Pixel", (i32*)&rtxSpecs.maxSamplesPerPixel, 1, 1, 32);
-  if (dragged)
   {
-    m_Camera.ResetAccumulatedFrameCounter();
+    bool accumulate = rtxSpecs.accumulatePreviousColors;
+    dragged |= ImGui::Checkbox("Accumulate Previous Colors", &accumulate);
+    rtxSpecs.accumulatePreviousColors = accumulate;
   }
+  dragged |= ImGui::DragInt("Accumulation Frames Limit", (i32*)&rtxSpecs.maxFrameCounterLimit, 1, 1, 8392);
+  dragged |= ImGui::DragInt("Ray Bounces", (i32*)&rtxSpecs.maxRayBounces, 1, 1, 32);
+  dragged |= ImGui::DragInt("Samples Per Pixel", (i32*)&rtxSpecs.maxSamplesPerPixel, 1, 1, 32);
 
   // Handling change scene...
   b32 changedSceneAndRemovedAccumulating =
@@ -161,6 +161,23 @@ void Application::DrawImGui()
     {
       m_ShouldChangePipeline = UTRUE;
     }
+  }
+
+  ImGui::Separator();
+
+  auto& camSpecs = m_Camera.GetSpecification();
+  ImGui::Text("Camera Position: (%f, %f, %f)", camSpecs.position.x, camSpecs.position.y, camSpecs.position.z);
+  ImGui::Text("Camera Yaw: %f Pitch: %f", camSpecs.yaw, camSpecs.pitch);
+
+  dragged |= ImGui::DragFloat("FoV", &camSpecs.fieldOfView, 0.5f, 1.f, 90.f);
+  dragged |= ImGui::DragFloat("Near", &camSpecs.near, 0.01f, 0.01f, 2.f);
+  dragged |= ImGui::DragFloat("Far", &camSpecs.far, 1.f, 1.f, 1000.f);
+  ImGui::DragFloat("Movement Speed", &camSpecs.movementSpeed, 1.f, 1.f, 100.f);
+  ImGui::DragFloat("Mouse Sensitivity", &camSpecs.sensitivity, 1.f, 50.f, 200.f);
+
+  if (dragged)
+  {
+    m_Camera.ResetAccumulatedFrameCounter();
   }
 
   ImGui::End();
