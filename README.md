@@ -48,3 +48,19 @@ example: *06_RayTracingInSeveralBLASes*
 </p>
 
 Afterwards you can build project and you should running project :)
+
+## Potential issues
+
+Used version of ImGui may fail, when imgui.ini file is created in executable directory. It is related  to this issue
+https://github.com/ocornut/imgui/issues/1817. This is why I have decided  to write special function that  deletes this
+file, when engine is being released.
+
+```cpp
+void Application::DeleteImGuiIni()
+{
+  FPath imgui_ini = FPath::Append(FPath::GetExecutablePath(), "imgui.ini");
+  FPath::Delete(imgui_ini);
+}
+```
+
+So, if you are running sandbox sample or 12 imgui sample, make sure that imgui.ini is not already created and filled.
