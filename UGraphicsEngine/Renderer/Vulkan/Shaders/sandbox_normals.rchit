@@ -49,16 +49,11 @@ void main()
 
     // Computing the normal at hit position
     const vec3 hitNormal = Mix(vertex0.normal, vertex1.normal, vertex2.normal, barycentricCoords);
-    // Transforming the normal to world space
-    const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
-
-    const float dot = dot(gl_WorldRayDirectionEXT, worldHitNormal);
-    const vec3 outwardNormal = dot > 0 ? -worldHitNormal : worldHitNormal;
 
     // Return values...
     hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
     hitPayload.t = gl_HitTEXT;
-    hitPayload.directColor = outwardNormal;
+    hitPayload.directColor = hitNormal;
     hitPayload.indirectColor = vec3(0.f);
     hitPayload.isScattered = false;
 }

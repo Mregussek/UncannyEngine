@@ -70,6 +70,17 @@ FPath FPath::GetEngineProjectPath()
 }
 
 
+std::vector<FPath> FPath::GetFilePathsInDirectory(const FPath& directory)
+{
+  std::vector<FPath> rtn{};
+  for (const auto& entry : std::filesystem::directory_iterator(directory.GetString()))
+  {
+    rtn.emplace_back(entry.path().string());
+  }
+  return rtn;
+}
+
+
 FPath FPath::DiscardPathTillDirectory(const FPath& path, const char* directoryName)
 {
   size_t foundIdx = path.m_Path.find(directoryName);

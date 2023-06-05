@@ -31,6 +31,8 @@ public:
   /// @returns path to UncannyEngine.
   static FPath GetEngineProjectPath();
 
+  static std::vector<FPath> GetFilePathsInDirectory(const FPath& directory);
+
   /// @brief For given path discards all path section till the given directory name.
   /// @details For example for given path:
   /// "C:\\Users\\mateu\\Projects\\UncannyEngine\\clion-build\\USamples\\00_Sandbox\\Debug\\00_Sandbox.exe"

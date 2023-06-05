@@ -435,10 +435,7 @@ void Application::CreateEngineResources() {
     m_ScenePaths.reserve(5);
     m_ScenePathsCstr.reserve(5);
 
-    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "CornellBox_Spheres.json" }));
-    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "DefaultScene.json" }));
-    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "CornellBox_Original.json" }));
-    m_ScenePaths.emplace_back(FPath::Append(sceneSamplesPath, { "ConferenceRoom.json" }));
+    m_ScenePaths = FPath::GetFilePathsInDirectory(sceneSamplesPath);
 
     for (const FPath& scene : m_ScenePaths)
     {
