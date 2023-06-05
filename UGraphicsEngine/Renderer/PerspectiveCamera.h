@@ -63,7 +63,8 @@ public:
   void ContinueAccumulatingPreviousColors();
   void ResetAccumulatedFrameCounter();
   void DontAccumulatePreviousColors();
-  [[nodiscard]] b32 ShouldAccumulatePreviousColors() const { return m_RayTracingSpecification.accumulatePreviousColors; }
+
+  void ResetSpecification();
 
   void SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification);
   void SetAspectRatio(f32 aspectRatio);
@@ -84,6 +85,7 @@ private:
 
 private:
 
+  FPerspectiveCameraSpecification m_FirstSpecification{};
   FPerspectiveCameraSpecification m_Specification{};
   FCameraRayTracingSpecification m_RayTracingSpecification{};
 

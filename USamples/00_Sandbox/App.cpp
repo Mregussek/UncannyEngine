@@ -86,6 +86,7 @@ void Application::Run() {
       m_RenderContext.GetLogicalDevice()->WaitIdle();
       DestroyLevelResources();
       CreateLevelResources(m_ScenePaths[m_SelectedScenePath]);
+      m_Camera.ResetSpecification();
       m_Camera.ResetAccumulatedFrameCounter();
       m_Camera.DontAccumulatePreviousColors();
     }

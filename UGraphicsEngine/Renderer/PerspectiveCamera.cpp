@@ -15,6 +15,7 @@ static void updateCameraVectors(f32 yaw, f32 pitch, math::Vector3f worldUp, math
 void FPerspectiveCamera::Initialize(const FPerspectiveCameraSpecification& specification)
 {
   m_Specification = specification;
+  m_FirstSpecification = specification;
   updateCameraVectors(m_Specification.yaw, m_Specification.pitch, m_Specification.worldUp, &m_Specification.front,
                       &m_Right, &m_Up);
 }
@@ -35,6 +36,14 @@ void FPerspectiveCamera::ResetAccumulatedFrameCounter()
 void FPerspectiveCamera::DontAccumulatePreviousColors()
 {
   m_RayTracingSpecification.accumulatePreviousColors = UFALSE;
+}
+
+
+void FPerspectiveCamera::ResetSpecification()
+{
+  m_Specification = m_FirstSpecification;
+  updateCameraVectors(m_Specification.yaw, m_Specification.pitch, m_Specification.worldUp, &m_Specification.front,
+                      &m_Right, &m_Up);
 }
 
 

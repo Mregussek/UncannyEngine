@@ -14,15 +14,19 @@ Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://
 ### Current state
 
 <p align="center">
-  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/00_Sandbox_ImGui_RayTracing.png">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/cornell_box_original.png">
+</p>
+
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/cornell_box_spheres.png">
+</p>
+
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/default_scene.png">
 </p>
 
 <p align="center">
   <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/12_ImGuiWithRayTracing.png">
-</p>
-
-<p align="center">
-  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/00_Sandbox.png">
 </p>
 
 ## Build
