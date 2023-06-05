@@ -105,7 +105,7 @@ void main()
     {
         if (hitPayload.rayDepth == 1)
         {
-            hitPayload.directColor = triangleMaterial.emissive;
+            hitPayload.directColor = normalize(triangleMaterial.emissive);
             hitPayload.indirectColor = vec3(0.f);
         }
         else

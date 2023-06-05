@@ -104,7 +104,7 @@ void Application::Run() {
 void Application::DrawImGui()
 {
   ImGui::SetNextWindowPos(ImVec2(10.f, 10.f));
-  ImGui::SetNextWindowSize(ImVec2(500.f, 200.f), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(500.f, 300.f), ImGuiCond_FirstUseEver);
   ImGui::Begin("Inspector Uncanny Engine Window");
 
   f32 frameRate = 1.f / m_Window->GetDeltaTime();
