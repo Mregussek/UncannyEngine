@@ -37,7 +37,7 @@ void main() {
         vec3 rayColorValue = vec3(1);
         for (int b = 1; b < (maxRayBouncesCount + 1); b++)
         {
-            hitPayload.bounceNum = b;
+            hitPayload.rayDepth = b;
             traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
                         gl_RayFlagsOpaqueEXT,   // rayFlags
                         0xff,                   // cullMask
@@ -50,7 +50,7 @@ void main() {
                         10000.0f,               // Tmax
                         0                       // payload
             );
-            rayColorValue *= hitPayload.rayColor;
+            rayColorValue *= hitPayload.directColor;// + hitPayload.indirectColor;
 
             bool traceMissed = hitPayload.t < 0;
             bool endOfTrace = !hitPayload.isScattered;

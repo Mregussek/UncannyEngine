@@ -110,6 +110,9 @@ void Application::DrawImGui()
   f32 frameRate = 1.f / m_Window->GetDeltaTime();
   ImGui::Text("Frame rate: %f", frameRate);
 
+  u32 accumulatedFrames = m_Camera.GetAccumulatedFramesCounter();
+  ImGui::Text("Accumulated Frames: %u", accumulatedFrames);
+
   ImGui::Separator();
 
   auto& rtxSpecs = m_Camera.GetRayTracingSpecification();
@@ -375,7 +378,7 @@ void Application::CreateEngineResources() {
         .vkDevice = pLogicalDevice->GetHandle(),
         .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
     };
-    m_RayTracingPipelines.reserve(3);
+    m_RayTracingPipelines.reserve(3);   // When there will be reallocation program will fail!
     {
       rayTracingPipelineSpecification.rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv");
       vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines.emplace_back();

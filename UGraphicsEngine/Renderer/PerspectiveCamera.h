@@ -72,6 +72,7 @@ public:
   [[nodiscard]] math::Matrix4x4f GetProjection() const;
   [[nodiscard]] FPerspectiveCameraUniformData GetUniformData() const;
   [[nodiscard]] b32 HasMoved() const;
+  [[nodiscard]] u32 GetAccumulatedFramesCounter() const { return m_NotMovingCameraFrameCounter; }
 
   [[nodiscard]] FPerspectiveCameraSpecification& GetSpecification() { return m_Specification; }
   [[nodiscard]] FCameraRayTracingSpecification& GetRayTracingSpecification() { return m_RayTracingSpecification; }

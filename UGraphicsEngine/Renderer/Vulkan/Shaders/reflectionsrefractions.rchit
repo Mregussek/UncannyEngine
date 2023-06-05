@@ -69,7 +69,7 @@ void main()
     // Lambertian material
     hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
     hitPayload.t = gl_HitTEXT;
-    hitPayload.rayColor = triangleMaterial.diffuse + triangleMaterial.specular + triangleMaterial.emissive;
+    hitPayload.directColor = triangleMaterial.diffuse + triangleMaterial.specular + triangleMaterial.emissive;
 
     if (triangleMaterial.illuminationModel == 5) // metallic
     {
@@ -77,7 +77,7 @@ void main()
         const bool isScattered = dot(reflected, worldHitNormal) > 0;
         const vec3 scatter = reflected + 0.f * RandomInUnitSphere(hitPayload.raySeed);
 
-        hitPayload.rayColor += 1.f;
+        hitPayload.directColor += 1.f;
         hitPayload.rayDirection = scatter;
         hitPayload.isScattered = isScattered;
     }
@@ -100,12 +100,12 @@ void main()
             hitPayload.rayDirection = refracted;
         }
 
-        hitPayload.rayColor += 1.f;
+        hitPayload.directColor += 1.f;
         hitPayload.isScattered = true;
     }
     else if (triangleMaterial.illuminationModel == 4) // emissive material
     {
-        hitPayload.rayColor = normalize(hitPayload.rayColor);
+        hitPayload.directColor = normalize(hitPayload.directColor);
         hitPayload.isScattered = false;
     }
     else // lambertian

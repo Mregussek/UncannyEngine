@@ -9,6 +9,6 @@ layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 
 void main()
 {
-    hitPayload.rayColor = vec3(173, 216, 230) / 255.f;
+    hitPayload.directColor = vec3(0.f);//vec3(173, 216, 230) / 255.f;
     hitPayload.isScattered = false;
 }

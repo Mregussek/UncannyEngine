@@ -48,9 +48,11 @@ struct HitPayload
 {
     vec3 rayOrigin;
     vec3 rayDirection;
-    vec3 rayColor;
+    vec3 directColor;
+    vec3 indirectColor;
+    vec3 previousNormal;
     uint raySeed;
+    uint rayDepth;
     float t;
-    int bounceNum;
     bool isScattered;
 };

@@ -56,20 +56,14 @@ void main()
 
     const vec3 barycentricCoords = vec3(1.f - attribs.x - attribs.y, attribs.x, attribs.y);
 
-    // Computing the coordinates of the hit position
-    const vec3 hitPos = Mix(vertex0.position, vertex1.position, vertex2.position, barycentricCoords);
-    // Transforming the position to world space
-    const vec3 worldHitPos = vec3(gl_ObjectToWorldEXT * vec4(hitPos, 1.0));
-
     // Computing the normal at hit position
     const vec3 hitNormal = Mix(vertex0.normal, vertex1.normal, vertex2.normal, barycentricCoords);
     // Transforming the normal to world space
     const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
     // Lambertian material
-    hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
-    hitPayload.t = gl_HitTEXT;
-    hitPayload.rayColor = triangleMaterial.diffuse + triangleMaterial.specular + triangleMaterial.emissive;
+    hitPayload.directColor = triangleMaterial.diffuse + triangleMaterial.specular;
+    hitPayload.indirectColor = vec3(0.f);
 
     if (triangleMaterial.illuminationModel == 5) // metallic
     {
@@ -109,7 +103,16 @@ void main()
     }
     else if (triangleMaterial.illuminationModel == 4) // emissive material
     {
-        hitPayload.rayColor = normalize(hitPayload.rayColor);
+        if (hitPayload.rayDepth == 1)
+        {
+            hitPayload.directColor = triangleMaterial.emissive;
+            hitPayload.indirectColor = vec3(0.f);
+        }
+        else
+        {
+            hitPayload.directColor = triangleMaterial.emissive * dot(hitPayload.previousNormal, gl_WorldRayDirectionEXT);
+            hitPayload.indirectColor = vec3(0.f);
+        }
         hitPayload.isScattered = false;
     }
     else // lambertian
@@ -120,4 +123,8 @@ void main()
         hitPayload.rayDirection = ScatteredDirection;
         hitPayload.isScattered = IsScattered;
     }
+
+    hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
+    hitPayload.t = gl_HitTEXT;
+    hitPayload.previousNormal = worldHitNormal;
 }

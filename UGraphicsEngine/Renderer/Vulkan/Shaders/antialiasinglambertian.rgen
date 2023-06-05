@@ -49,7 +49,7 @@ void main() {
                         10000.0f,               // Tmax
                         0                       // payload
             );
-            rayColorValue *= hitPayload.rayColor;
+            rayColorValue *= hitPayload.directColor;
 
             // Trace missed, or end of trace.
             if (hitPayload.t < 0 || !hitPayload.isScattered)

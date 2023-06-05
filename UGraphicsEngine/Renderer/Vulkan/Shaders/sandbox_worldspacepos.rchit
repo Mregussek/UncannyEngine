@@ -29,15 +29,6 @@ vec3 Mix(vec3 v0, vec3 v1, vec3 v2, vec3 barycentricCoords)
     return v0 * barycentricCoords.x + v1 * barycentricCoords.y + v2 * barycentricCoords.z;
 }
 
-
-// Polynomial approximation by Christophe Schlick
-float Schlick(const float cosine, const float refractionIndex)
-{
-    float r0 = (1 - refractionIndex) / (1 + refractionIndex);
-    r0 *= r0;
-    return r0 + (1 - r0) * pow(1 - cosine, 5);
-}
-
 void main()
 {
     BottomStructureUniformData asData = bottomASData.d[gl_InstanceCustomIndexEXT];
@@ -64,6 +55,7 @@ void main()
     // Return values...
     hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
     hitPayload.t = gl_HitTEXT;
-    hitPayload.rayColor = worldHitPos;
+    hitPayload.directColor = worldHitPos;
+    hitPayload.indirectColor = vec3(0.f);
     hitPayload.isScattered = false;
 }

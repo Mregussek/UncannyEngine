@@ -66,7 +66,7 @@ void main()
     // Saving payload...
     hitPayload.rayOrigin = ShadowRayOrigin;
     hitPayload.rayDirection = ScatteredDirection;
-    hitPayload.rayColor = Color;
+    hitPayload.directColor = Color;
     hitPayload.t = gl_HitTEXT;
     hitPayload.isScattered = IsScattered;
 }
