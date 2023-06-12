@@ -77,7 +77,7 @@ void main()
         const bool randomSampling = false;
         if (randomSampling)
         {
-            hitPayload.rayDirection += 0.1f * RandomInUnitSphere(hitPayload.raySeed);
+            hitPayload.rayDirection += 0.2f * RandomInUnitSphere(hitPayload.raySeed);
         }
     }
     else if (triangleMaterial.illuminationModel == 7) // dielectic

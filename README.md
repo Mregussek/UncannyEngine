@@ -1,24 +1,21 @@
 
 # UncannyEngine
 
-Educational Vulkan-based 3D engine. Currently my primary focus includes acceleration structures, shader binding table,
-ray tracing pipeline and its shaders.
+Research-based Vulkan 3D engine. Currently my primary focus includes ray tracing pipeline and global illumination
+algorithms. I have implemented Kajiya-style Path Tracing.
 
-### Samples
+## Current state
 
-In USamples directory you can find all sample projects that are using UncannyEngine.
-Every sample project name that I have created starts from xx number, for example: *06_RayTracingInSeveralBLASes*
-
-Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://casual-effects.com/data)
-
-### Current state
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/cornell_box_spheres.png">
+</p>
 
 <p align="center">
   <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/cornell_box_original.png">
 </p>
 
 <p align="center">
-  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/cornell_box_spheres.png">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/fireplace.png">
 </p>
 
 <p align="center">
@@ -28,6 +25,31 @@ Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://
 <p align="center">
   <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/12_ImGuiWithRayTracing.png">
 </p>
+
+### Debugging
+
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/cornell_box_spheres_normals.png">
+</p>
+
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/cornell_box_spheres_hitworldspacepos.png">
+</p>
+
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/default_scene_normals.png">
+</p>
+
+<p align="center">
+  <img style="width: 55vw; min-width: 330px;" src="Media/SamplesPictures/default_scene_hitworldspacepos.png">
+</p>
+
+## Samples
+
+In USamples directory you can find all sample projects that are using UncannyEngine.
+Every sample project name that I have created starts from xx number, for example: *06_RayTracingInSeveralBLASes*
+
+Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://casual-effects.com/data)
 
 ## Build
 
@@ -44,7 +66,7 @@ Next you can choose proper startup project, every sample project that I have cre
 example: *06_RayTracingInSeveralBLASes*
 
 <p align="center">
-  <img style="width: 10vw; min-width: 400px;" src="Media/startup-project-selection.png">
+  <img style="width: 25vw; min-width: 400px;" src="Media/startup-project-selection.png">
 </p>
 
 Afterwards you can build project and you should running project :)
