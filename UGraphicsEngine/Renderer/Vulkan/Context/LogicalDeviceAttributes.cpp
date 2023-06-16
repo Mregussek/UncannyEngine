@@ -67,7 +67,7 @@ void FLogicalDeviceAttributes::InitializeDeviceFeatures(const FPhysicalDeviceAtt
 
   // I was thinking that here we don't have info whether user want to enable ray tracing and so that
   // its properties and features shouldn't be queried. But I realized that, it doesn't matter if those
-  // extensions are used, we can just activate those features in logical device but they don't have to be
+  // extensions are used, we can just activate those features in logical device, but they don't have to be
   // used of course
 
   if (physicalDeviceAttributes.IsExtensionPresent(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME))

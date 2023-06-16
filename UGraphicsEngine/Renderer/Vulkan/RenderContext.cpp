@@ -12,7 +12,7 @@ namespace uncanny::vulkan
 {
 
 
-void FRenderContext::Create(FRenderContextAttributes attributes)
+void FRenderContext::Create(const FRenderContextAttributes& attributes)
 {
   m_VolkHandler.Initialize();
 

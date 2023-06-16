@@ -52,8 +52,8 @@ void main() {
             );
             rayColorValue *= hitPayload.directColor;// + hitPayload.indirectColor;
 
-            bool traceMissed = hitPayload.t < 0;
-            bool endOfTrace = !hitPayload.isScattered;
+            const bool traceMissed = hitPayload.t < 0;
+            const bool endOfTrace = !hitPayload.isScattered;
             if (traceMissed || endOfTrace)
             {
                 break;
@@ -63,8 +63,10 @@ void main() {
     }
 
     // Divide the color by number of samples
-    float samplesScale = 1.f / float(maxSamplesPerPixel);
-    pixelColorValue = vec3(pixelColorValue) * samplesScale;
+    {
+        const float samplesScale = 1.f / float(maxSamplesPerPixel);
+        pixelColorValue = vec3(pixelColorValue) * samplesScale;
+    }
 
     // Gamma Correction
     pixelColorValue = sqrt(pixelColorValue);
@@ -73,12 +75,11 @@ void main() {
     // Add accumulated pixel color
     if (perFrameData.d.accumulatePreviousColors > 0)
     {
-        vec4 accumulatedColor = imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy));
-        accumulatedColor *= perFrameData.d.notMovingCameraFrameCount;
+        const vec4 accumulatedColor =
+            imageLoad(outputImage, ivec2(gl_LaunchIDEXT.xy)) * perFrameData.d.notMovingCameraFrameCount;
+        const float frameScale = 1.f / float(perFrameData.d.notMovingCameraFrameCount + 1);
 
-        pixelColorValue += vec3(accumulatedColor);
-        float frameScale = 1.f / float(perFrameData.d.notMovingCameraFrameCount + 1);
-        pixelColorValue *= frameScale;
+        pixelColorValue = (pixelColorValue + vec3(accumulatedColor)) * frameScale;
     }
 
     imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(pixelColorValue, 1.0));

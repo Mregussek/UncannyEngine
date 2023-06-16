@@ -43,7 +43,7 @@ public:
   /// @brief Creates context
   /// @details Chooses proper Vulkan API version, adds required layers and extensions, chooses physical
   /// device and then creates logical device along with window surface.
-  void Create(FRenderContextAttributes attributes);
+  void Create(const FRenderContextAttributes& attributes);
 
   /// @brief Destroys whole FRenderContext object (closes Vulkan API)
   void Destroy();
