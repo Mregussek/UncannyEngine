@@ -4,4 +4,6 @@ glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\antialiasinglambertian.rm
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\antialiasinglambertian.rgen -o .\spv\antialiasinglambertian.rgen.spv
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\antialiasinglambertian.rchit -o .\spv\antialiasinglambertian.rchit.spv
 
+glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\reflectionsrefractions.rchit -o .\spv\reflectionsrefractions.rchit.spv
+
 pause

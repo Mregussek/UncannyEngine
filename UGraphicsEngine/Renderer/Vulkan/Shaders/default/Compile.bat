@@ -8,8 +8,6 @@ glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\default.rchit -o .\spv\de
 
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\normals.rchit -o .\spv\normals.rchit.spv
 
-glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\reflectionsrefractions.rchit -o .\spv\reflectionsrefractions.rchit.spv
-
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\shadows.rmiss -o .\spv\shadows.rmiss.spv
 glslc.exe --target-env=vulkan1.3 --target-spv=spv1.6 .\shadows.rchit -o .\spv\shadows.rchit.spv
 

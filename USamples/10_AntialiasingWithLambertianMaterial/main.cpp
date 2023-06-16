@@ -368,7 +368,7 @@ private:
 
     {
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                         "Shaders", "spv" });
+                                                                         "Shaders", "antialiasing_lambertian", "spv" });
       vulkan::FGLSLShaderCompiler glslCompiler{};
       glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
 

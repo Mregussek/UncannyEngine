@@ -381,7 +381,7 @@ void Application::CreateEngineResources() {
   }
   {
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                       "Shaders", "spv" });
+                                                                       "Shaders", "sandbox", "spv" });
     vulkan::FGLSLShaderCompiler glslCompiler{};
     glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
 
@@ -426,7 +426,7 @@ void Application::CreateEngineResources() {
     m_DepthImage.CreateView();
 
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                       "Shaders", "spv" });
+                                                                       "Shaders", "imgui", "spv" });
     vulkan::FImGuiRendererSpecification imGuiRendererSpecification{
         .vertexShader = FPath::Append(shadersPath, "ui.vert.spv"),
         .fragmentShader = FPath::Append(shadersPath, "ui.frag.spv"),

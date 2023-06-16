@@ -279,7 +279,7 @@ private:
     m_RayTracingPipelineLayout.Create(pLogicalDevice->GetHandle(), m_DescriptorSetLayout.GetHandle());
 
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                       "Shaders" });
+                                                                       "Shaders", "default" });
     FPath shadersSpvPath = FPath::Append(shadersPath, { "spv" });
     vulkan::FGLSLShaderCompiler glslCompiler{};
     glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());

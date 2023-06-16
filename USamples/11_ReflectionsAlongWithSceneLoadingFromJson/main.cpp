@@ -146,7 +146,7 @@ private:
 
     // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
-    FPath sceneJsonPath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
+    FPath sceneJsonPath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "3_Sponza_Additions.json" });
     FEntityRegistryLoader::LoadJsonScene(sceneJsonPath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
     // Converting asset meshes and materials into render meshes and materials...
@@ -326,7 +326,7 @@ private:
 
     {
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                         "Shaders", "spv" });
+                                                                         "Shaders", "antialiasing_lambertian", "spv" });
       vulkan::FGLSLShaderCompiler glslCompiler{};
       glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
 

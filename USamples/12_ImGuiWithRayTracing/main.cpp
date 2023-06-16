@@ -210,10 +210,7 @@ private:
 
     // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
-    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "DefaultScene.json" });
-    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Original.json" });
-    //FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "CornellBox_Spheres.json"});
-    FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "ConferenceRoom.json" });
+    FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "0_CornellBox_Spheres.json" });
     FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
     // Converting asset meshes and materials into render meshes and materials...
@@ -352,15 +349,15 @@ private:
 
     {
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                         "Shaders", "spv" });
+                                                                         "Shaders", "kajiya_path_tracing", "spv" });
       vulkan::FGLSLShaderCompiler glslCompiler{};
       glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
 
       vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
-          .rayClosestHitPath = FPath::Append(shadersPath, "sandbox.rchit.spv"),
-          .rayGenerationPath = FPath::Append(shadersPath, "sandbox.rgen.spv"),
-          .rayMissPath =  FPath::Append(shadersPath, "sandbox_complete_miss.rmiss.spv"),
-          .rayShadowMissPath = FPath::Append(shadersPath, "sandbox_shadow_miss.rmiss.spv"),
+          .rayClosestHitPath = FPath::Append(shadersPath, "pt_closesthit.rchit.spv"),
+          .rayGenerationPath = FPath::Append(shadersPath, "pt_raygeneration.rgen.spv"),
+          .rayMissPath =  FPath::Append(shadersPath, "pt_completemiss.rmiss.spv"),
+          .rayShadowMissPath = FPath::Append(shadersPath, "pt_shadowmiss.rmiss.spv"),
           .pGlslCompiler = &glslCompiler,
           .pPipelineLayout = &m_RayTracingPipelineLayout,
           .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties(),
@@ -382,7 +379,7 @@ private:
       m_DepthImage.CreateView();
 
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
-                                                                         "Shaders", "spv" });
+                                                                         "Shaders", "imgui", "spv" });
       vulkan::FImGuiRendererSpecification imGuiRendererSpecification{
         .vertexShader = FPath::Append(shadersPath, "ui.vert.spv"),
         .fragmentShader = FPath::Append(shadersPath, "ui.frag.spv"),
