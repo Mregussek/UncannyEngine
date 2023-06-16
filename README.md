@@ -73,14 +73,14 @@ In order to build it you should use CMakeGUI and select project directory. In pr
 some build directory and mark it in GUI as follows.
 
 <p align="center">
-  <img style="width: 40vw; min-width: 330px;" src="Media/Build/cmake-build-config.png">
+  <img style="width: 40vw; min-width: 330px;" src="Media/Compilation/cmake-build-config.png">
 </p>
 
 Next you can choose proper startup project, every sample project that I have created starts from xx number, for
 example: *06_RayTracingInSeveralBLASes*
 
 <p align="center">
-  <img style="width: 25vw; min-width: 400px;" src="Media/Build/startup-project-selection.png">
+  <img style="width: 25vw; min-width: 400px;" src="Media/Compilation/startup-project-selection.png">
 </p>
 
 Afterwards you can build project and you should running project :)
