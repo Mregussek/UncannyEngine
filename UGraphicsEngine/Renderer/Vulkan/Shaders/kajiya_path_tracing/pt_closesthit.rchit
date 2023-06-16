@@ -7,8 +7,8 @@
 #extension GL_EXT_buffer_reference2 : require
 #extension GL_GOOGLE_include_directive : enable
 
-#include "DataTypes.glsl"
-#include "Random.glsl"
+#include "../DataTypes.glsl"
+#include "../Random.glsl"
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 layout(location = 1) rayPayloadEXT bool IsInShadow;

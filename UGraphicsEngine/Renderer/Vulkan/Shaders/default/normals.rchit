@@ -7,7 +7,7 @@
 #extension GL_EXT_buffer_reference2 : require
 #extension GL_GOOGLE_include_directive : enable
 
-#include "DataTypes.glsl"
+#include "../DataTypes.glsl"
 
 layout(location = 0) rayPayloadInEXT vec4 payload;
 

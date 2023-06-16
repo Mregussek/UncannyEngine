@@ -7,8 +7,8 @@
 #extension GL_EXT_buffer_reference2 : require
 #extension GL_GOOGLE_include_directive : enable
 
-#include "DataTypes.glsl"
-#include "Random.glsl"
+#include "../DataTypes.glsl"
+#include "../Random.glsl"
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 layout(location = 1) rayPayloadEXT bool IsInShadow;
@@ -47,15 +47,13 @@ void main()
 
     const vec3 barycentricCoords = vec3(1.f - attribs.x - attribs.y, attribs.x, attribs.y);
 
-    // Computing the coordinates of the hit position
-    const vec3 hitPos = Mix(vertex0.position, vertex1.position, vertex2.position, barycentricCoords);
-    // Transforming the position to world space
-    const vec3 worldHitPos = vec3(gl_ObjectToWorldEXT * vec4(hitPos, 1.0));
+    // Computing the normal at hit position
+    const vec3 hitNormal = Mix(vertex0.normal, vertex1.normal, vertex2.normal, barycentricCoords);
 
     // Return values...
     hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
     hitPayload.t = gl_HitTEXT;
-    hitPayload.directColor = worldHitPos;
+    hitPayload.directColor = hitNormal;
     hitPayload.indirectColor = vec3(0.f);
     hitPayload.isScattered = false;
 }
