@@ -57,7 +57,8 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
       {
         meshData.vertices.push_back({
           .position = vertex.position,
-          .normal = vertex.normal });
+          .normal = vertex.normal
+        });
       }
 
       auto it = std::max_element(std::begin(meshData.indices), std::end(meshData.indices));

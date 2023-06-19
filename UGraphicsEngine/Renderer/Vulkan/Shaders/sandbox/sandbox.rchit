@@ -48,7 +48,7 @@ void main()
 
     // Computing the normal at hit position
     const vec3 hitNormal = Mix(vertex0.normal, vertex1.normal, vertex2.normal, barycentricCoords);
-    // Transforming the normal to world space
+    // Transforming the normal to object space
     const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
     if (triangleMaterial.illuminationModel == 5) // metallic

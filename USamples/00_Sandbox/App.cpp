@@ -180,6 +180,14 @@ void Application::DrawImGui()
     m_Camera.ResetAccumulatedFrameCounter();
   }
 
+  ImGui::Separator();
+
+  ImGui::Text("Scene statistics");
+  ImGui::Text("Bottom AS Count: %u", m_LevelStats.bottomLevelStructsCount);
+  ImGui::Text("Triangles: %u", m_LevelStats.allTrianglesCount);
+  ImGui::Text("Vertices: %u", m_LevelStats.allVerticesCount);
+  ImGui::Text("Indices: %u", m_LevelStats.allIndicesCount);
+
   ImGui::End();
 }
 
@@ -506,6 +514,24 @@ void Application::CreateLevelResources(const FPath& scenePath)
 
   // Recording commands
   RecordRayTracingCommands();
+
+  CalculateStatisticsForLevelResources(renderDataVector);
+}
+
+
+void Application::CalculateStatisticsForLevelResources(const std::vector<FRenderData>& renderDataVector)
+{
+  m_LevelStats = {};
+
+  m_LevelStats.bottomLevelStructsCount = m_BottomLevelAccelerationVector.size();
+
+  for (const auto& renderData : renderDataVector)
+  {
+    m_LevelStats.allVerticesCount += renderData.mesh.vertices.size();
+    m_LevelStats.allIndicesCount += renderData.mesh.indices.size();
+
+    m_LevelStats.allTrianglesCount += m_LevelStats.allIndicesCount / 3;
+  }
 }
 
 

@@ -60,6 +60,8 @@ private:
 
   void DeleteImGuiIni();
 
+  void CalculateStatisticsForLevelResources(const std::vector<FRenderData>& renderDataVector);
+
 private:
 
   // Engine Resources that are initialized once and then reused...
@@ -115,7 +117,15 @@ private:
 
   b32 m_SelectedAccumulatedColor{ UFALSE };
 
+  struct LevelStatistics
+  {
+    u32 bottomLevelStructsCount{ 0 };
+    u32 allTrianglesCount{ 0 };
+    u32 allVerticesCount{ 0 };
+    u32 allIndicesCount{ 0 };
+  };
 
+  LevelStatistics m_LevelStats{};
 
 };
 
