@@ -7,8 +7,7 @@
 #extension GL_EXT_buffer_reference2 : require
 #extension GL_GOOGLE_include_directive : enable
 
-#include "../DataTypes.glsl"
-#include "../Random.glsl"
+#include "../ScatterMaterials.glsl"
 
 layout(location = 0) rayPayloadInEXT HitPayload hitPayload;
 layout(location = 1) rayPayloadEXT bool IsInShadow;
@@ -27,15 +26,6 @@ hitAttributeEXT vec3 attribs;
 vec3 Mix(vec3 v0, vec3 v1, vec3 v2, vec3 barycentricCoords)
 {
     return v0 * barycentricCoords.x + v1 * barycentricCoords.y + v2 * barycentricCoords.z;
-}
-
-
-// Polynomial approximation by Christophe Schlick
-float Schlick(const float cosine, const float refractionIndex)
-{
-    float r0 = (1 - refractionIndex) / (1 + refractionIndex);
-    r0 *= r0;
-    return r0 + (1 - r0) * pow(1 - cosine, 5);
 }
 
 void main()
@@ -61,70 +51,24 @@ void main()
     // Transforming the normal to world space
     const vec3 worldHitNormal = normalize(vec3(hitNormal * gl_WorldToObjectEXT));
 
-    // Lambertian material
-    hitPayload.directColor = triangleMaterial.diffuse + triangleMaterial.specular;
-    hitPayload.indirectColor = vec3(0.f);
-
     if (triangleMaterial.illuminationModel == 5) // metallic
     {
-        const vec3 reflected = reflect(gl_WorldRayDirectionEXT, worldHitNormal);
-        const bool isScattered = dot(reflected, worldHitNormal) > 0;
-        const vec3 scatter = reflected;
-
-        hitPayload.rayDirection = scatter;
-        hitPayload.isScattered = isScattered;
-
-        const bool randomSampling = false;
-        if (randomSampling)
-        {
-            hitPayload.rayDirection += 0.2f * RandomInUnitSphere(hitPayload.raySeed);
-        }
+        EvaluateMetallic(hitPayload, triangleMaterial, gl_WorldRayOriginEXT, gl_WorldRayDirectionEXT, gl_HitTEXT,
+                         worldHitNormal, false, 0.2);
     }
     else if (triangleMaterial.illuminationModel == 7) // dielectic
     {
-        const float dot = dot(gl_WorldRayDirectionEXT, worldHitNormal);
-        const vec3 outwardNormal = dot > 0 ? -worldHitNormal : worldHitNormal;
-        const float niOverNt = dot > 0 ? triangleMaterial.indexOfRefraction : 1 / triangleMaterial.indexOfRefraction;
-        const float cosine = dot > 0 ? triangleMaterial.indexOfRefraction * dot : -dot;
-
-        const vec3 refracted = refract(gl_WorldRayDirectionEXT, outwardNormal, niOverNt);
-        const float reflectProb = refracted != vec3(0) ? Schlick(cosine, triangleMaterial.indexOfRefraction) : 1;
-
-        if (RandomFloat(hitPayload.raySeed) < reflectProb)
-        {
-            hitPayload.rayDirection = reflect(gl_WorldRayDirectionEXT, worldHitNormal);
-        }
-        else
-        {
-            hitPayload.rayDirection = refracted;
-        }
-
-        hitPayload.isScattered = true;
+        EvaluateDielectric(hitPayload, triangleMaterial, gl_WorldRayOriginEXT, gl_WorldRayDirectionEXT, gl_HitTEXT,
+                           worldHitNormal);
     }
     else if (triangleMaterial.illuminationModel == 4) // emissive material
     {
-        if (hitPayload.rayDepth == 1)
-        {
-            hitPayload.directColor = normalize(triangleMaterial.emissive);
-            hitPayload.indirectColor = vec3(0.f);
-        }
-        else
-        {
-            hitPayload.directColor = triangleMaterial.emissive * dot(hitPayload.previousNormal, gl_WorldRayDirectionEXT);
-            hitPayload.indirectColor = vec3(0.f);
-        }
-        hitPayload.isScattered = false;
+        EvaluateLightSource(hitPayload, triangleMaterial, gl_WorldRayOriginEXT, gl_WorldRayDirectionEXT, gl_HitTEXT,
+                            worldHitNormal);
     }
     else // lambertian
     {
-        const bool IsScattered = dot(gl_WorldRayDirectionEXT, worldHitNormal) < 0;
-        const vec3 ScatteredDirection = worldHitNormal + RandomInUnitSphere(hitPayload.raySeed);
-
-        hitPayload.rayDirection = ScatteredDirection;
-        hitPayload.isScattered = IsScattered;
+        EvaluateLambertian(hitPayload, triangleMaterial, gl_WorldRayOriginEXT, gl_WorldRayDirectionEXT, gl_HitTEXT,
+                           worldHitNormal);
     }
-
-    hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
-    hitPayload.t = gl_HitTEXT;
-    hitPayload.previousNormal = worldHitNormal;
 }

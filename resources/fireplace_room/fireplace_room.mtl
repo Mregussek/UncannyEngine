@@ -153,7 +153,7 @@ Ni 1.00
 
 # Side window (fireplace wall)
 newmtl lambert3SG
-illum 2
+illum 4
 Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Ke 4.00 4.00 4.00

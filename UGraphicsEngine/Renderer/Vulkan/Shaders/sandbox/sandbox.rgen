@@ -22,20 +22,20 @@ void main() {
 
     for (uint s = 0; s < maxSamplesPerPixel; s++)
     {
-        hitPayload.raySeed = InitRandomSeed(InitRandomSeed(gl_LaunchIDEXT.x, gl_LaunchIDEXT.y), pixelRandomSeed);
-
+        // Calculating initial ray direction...
         const vec2 pixelSample = gl_LaunchIDEXT.xy + vec2(RandomFloat(pixelRandomSeed), RandomFloat(pixelRandomSeed));
         const vec2 launchSizeScale = vec2(1.f, 1.f) / gl_LaunchSizeEXT.xy;
         const vec2 uv = pixelSample * launchSizeScale * 2.f - 1.f;
-
         const vec4 target = perFrameData.d.projInverse * vec4(uv.xy, 1.f, 1.f) ;
         const vec4 direction = perFrameData.d.viewInverse * vec4(normalize(target.xyz), 0.f) ;
 
+        // Initial hit payload setup...
+        hitPayload.raySeed = InitRandomSeed(InitRandomSeed(gl_LaunchIDEXT.x, gl_LaunchIDEXT.y), pixelRandomSeed);
         hitPayload.rayOrigin = origin.xyz;
         hitPayload.rayDirection = direction.xyz;
 
         vec3 rayColorValue = vec3(1);
-        for (int b = 1; b < (maxRayBouncesCount + 1); b++)
+        for (int b = 1; b < (maxRayBouncesCount + 1); b++) // iterating from 1, as ray depth may be used as divisor
         {
             hitPayload.rayDepth = b;
             traceRayEXT(topLevelAS,             // accelerationStructureEXT topLevel
@@ -50,7 +50,7 @@ void main() {
                         10000.0f,               // Tmax
                         0                       // payload
             );
-            rayColorValue *= hitPayload.directColor;// + hitPayload.indirectColor;
+            rayColorValue *= (hitPayload.directColor + hitPayload.indirectColor);
 
             const bool traceMissed = hitPayload.t < 0;
             const bool endOfTrace = !hitPayload.isScattered;
