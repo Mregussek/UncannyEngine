@@ -55,7 +55,7 @@ void main()
     // Return values...
     hitPayload.rayOrigin = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
     hitPayload.t = gl_HitTEXT;
-    hitPayload.directColor = worldHitPos;
+    hitPayload.directColor = hitPos;
     hitPayload.indirectColor = vec3(0.f);
     hitPayload.isScattered = false;
 }

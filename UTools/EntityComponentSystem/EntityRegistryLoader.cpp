@@ -63,7 +63,7 @@ void FEntityRegistryLoader::LoadJsonScene(const char* path, FEntityRegistry* pEn
     };
 
     FMeshAsset& meshAsset = pAssetRegistry->RegisterMesh();
-    meshAsset.LoadObj(meshAssetPath.GetString().c_str(), UFALSE);
+    meshAsset.LoadObj(meshAssetPath.GetStringPath().c_str(), UFALSE);
 
     FEntity entity = pEntityRegistry->Register();
     entity.Add<FRenderMeshComponent>(FRenderMeshComponent{

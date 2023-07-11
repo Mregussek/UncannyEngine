@@ -97,4 +97,50 @@ FRenderData FRenderMeshFactory::ConvertAssetToOneRenderData(const FMeshAsset* pM
 }
 
 
+std::vector<FRenderData> FRenderMeshFactory::ConvertAssetToVectorRenderData(const FMeshAsset* pMeshAsset,
+                                                                            math::Matrix4x4f transform)
+{
+  std::vector<FRenderData> rtnVector{};
+
+  for(const FMeshAssetData& assetData : pMeshAsset->GetMeshes())
+  {
+    FRenderData &renderData = rtnVector.emplace_back();
+    FRenderMeshData &meshData = renderData.mesh;
+    meshData.transform = transform;
+
+    // Reserve needed memory...
+    meshData.vertices.reserve(assetData.vertices.size());
+    meshData.indices.reserve(assetData.indices.size());
+    meshData.materialIndices.reserve(pMeshAsset->GetMeshes().size());
+
+    for (const FVertex& vertex : assetData.vertices)
+    {
+      meshData.vertices.push_back({ .position = vertex.position, .normal = vertex.normal });
+    }
+
+    meshData.indices.assign(assetData.indices.begin(), assetData.indices.end());
+    meshData.materialIndices.assign(meshData.indices.size(), assetData.materialIndex);
+
+    renderData.materials.reserve(pMeshAsset->GetMaterials().size());
+
+    for (const FMaterialData& data : pMeshAsset->GetMaterials())
+    {
+      renderData.materials.emplace_back(FRenderMaterialData{
+        .ambient = data.ambient,
+        .diffuse = data.diffuse,
+        .specular = data.specular,
+        .emissive = data.emissive,
+        .transparent = data.transparent,
+        .shininess = data.shininess,
+        .opacity = data.opacity,
+        .indexOfRefraction = data.indexOfRefraction,
+        .illuminationModel = data.illuminationModel
+      });
+    }
+  }
+
+  return rtnVector;
+}
+
+
 }

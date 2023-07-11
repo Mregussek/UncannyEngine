@@ -60,7 +60,7 @@ void EvaluateDielectric(inout HitPayload hitPayload, Material triangleMaterial, 
     }
     hitPayload.isScattered = true;
 
-    hitPayload.directColor = triangleMaterial.specular;
+    hitPayload.directColor = vec3(1.f);
     hitPayload.indirectColor = vec3(0.f);
 
     hitPayload.rayOrigin = rayWorldOrigin + t * rayWorldDirection;
@@ -105,7 +105,7 @@ void EvaluateLightSource(inout HitPayload hitPayload, Material triangleMaterial,
     else
     {
         hitPayload.directColor = vec3(0.f);
-        hitPayload.indirectColor = materialColor;// * dot(hitPayload.previousNormal, rayWorldDirection);
+        hitPayload.indirectColor = materialColor * dot(hitPayload.previousNormal, rayWorldDirection);
     }
     hitPayload.isScattered = false;
 }
@@ -113,7 +113,10 @@ void EvaluateLightSource(inout HitPayload hitPayload, Material triangleMaterial,
 
 void EvaluateCompleteMiss(inout HitPayload hitPayload)
 {
-    hitPayload.directColor = vec3(0.f);
+    const vec3 blackColor = vec3(0.f);
+    const vec3 lightSkyColor = vec3(135.f, 206.f, 235.f);
+
+    hitPayload.directColor = lightSkyColor / 255.f;
     hitPayload.indirectColor = vec3(0.f);
     hitPayload.isScattered = false;
 }

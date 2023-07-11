@@ -1,0 +1,359 @@
+
+{
+  "Scene": {
+    "Entities": [
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sponza", "sponza.obj"
+          ],
+          "position": {
+            "x": 0.0,
+            "y": 2.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "bmw", "bmw.obj"
+          ],
+          "position": {
+            "x": 6.0,
+            "y": 1.85,
+            "z": 0.75
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "teapot", "teapot.obj"
+          ],
+          "position": {
+            "x": 8.0,
+            "y": 2.0,
+            "z": -1.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.01,
+            "y": -0.01,
+            "z": -0.01
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "bunny", "bunny.obj"
+          ],
+          "position": {
+            "x": 6.0,
+            "y": 2.0,
+            "z": -1.5
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": -90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.75,
+            "y": -0.75,
+            "z": -0.75
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "buddha", "buddha.obj"
+          ],
+          "position": {
+            "x": 10.0,
+            "y": 1.5,
+            "z": 2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "buddha", "buddha.obj"
+          ],
+          "position": {
+            "x": 10.0,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "buddha", "buddha.obj"
+          ],
+          "position": {
+            "x": 10.0,
+            "y": 1.5,
+            "z": -2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 90.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_default_16k.obj"
+          ],
+          "position": {
+            "x": 10.0,
+            "y": 0.0,
+            "z": 2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_light_16k.obj"
+          ],
+          "position": {
+            "x": 10.0,
+            "y": 0.0,
+            "z": -2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_mirror_16k.obj"
+          ],
+          "position": {
+            "x": 10.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_default_16k.obj"
+          ],
+          "position": {
+            "x": 8.0,
+            "y": 0.0,
+            "z": -2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_light_16k.obj"
+          ],
+          "position": {
+            "x": 8.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_mirror_16k.obj"
+          ],
+          "position": {
+            "x": 8.0,
+            "y": 0.0,
+            "z": 2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_default_16k.obj"
+          ],
+          "position": {
+            "x": 6.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_light_16k.obj"
+          ],
+          "position": {
+            "x": 6.0,
+            "y": 0.0,
+            "z": 2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      },
+      {
+        "RenderMeshComponent": {
+          "path": [
+            "resources", "sphere", "sphere_mirror_16k.obj"
+          ],
+          "position": {
+            "x": 6.0,
+            "y": 0.0,
+            "z": -2.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": -0.005,
+            "y": -0.005,
+            "z": -0.005
+          }
+        }
+      }
+    ]
+  }
+}

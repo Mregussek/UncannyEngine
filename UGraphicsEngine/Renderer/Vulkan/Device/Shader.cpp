@@ -44,7 +44,7 @@ void FShader::Destroy()
 void FShader::ParseAndCreateModule(FShader& shaderModule, const FPath& path, EShaderCompilerStage stage,
                                    const FGLSLShaderCompiler* pGlslCompiler, VkDevice vkDevice)
 {
-  const char* shaderPath = path.GetString().c_str();
+  const char* shaderPath = path.GetStringPath().c_str();
   UDEBUG("Loading shader: {}", shaderPath);
 
   if (FPath::HasExtension(path, ".spv"))

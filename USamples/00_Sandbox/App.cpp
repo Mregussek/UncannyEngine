@@ -191,7 +191,6 @@ void Application::DrawImGui()
   ImGui::End();
 }
 
-
 void Application::CreateEngineResources() {
   FLog::create();
 
@@ -243,7 +242,7 @@ void Application::CreateEngineResources() {
   // Creating camera...
   {
     FPerspectiveCameraSpecification cameraSpecification{
-        .position = { -4.f, 0.f, 0.f },
+        .position = { -3.75f, 0.f, 0.f },
         .front = { 0.f, 0.f, 0.f },
         .worldUp = { 0.f, 1.f, 0.f },
         .fieldOfView = 45.f,
@@ -464,7 +463,7 @@ void Application::CreateEngineResources() {
 
     for (const FPath& scene : m_ScenePaths)
     {
-      m_ScenePathsCstr.emplace_back(scene.GetString().c_str());
+      m_ScenePathsCstr.emplace_back(scene.GetStringFilename().c_str());
     }
   }
 }
@@ -478,15 +477,26 @@ void Application::CreateLevelResources(const FPath& scenePath)
 
   // Registering entities with render mesh components and loading several obj files...
   m_EntityRegistry.Create();
-  FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
+  FEntityRegistryLoader::LoadJsonScene(scenePath.GetStringPath().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
   // Converting asset meshes and materials into render meshes and materials...
+  u32 blasCount = 0;
+  m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &blasCount](FRenderMeshComponent& component)
+  {
+    const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
+    blasCount += meshAsset.GetMeshes().size();
+  });
+
   std::vector<FRenderData> renderDataVector;
-  renderDataVector.reserve(m_EntityRegistry.GetEntities().size());
+  renderDataVector.reserve(blasCount);
   m_EntityRegistry.ForEach<FRenderMeshComponent>([this, &renderDataVector](FRenderMeshComponent& component)
   {
     const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
     renderDataVector.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix()));
+    return;
+    //std::vector<FRenderData> converted = FRenderMeshFactory::ConvertAssetToVectorRenderData(&meshAsset,
+    //                                                                                        component.GetMatrix());
+    //renderDataVector.insert(renderDataVector.end(), converted.begin(), converted.end());
   });
 
   // Creating acceleration structures...
@@ -529,9 +539,8 @@ void Application::CalculateStatisticsForLevelResources(const std::vector<FRender
   {
     m_LevelStats.allVerticesCount += renderData.mesh.vertices.size();
     m_LevelStats.allIndicesCount += renderData.mesh.indices.size();
-
-    m_LevelStats.allTrianglesCount += m_LevelStats.allIndicesCount / 3;
   }
+  m_LevelStats.allTrianglesCount += m_LevelStats.allIndicesCount / 3;
 }
 
 

@@ -60,6 +60,9 @@ public:
 
   static FRenderData ConvertAssetToOneRenderData(const FMeshAsset* pMeshAsset, math::Matrix4x4f transform);
 
+  static std::vector<FRenderData> ConvertAssetToVectorRenderData(const FMeshAsset* pMeshAsset,
+                                                                 math::Matrix4x4f transform);
+
 };
 
 

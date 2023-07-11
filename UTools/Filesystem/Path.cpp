@@ -16,13 +16,13 @@ namespace uncanny
 
 
 FPath::FPath(const char* pPath)
-  : m_Path(pPath)
+  : m_Path(pPath), m_Filename(GetFilename(*this))
 {
 }
 
 
 FPath::FPath(std::string path)
-  : m_Path(std::move(path))
+  : m_Path(std::move(path)), m_Filename(GetFilename(*this))
 {
 }
 
@@ -57,7 +57,7 @@ FPath FPath::GetExecutableFilePath()
 
 FPath FPath::GetExecutablePath()
 {
-  std::filesystem::path filepath{ GetExecutableFilePath().GetString() };
+  std::filesystem::path filepath{ GetExecutableFilePath().GetStringPath() };
   return FPath{ filepath.parent_path().string() };
 }
 
@@ -73,7 +73,7 @@ FPath FPath::GetEngineProjectPath()
 std::vector<FPath> FPath::GetFilePathsInDirectory(const FPath& directory)
 {
   std::vector<FPath> rtn{};
-  for (const auto& entry : std::filesystem::directory_iterator(directory.GetString()))
+  for (const auto& entry : std::filesystem::directory_iterator(directory.GetStringPath()))
   {
     rtn.emplace_back(entry.path().string());
   }
@@ -122,7 +122,7 @@ b32 FPath::HasExtension(const FPath& path, const char* ext)
 
 b32 FPath::Exists(const FPath& path)
 {
-  std::filesystem::path filepath{ path.GetString() };
+  std::filesystem::path filepath{ path.GetStringPath() };
   return std::filesystem::exists(filepath);
 }
 
@@ -131,12 +131,19 @@ b32 FPath::Delete(const FPath &path)
 {
   if (not Exists(path))
   {
-    UERROR("Calling Delete() function on path {} that does not exist!", path.GetString());
+    UERROR("Calling Delete() function on path {} that does not exist!", path.GetStringPath());
     return UFALSE;
   }
 
-  std::filesystem::path filepath{ path.GetString() };
+  std::filesystem::path filepath{ path.GetStringPath() };
   return std::filesystem::remove(filepath);
+}
+
+
+std::string FPath::GetFilename(const FPath& path)
+{
+  std::filesystem::path filepath{ path.GetStringPath() };
+  return filepath.filename().string();
 }
 
 
