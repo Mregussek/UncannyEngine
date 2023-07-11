@@ -67,6 +67,12 @@ Models are downloaded from Morgan McGuire's [Computer Graphics Archive](https://
 
 ## Build
 
+Clone repository:
+
+```bash
+git clone --recurse-submodules https://github.com/Mregussek/UncannyEngine.git
+```
+
 I am using CMake as a build system and MSVC as a compiler. Please use **Visual Studio 16 2019**! 
 
 In order to build it you should use CMakeGUI and select project directory. In project directory please create
