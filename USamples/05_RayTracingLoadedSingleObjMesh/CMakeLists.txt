@@ -1,5 +1,6 @@
 
 add_executable(05_RayTracingTriangleLoadedSingleObjMesh main.cpp)
+set_target_properties(05_RayTracingTriangleLoadedSingleObjMesh PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(05_RayTracingTriangleLoadedSingleObjMesh
         PUBLIC
         ${PROJECT_SOURCE_DIR}

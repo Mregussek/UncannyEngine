@@ -1,5 +1,6 @@
 
 add_executable(09_RayTracedShadow main.cpp)
+set_target_properties(09_RayTracedShadow PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(09_RayTracedShadow
         PUBLIC
         ${PROJECT_SOURCE_DIR}

@@ -1,5 +1,6 @@
 
 add_executable(12_ImGuiWithRayTracing main.cpp)
+set_target_properties(12_ImGuiWithRayTracing PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(12_ImGuiWithRayTracing
         PUBLIC
         ${PROJECT_SOURCE_DIR}

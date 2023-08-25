@@ -1,5 +1,6 @@
 
 add_executable(01_ClearColorImage_via_vkCmdClearColorImage main.cpp)
+set_target_properties(01_ClearColorImage_via_vkCmdClearColorImage PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(01_ClearColorImage_via_vkCmdClearColorImage
         PUBLIC
         ${PROJECT_SOURCE_DIR}

@@ -1,5 +1,6 @@
 
 add_executable(06_RayTracingInSeveralBLASes main.cpp)
+set_target_properties(06_RayTracingInSeveralBLASes PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(06_RayTracingInSeveralBLASes
         PUBLIC
         ${PROJECT_SOURCE_DIR}

@@ -1,5 +1,6 @@
 
 add_executable(03_RayTracingTriangle main.cpp)
+set_target_properties(03_RayTracingTriangle PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(03_RayTracingTriangle
         PUBLIC
         ${PROJECT_SOURCE_DIR}

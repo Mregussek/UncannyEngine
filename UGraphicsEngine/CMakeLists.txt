@@ -54,7 +54,7 @@ add_library(UncannyGraphicsEngine
         )
 set_target_properties(UncannyGraphicsEngine
         PROPERTIES
-        LINKER_LANGUAGE C++)
+        LINKER_LANGUAGE CXX)
 target_include_directories(UncannyGraphicsEngine
         PUBLIC
         ${PROJECT_SOURCE_DIR}

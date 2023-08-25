@@ -40,7 +40,7 @@ add_library(UncannyTools
         )
 set_target_properties(UncannyTools
         PROPERTIES
-        LINKER_LANGUAGE C++
+        LINKER_LANGUAGE CXX
         )
 target_include_directories(UncannyTools
         PUBLIC

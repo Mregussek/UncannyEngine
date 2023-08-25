@@ -1,5 +1,6 @@
 
 add_executable(00_Sandbox main.cpp App.cpp App.h)
+set_target_properties(00_Sandbox PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(00_Sandbox
         PUBLIC
         ${PROJECT_SOURCE_DIR}

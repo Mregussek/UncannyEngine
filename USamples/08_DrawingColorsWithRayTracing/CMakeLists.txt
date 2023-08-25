@@ -1,5 +1,6 @@
 
 add_executable(08_DrawingColorsWithRayTracing main.cpp)
+set_target_properties(08_DrawingColorsWithRayTracing PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(08_DrawingColorsWithRayTracing
         PUBLIC
         ${PROJECT_SOURCE_DIR}

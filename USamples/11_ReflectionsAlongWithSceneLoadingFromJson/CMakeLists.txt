@@ -1,5 +1,6 @@
 
 add_executable(11_ReflectionsAlongWithSceneLoadingFromJson main.cpp)
+set_target_properties(11_ReflectionsAlongWithSceneLoadingFromJson PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(11_ReflectionsAlongWithSceneLoadingFromJson
         PUBLIC
         ${PROJECT_SOURCE_DIR}

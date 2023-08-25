@@ -3,7 +3,7 @@
 #define UNCANNYENGINE_LOG_H
 
 
-#define UENABLE_DEBUG_TRACES 1
+#define UENABLE_DEBUG_TRACES 0
 
 #include "LogImpl.h"
 

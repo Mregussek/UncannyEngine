@@ -6,6 +6,7 @@
 #include <type_traits>
 #include "UTools/UTypes.h"
 #include <cmath>
+#include <float.h>
 
 
 namespace uncanny::math
