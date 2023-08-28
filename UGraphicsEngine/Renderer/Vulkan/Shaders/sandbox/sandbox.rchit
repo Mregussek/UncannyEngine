@@ -19,7 +19,6 @@ layout(buffer_reference, scalar) buffer Indices { ivec3 i[]; };
 layout(buffer_reference, scalar) buffer Materials { Material m[]; };
 layout(buffer_reference, scalar) buffer MaterialIndices { uint i[]; };
 layout(set = 1, binding = 0, scalar) buffer BottomStructureUniformData_ { BottomStructureUniformData d[]; } bottomASData;
-layout(set = 1, binding = 1) uniform LightData_ { LightData data; } lightData;
 
 hitAttributeEXT vec3 attribs;
 
@@ -56,7 +55,7 @@ void main()
         EvaluateMetallic(hitPayload, triangleMaterial, gl_WorldRayOriginEXT, gl_WorldRayDirectionEXT, gl_HitTEXT,
                          worldHitNormal, false, 0.2);
     }
-    else if (triangleMaterial.illuminationModel == 7) // dielectic
+    else if (triangleMaterial.illuminationModel == 7) // dielectric
     {
         EvaluateDielectric(hitPayload, triangleMaterial, gl_WorldRayOriginEXT, gl_WorldRayDirectionEXT, gl_HitTEXT,
                            worldHitNormal);

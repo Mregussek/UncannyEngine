@@ -78,9 +78,6 @@ private:
 
   vulkan::FImage m_OffscreenImage{};
 
-  FLight m_Light{};
-  vulkan::FBuffer m_LightUniformBuffer{};
-
   vulkan::FDescriptorSetLayout m_SceneDescriptorSetLayout{};
   vulkan::FDescriptorPool m_SceneDescriptorPool{};
   std::function<void(VkBuffer)> m_WriteBlasReferenceUniformToDescriptorSet{};

@@ -265,16 +265,16 @@ void Application::CreateEngineResources() {
         .accumulatePreviousColors = UTRUE
     };
     m_Camera.SetRayTracingSpecification(rayTracingSpecification);
-    m_SelectedAccumulatedColor = m_Camera.GetRayTracingSpecification().accumulatePreviousColors;
+    FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
 
     // Creating per frame buffer for camera...
-    m_CameraUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+    m_CameraUniformBuffer.Allocate(sizeof(uniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                                    pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
-    {
-      FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-      m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
-    }
+    m_CameraUniformBuffer.Fill(&uniformData, sizeof(uniformData), 1);
+
+    // Initial setup for imgui...
+    m_SelectedAccumulatedColor = m_Camera.GetRayTracingSpecification().accumulatePreviousColors;
   }
 
   // Creating off screen buffer...
@@ -287,27 +287,10 @@ void Application::CreateEngineResources() {
     m_OffscreenImage.CreateView();
   }
 
-  // Creating light buffer (currently not used in my shaders!)
-  m_Light.position = { -1.f, -1.f, 0.2f };
-  {
-    FLightUniformData uniformData{ .position = m_Light.position };
-    m_LightUniformBuffer.Allocate(sizeof(FLightUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                  pLogicalDevice->GetHandle(), &pPhysicalDevice->GetAttributes());
-    m_LightUniformBuffer.Fill(&uniformData, sizeof(FLightUniformData), 1);
-  }
-
   // Creating scene descriptors...
   m_SceneDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
-      .pImmutableSamplers = nullptr
-  });
-  m_SceneDescriptorSetLayout.AddBinding(VkDescriptorSetLayoutBinding{
-      .binding = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
       .pImmutableSamplers = nullptr
@@ -323,12 +306,6 @@ void Application::CreateEngineResources() {
     {
       m_SceneDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
     };
-  }
-  {
-    u32 dstBinding = m_SceneDescriptorSetLayout.GetBindings()[1].binding;
-    VkDescriptorType type = m_SceneDescriptorSetLayout.GetBindings()[1].descriptorType;
-    VkBuffer bufferHandle = m_LightUniformBuffer.GetHandle();
-    m_SceneDescriptorPool.WriteBufferToDescriptorSet(bufferHandle, VK_WHOLE_SIZE, dstBinding, type);
   }
 
   // Creating ray tracing descriptors...
@@ -605,7 +582,6 @@ void Application::DestroyEngineResources()
 
   // Freeing buffers...
   m_CameraUniformBuffer.Free();
-  m_LightUniformBuffer.Free();
 
   // Destroying pipelines...
   m_RayTracingPipelineLayout.Destroy();
