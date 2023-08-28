@@ -149,7 +149,7 @@ private:
     {
       FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
+      meshAsset.LoadObj(bunny.GetStringPath().c_str(), UFALSE);
 
       m_Entity = m_EntityRegistry.Register();
       m_Entity.Add<FRenderMeshComponent>(FRenderMeshComponent{

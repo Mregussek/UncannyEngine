@@ -235,7 +235,6 @@ private:
 
   void RecordCommands()
   {
-    VkClearColorValue clearColorValue{ 1.0f, 0.8f, 0.4f, 0.0f };
     VkExtent3D offscreenExtent = m_OffscreenImage.GetExtent3D();
     VkImage offscreenImage = m_OffscreenImage.GetHandle();
 

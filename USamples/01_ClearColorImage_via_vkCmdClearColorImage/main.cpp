@@ -93,7 +93,6 @@ private:
     };
     m_RenderContext.Create(renderContextAttributes);
 
-    const vulkan::FPhysicalDevice* pPhysicalDevice = m_RenderContext.GetPhysicalDevice();
     const vulkan::FLogicalDevice* pLogicalDevice = m_RenderContext.GetLogicalDevice();
 
     // Creating swapchain...

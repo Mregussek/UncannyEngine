@@ -470,10 +470,6 @@ void Application::CreateLevelResources(const FPath& scenePath)
   {
     const FMeshAsset& meshAsset = m_AssetRegistry.GetMesh(component.id);
     renderDataVector.emplace_back(FRenderMeshFactory::ConvertAssetToOneRenderData(&meshAsset, component.GetMatrix()));
-    return;
-    //std::vector<FRenderData> converted = FRenderMeshFactory::ConvertAssetToVectorRenderData(&meshAsset,
-    //                                                                                        component.GetMatrix());
-    //renderDataVector.insert(renderDataVector.end(), converted.begin(), converted.end());
   });
 
   // Creating acceleration structures...
