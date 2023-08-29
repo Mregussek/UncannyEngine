@@ -8,19 +8,18 @@
 #include <spdlog/spdlog.h>
 
 #include <memory>
+#include <source_location>
+#undef ERROR
 
 
 namespace uncanny
 {
 
 
-template<typename T>
-concept ConceptStringLiteral = std::is_same_v<T, std::string> || std::is_same_v<T, std::string&> ||
-    std::is_same_v<T, char[]> || std::is_same_v<T, char*> || std::is_same_v<T, const char*>;
-
-
-template<typename T>
-concept ConceptCodeLine = std::is_arithmetic_v<T>;
+enum class ELogLevel
+{
+  TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL
+};
 
 
 class FLogImpl
@@ -29,59 +28,51 @@ public:
 
   static void init(std::shared_ptr<spdlog::logger>& logger);
 
-  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
-  static void trace(TString msg, TString filename, Line line, TString functionName,
-                    Args&&... args)
+  template<typename... Args>
+  static void log(const char* msg, ELogLevel level, const char* filename, int line, const char* functionName,
+                  Args&&... args)
   {
-    s_LoggerPtr->log(spdlog::source_loc{filename.c_str(), line, functionName.c_str()}, spdlog::level::trace, msg,
-                     std::forward<Args>(args)...);
+    spdlog::source_loc sourceLocation{ filename, (int)line, functionName };
+    spdlog::level::level_enum spdlogLevel = ConvertLogLevel(level);
+    std::string msgStr = std::vformat(msg, std::make_format_args(std::forward<Args>(args)...));
+    s_pLogger->log(sourceLocation, spdlogLevel, msg);
   }
 
-  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
-  static void debug(TString msg, TString filename, Line line, TString functionName,
-                    Args&&... args)
-  {
-    s_LoggerPtr->log(spdlog::source_loc{filename.c_str(), line, functionName.c_str()}, spdlog::level::debug, msg,
-                     std::forward<Args>(args)...);
-  }
+  static std::shared_ptr<spdlog::logger> s_pLogger;
 
-  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
-  static void info(TString msg, TString filename, Line line, TString functionName,
-                   Args&&... args)
-  {
-    s_LoggerPtr->log(spdlog::source_loc{filename.c_str(), line, functionName.c_str()}, spdlog::level::info, msg,
-                     std::forward<Args>(args)...);
-  }
+private:
 
-  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
-  static void warn(TString msg, TString filename, Line line, TString functionName,
-                   Args&&... args)
+  constexpr static spdlog::level::level_enum ConvertLogLevel(ELogLevel level)
   {
-    s_LoggerPtr->log(spdlog::source_loc{filename.c_str(), line, functionName.c_str()}, spdlog::level::warn, msg,
-                     std::forward<Args>(args)...);
+    switch (level)
+    {
+    case ELogLevel::TRACE:
+      return spdlog::level::trace;
+    case ELogLevel::DEBUG:
+      return spdlog::level::debug;
+    case ELogLevel::INFO:
+      return spdlog::level::info;
+    case ELogLevel::WARN:
+      return spdlog::level::warn;
+    case ELogLevel::ERROR:
+      return spdlog::level::err;
+    case ELogLevel::CRITICAL:
+      return spdlog::level::critical;
+    default:
+      return spdlog::level::err;
+    }
   }
-
-  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
-  static void error(TString msg, TString filename, Line line, TString functionName,
-                    Args&&... args)
-  {
-    s_LoggerPtr->log(spdlog::source_loc{ filename.c_str(), line, functionName.c_str() }, spdlog::level::err, msg,
-                     std::forward<Args>(args)...);
-  }
-
-  template<ConceptStringLiteral TString, ConceptCodeLine Line, typename... Args>
-  static void critical(TString msg, TString filename, Line line, TString functionName,
-                       Args&&... args)
-  {
-    s_LoggerPtr->log(spdlog::source_loc{filename.c_str(), line, functionName.c_str()}, spdlog::level::critical, msg,
-                     std::forward<Args>(args)...);
-  }
-
-  static std::shared_ptr<spdlog::logger> s_LoggerPtr;
 
 };
 
 
+}
+
+
+#define __ULOG_MSG(msg, level, ...) \
+{ \
+  constexpr std::source_location loc = std::source_location::current(); \
+  ::uncanny::FLogImpl::log(msg, level, loc.file_name(), loc.line(), loc.function_name(), __VA_ARGS__); \
 }
 
 

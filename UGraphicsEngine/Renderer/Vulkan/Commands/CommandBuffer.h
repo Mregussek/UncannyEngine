@@ -17,7 +17,7 @@ class FRayTracingPipeline;
 
 
 /// @brief FCommandBuffer is wrapper class for VkCommandBuffer. User is responsible for lifetime, but FCommandPool
-// creates object. Optionally destructor is called and freed.
+/// creates object. Optionally destructor is called and freed.
 /// @details FCommandPool is responsible for allocation command buffer. This class can only be freed.
 /// All methods should be straightforward and I decided not to document them as user should be aware of
 /// VkCommandBuffer functionality.
