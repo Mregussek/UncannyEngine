@@ -32,10 +32,10 @@ public:
   static void log(const char* msg, ELogLevel level, const char* filename, int line, const char* functionName,
                   Args&&... args)
   {
-    spdlog::source_loc sourceLocation{ filename, (int)line, functionName };
+    constexpr spdlog::source_loc sourceLocation{ filename, (int)line, functionName };
     spdlog::level::level_enum spdlogLevel = ConvertLogLevel(level);
     std::string msgStr = std::vformat(msg, std::make_format_args(std::forward<Args>(args)...));
-    s_pLogger->log(sourceLocation, spdlogLevel, msg);
+    s_pLogger->log(sourceLocation, spdlogLevel, msgStr);
   }
 
   static std::shared_ptr<spdlog::logger> s_pLogger;
