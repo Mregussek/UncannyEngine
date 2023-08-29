@@ -17,7 +17,7 @@ class FRayTracingPipeline;
 
 
 /// @brief FCommandBuffer is wrapper class for VkCommandBuffer. User is responsible for lifetime, but FCommandPool
-/// creates object. Optionally destructor is called and freed.
+/// creates object. Destructor also frees object.
 /// @details FCommandPool is responsible for allocation command buffer. This class can only be freed.
 /// All methods should be straightforward and I decided not to document them as user should be aware of
 /// VkCommandBuffer functionality.
@@ -25,10 +25,20 @@ class FCommandBuffer
 {
 public:
 
-  FCommandBuffer() = default;
+  /// @brief Only two constructors should be use as FCommandPool is responsible for creation.
+  /// I want only move constructor, as FCommandPool may use RVO for returning this instance
+  FCommandBuffer() = delete;
   FCommandBuffer(VkDevice vkDevice, VkCommandPool vkCommandPool, VkCommandBuffer vkCommandBuffer);
 
+  FCommandBuffer(const FCommandBuffer& other) = delete;
+  FCommandBuffer(FCommandBuffer&& other) = default;
+
+  FCommandBuffer& operator=(const FCommandBuffer& other) = delete;
+  FCommandBuffer& operator=(FCommandBuffer&& other) = delete;
+
   ~FCommandBuffer();
+
+public:
 
   void Free();
 
@@ -42,8 +52,8 @@ public:
 
   void MemoryBarrier(VkAccessFlags srcAccess, VkAccessFlags dstAccess, VkPipelineStageFlags srcStage,
                      VkPipelineStageFlags dstStage);
-  void ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, VkAccessFlags dstFlags, VkImageLayout oldLayout,
-                          VkImageLayout newLayout, VkImageSubresourceRange subresourceRange,
+  void ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, VkAccessFlags dstFlags,
+                          VkImageLayout oldLayout, VkImageLayout newLayout, VkImageSubresourceRange subresourceRange,
                           VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
   void ClearColorImage(VkImage image, VkClearColorValue clearValue, VkImageSubresourceRange subresourceRange);
 
@@ -56,7 +66,8 @@ public:
 
   void BindPipeline(VkPipelineBindPoint bindPoint, VkPipeline pipeline);
 
-  void BindDescriptorSet(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet);
+  void BindDescriptorSet(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
+                         VkDescriptorSet descriptorSet);
   void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout,
                           std::span<VkDescriptorSet> descriptorSets);
 
@@ -68,7 +79,8 @@ public:
 
   void SetScissor(VkRect2D scissor);
 
-  void PushConstants(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStage, u32 size, const void* pConstants);
+  void PushConstants(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStage, u32 sizeBytes,
+                     const void* pConstants);
 
   void TraceRays(const FRayTracingPipeline* pRayTracingPipeline, VkExtent3D extent3D);
 
@@ -76,6 +88,10 @@ public:
 
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }
+
+private:
+
+  void BeginRecording(VkCommandBufferUsageFlags flags);
 
 private:
 

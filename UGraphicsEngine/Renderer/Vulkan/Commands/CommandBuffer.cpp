@@ -15,6 +15,7 @@ FCommandBuffer::FCommandBuffer(VkDevice vkDevice, VkCommandPool vkCommandPool, V
   m_Device(vkDevice),
   m_CommandPool(vkCommandPool)
 {
+
 }
 
 
@@ -29,31 +30,34 @@ void FCommandBuffer::Free()
   if (m_CommandBuffer != VK_NULL_HANDLE)
   {
     vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &m_CommandBuffer);
+
     m_CommandBuffer = VK_NULL_HANDLE;
+    m_CommandPool = VK_NULL_HANDLE;
+    m_Device = VK_NULL_HANDLE;
+    m_LastWaitStageFlag = VK_PIPELINE_STAGE_NONE;
   }
 }
 
 
 void FCommandBuffer::BeginRecording()
 {
-  VkCommandBufferBeginInfo beginInfo{
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-    .pNext = nullptr,
-    .flags = 0,
-    .pInheritanceInfo = nullptr
-  };
-  VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
-  AssertVkAndThrow(result);
+  BeginRecording(0);
 }
 
 
 void FCommandBuffer::BeginOneTimeRecording()
 {
+  BeginRecording(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+}
+
+
+void FCommandBuffer::BeginRecording(VkCommandBufferUsageFlags flags)
+{
   VkCommandBufferBeginInfo beginInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      .pNext = nullptr,
-      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-      .pInheritanceInfo = nullptr
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .pNext = nullptr,
+    .flags = flags,
+    .pInheritanceInfo = nullptr
   };
   VkResult result = vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
   AssertVkAndThrow(result);
@@ -98,7 +102,6 @@ void FCommandBuffer::MemoryBarrier(VkAccessFlags srcAccess, VkAccessFlags dstAcc
     .srcAccessMask = srcAccess,
     .dstAccessMask = dstAccess
   };
-
   vkCmdPipelineBarrier(m_CommandBuffer, srcStage, dstStage, VkDependencyFlags{ 0 },
                        1, &memoryBarrier,  0, nullptr, 0, nullptr);
 
@@ -123,7 +126,6 @@ void FCommandBuffer::ImageMemoryBarrier(VkImage image, VkAccessFlags srcFlags, V
     .image = image,
     .subresourceRange = subresourceRange
   };
-
   vkCmdPipelineBarrier(m_CommandBuffer, srcStage, dstStage, VkDependencyFlags{ 0 },
                        0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 
@@ -149,12 +151,11 @@ void FCommandBuffer::CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubres
 {
   VkImageCopy copyRegion{
     .srcSubresource = subresourceLayers,
-    .srcOffset = { .x = 0, .y = 0, .z = 0 },
+    .srcOffset = VkOffset3D{ .x = 0, .y = 0, .z = 0 },
     .dstSubresource = subresourceLayers,
-    .dstOffset = { .x = 0, .y = 0, .z = 0 },
-    .extent = { .width = extent.width, .height = extent.height, .depth = 1 }
+    .dstOffset = VkOffset3D{ .x = 0, .y = 0, .z = 0 },
+    .extent = VkExtent3D{ .width = extent.width, .height = extent.height, .depth = 1 }
   };
-
   vkCmdCopyImage(m_CommandBuffer,
                  srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                  dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -164,12 +165,12 @@ void FCommandBuffer::CopyImage(VkImage srcImage, VkImage dstImage, VkImageSubres
 }
 
 
-void FCommandBuffer::CopyBufferToImage(VkBuffer srcBuffer, VkImage dstImage, VkImageSubresourceLayers subresourceLayers,
-                                       VkExtent2D extent2D)
+void FCommandBuffer::CopyBufferToImage(VkBuffer srcBuffer, VkImage dstImage,
+                                       VkImageSubresourceLayers subresourceLayers, VkExtent2D extent2D)
 {
   VkBufferImageCopy bufferImageCopy{
     .imageSubresource = subresourceLayers,
-    .imageExtent = { .width = extent2D.width, .height = extent2D.height, .depth = 1 }
+    .imageExtent = VkExtent3D{ .width = extent2D.width, .height = extent2D.height, .depth = 1 }
   };
   vkCmdCopyBufferToImage(m_CommandBuffer,
                          srcBuffer, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -248,11 +249,11 @@ void FCommandBuffer::SetScissor(VkRect2D scissor)
 }
 
 
-void FCommandBuffer::PushConstants(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStage, u32 size,
+void FCommandBuffer::PushConstants(VkPipelineLayout pipelineLayout, VkShaderStageFlags shaderStage, u32 sizeBytes,
                                    const void* pConstants)
 {
   constexpr u32 offset{ 0 };
-  vkCmdPushConstants(m_CommandBuffer, pipelineLayout, shaderStage, offset, size, pConstants);
+  vkCmdPushConstants(m_CommandBuffer, pipelineLayout, shaderStage, offset, sizeBytes, pConstants);
 }
 
 

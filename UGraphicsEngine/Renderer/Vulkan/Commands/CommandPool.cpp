@@ -85,7 +85,7 @@ FCommandBuffer FCommandPool::AllocatePrimaryCommandBuffer() const
   VkCommandBuffer vkCommandBuffer{ VK_NULL_HANDLE };
   VkResult result = vkAllocateCommandBuffers(m_Device, &allocateInfo, &vkCommandBuffer);
   AssertVkAndThrow(result);
-  return {m_Device, m_CommandPool, vkCommandBuffer};
+  return { m_Device, m_CommandPool, vkCommandBuffer };
 }
 
 
