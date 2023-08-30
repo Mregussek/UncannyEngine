@@ -13,13 +13,24 @@ namespace uncanny::vulkan
 {
 
 
-/// @brief FCommandPool is a wrapper class for VkCommandPool functionality. User is completely responsible for lifetime
-/// via Create() and Destroy() methods.
+/// @brief FCommandPool is a wrapper class for VkCommandPool functionality.
+/// @details User is completely responsible for lifetime via Create() and Destroy() methods.
+/// Destructor calls Destroy() method to ensure that object will be deleted.
 class FCommandPool
 {
 public:
 
+  FCommandPool() = default;
+
+  FCommandPool(const FCommandPool& other) = delete;
+  FCommandPool(FCommandPool&& other) = delete;
+
+  FCommandPool& operator=(const FCommandPool& other) = delete;
+  FCommandPool& operator=(FCommandPool& other) = delete;
+
   ~FCommandPool();
+
+public:
 
   void Create(FQueueFamilyIndex queueFamilyIndex, VkDevice vkDevice, VkCommandPoolCreateFlags flags);
   void Destroy();

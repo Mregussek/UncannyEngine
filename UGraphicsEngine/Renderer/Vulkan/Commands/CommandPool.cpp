@@ -34,14 +34,17 @@ void FCommandPool::Destroy()
   if (m_CommandPool != VK_NULL_HANDLE)
   {
     vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
+
     m_CommandPool = VK_NULL_HANDLE;
+    m_Device = VK_NULL_HANDLE;
+    m_QueueFamilyIndex = UUNUSED;
   }
 }
 
 
 void FCommandPool::Reset()
 {
-  VkCommandPoolResetFlags flags = 0;
+  constexpr VkCommandPoolResetFlags flags = 0;
   VkResult result = vkResetCommandPool(m_Device, m_CommandPool, flags);
   AssertVkAndThrow(result);
 }
@@ -61,6 +64,7 @@ std::vector<FCommandBuffer> FCommandPool::AllocatePrimaryCommandBuffers(u32 coun
   VkResult result = vkAllocateCommandBuffers(m_Device, &allocateInfo, vkCommandBuffers.data());
   AssertVkAndThrow(result);
 
+  // CONSIDER__: Find a way to approach this better
   std::vector<FCommandBuffer> rtnCommandBuffers{};
   rtnCommandBuffers.reserve(allocateInfo.commandBufferCount);
   for(VkCommandBuffer vcb : vkCommandBuffers)
@@ -85,7 +89,7 @@ FCommandBuffer FCommandPool::AllocatePrimaryCommandBuffer() const
   VkCommandBuffer vkCommandBuffer{ VK_NULL_HANDLE };
   VkResult result = vkAllocateCommandBuffers(m_Device, &allocateInfo, &vkCommandBuffer);
   AssertVkAndThrow(result);
-  return { m_Device, m_CommandPool, vkCommandBuffer };
+  return FCommandBuffer{ m_Device, m_CommandPool, vkCommandBuffer };
 }
 
 
