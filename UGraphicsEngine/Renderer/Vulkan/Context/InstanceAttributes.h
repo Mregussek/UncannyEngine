@@ -19,6 +19,16 @@ class FInstanceAttributes
 {
 public:
 
+  FInstanceAttributes() = default;
+
+  FInstanceAttributes(const FInstanceAttributes& other) = default;
+  FInstanceAttributes(FInstanceAttributes&& other) = delete;
+
+  FInstanceAttributes& operator=(const FInstanceAttributes& other) = default;
+  FInstanceAttributes& operator=(FInstanceAttributes&& other) = delete;
+
+public:
+
   /// @brief Initializes attributes class with all the available layers, extensions and API version.
   void Initialize();
 
@@ -42,7 +52,7 @@ public:
 
   /// @brief Getter method for full supported version
   /// @details Version without variant and path, equal to VK_API_VERSION_1_3 for example
-  /// @returns supported vulkan api version
+  /// @returns supported Vulkan API version
   [[nodiscard]] u32 GetFullVersion() const { return m_FullApiVersion; }
 
   /// @brief Checks whether given extension name is in requested ones
@@ -62,6 +72,7 @@ private:
   [[nodiscard]] b8 IsLayerAvailable(const char* layerName) const;
   [[nodiscard]] b8 IsExtensionAvailable(const char* extensionName) const;
 
+private:
 
   std::vector<VkLayerProperties> m_AvailableLayerProperties{};
   std::vector<VkExtensionProperties> m_AvailableExtensionsProperties{};

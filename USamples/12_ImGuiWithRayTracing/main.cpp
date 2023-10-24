@@ -211,7 +211,7 @@ private:
     // Registering entities with render mesh components and loading several obj files...
     m_EntityRegistry.Create();
     FPath scenePath = FPath::Append(FPath::GetEngineProjectPath(), { "USceneSamples", "0_CornellBox_Spheres.json" });
-    FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
+    FEntityRegistryLoader::LoadJsonScene(scenePath.GetStringPath().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
     // Converting asset meshes and materials into render meshes and materials...
     std::vector<FRenderData> renderDataVector;

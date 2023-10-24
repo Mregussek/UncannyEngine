@@ -457,7 +457,7 @@ void Application::CreateEngineResources() {
 
     for (const FPath& scene : m_ScenePaths)
     {
-      m_ScenePathsCstr.emplace_back(scene.GetString().c_str());
+      m_ScenePathsCstr.emplace_back(scene.GetStringFilename().c_str());
     }
   }
 }
@@ -471,7 +471,7 @@ void Application::CreateLevelResources(const FPath& scenePath)
 
   // Registering entities with render mesh components and loading several obj files...
   m_EntityRegistry.Create();
-  FEntityRegistryLoader::LoadJsonScene(scenePath.GetString().c_str(), &m_EntityRegistry, &m_AssetRegistry);
+  FEntityRegistryLoader::LoadJsonScene(scenePath.GetStringPath().c_str(), &m_EntityRegistry, &m_AssetRegistry);
 
   // Converting asset meshes and materials into render meshes and materials...
   std::vector<FRenderData> renderDataVector;

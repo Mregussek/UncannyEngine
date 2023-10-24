@@ -1,6 +1,7 @@
 
 #include "LogicalDevice.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
+#include "UTools/Logger/Log.h"
 
 
 namespace uncanny::vulkan
@@ -23,7 +24,9 @@ private:
   // @brief Checks if queue family is present in DeviceQueueCreateInfo Vector
   // @return pair of boolean and index, where boolean indicates true if queue family index is present and
   //  u32 index indicates position in vector of such queue create info
-  [[nodiscard]] std::pair<b32, u64> IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const;
+  [[nodiscard]] std::pair<b8, u32> IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const;
+
+private:
 
   std::vector<VkDeviceQueueCreateInfo> m_DeviceQueueCreateInfoVector{};
   f32 m_QueuePriority{ 1.f };
@@ -44,7 +47,7 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
 
   const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos = creator.GetDeviceQueueCreateInfoVector();
 
-  const std::vector<const char*>& extensions = m_Attributes.GetRequiredExtensions();
+  const std::vector<const char*>& requiredExtensions = m_Attributes.GetRequiredExtensions();
   const VkPhysicalDeviceFeatures2& deviceFeatures2 = m_Attributes.GetDeviceFeatures2();
 
   VkDeviceCreateInfo createInfo{
@@ -54,9 +57,9 @@ void FLogicalDevice::Create(const FLogicalDeviceAttributes& attributes, VkPhysic
     .queueCreateInfoCount = static_cast<u32>(queueCreateInfos.size()),
     .pQueueCreateInfos = queueCreateInfos.data(),
     .enabledLayerCount = 0,           // deprecated!
-    .ppEnabledLayerNames = nullptr,  // deprecated!
-    .enabledExtensionCount = static_cast<u32>(extensions.size()),
-    .ppEnabledExtensionNames = extensions.data(),
+    .ppEnabledLayerNames = nullptr,   // deprecated!
+    .enabledExtensionCount = static_cast<u32>(requiredExtensions.size()),
+    .ppEnabledExtensionNames = requiredExtensions.data(),
     .pEnabledFeatures = nullptr
   };
 
@@ -109,8 +112,14 @@ void FLogicalDevice::InitializeQueues()
 
 void FQueueCreateInfoCreator::AddQueueFamilyInfo(FQueueFamilyIndex queueFamilyIndex, FQueueIndex queueIndex)
 {
+  if (queueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
+  {
+    UERROR("Wrong queue family index given!");
+    return;
+  }
+
   auto [isPresent, index] = IsQueueFamilyPresent(queueFamilyIndex);
-  if (!isPresent)
+  if (not isPresent)
   {
     VkDeviceQueueCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -125,16 +134,18 @@ void FQueueCreateInfoCreator::AddQueueFamilyInfo(FQueueFamilyIndex queueFamilyIn
     return;
   }
 
-  // If possible to increase queue count, do it, I want to enable at graphics queue family usage for graphics
-  // queue_index = 0 and for presentation queue_index = 1
-  if (queueIndex > m_DeviceQueueCreateInfoVector.at(index).queueCount - 1)
+  // If possible to increase queue count, do it. Graphics and Present queue families may have the same assigned number
+  // I want to enable one queue for graphics and one for presentation if both has the same queue family.
+  // If we want to enable this, proposed queueIndex will be always higher than 0 (default queue index in queue family)
+  // requested queue count in DeviceQueueCreateInfo would be 1, so to check we decrease queue count.
+  if (queueIndex > m_DeviceQueueCreateInfoVector[index].queueCount - 1)
   {
-    m_DeviceQueueCreateInfoVector.at(index).queueCount += 1;
+    m_DeviceQueueCreateInfoVector[index].queueCount += 1;
   }
 }
 
 
-std::pair<b32, u64> FQueueCreateInfoCreator::IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const
+std::pair<b8, u32> FQueueCreateInfoCreator::IsQueueFamilyPresent(FQueueFamilyIndex queueFamilyIndex) const
 {
   for (u32 i = 0; i < m_DeviceQueueCreateInfoVector.size(); i++)
   {

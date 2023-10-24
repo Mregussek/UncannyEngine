@@ -150,7 +150,7 @@ private:
     {
       FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
       FMeshAsset& sponzaMeshAsset = m_AssetRegistry.RegisterMesh();
-      sponzaMeshAsset.LoadObj(sponza.GetString().c_str(), UFALSE);
+      sponzaMeshAsset.LoadObj(sponza.GetStringPath().c_str(), UFALSE);
 
       entities[0].Add<FRenderMeshComponent>(FRenderMeshComponent{
         .id = sponzaMeshAsset.ID(),
@@ -162,7 +162,7 @@ private:
     {
       FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
       FMeshAsset& bunnyMeshAsset = m_AssetRegistry.RegisterMesh();
-      bunnyMeshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
+      bunnyMeshAsset.LoadObj(bunny.GetStringPath().c_str(), UFALSE);
 
       entities[1].Add<FRenderMeshComponent>(FRenderMeshComponent{
           .id = bunnyMeshAsset.ID(),

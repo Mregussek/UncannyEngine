@@ -40,8 +40,7 @@ std::optional<u32> FQueueFamilySelector::SelectGraphics(std::span<const VkQueueF
                                                         VkInstance vkInstance,
                                                         VkPhysicalDevice vkPhysicalDevice)
 {
-  GetScoreFuncObject getScoreFuncObj = GetGraphicsScore;
-  return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
+  return SelectQueueFamily(properties, GetGraphicsScore, vkInstance, vkPhysicalDevice);
 }
 
 
@@ -49,8 +48,7 @@ std::optional<u32> FQueueFamilySelector::SelectPresent(std::span<const VkQueueFa
                                                        VkInstance vkInstance,
                                                        VkPhysicalDevice vkPhysicalDevice)
 {
-  GetScoreFuncObject getScoreFuncObj = GetPresentScore;
-  return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
+  return SelectQueueFamily(properties, GetPresentScore, vkInstance, vkPhysicalDevice);
 }
 
 
@@ -58,8 +56,7 @@ std::optional<u32> FQueueFamilySelector::SelectTransfer(std::span<const VkQueueF
                                                         VkInstance vkInstance,
                                                         VkPhysicalDevice vkPhysicalDevice)
 {
-  GetScoreFuncObject getScoreFuncObj = GetTransferScore;
-  return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
+  return SelectQueueFamily(properties, GetTransferScore, vkInstance, vkPhysicalDevice);
 }
 
 
@@ -67,8 +64,7 @@ std::optional<u32> FQueueFamilySelector::SelectCompute(std::span<const VkQueueFa
                                                        VkInstance vkInstance,
                                                        VkPhysicalDevice vkPhysicalDevice)
 {
-  GetScoreFuncObject getScoreFuncObj = GetComputeScore;
-  return SelectQueueFamily(properties, getScoreFuncObj, vkInstance, vkPhysicalDevice);
+  return SelectQueueFamily(properties, GetComputeScore, vkInstance, vkPhysicalDevice);
 }
 
 
@@ -93,10 +89,8 @@ std::optional<u32> SelectQueueFamily(std::span<const VkQueueFamilyProperties> qu
 }
 
 
-FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties,
-                                   FQueueFamilyIndex queueFamilyIndex,
-                                   VkInstance vkInstance,
-                                   VkPhysicalDevice vkPhysicalDevice)
+FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
+                                   VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice)
 {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -107,10 +101,8 @@ FQueueFamilyScore GetGraphicsScore(VkQueueFamilyProperties properties,
 }
 
 
-FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
-                                  FQueueFamilyIndex queueFamilyIndex,
-                                  VkInstance vkInstance,
-                                  VkPhysicalDevice vkPhysicalDevice)
+FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
+                                  VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice)
 {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -135,10 +127,8 @@ FQueueFamilyScore GetPresentScore(VkQueueFamilyProperties properties,
 }
 
 
-FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
-                                   FQueueFamilyIndex queueFamilyIndex,
-                                   VkInstance vkInstance,
-                                   VkPhysicalDevice vkPhysicalDevice)
+FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
+                                   VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice)
 {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -157,10 +147,8 @@ FQueueFamilyScore GetTransferScore(VkQueueFamilyProperties properties,
 }
 
 
-FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties,
-                                  FQueueFamilyIndex queueFamilyIndex,
-                                  VkInstance vkInstance,
-                                  VkPhysicalDevice vkPhysicalDevice)
+FQueueFamilyScore GetComputeScore(VkQueueFamilyProperties properties, FQueueFamilyIndex queueFamilyIndex,
+                                  VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice)
 {
   FQueueFamilyScore score{ 0 };
   if (properties.queueFlags & VK_QUEUE_COMPUTE_BIT)

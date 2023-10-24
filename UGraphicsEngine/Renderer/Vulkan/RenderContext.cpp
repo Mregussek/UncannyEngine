@@ -23,11 +23,11 @@ void FRenderContext::Create(const FRenderContextAttributes& attributes)
     {
       AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
     }
-    for (auto&& name : attributes.instanceLayers)
+    for (auto& name : attributes.instanceLayers)
     {
       instanceAttributes.AddLayerName(name);
     }
-    for (auto&& name : attributes.instanceExtensions)
+    for (auto& name : attributes.instanceExtensions)
     {
       instanceAttributes.AddExtensionName(name);
     }
@@ -52,7 +52,7 @@ void FRenderContext::Create(const FRenderContextAttributes& attributes)
     logicalDeviceAttributes.InitializeQueueFamilyIndexes(m_PhysicalDevice.GetAttributes().GetQueueFamilyProperties(),
                                                          m_Instance.GetHandle(),
                                                          m_PhysicalDevice.GetHandle());
-    for (auto&& name : attributes.deviceExtensions)
+    for (auto& name : attributes.deviceExtensions)
     {
       logicalDeviceAttributes.AddExtensionName(name, m_PhysicalDevice.GetAttributes());
     }

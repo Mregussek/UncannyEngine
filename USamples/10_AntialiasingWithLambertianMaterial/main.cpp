@@ -148,7 +148,7 @@ private:
     {
       FPath box = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "CornellBox", "CornellBox-Original.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(box.GetString().c_str(), UFALSE);
+      meshAsset.LoadObj(box.GetStringPath().c_str(), UFALSE);
 
       FEntity entity = m_EntityRegistry.Register();
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
@@ -161,7 +161,7 @@ private:
     {
       FPath sponza = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "sponza", "sponza.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(sponza.GetString().c_str(), UFALSE);
+      meshAsset.LoadObj(sponza.GetStringPath().c_str(), UFALSE);
 
       FEntity entity = m_EntityRegistry.Register();
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
@@ -174,7 +174,7 @@ private:
     {
       FPath bunny = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "bunny", "bunny.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(bunny.GetString().c_str(), UFALSE);
+      meshAsset.LoadObj(bunny.GetStringPath().c_str(), UFALSE);
 
       FEntity entity = m_EntityRegistry.Register();
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{
@@ -187,7 +187,7 @@ private:
     {
       FPath teapot = FPath::Append(FPath::GetEngineProjectPath(), {"resources", "teapot", "teapot.obj"});
       FMeshAsset& meshAsset = m_AssetRegistry.RegisterMesh();
-      meshAsset.LoadObj(teapot.GetString().c_str(), UFALSE);
+      meshAsset.LoadObj(teapot.GetStringPath().c_str(), UFALSE);
 
       FEntity entity = m_EntityRegistry.Register();
       entity.Add<FRenderMeshComponent>(FRenderMeshComponent{

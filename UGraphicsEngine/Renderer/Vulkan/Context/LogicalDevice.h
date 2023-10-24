@@ -28,6 +28,16 @@ class FLogicalDevice
 
 public:
 
+  FLogicalDevice() = default;
+
+  FLogicalDevice(const FLogicalDevice& other) = delete;
+  FLogicalDevice(FLogicalDevice&& other) = delete;
+
+  FLogicalDevice& operator=(const FLogicalDevice& other) = delete;
+  FLogicalDevice& operator=(FLogicalDevice&& other) = delete;
+
+public:
+
   /// @brief Waits for a device to become idle
   void WaitIdle() const;
 
@@ -55,6 +65,7 @@ private:
   void Destroy();
   void InitializeQueues();
 
+private:
 
   FLogicalDeviceAttributes m_Attributes{};
   FQueue m_GraphicsQueue{};

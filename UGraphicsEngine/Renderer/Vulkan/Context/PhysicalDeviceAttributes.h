@@ -62,11 +62,11 @@ public:
 
 private:
 
-  VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };
-  VkPhysicalDeviceProperties m_Properties{};
-  VkPhysicalDeviceFeatures m_Features{};
   std::vector<VkExtensionProperties> m_ExtensionProperties{};
   std::vector<VkQueueFamilyProperties> m_QueueFamilyProperties{};
+  VkPhysicalDeviceProperties m_Properties{};
+  VkPhysicalDeviceFeatures m_Features{};
+  VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };
 
 };
 

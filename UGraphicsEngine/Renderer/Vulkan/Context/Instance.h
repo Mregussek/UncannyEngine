@@ -19,6 +19,16 @@ class FInstance
 {
 public:
 
+  FInstance() = default;
+  
+  FInstance(const FInstance& other) = delete;
+  FInstance(FInstance&& other) = delete;
+
+  FInstance& operator=(const FInstance& other) = delete;
+  FInstance& operator=(FInstance&& other) = delete;
+
+public:
+
   /// @brief Creates Vulkan API instance handle
   /// @param attributes containing all required layers and extensions needed for startup for Vulkan API
   void Create(const FInstanceAttributes& attributes);

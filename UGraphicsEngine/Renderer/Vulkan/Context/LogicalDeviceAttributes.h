@@ -24,6 +24,16 @@ class FLogicalDeviceAttributes
 {
 public:
 
+  FLogicalDeviceAttributes() = default;
+
+  FLogicalDeviceAttributes(const FLogicalDeviceAttributes& other) = default;
+  FLogicalDeviceAttributes(FLogicalDeviceAttributes&& other) = delete;
+
+  FLogicalDeviceAttributes& operator=(const FLogicalDeviceAttributes& other) = default;
+  FLogicalDeviceAttributes& operator=(FLogicalDeviceAttributes&& other) = delete;
+
+public:
+
   /// @brief Initializes member values for queue family indexes and its queue indexes.
   /// @details Queue family indexes are retrieved from FQueueFamilySelector class. Queue indexes are set in
   /// this method. It is expected that graphics queue index = 0, transfer queue index = 0 and compute queue
