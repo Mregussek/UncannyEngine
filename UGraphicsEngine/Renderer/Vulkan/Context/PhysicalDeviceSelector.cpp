@@ -48,7 +48,7 @@ FPhysicalDeviceScore GetScore(VkPhysicalDevice physicalDevice)
 VkPhysicalDevice FPhysicalDeviceSelector::Select(std::span<VkPhysicalDevice> availablePhysicalDevices)
 {
   std::multimap<FPhysicalDeviceScore, VkPhysicalDevice> ratings;
-  for (auto&& device : availablePhysicalDevices)
+  for (auto device : availablePhysicalDevices)
   {
     ratings.insert(std::make_pair(GetScore(device), device));
   }

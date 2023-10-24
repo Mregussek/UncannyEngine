@@ -15,6 +15,7 @@ namespace uncanny::vulkan
 class FCommandBuffer;
 
 
+/// @brief FQueue is a wrapper class for VkQueue. It is initialized only by FLogicalDevice, will be invalid otherwise.
 class FQueue
 {
 
@@ -34,6 +35,7 @@ private:
 
   void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);
 
+private:
 
   VkQueue m_Queue{ VK_NULL_HANDLE };
   FQueueFamilyIndex m_FamilyIndex{ UUNUSED };

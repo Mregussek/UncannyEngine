@@ -19,7 +19,7 @@ void FRenderContext::Create(const FRenderContextAttributes& attributes)
   {
     FInstanceAttributes instanceAttributes{};
     instanceAttributes.Initialize();
-    if (!instanceAttributes.IsVersionAvailable(attributes.apiVersion))
+    if (not instanceAttributes.IsVersionAvailable(attributes.apiVersion))
     {
       AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Not available vulkan version, cannot start Renderer!");
     }
@@ -62,7 +62,7 @@ void FRenderContext::Create(const FRenderContextAttributes& attributes)
   }
 
   m_WindowSurface.Create(attributes.pWindow, m_Instance.GetHandle(), m_PhysicalDevice.GetHandle());
-  if (!m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentFamilyIndex()))
+  if (not m_WindowSurface.IsPresentationSupported(m_LogicalDevice.GetPresentFamilyIndex()))
   {
     AssertVkAndThrow(VK_ERROR_INITIALIZATION_FAILED, "Surface cannot present!");
   }

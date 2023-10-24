@@ -4,7 +4,7 @@
 
 
 #ifdef WIN32
-  #define VK_USE_PLATFORM_WIN32_KHR 1
+	#define VK_USE_PLATFORM_WIN32_KHR 1
 #endif
 #include <volk.h>
 #include "UTools/UTypes.h"
@@ -25,36 +25,47 @@ namespace uncanny::vulkan
 class FWindowSurface
 {
 
-  // I want RenderContext to access Create() and Destroy() and to check presentation support
-  friend class FRenderContext;
+	// I want RenderContext to access Create() and Destroy() and to check presentation support
+	friend class FRenderContext;
 
 public:
 
-  /// @brief Queries surface capabilities using vkGetPhysicalDeviceSurfaceCapabilitiesKHR
-  [[nodiscard]] VkSurfaceCapabilitiesKHR QueryCapabilities() const;
+	FWindowSurface() = default;
 
-  /// @brief Queries available VKFormats using vkGetPhysicalDeviceSurfaceFormatsKHR
-  [[nodiscard]] std::vector<VkSurfaceFormatKHR> QueryFormats() const;
+	FWindowSurface(const FWindowSurface& other) = delete;
+	FWindowSurface(FWindowSurface&& other) = delete;
 
-  /// @brief Queries information about provided VkFormat using vkGetPhysicalDeviceFormatProperties
-  [[nodiscard]] VkFormatProperties QueryFormatProperties(VkFormat format) const;
+	FWindowSurface& operator=(const FWindowSurface& other) = delete;
+	FWindowSurface& operator=(FWindowSurface&& other) = delete;
 
-  /// @brief Queries available present modes using vkGetPhysicalDeviceSurfacePresentModesKHR
-  [[nodiscard]] std::vector<VkPresentModeKHR> QueryPresentModes() const;
+public:
 
-  /// @brief Just returns VkSurfaceKHR handle
-  [[nodiscard]] VkSurfaceKHR GetHandle() const { return m_Surface; }
+	/// @brief Queries surface capabilities using vkGetPhysicalDeviceSurfaceCapabilitiesKHR
+	[[nodiscard]] VkSurfaceCapabilitiesKHR QueryCapabilities() const;
+
+	/// @brief Queries available VKFormats using vkGetPhysicalDeviceSurfaceFormatsKHR
+	[[nodiscard]] std::vector<VkSurfaceFormatKHR> QueryFormats() const;
+
+	/// @brief Queries information about provided VkFormat using vkGetPhysicalDeviceFormatProperties
+	[[nodiscard]] VkFormatProperties QueryFormatProperties(VkFormat format) const;
+
+	/// @brief Queries available present modes using vkGetPhysicalDeviceSurfacePresentModesKHR
+	[[nodiscard]] std::vector<VkPresentModeKHR> QueryPresentModes() const;
+
+	/// @brief Just returns VkSurfaceKHR handle
+	[[nodiscard]] VkSurfaceKHR GetHandle() const { return m_Surface; }
 
 private:
 
-  void Create(const uncanny::IWindow* pWindow, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
-  void Destroy(VkInstance vkInstance);
+	void Create(const uncanny::IWindow* pWindow, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
+	void Destroy(VkInstance vkInstance);
 
-  [[nodiscard]] b8 IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) const;
+	[[nodiscard]] b8 IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) const;
 
+private:
 
-  VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };
-  VkSurfaceKHR m_Surface{ VK_NULL_HANDLE };
+	VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };
+	VkSurfaceKHR m_Surface{ VK_NULL_HANDLE };
 
 };
 
