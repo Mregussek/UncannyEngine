@@ -26,6 +26,17 @@ class FPhysicalDevice
 
 public:
 
+  FPhysicalDevice() = default;
+
+  FPhysicalDevice(const FPhysicalDevice& other) = delete;
+  FPhysicalDevice(FPhysicalDevice&& other) = delete;
+
+  FPhysicalDevice& operator=(const FPhysicalDevice& other) = delete;
+  FPhysicalDevice& operator=(FPhysicalDevice&& other) = delete;
+
+// Getters
+public:
+
   [[nodiscard]] VkPhysicalDevice GetHandle() const { return m_PhysicalDevice; }
   [[nodiscard]] const FPhysicalDeviceAttributes& GetAttributes() const { return m_Attributes; }
 
@@ -33,6 +44,7 @@ private:
 
   void Initialize(VkPhysicalDevice physicalDevice);
 
+private:
 
   FPhysicalDeviceAttributes m_Attributes{};
   VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };

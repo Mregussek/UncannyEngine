@@ -45,8 +45,10 @@ public:
   /// @returns boolean information, true for valid logical device, false otherwise
   [[nodiscard]] b32 IsValid() const noexcept { return m_Device != VK_NULL_HANDLE; }
 
-  [[nodiscard]] VkDevice GetHandle() const { return m_Device; }
+// Getters
+public:
 
+  [[nodiscard]] VkDevice GetHandle() const { return m_Device; }
   [[nodiscard]] const FLogicalDeviceAttributes& GetAttributes() const { return m_Attributes; }
 
   [[nodiscard]] const FQueue& GetGraphicsQueue() const { return m_GraphicsQueue; }

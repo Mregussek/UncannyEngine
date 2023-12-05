@@ -21,6 +21,16 @@ class FPhysicalDeviceAttributes
 {
 public:
 
+  FPhysicalDeviceAttributes() = default;
+
+  FPhysicalDeviceAttributes(const FPhysicalDeviceAttributes& other) = delete;
+  FPhysicalDeviceAttributes(FPhysicalDeviceAttributes&& other) = delete;
+
+  FPhysicalDeviceAttributes& operator=(const FPhysicalDeviceAttributes& other) = delete;
+  FPhysicalDeviceAttributes& operator=(FPhysicalDeviceAttributes&& other) = delete;
+
+public:
+
   /// @brief Initializes whole attributes class and collects all necessary information
   /// @param vkPhysicalDevice physical device for what this information is needed
   void Initialize(VkPhysicalDevice vkPhysicalDevice);
@@ -30,35 +40,24 @@ public:
   /// @returns boolean information if extension is available
   b8 IsExtensionPresent(const char* extensionName) const;
 
+  /// @brief Queries specific properties like VkPhysicalDeviceRayTracingPipelinePropertiesKHR
+  /// @tparam TProperties queried Vulkan structure
+  /// @param pProperties pointer to queried vulkan structure, where result will be stored
+  template<typename TProperties> void QueryProperties2(TProperties* pProperties) const;
+
+  /// @brief Queries specific features like VkPhysicalDeviceRayTracingPipelineFeaturesKHR
+  /// @tparam TProperties queried Vulkan structure
+  /// @param pProperties pointer to queried vulkan structure, where result will be stored
+  template<typename TFeatures> void QueryFeatures2(TFeatures* pFeatures) const;
+
+// Getters
+public:
+
   [[nodiscard]] const VkPhysicalDeviceProperties& GetDeviceProperties() const { return m_Properties; }
   [[nodiscard]] const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_Features; }
   [[nodiscard]] VkPhysicalDeviceMemoryProperties GetMemoryProperties() const;
   [[nodiscard]] const std::vector<VkExtensionProperties>& GetExtensionProperties() const { return m_ExtensionProperties; }
   [[nodiscard]] const std::vector<VkQueueFamilyProperties>& GetQueueFamilyProperties() const { return m_QueueFamilyProperties; }
-
-  /// @brief Queries specific properties like VkPhysicalDeviceRayTracingPipelinePropertiesKHR
-  /// @tparam TProperties queried Vulkan structure
-  /// @param pProperties pointer to queried vulkan structure, where result will be stored
-  template<typename TProperties> void QueryProperties2(TProperties* pProperties) const
-  {
-    VkPhysicalDeviceProperties2 deviceProperties2{
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
-      .pNext = static_cast<void*>(pProperties),
-    };
-    vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &deviceProperties2);
-  }
-
-  /// @brief Queries specific features like VkPhysicalDeviceRayTracingPipelineFeaturesKHR
-  /// @tparam TProperties queried Vulkan structure
-  /// @param pProperties pointer to queried vulkan structure, where result will be stored
-  template<typename TFeatures> void QueryFeatures2(TFeatures* pFeatures) const
-  {
-    VkPhysicalDeviceFeatures2 deviceFeatures2{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-        .pNext = static_cast<void*>(pFeatures),
-    };
-    vkGetPhysicalDeviceFeatures2(m_PhysicalDevice, &deviceFeatures2);
-  }
 
 private:
 
@@ -72,6 +71,9 @@ private:
 
 
 }
+
+
+#include "PhysicalDeviceAttributes.inl"
 
 
 #endif //UNCANNYENGINE_PHYSICALDEVICEATTRIBUTES_H

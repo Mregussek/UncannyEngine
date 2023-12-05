@@ -40,6 +40,9 @@ public:
   [[nodiscard]] FCommandBuffer AllocatePrimaryCommandBuffer() const;
   [[nodiscard]] std::vector<FCommandBuffer> AllocatePrimaryCommandBuffers(u32 count) const;
 
+// Getters
+public:
+
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_QueueFamilyIndex; }
 
 private:

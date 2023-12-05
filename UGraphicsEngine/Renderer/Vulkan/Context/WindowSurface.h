@@ -57,7 +57,7 @@ public:
 
 private:
 
-	void Create(const uncanny::IWindow* pWindow, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
+	void Create(const ::uncanny::IWindow* pWindow, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
 	void Destroy(VkInstance vkInstance);
 
 	[[nodiscard]] b8 IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) const;

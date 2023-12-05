@@ -56,6 +56,9 @@ public:
   /// @param physicalDeviceAttributes physical device attributes
   void InitializeDeviceFeatures(const FPhysicalDeviceAttributes& physicalDeviceAttributes);
 
+// Getters
+public:
+
   [[nodiscard]] const std::vector<const char*>& GetRequiredExtensions() const { return m_RequestedExtensions; }
   [[nodiscard]] const VkPhysicalDeviceFeatures2& GetDeviceFeatures2() const { return m_DeviceFeatures2; }
 
@@ -69,10 +72,7 @@ public:
   [[nodiscard]] FQueueIndex GetTransferQueueIndex() const noexcept { return m_TransferQueueIndex; }
   [[nodiscard]] FQueueIndex GetComputeQueueIndex() const noexcept { return m_ComputeQueueIndex; }
 
-  [[nodiscard]] const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& GetRayTracingProperties() const
-  {
-    return m_RayTracingPipelineProperties;
-  }
+  [[nodiscard]] const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& GetRayTracingProperties() const { return m_RayTracingPipelineProperties; }
 
 private:
 

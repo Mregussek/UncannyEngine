@@ -41,8 +41,10 @@ public:
   /// @return vector of available physical devices
   [[nodiscard]] std::vector<VkPhysicalDevice> QueryAvailablePhysicalDevices() const;
 
-  [[nodiscard]] VkInstance GetHandle() const { return m_Instance; }
+// Getters
+public:
 
+  [[nodiscard]] VkInstance GetHandle() const { return m_Instance; }
   [[nodiscard]] const FInstanceAttributes& GetAttributes() const { return m_Attributes; }
 
 private:

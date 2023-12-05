@@ -86,6 +86,9 @@ public:
 
   void DrawIndexed(u32 elementsCount, u32 firstIndex, u32 indexOffset, i32 vertexOffset, u32 firstInstance);
 
+// Getters
+public:
+
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }
 

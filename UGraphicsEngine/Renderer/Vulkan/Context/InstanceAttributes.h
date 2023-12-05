@@ -60,6 +60,9 @@ public:
   /// @returns boolean result, UTRUE if is passed extensionName is requested
   [[nodiscard]] b8 IsExtensionRequested(const char* extensionName) const;
 
+// Getters
+public:
+
   [[nodiscard]] const std::vector<const char*>& GetRequestedLayers() const { return m_RequestedLayers; }
   [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const { return m_RequestedExtensions; }
 
