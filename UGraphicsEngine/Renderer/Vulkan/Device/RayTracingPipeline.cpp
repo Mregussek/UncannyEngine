@@ -30,18 +30,21 @@ void FRayTracingPipeline::Create(const FRayTracingPipelineSpecification& specifi
 
 void FRayTracingPipeline::CreatePipeline(const FRayTracingPipelineSpecification& specification)
 {
+  FGLSLShaderCompiler glslCompiler{};
+  glslCompiler.Initialize(specification.targetVulkanVersion);
+
   FShader rayGenerationModule{};
   FShader::ParseAndCreateModule(rayGenerationModule, specification.rayGenerationPath, EShaderCompilerStage::RAYGEN,
-                                specification.pGlslCompiler, specification.vkDevice);
+                                &glslCompiler, specification.vkDevice);
   FShader rayMissModule{};
   FShader::ParseAndCreateModule(rayMissModule, specification.rayMissPath, EShaderCompilerStage::MISS,
-                                specification.pGlslCompiler, specification.vkDevice);
+                                &glslCompiler, specification.vkDevice);
   FShader rayShadowMissModule{};
   FShader::ParseAndCreateModule(rayShadowMissModule, specification.rayShadowMissPath, EShaderCompilerStage::MISS,
-                                specification.pGlslCompiler, specification.vkDevice);
+                                &glslCompiler, specification.vkDevice);
   FShader rayClosestHitModule{};
   FShader::ParseAndCreateModule(rayClosestHitModule, specification.rayClosestHitPath, EShaderCompilerStage::CLOSESTHIT,
-                                specification.pGlslCompiler, specification.vkDevice);
+                                &glslCompiler, specification.vkDevice);
 
   VkPipelineShaderStageCreateInfo rayGenStageInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,

@@ -22,11 +22,11 @@ struct FRayTracingPipelineSpecification
   FPath rayGenerationPath{ "" };
   FPath rayMissPath{ "" };
   FPath rayShadowMissPath{ "" };
-  FGLSLShaderCompiler* pGlslCompiler{ nullptr };
   FPipelineLayout* pPipelineLayout{ nullptr };
   const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties{ nullptr };
   VkDevice vkDevice{ VK_NULL_HANDLE };
   const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes{ nullptr };
+  u32 targetVulkanVersion{ UUNUSED };
 };
 
 

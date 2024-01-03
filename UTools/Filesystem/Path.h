@@ -16,41 +16,59 @@ class FPath
 {
 public:
 
+  FPath() = default;
   explicit FPath(const char* pPath);
   explicit FPath(std::string path);
 
-  /// @returns path to .exe file on win32 OS
-  /// "C:\\Users\\mateu\\Projects\\UncannyEngine\\clion-build\\USamples\\00_Sandbox\\Debug\\00_Sandbox.exe"
-  [[nodiscard]] static FPath GetExecutableFilePath();
+public:
 
-  /// @returns path to .exe file on win32 OS
-  /// "C:\\Users\\mateu\\Projects\\UncannyEngine\\clion-build\\USamples\\00_Sandbox\\Debug"
-  [[nodiscard]] static FPath GetExecutablePath();
+  /// @brief Adds path element to given path.
+  /// @return newly created path with added path element
+  [[nodiscard]] static FPath Append(const FPath& path, const char* pPathElement);
 
-  /// @brief Method gets and returns path to UncannyEngine project. Retrieves it from executable path.
-  /// @returns path to UncannyEngine.
-  [[nodiscard]] static FPath GetEngineProjectPath();
+  /// @brief Adds several path elements to given path.
+  /// @return newly created path with added path elements
+  [[nodiscard]] static FPath Append(const FPath& path, std::initializer_list<const char*> pathElements);
 
-  [[nodiscard]] static std::vector<FPath> GetFilePathsInDirectory(const FPath& directory);
+  /// @brief Check if given path has given extension.
+  /// @return success status
+  [[nodiscard]] static b32 HasExtension(const FPath& path, const char* ext);
+
+  /// @brief Checks if given path exists in filesystem.
+  /// @return success status
+  [[nodiscard]] static b32 Exists(const FPath& path);
+
+  /// @brief Deletes path from filesystem.
+  /// @return success status
+  static b32 Delete(const FPath& path);
 
   /// @brief For given path discards all path section till the given directory name.
   /// @details For example for given path:
-  /// "C:\\Users\\mateu\\Projects\\UncannyEngine\\clion-build\\USamples\\00_Sandbox\\Debug\\00_Sandbox.exe"
-  /// and for given directory name: "UncannyEngine"
-  /// returned value will be: "C:\\Users\\mateu\\Projects\\UncannyEngine"
+  /// "C:\\Projects\\UncannyEngine\\build\\USamples\\00_Sandbox\\Debug\\00_Sandbox.exe"
+  /// and for given directoryName: "UncannyEngine"
+  /// returned value will be: "C:\\Projects\\UncannyEngine"
   /// @returns path till the given directory name
   [[nodiscard]] static FPath DiscardPathTillDirectory(const FPath& path, const char* directoryName);
 
-  [[nodiscard]] static FPath Append(const FPath& path, const char* pPathElement);
+// Getters
+public:
 
-  [[nodiscard]] static FPath Append(const FPath& path, std::initializer_list<const char*> pathElements);
+  /// @returns file path to .exe file
+  /// "C:\\Projects\\UncannyEngine\\build\\USamples\\00_Sandbox\\Debug\\00_Sandbox.exe"
+  [[nodiscard]] static FPath GetExecutableFilePath();
 
-  [[nodiscard]] static b32 HasExtension(const FPath& path, const char* ext);
+  /// @returns path to .exe file
+  /// "C:\\Projects\\UncannyEngine\\build\\USamples\\00_Sandbox\\Debug"
+  [[nodiscard]] static FPath GetExecutablePath();
 
-  [[nodiscard]] static b32 Exists(const FPath& path);
+  /// @brief Method gets and returns path to UncannyEngine project. Retrieves it from executable path.
+  /// @returns path to UncannyEngine, ex. "C:\\Projects\\UncannyEngine"
+  [[nodiscard]] static FPath GetEngineProjectPath();
 
-  static b32 Delete(const FPath& path);
+  /// @brief Iterates through all files in given directory and returns file paths.
+  [[nodiscard]] static std::vector<FPath> GetFilePathsInDirectory(const FPath& directory);
 
+  /// @brief For given path returns filename with extension.
   [[nodiscard]] static std::string GetFilename(const FPath& path);
 
   [[nodiscard]] const std::string& GetStringPath() const { return m_Path; }

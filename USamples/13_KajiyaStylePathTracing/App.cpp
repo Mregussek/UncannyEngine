@@ -382,19 +382,16 @@ void Application::CreateEngineResources() {
   {
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders", "kajiya_path_tracing", "spv" });
-    vulkan::FGLSLShaderCompiler glslCompiler{};
-    glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
-
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
         .rayClosestHitPath = FPath::Append(shadersPath, "pt_closesthit.rchit.spv"),
         .rayGenerationPath = FPath::Append(shadersPath, "pt_raygeneration.rgen.spv"),
         .rayMissPath =  FPath::Append(shadersPath, "pt_completemiss.rmiss.spv"),
         .rayShadowMissPath = FPath::Append(shadersPath, "pt_shadowmiss.rmiss.spv"),
-        .pGlslCompiler = &glslCompiler,
         .pPipelineLayout = &m_RayTracingPipelineLayout,
         .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties(),
         .vkDevice = pLogicalDevice->GetHandle(),
-        .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
+        .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes(),
+        .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
     };
     m_RayTracingPipelines.reserve(3);   // When there will be reallocation program will fail!
     {

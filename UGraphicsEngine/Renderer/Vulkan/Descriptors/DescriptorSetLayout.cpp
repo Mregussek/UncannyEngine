@@ -1,6 +1,7 @@
 
 #include "DescriptorSetLayout.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Utilities.h"
+#include "UTools/Logger/Log.h"
 
 
 namespace uncanny::vulkan
@@ -34,6 +35,13 @@ void FDescriptorSetLayout::AddBinding(VkDescriptorSetLayoutBinding layoutBinding
 
 void FDescriptorSetLayout::Create(VkDevice vkDevice)
 {
+  if (m_Bindings.empty())
+  {
+    const char* msg = "No bindings were added to the layout!";
+    UERROR(msg);
+    throw std::runtime_error(msg);
+  }
+
   m_Device = vkDevice;
 
   VkDescriptorSetLayoutCreateInfo createInfo{

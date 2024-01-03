@@ -61,8 +61,8 @@ void FGraphicsPipeline::CreatePipeline(const FGraphicsPipelineSpecification& spe
   glslCompiler.Initialize(specification.targetVulkanVersion);
 
   FShader vertexShader{};
-  FShader::ParseAndCreateModule(vertexShader, specification.vertexShader, EShaderCompilerStage::VERTEX, &glslCompiler,
-                                m_Device);
+  FShader::ParseAndCreateModule(vertexShader, specification.vertexShader, EShaderCompilerStage::VERTEX,
+                                &glslCompiler, m_Device);
   FShader fragmentShader{};
   FShader::ParseAndCreateModule(fragmentShader, specification.fragmentShader, EShaderCompilerStage::FRAGMENT,
                                 &glslCompiler, m_Device);

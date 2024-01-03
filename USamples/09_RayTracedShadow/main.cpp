@@ -357,19 +357,17 @@ private:
     FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                        "Shaders", "default" });
     FPath shadersSpvPath = FPath::Append(shadersPath, { "spv" });
-    vulkan::FGLSLShaderCompiler glslCompiler{};
-    glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
 
     vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
         .rayClosestHitPath = FPath::Append(shadersSpvPath, "shadows.rchit.spv"),
         .rayGenerationPath = FPath::Append(shadersSpvPath, "camera.rgen.spv"),
         .rayMissPath =  FPath::Append(shadersPath, "default.rmiss"),
         .rayShadowMissPath = FPath::Append(shadersPath, "shadows.rmiss"),
-        .pGlslCompiler = &glslCompiler,
         .pPipelineLayout = &m_RayTracingPipelineLayout,
         .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties(),
         .vkDevice = pLogicalDevice->GetHandle(),
-        .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
+        .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes(),
+        .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
     };
     m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
 

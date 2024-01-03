@@ -369,19 +369,16 @@ private:
     {
       FPath shadersPath = FPath::Append(FPath::GetEngineProjectPath(), { "UGraphicsEngine", "Renderer", "Vulkan",
                                                                          "Shaders", "antialiasing_lambertian", "spv" });
-      vulkan::FGLSLShaderCompiler glslCompiler{};
-      glslCompiler.Initialize(m_RenderContext.GetInstance()->GetAttributes().GetFullVersion());
-
       vulkan::FRayTracingPipelineSpecification rayTracingPipelineSpecification{
           .rayClosestHitPath = FPath::Append(shadersPath, "antialiasinglambertian.rchit.spv"),
           .rayGenerationPath = FPath::Append(shadersPath, "antialiasinglambertian.rgen.spv"),
           .rayMissPath =  FPath::Append(shadersPath, "antialiasinglambertian.rmiss.spv"),
           .rayShadowMissPath = FPath::Append(shadersPath, "antialiasinglambertian_shadow.rmiss.spv"),
-          .pGlslCompiler = &glslCompiler,
           .pPipelineLayout = &m_RayTracingPipelineLayout,
           .pProperties = &pLogicalDevice->GetAttributes().GetRayTracingProperties(),
           .vkDevice = pLogicalDevice->GetHandle(),
-          .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes()
+          .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes(),
+        .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
       };
       m_RayTracingPipeline.Create(rayTracingPipelineSpecification);
     }

@@ -15,17 +15,32 @@ namespace uncanny::vulkan
 class FDescriptorSetLayout;
 
 
+/// @brief FDescriptorPool is a wrapper for VkDescriptorPool. Also it wraps VkDescriptorSet.
+/// I decided to use only one VkDescriptorSet for future applications, because it is easier to use in that way.
 class FDescriptorPool
 {
 public:
 
+  FDescriptorPool() = default;
+
+  FDescriptorPool(const FDescriptorPool& other) = delete;
+  FDescriptorPool(FDescriptorPool&& other) = delete;
+
+  FDescriptorPool& operator=(const FDescriptorPool& other) = delete;
+  FDescriptorPool& operator=(FDescriptorPool&& other) = delete;
+
   ~FDescriptorPool();
+
+public:
 
   void Create(VkDevice vkDevice, const FDescriptorSetLayout* pSetLayout, u32 maxSetsCount);
 
   void Destroy();
 
   void AllocateDescriptorSet();
+
+// Writers to descriptor
+public:
 
   void WriteTopLevelAsToDescriptorSet(VkAccelerationStructureKHR topLevelAS, u32 dstBinding) const;
 
@@ -35,6 +50,9 @@ public:
 
   void WriteBufferToDescriptorSet(VkBuffer buffer, VkDeviceSize range, u32 dstBinding,
                                   VkDescriptorType descriptorBufferType) const;
+
+// Getters
+public:
 
   [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
