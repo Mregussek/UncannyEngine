@@ -45,10 +45,10 @@ public:
       u32 frameIndex = m_Swapchain.GetCurrentFrameIndex();
 
       const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
-      VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
+      VkSemaphore waitSemaphores[]{ m_Swapchain.GetCurrentImageAvailableSemaphore().GetHandle() };
       VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-      VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-      VkFence fence{ m_Swapchain.GetFence().GetHandle() };
+      VkSemaphore signalSemaphores[]{ m_Swapchain.GetCurrentPresentableImageReadySemaphore().GetHandle() };
+      VkFence fence{ m_Swapchain.GetCurrentFence().GetHandle() };
       graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores, fence);
 
       m_Swapchain.Present();

@@ -74,7 +74,7 @@ public:
       m_ImGuiRenderer.EndFrame(frameIndex, graphicsQueue, m_Swapchain.GetFramebuffers()[frameIndex]);
 
       {
-        VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
+        VkSemaphore waitSemaphores[]{ m_Swapchain.GetCurrentImageAvailableSemaphore().GetHandle() };
         VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         VkSemaphore signalSemaphores[]{ m_ImGuiRenderer.GetSemaphore(frameIndex) };
         graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores,
@@ -83,8 +83,8 @@ public:
       {
         VkSemaphore waitSemaphores[]{ m_ImGuiRenderer.GetSemaphore(frameIndex) };
         VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-        VkFence fence{ m_Swapchain.GetFence().GetHandle() };
+        VkSemaphore signalSemaphores[]{ m_Swapchain.GetCurrentPresentableImageReadySemaphore().GetHandle() };
+        VkFence fence{ m_Swapchain.GetCurrentFence().GetHandle() };
         graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_ImGuiRenderer.GetCommandBuffer(frameIndex),
                              signalSemaphores, fence);
       }
@@ -114,7 +114,7 @@ public:
 
         m_DepthImage.Recreate(swapchainExtent);
 
-        m_Swapchain.CreateViews();
+        m_Swapchain.CreateImageViews();
         m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
 
         RecordCommands();
@@ -392,7 +392,7 @@ private:
 
       m_ImGuiRenderer.Create(imGuiRendererSpecification);
 
-      m_Swapchain.CreateViews();
+      m_Swapchain.CreateImageViews();
       m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
     }
   }

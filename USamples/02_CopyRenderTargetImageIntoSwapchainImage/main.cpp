@@ -45,11 +45,11 @@ public:
         const vulkan::FQueue& transferQueue = m_RenderContext.GetLogicalDevice()->GetTransferQueue();
         vulkan::FCommandBuffer& transferCommandBuffer = m_TransferCommandBuffers[frameIndex];
         VkSemaphore waitSemaphores[]{ m_RenderSemaphores[frameIndex].GetHandle(),
-                                      m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
+                                      m_Swapchain.GetCurrentImageAvailableSemaphore().GetHandle() };
         VkPipelineStageFlags waitStageFlags[]{ m_RenderCommandBuffers[frameIndex].GetLastWaitPipelineStage(),
                                                transferCommandBuffer.GetLastWaitPipelineStage() };
-        VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-        VkFence fence{ m_Swapchain.GetFence().GetHandle() };
+        VkSemaphore signalSemaphores[]{ m_Swapchain.GetCurrentPresentableImageReadySemaphore().GetHandle() };
+        VkFence fence{ m_Swapchain.GetCurrentFence().GetHandle() };
         transferQueue.Submit(waitSemaphores, waitStageFlags, transferCommandBuffer, signalSemaphores, fence);
       }
 

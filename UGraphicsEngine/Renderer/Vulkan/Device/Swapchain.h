@@ -20,13 +20,14 @@ class FWindowSurface;
 class FQueue;
 
 
+/// @brief FSwapchain is a wrapper class for VkSwapchainKHR. Also it encapsulates all the functionalities of swapchain.
 class FSwapchain
 {
 public:
 
   void Create(u32 backBufferCount, VkDevice vkDevice, const FQueue* pPresentQueue,
               const FWindowSurface* pWindowSurface);
-  void CreateViews();
+  void CreateImageViews();
   void CreateFramebuffers(VkRenderPass renderPass, VkImageView depthView);
 
   void Destroy();
@@ -37,25 +38,23 @@ public:
   void WaitForNextImage();
   void Present();
 
+// Getters
+public:
+
   [[nodiscard]] b8 IsOutOfDate() const { return m_OutOfDate; }
   [[nodiscard]] std::span<const VkImage> GetImages() const { return m_Images; }
   [[nodiscard]] std::span<const VkImageView> GetViews() const { return m_ImageViews; }
   [[nodiscard]] std::span<const VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }
   [[nodiscard]] u32 GetBackBufferCount() const { return m_BackBufferCount; }
-  [[nodiscard]] u32 GetCurrentFrameIndex() const { return m_CurrentFrame; }
-  [[nodiscard]] VkExtent2D GetCurrentExtent() const { return m_CurrentExtent; }
-  [[nodiscard]] f32 GetCurrentAspectRatio() const { return (f32)m_CurrentExtent.width / (f32)m_CurrentExtent.height; }
   [[nodiscard]] VkFormat GetFormat() const { return m_Format; }
 
-  [[nodiscard]] const FFence& GetFence() const { return m_Fences[m_CurrentFrame]; }
-  [[nodiscard]] const FSemaphore& GetImageAvailableSemaphore() const
-  {
-    return m_ImageAvailableSemaphores[m_CurrentFrame];
-  }
-  [[nodiscard]] const FSemaphore& GetPresentableImageReadySemaphore() const
-  {
-    return m_PresentableImagesReadySemaphores[m_CurrentFrame];
-  }
+  [[nodiscard]] u32 GetCurrentFrameIndex() const;
+  [[nodiscard]] VkExtent2D GetCurrentExtent() const;
+  [[nodiscard]] f32 GetCurrentAspectRatio() const;
+
+  [[nodiscard]] const FFence& GetCurrentFence() const;
+  [[nodiscard]] const FSemaphore& GetCurrentImageAvailableSemaphore() const;
+  [[nodiscard]] const FSemaphore& GetCurrentPresentableImageReadySemaphore() const;
 
 private:
 

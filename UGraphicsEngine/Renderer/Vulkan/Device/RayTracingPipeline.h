@@ -34,11 +34,24 @@ class FRayTracingPipeline
 {
 public:
 
+  FRayTracingPipeline() = default;
+
+  FRayTracingPipeline(const FRayTracingPipeline& other) = default;
+  FRayTracingPipeline(FRayTracingPipeline&& other) = default;
+
+  FRayTracingPipeline& operator=(const FRayTracingPipeline& other) = delete;
+  FRayTracingPipeline& operator=(FRayTracingPipeline&& other) = delete;
+
   ~FRayTracingPipeline();
+
+public:
 
   void Create(const FRayTracingPipelineSpecification& specification);
 
   void Destroy();
+
+// Getters
+public:
 
   [[nodiscard]] VkPipeline GetHandle() const { return m_Pipeline; }
   [[nodiscard]] const FBuffer& GetRayGenBuffer() const { return m_RayGenBuffer; }

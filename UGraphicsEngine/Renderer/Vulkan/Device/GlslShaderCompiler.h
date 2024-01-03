@@ -19,6 +19,7 @@ enum class EShaderCompilerStage
 };
 
 
+/// @brief Wrapper for glslang library and compilation process for GLSL shaders.
 class FGLSLShaderCompiler
 {
 public:
@@ -39,6 +40,7 @@ public:
   /// @param targetVulkanVersion Vulkan application version, should be returned by vkEnumerateInstanceVersion()
   ///   or can be retrieved from: m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
   void Initialize(u32 targetVulkanVersion);
+
   void Close();
 
   /// @brief Compile() should be called after Initialize() and before Close().

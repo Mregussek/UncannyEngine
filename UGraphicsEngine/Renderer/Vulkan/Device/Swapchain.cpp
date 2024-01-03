@@ -98,7 +98,7 @@ void FSwapchain::CreateOnlySwapchain(VkSwapchainKHR oldSwapchain)
     .imageUsage = usageFlags,
     .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, // images are exclusive to queue family
     .queueFamilyIndexCount = 0,                    // for exclusive sharing mode, param is ignored
-    .pQueueFamilyIndices = nullptr,               // for exclusive sharing mode, param is ignored
+    .pQueueFamilyIndices = nullptr,                // for exclusive sharing mode, param is ignored
     .preTransform = createAttributes.preTransform,
     .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, // no transparency with OS
     .presentMode = createAttributes.presentMode,
@@ -128,7 +128,7 @@ void FSwapchain::RetrieveNewlyCreatedImages()
 }
 
 
-void FSwapchain::CreateViews()
+void FSwapchain::CreateImageViews()
 {
   m_ImageViews.reserve(m_Images.size());
 
@@ -273,11 +273,11 @@ void FSwapchain::Recreate()
 
 void FSwapchain::WaitForNextImage()
 {
-  m_Fences[m_CurrentFrame].WaitAndReset();
+  GetCurrentFence().WaitAndReset();
 
-  u64 timeout = std::numeric_limits<u64>::max();
+  constexpr u64 timeout = std::numeric_limits<u64>::max();
   VkResult result = vkAcquireNextImageKHR(m_Device, m_Swapchain, timeout,
-                                          m_ImageAvailableSemaphores[m_CurrentFrame].GetHandle(),
+                                          GetCurrentImageAvailableSemaphore().GetHandle(),
                                           VK_NULL_HANDLE, &m_ImageIndex);
   switch(result)
   {
@@ -296,7 +296,7 @@ void FSwapchain::WaitForNextImage()
 
 void FSwapchain::Present()
 {
-  VkSemaphore waitSemaphores[]{ m_PresentableImagesReadySemaphores[m_CurrentFrame].GetHandle() };
+  VkSemaphore waitSemaphores[]{ GetCurrentPresentableImageReadySemaphore().GetHandle()};
   VkPresentInfoKHR presentInfo{
     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
     .pNext = nullptr,
@@ -327,6 +327,42 @@ void FSwapchain::Present()
     m_CurrentFrame = 0;
   }
   m_CurrentExtent = m_pWindowSurface->QueryCapabilities().currentExtent;
+}
+
+
+u32 FSwapchain::GetCurrentFrameIndex() const
+{
+  return m_CurrentFrame;
+}
+
+
+VkExtent2D FSwapchain::GetCurrentExtent() const
+{
+  return m_CurrentExtent;
+}
+
+
+f32 FSwapchain::GetCurrentAspectRatio() const
+{
+  return (f32)m_CurrentExtent.width / (f32)m_CurrentExtent.height;
+}
+
+
+const FFence& FSwapchain::GetCurrentFence() const
+{
+  return m_Fences[m_CurrentFrame];
+}
+
+
+const FSemaphore& FSwapchain::GetCurrentImageAvailableSemaphore() const
+{
+  return m_ImageAvailableSemaphores[m_CurrentFrame];
+}
+
+
+const FSemaphore& FSwapchain::GetCurrentPresentableImageReadySemaphore() const
+{
+  return m_PresentableImagesReadySemaphores[m_CurrentFrame];
 }
 
 

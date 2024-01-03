@@ -15,10 +15,25 @@ class FRenderPass
 {
 public:
 
+  FRenderPass() = default;
+
+  FRenderPass(const FRenderPass& other) = delete;
+  FRenderPass(FRenderPass&& other) = delete;
+
+  FRenderPass& operator=(const FRenderPass& other) = delete;
+  FRenderPass& operator=(FRenderPass&& other) = delete;
+
   ~FRenderPass();
 
-  void Create(b32 clearColorAttachmentEveryDraw, VkFormat swapchainFormat, VkFormat depthFormat, VkDevice vkDevice);
+public:
+
+  void Create(b32 clearColorAttachmentEveryDraw, VkFormat swapchainFormat, VkFormat depthFormat,
+              VkDevice vkDevice);
+
   void Destroy();
+
+// Getters
+public:
 
   [[nodiscard]] VkRenderPass GetHandle() const { return m_RenderPass; }
 

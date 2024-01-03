@@ -37,10 +37,10 @@ public:
       { // Submit work for rendering
         const vulkan::FQueue& graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
         vulkan::FCommandBuffer& renderCommandBuffer = m_RenderCommandBuffers[frameIndex];
-        VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
+        VkSemaphore waitSemaphores[]{ m_Swapchain.GetCurrentImageAvailableSemaphore().GetHandle() };
         VkPipelineStageFlags waitStageFlags[]{ m_RenderCommandBuffers[frameIndex].GetLastWaitPipelineStage() };
-        VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-        VkFence fence = m_Swapchain.GetFence().GetHandle();
+        VkSemaphore signalSemaphores[]{ m_Swapchain.GetCurrentPresentableImageReadySemaphore().GetHandle() };
+        VkFence fence = m_Swapchain.GetCurrentFence().GetHandle();
         graphicsQueue.Submit(waitSemaphores, waitStageFlags, renderCommandBuffer, signalSemaphores, fence);
       }
 

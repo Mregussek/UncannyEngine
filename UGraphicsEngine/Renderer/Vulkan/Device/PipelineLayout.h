@@ -15,7 +15,17 @@ class FPipelineLayout
 {
 public:
 
+  FPipelineLayout() = default;
+
+  FPipelineLayout(const FPipelineLayout& other) = delete;
+  FPipelineLayout(FPipelineLayout&& other) = delete;
+
+  FPipelineLayout& operator=(const FPipelineLayout& other) = delete;
+  FPipelineLayout& operator=(FPipelineLayout&& other) = delete;
+
   ~FPipelineLayout();
+
+public:
 
   // Create methods usable for set layouts...
   void Create(VkDevice vkDevice, VkDescriptorSetLayout setLayout);
@@ -31,6 +41,9 @@ public:
               std::span<VkPushConstantRange> pushConstantRanges);
 
   void Destroy();
+
+// Getters
+public:
 
   [[nodiscard]] VkPipelineLayout GetHandle() const { return m_PipelineLayout; }
 

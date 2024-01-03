@@ -44,7 +44,7 @@ void Application::Run() {
     m_ImGuiRenderer.EndFrame(frameIndex, graphicsQueue, m_Swapchain.GetFramebuffers()[frameIndex]);
 
     {
-      VkSemaphore waitSemaphores[]{ m_Swapchain.GetImageAvailableSemaphore().GetHandle() };
+      VkSemaphore waitSemaphores[]{ m_Swapchain.GetCurrentImageAvailableSemaphore().GetHandle() };
       VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
       VkSemaphore signalSemaphores[]{ m_ImGuiRenderer.GetSemaphore(frameIndex) };
       graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_CommandBuffers[frameIndex], signalSemaphores,
@@ -53,8 +53,8 @@ void Application::Run() {
     {
       VkSemaphore waitSemaphores[]{ m_ImGuiRenderer.GetSemaphore(frameIndex) };
       VkPipelineStageFlags waitStageFlags[]{ VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-      VkSemaphore signalSemaphores[]{ m_Swapchain.GetPresentableImageReadySemaphore().GetHandle() };
-      VkFence fence{ m_Swapchain.GetFence().GetHandle() };
+      VkSemaphore signalSemaphores[]{ m_Swapchain.GetCurrentPresentableImageReadySemaphore().GetHandle() };
+      VkFence fence{ m_Swapchain.GetCurrentFence().GetHandle() };
       graphicsQueue.Submit(waitSemaphores, waitStageFlags, m_ImGuiRenderer.GetCommandBuffer(frameIndex),
                            signalSemaphores, fence);
     }
@@ -74,7 +74,7 @@ void Application::Run() {
 
       m_DepthImage.Recreate(m_Swapchain.GetCurrentExtent());
 
-      m_Swapchain.CreateViews();
+      m_Swapchain.CreateImageViews();
       m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
 
       RecordRayTracingCommands();
@@ -393,25 +393,22 @@ void Application::CreateEngineResources() {
         .pPhysicalDeviceAttributes = &pPhysicalDevice->GetAttributes(),
         .targetVulkanVersion = m_RenderContext.GetInstance()->GetAttributes().GetFullVersion()
     };
-    m_RayTracingPipelines.reserve(3);   // When there will be reallocation program will fail!
+    m_RayTracingPipelines.resize(3);
     {
       rayTracingPipelineSpecification.rayClosestHitPath = FPath::Append(shadersPath, "pt_closesthit.rchit.spv");
-      vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines.emplace_back();
-      rtxPipeline.Create(rayTracingPipelineSpecification);
+      m_RayTracingPipelines[0].Create(rayTracingPipelineSpecification);
       m_RayTracingPipelinesCstr.push_back("Default");
     }
     {
       rayTracingPipelineSpecification.rayClosestHitPath = FPath::Append(shadersPath, "pt_normals_closesthit.rchit.spv");
-      vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines.emplace_back();
-      rtxPipeline.Create(rayTracingPipelineSpecification);
-      m_RayTracingPipelinesCstr.emplace_back("Normals");
+      m_RayTracingPipelines[1].Create(rayTracingPipelineSpecification);
+      m_RayTracingPipelinesCstr.push_back("Normals");
     }
     {
       rayTracingPipelineSpecification.rayClosestHitPath = FPath::Append(shadersPath,
                                                                         "pt_worldspacepos_closesthit.rchit.spv");
-      vulkan::FRayTracingPipeline& rtxPipeline = m_RayTracingPipelines.emplace_back();
-      rtxPipeline.Create(rayTracingPipelineSpecification);
-      m_RayTracingPipelinesCstr.emplace_back("Hit World Space Positions");
+      m_RayTracingPipelines[2].Create(rayTracingPipelineSpecification);
+      m_RayTracingPipelinesCstr.push_back("Hit World Space Positions");
     }
   }
 
@@ -440,7 +437,7 @@ void Application::CreateEngineResources() {
 
     m_ImGuiRenderer.Create(imGuiRendererSpecification);
 
-    m_Swapchain.CreateViews();
+    m_Swapchain.CreateImageViews();
     m_Swapchain.CreateFramebuffers(m_ImGuiRenderer.GetRenderPass(), m_DepthImage.GetHandleView());
   }
 

@@ -17,7 +17,17 @@ class FShader
 {
 public:
 
+  FShader() = default;
+
+  FShader(const FShader& other) = delete;
+  FShader(FShader&& other) = delete;
+
+  FShader& operator=(const FShader& other) = delete;
+  FShader& operator=(FShader&& other) = delete;
+
   ~FShader();
+
+public:
 
   static void ParseAndCreateModule(FShader& shaderModule, const FPath& path, EShaderCompilerStage stage,
                                    const FGLSLShaderCompiler* pGlslCompiler, VkDevice vkDevice);
@@ -25,6 +35,9 @@ public:
   void Create(const u32* pSpvSource, u32 codeSize, VkDevice vkDevice);
 
   void Destroy();
+
+// Getters
+public:
 
   [[nodiscard]] VkShaderModule GetHandle() const { return m_ShaderModule; }
 
