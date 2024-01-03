@@ -24,14 +24,14 @@ namespace uncanny::vulkan
 
 struct FImGuiRendererSpecification
 {
-  FPath vertexShader{ "" };
-  FPath fragmentShader{ "" };
+  FPath vertexShader{ UEMPTY_PATH };
+  FPath fragmentShader{ UEMPTY_PATH };
   VkDevice vkDevice{ VK_NULL_HANDLE };
   const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes{ nullptr };
   const FCommandPool* pTransferCommandPool{ nullptr };
   const FQueue* pTransferQueue{ nullptr };
   VkFormat swapchainFormat{ VK_FORMAT_UNDEFINED };
-  vulkan::FQueueFamilyIndex graphicsQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
+  FQueueFamilyIndex graphicsQueueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
   u32 backBufferCount{ UUNUSED };
   u32 targetVulkanVersion{ UUNUSED };
 };
@@ -41,13 +41,26 @@ class FImGuiRenderer
 {
 public:
 
+  FImGuiRenderer() = default;
+
+  FImGuiRenderer(const FImGuiRenderer& other) = delete;
+  FImGuiRenderer(FImGuiRenderer&& other) = delete;
+
+  FImGuiRenderer& operator=(const FImGuiRenderer& other) = delete;
+  FImGuiRenderer& operator=(FImGuiRenderer&& other) = delete;
+
   ~FImGuiRenderer();
+
+public:
 
   void Create(const FImGuiRendererSpecification& specification);
   void Destroy();
 
   void BeginFrame(VkExtent2D swapchainExtent, FMouseButtonsPressed mouseButtonsPressed, FMousePosition mousePosition);
   void EndFrame(u32 frameIndex, const FQueue& queueUsingBuffers, VkFramebuffer swapchainFramebuffer);
+
+// Getters
+public:
 
   [[nodiscard]] VkSemaphore GetSemaphore(u32 frameIndex) const { return m_Semaphores[frameIndex].GetHandle(); }
   [[nodiscard]] const FCommandBuffer& GetCommandBuffer(u32 frameIndex) const { return m_CommandBuffers[frameIndex]; }

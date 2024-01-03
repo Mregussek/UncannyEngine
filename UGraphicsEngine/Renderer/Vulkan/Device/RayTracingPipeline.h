@@ -18,10 +18,10 @@ class FPipelineLayout;
 
 struct FRayTracingPipelineSpecification
 {
-  FPath rayClosestHitPath{ "" };
-  FPath rayGenerationPath{ "" };
-  FPath rayMissPath{ "" };
-  FPath rayShadowMissPath{ "" };
+  FPath rayClosestHitPath{ UEMPTY_PATH };
+  FPath rayGenerationPath{ UEMPTY_PATH };
+  FPath rayMissPath{ UEMPTY_PATH };
+  FPath rayShadowMissPath{ UEMPTY_PATH };
   FPipelineLayout* pPipelineLayout{ nullptr };
   const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties{ nullptr };
   VkDevice vkDevice{ VK_NULL_HANDLE };
