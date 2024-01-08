@@ -28,6 +28,7 @@ public:
   /// @param vkInstance VkInstance handle
   void Destroy(VkInstance vkInstance);
 
+// Members
 private:
 
   /// @brief debug handle

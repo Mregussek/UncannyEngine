@@ -92,10 +92,12 @@ public:
   [[nodiscard]] VkCommandBuffer GetHandle() const { return m_CommandBuffer; }
   [[nodiscard]] VkPipelineStageFlags GetLastWaitPipelineStage() const { return m_LastWaitStageFlag; }
 
+// Private methods
 private:
 
   void BeginRecording(VkCommandBufferUsageFlags flags);
 
+// Members
 private:
 
   VkCommandBuffer m_CommandBuffer{ VK_NULL_HANDLE };

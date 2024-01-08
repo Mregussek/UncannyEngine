@@ -46,6 +46,7 @@ public:
   /// @brief Compile() should be called after Initialize() and before Close().
   std::vector<u32> Compile(const char* glslSource, EShaderCompilerStage stage) const;
 
+// Members
 private:
 
   glslang_target_client_version_t m_TargetVulkanVersion{};

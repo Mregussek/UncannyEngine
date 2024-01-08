@@ -53,6 +53,7 @@ void FShader::ParseAndCreateModule(FShader& shaderModule, const FPath& path, ESh
     spvSource = FFile::ReadBinary(shaderPath);
     shaderModule.Create(reinterpret_cast<const u32*>(spvSource.data()), spvSource.size(), vkDevice);
   }
+  // Users may use different extensions for GLSL shaders, that is why I encapsulate it in "else"
   else
   {
     std::vector<u32> spvSource;

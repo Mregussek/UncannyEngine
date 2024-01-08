@@ -74,6 +74,7 @@ public:
 
   [[nodiscard]] const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& GetRayTracingProperties() const { return m_RayTracingPipelineProperties; }
 
+// Members
 private:
 
   // required extensions...

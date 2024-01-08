@@ -30,6 +30,8 @@ struct FRayTracingPipelineSpecification
 };
 
 
+/// @brief FRayTracingPipeline is a wrapper for VkPipeline with ray tracing functionality.
+/// It also adds shader binding table and ray generation, closest hit and miss buffers.
 class FRayTracingPipeline
 {
 public:
@@ -58,11 +60,13 @@ public:
   [[nodiscard]] const FBuffer& GetRayClosestHitBuffer() const { return m_RayClosestHitBuffer; }
   [[nodiscard]] const FBuffer& GetRayMissBuffer() const { return m_RayMissBuffer; }
 
+// Private methods
 private:
 
   void CreatePipeline(const FRayTracingPipelineSpecification& specification);
   void CreateShaderBindingTable(const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* pProperties);
 
+// Members
 private:
 
   FBuffer m_RayGenBuffer{};

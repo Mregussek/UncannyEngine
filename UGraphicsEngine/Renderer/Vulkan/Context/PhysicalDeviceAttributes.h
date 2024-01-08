@@ -59,6 +59,7 @@ public:
   [[nodiscard]] const std::vector<VkExtensionProperties>& GetExtensionProperties() const { return m_ExtensionProperties; }
   [[nodiscard]] const std::vector<VkQueueFamilyProperties>& GetQueueFamilyProperties() const { return m_QueueFamilyProperties; }
 
+// Members
 private:
 
   std::vector<VkExtensionProperties> m_ExtensionProperties{};

@@ -45,6 +45,7 @@ public:
 
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_QueueFamilyIndex; }
 
+// Members
 private:
 
   VkCommandPool m_CommandPool{ VK_NULL_HANDLE };

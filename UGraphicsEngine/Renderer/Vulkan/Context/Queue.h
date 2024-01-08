@@ -47,10 +47,12 @@ public:
   [[nodiscard]] VkQueue GetHandle() const { return m_Queue; }
   [[nodiscard]] FQueueFamilyIndex GetFamilyIndex() const { return m_FamilyIndex; }
 
+// Private methods
 private:
 
   void Initialize(VkQueue queue, FQueueFamilyIndex familyIndex);
 
+// Members
 private:
 
   VkQueue m_Queue{ VK_NULL_HANDLE };

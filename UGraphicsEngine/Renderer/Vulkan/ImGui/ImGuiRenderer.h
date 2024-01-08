@@ -37,6 +37,8 @@ struct FImGuiRendererSpecification
 };
 
 
+/// @brief FImGuiRenderer is a class that is responsible for rendering ImGui UI with Vulkan API.
+/// It encapsulates all needed functionalities.
 class FImGuiRenderer
 {
 public:
@@ -66,6 +68,7 @@ public:
   [[nodiscard]] const FCommandBuffer& GetCommandBuffer(u32 frameIndex) const { return m_CommandBuffers[frameIndex]; }
   [[nodiscard]] VkRenderPass GetRenderPass() const { return m_RenderPass.GetHandle(); }
 
+// Private methods
 private:
 
   void CreateFontData(const FCommandPool& transferCommandPool, const FQueue& transferQueue);
@@ -78,22 +81,30 @@ private:
   void RecordRenderPass(u32 frameIndex, VkFramebuffer swapchainFramebuffer);
   void RecordDrawCommands(u32 frameIndex);
 
+// Members
 private:
+
+  FImage m_FontImage{};
+  FBuffer m_VertexBuffer{};
+  FBuffer m_IndexBuffer{};
+
+  FDescriptorSetLayout m_DescriptorSetLayout{};
+  FDescriptorPool m_DescriptorPool{};
+
+  FGraphicsPipeline m_GraphicsPipeline{};
+  FCommandPool m_CommandPool{};
+
+  std::vector<FCommandBuffer> m_CommandBuffers{};
+  std::vector<FSemaphore> m_Semaphores{};
+
+  FSampler m_Sampler{};
+
+  FPipelineLayout m_PipelineLayout{};
+  FRenderPass m_RenderPass{};
 
   VkDevice m_Device{ VK_NULL_HANDLE };
   const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
-  std::vector<FSemaphore> m_Semaphores{};
-  FImage m_FontImage{};
-  FSampler m_Sampler{};
-  FBuffer m_VertexBuffer{};
-  FBuffer m_IndexBuffer{};
-  FDescriptorSetLayout m_DescriptorSetLayout{};
-  FDescriptorPool m_DescriptorPool{};
-  FPipelineLayout m_PipelineLayout{};
-  vulkan::FRenderPass m_RenderPass{};
-  FGraphicsPipeline m_GraphicsPipeline{};
-  FCommandPool m_CommandPool{};
-  std::vector<FCommandBuffer> m_CommandBuffers{};
+
   b8 m_IsCreated{ UFALSE };
 
 };

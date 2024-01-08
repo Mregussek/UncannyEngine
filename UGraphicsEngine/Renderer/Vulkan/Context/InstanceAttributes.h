@@ -66,6 +66,7 @@ public:
   [[nodiscard]] const std::vector<const char*>& GetRequestedLayers() const { return m_RequestedLayers; }
   [[nodiscard]] const std::vector<const char*>& GetRequestedExtensions() const { return m_RequestedExtensions; }
 
+// Private methods
 private:
 
   void GatherAvailableVersion();
@@ -75,6 +76,7 @@ private:
   [[nodiscard]] b8 IsLayerAvailable(const char* layerName) const;
   [[nodiscard]] b8 IsExtensionAvailable(const char* extensionName) const;
 
+// Members
 private:
 
   std::vector<VkLayerProperties> m_AvailableLayerProperties{};

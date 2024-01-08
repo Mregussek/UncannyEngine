@@ -55,6 +55,7 @@ public:
 	/// @brief Just returns VkSurfaceKHR handle
 	[[nodiscard]] VkSurfaceKHR GetHandle() const { return m_Surface; }
 
+// Private methods
 private:
 
 	void Create(const ::uncanny::IWindow* pWindow, VkInstance vkInstance, VkPhysicalDevice vkPhysicalDevice);
@@ -62,6 +63,7 @@ private:
 
 	[[nodiscard]] b8 IsPresentationSupported(FQueueFamilyIndex queueFamilyIndex) const;
 
+// Members
 private:
 
 	VkPhysicalDevice m_PhysicalDevice{ VK_NULL_HANDLE };

@@ -37,6 +37,7 @@ public:
 
   void Destroy();
 
+  /// @brief Allocate descriptor set from pool. Remember to firstly call Create() to create pool!
   void AllocateDescriptorSet();
 
 // Writers to descriptor
@@ -56,6 +57,7 @@ public:
 
   [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
+// Members
 private:
 
   const FDescriptorSetLayout* m_pSetLayout{ nullptr };

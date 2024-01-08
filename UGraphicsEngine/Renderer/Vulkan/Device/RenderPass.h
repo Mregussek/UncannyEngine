@@ -11,6 +11,7 @@ namespace uncanny::vulkan
 {
 
 
+/// @brief FRenderPass is a wrapper for VkRenderPass.
 class FRenderPass
 {
 public:
@@ -37,6 +38,7 @@ public:
 
   [[nodiscard]] VkRenderPass GetHandle() const { return m_RenderPass; }
 
+// Members
 private:
 
   VkDevice m_Device{ VK_NULL_HANDLE };

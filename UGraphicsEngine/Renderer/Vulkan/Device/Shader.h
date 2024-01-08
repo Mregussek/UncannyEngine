@@ -13,6 +13,8 @@ namespace uncanny::vulkan
 {
 
 
+/// @brief FShader is a wrapper for VkShaderModule.
+/// With this class you can parse, compile and create shader modules.
 class FShader
 {
 public:
@@ -29,6 +31,11 @@ public:
 
 public:
 
+  /// @brief Depending on given path, method reads binary shader code and creates VkShaderModule or
+  /// reads GLSL shader code, compiles it and creates VkShaderModule in given shaderModule variable.
+  /// @param shaderModule stores newly created VkShaderModule.
+  /// @param path to shader file, can .spv or GLSL source code.
+  /// @param stage necessary for GLSL shader compilation.
   static void ParseAndCreateModule(FShader& shaderModule, const FPath& path, EShaderCompilerStage stage,
                                    const FGLSLShaderCompiler* pGlslCompiler, VkDevice vkDevice);
 
@@ -41,6 +48,7 @@ public:
 
   [[nodiscard]] VkShaderModule GetHandle() const { return m_ShaderModule; }
 
+// Members
 private:
 
   VkShaderModule m_ShaderModule{ VK_NULL_HANDLE };

@@ -61,12 +61,14 @@ public:
   [[nodiscard]] FQueueFamilyIndex GetTransferFamilyIndex() const { return m_Attributes.GetTransferFamilyIndex(); }
   [[nodiscard]] FQueueFamilyIndex GetComputeFamilyIndex() const { return m_Attributes.GetComputeFamilyIndex(); }
 
+// Private methods
 private:
 
   void Create(const FLogicalDeviceAttributes& attributes, VkPhysicalDevice vkPhysicalDevice);
   void Destroy();
   void InitializeQueues();
 
+// Members
 private:
 
   FLogicalDeviceAttributes m_Attributes{};

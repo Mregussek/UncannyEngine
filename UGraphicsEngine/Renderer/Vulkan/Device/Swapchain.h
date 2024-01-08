@@ -20,7 +20,8 @@ class FWindowSurface;
 class FQueue;
 
 
-/// @brief FSwapchain is a wrapper class for VkSwapchainKHR. Also it encapsulates all the functionalities of swapchain.
+/// @brief FSwapchain is a wrapper class for VkSwapchainKHR. Also it encapsulates all the functionalities of swapchain
+/// like recreating it, waiting for next image, presenting, etc. It also contains all the synchronization objects.
 class FSwapchain
 {
 public:

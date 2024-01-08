@@ -45,6 +45,7 @@ public:
 
   [[nodiscard]] const std::vector<VkDescriptorSetLayoutBinding>& GetBindings() const { return m_Bindings; }
 
+// Members
 private:
 
   std::vector<VkDescriptorSetLayoutBinding> m_Bindings{};

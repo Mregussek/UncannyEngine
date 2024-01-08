@@ -25,6 +25,7 @@ struct FGraphicsPipelineSpecification
 };
 
 
+/// @brief FGraphicsPipeline is a wrapper around VkPipeline and VkPipelineCache, but with Graphics Pipeline functionality.
 class FGraphicsPipeline
 {
 public:
@@ -49,11 +50,13 @@ public:
 
   [[nodiscard]] VkPipeline GetHandle() const { return m_Pipeline; }
 
+// Private methods
 private:
 
   void CreateCache();
   void CreatePipeline(const FGraphicsPipelineSpecification& specification);
 
+// Members
 private:
 
   VkDevice m_Device{ VK_NULL_HANDLE };

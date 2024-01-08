@@ -40,10 +40,12 @@ public:
   [[nodiscard]] VkPhysicalDevice GetHandle() const { return m_PhysicalDevice; }
   [[nodiscard]] const FPhysicalDeviceAttributes& GetAttributes() const { return m_Attributes; }
 
+// Private methods
 private:
 
   void Initialize(VkPhysicalDevice physicalDevice);
 
+// Members
 private:
 
   FPhysicalDeviceAttributes m_Attributes{};

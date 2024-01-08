@@ -47,6 +47,7 @@ public:
 
   [[nodiscard]] VkPipelineLayout GetHandle() const { return m_PipelineLayout; }
 
+// Members
 private:
 
   VkPipelineLayout m_PipelineLayout{ VK_NULL_HANDLE };
