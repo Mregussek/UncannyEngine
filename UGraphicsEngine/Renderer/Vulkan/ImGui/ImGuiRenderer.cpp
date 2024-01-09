@@ -55,14 +55,19 @@ void FImGuiRenderer::Create(const FImGuiRendererSpecification& specification)
 void FImGuiRenderer::Destroy()
 {
   ImGui::DestroyContext();
+
   for(FSemaphore& semaphore : m_Semaphores)
   {
     semaphore.Destroy();
   }
+  m_Semaphores.clear();
+
   for(FCommandBuffer& commandBuffer : m_CommandBuffers)
   {
     commandBuffer.Free();
   }
+  m_CommandBuffers.clear();
+
   m_VertexBuffer.Free();
   m_IndexBuffer.Free();
   m_CommandPool.Destroy();

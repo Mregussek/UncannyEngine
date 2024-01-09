@@ -96,7 +96,7 @@ void FImage::CreateView()
     }
   };
 
-  if (m_CreateInfo.usage == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+  if (m_CreateInfo.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
   {
     createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
   }
@@ -121,6 +121,7 @@ void FImage::Free()
     m_ImageView = VK_NULL_HANDLE;
   }
   m_Memory.Free();
+  m_QueueFamilies.clear();
 }
 
 

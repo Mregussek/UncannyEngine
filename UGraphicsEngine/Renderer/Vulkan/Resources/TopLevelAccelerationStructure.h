@@ -20,8 +20,21 @@ struct FBottomLevelStructureReferenceUniformData
 };
 
 
+/// @brief FTopLevelAccelerationStructure is a wrapper class for VkAccelerationStructureKHR that represents TLAS.
 class FTopLevelAccelerationStructure final : public FAccelerationStructure
 {
+public:
+
+  FTopLevelAccelerationStructure() = default;
+
+  FTopLevelAccelerationStructure(const FTopLevelAccelerationStructure& other) = delete;
+  FTopLevelAccelerationStructure(FTopLevelAccelerationStructure&& other) = delete;
+
+  FTopLevelAccelerationStructure& operator=(const FTopLevelAccelerationStructure& other) = delete;
+  FTopLevelAccelerationStructure& operator=(FTopLevelAccelerationStructure&& other) = delete;
+
+  ~FTopLevelAccelerationStructure();
+
 public:
 
   void Build(const FBottomLevelAccelerationStructure& bottomLevelStructure, const FCommandPool& commandPool,
@@ -32,16 +45,18 @@ public:
 
   void Destroy();
 
-  [[nodiscard]] const std::vector<FBottomLevelStructureReferenceUniformData>& GetBLASReferenceUniformData() const
-  {
-    return m_BottomUniformData;
-  }
+// Getters
+public:
 
+  [[nodiscard]] const auto& GetBLASReferenceUniformData() const { return m_BottomUniformData; }
+
+// Private methods
 private:
 
   void Build(std::span<VkAccelerationStructureInstanceKHR> instances, const FCommandPool& commandPool,
              const FQueue& queue);
 
+// Members
 private:
 
   std::vector<FBottomLevelStructureReferenceUniformData> m_BottomUniformData{};

@@ -130,7 +130,7 @@ void FBuffer::FillStaged(const void* pData, u32 elementSizeof, u32 elementsCount
   stagingBuffer.Allocate(m_ElementsSizeInBytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                          m_Device, m_pPhysicalDeviceAttributes);
   stagingBuffer.Fill(pData, elementSizeof, elementsCount);
-
+  
   FCommandBuffer commandBuffer = transferCommandPool.AllocatePrimaryCommandBuffer();
   commandBuffer.BeginOneTimeRecording();
 
@@ -145,6 +145,12 @@ void FBuffer::FillStaged(const void* pData, u32 elementSizeof, u32 elementsCount
 
   transferQueue.Submit({}, {}, commandBuffer, {}, VK_NULL_HANDLE);
   transferQueue.WaitIdle();
+}
+
+
+b32 FBuffer::IsValid() const
+{
+  return m_Buffer != VK_NULL_HANDLE;
 }
 
 

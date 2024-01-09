@@ -17,15 +17,21 @@ namespace uncanny::vulkan
 class FPhysicalDeviceAttributes;
 
 
+/// @brief Base class for acceleration structures. Written in modular way so that BLAS and TLAS may derive from it.
+/// In general this should not be used as is, but rather through derived classes.
 class FAccelerationStructure
 {
+public:
+
+  void Destroy();
+
+// Getters
 public:
 
   [[nodiscard]] VkAccelerationStructureKHR GetHandle() const { return m_AccelerationStructure; }
   [[nodiscard]] u64 GetDeviceAddress() const { return m_DeviceAddress; }
 
-  void Destroy();
-
+// Protected methods for derived classes
 protected:
 
   void AcquireSizeForBuild(VkAccelerationStructureTypeKHR type, u32 trianglesCount,
@@ -37,11 +43,13 @@ protected:
              const VkAccelerationStructureGeometryKHR* pGeometry,
              u32 primitiveCount, const FCommandPool& commandPool, const FQueue& queue);
 
+// Protected members for derived classes
 protected:
 
   VkDevice m_Device{ VK_NULL_HANDLE };
   const FPhysicalDeviceAttributes* m_pPhysicalDeviceAttributes{ nullptr };
 
+// Members
 private:
 
   FBuffer m_AccelerationMemoryBuffer{};

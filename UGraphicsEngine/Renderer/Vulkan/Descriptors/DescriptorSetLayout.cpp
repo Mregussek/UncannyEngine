@@ -64,6 +64,7 @@ void FDescriptorSetLayout::Destroy()
     vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
     m_DescriptorSetLayout = VK_NULL_HANDLE;
   }
+  m_Bindings.clear();
 }
 
 

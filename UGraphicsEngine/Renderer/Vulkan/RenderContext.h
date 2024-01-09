@@ -48,19 +48,23 @@ public:
   /// @brief Destroys whole FRenderContext object (closes Vulkan API)
   void Destroy();
 
+// Getters
+public:
+
   [[nodiscard]] const FInstance* GetInstance() const { return &m_Instance; }
   [[nodiscard]] const FPhysicalDevice* GetPhysicalDevice() const { return &m_PhysicalDevice; }
   [[nodiscard]] const FLogicalDevice* GetLogicalDevice() const { return &m_LogicalDevice; }
   [[nodiscard]] const FWindowSurface* GetWindowSurface() const { return &m_WindowSurface; }
 
+// Members
 private:
 
-  FInstance m_Instance{};
-  FEXTDebugUtils m_DebugUtils{};
   FPhysicalDevice m_PhysicalDevice{};
-  FVolkHandler m_VolkHandler{};
   FLogicalDevice m_LogicalDevice{};
+  FInstance m_Instance{};
   FWindowSurface m_WindowSurface{};
+  FEXTDebugUtils m_DebugUtils{};
+  FVolkHandler m_VolkHandler{};
   /// @brief boolean guard for Destroy() method in destructor
   b8 m_Destroyed{ UFALSE };
 

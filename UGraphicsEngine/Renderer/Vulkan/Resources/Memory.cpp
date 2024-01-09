@@ -71,6 +71,7 @@ void FMemory::Free()
 }
 
 
+
 FMemoryTypeIndexResult FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties memoryProperties, u32 typeBits,
                                            VkMemoryPropertyFlags flags)
 {

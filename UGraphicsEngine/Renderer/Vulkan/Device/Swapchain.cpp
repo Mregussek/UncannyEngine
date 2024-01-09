@@ -206,12 +206,17 @@ void FSwapchain::Destroy()
   {
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
   }
+  m_Images.clear();
+
   for(u32 i = 0; i < m_BackBufferCount; i++)
   {
     m_Fences[i].Destroy();
     m_ImageAvailableSemaphores[i].Destroy();
     m_PresentableImagesReadySemaphores[i].Destroy();
   }
+  m_Fences.clear();
+  m_ImageAvailableSemaphores.clear();
+  m_PresentableImagesReadySemaphores.clear();
 }
 
 

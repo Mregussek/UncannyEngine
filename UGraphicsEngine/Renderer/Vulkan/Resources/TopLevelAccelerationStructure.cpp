@@ -6,6 +6,12 @@ namespace uncanny::vulkan
 {
 
 
+FTopLevelAccelerationStructure::~FTopLevelAccelerationStructure()
+{
+  Destroy();
+}
+
+
 void FTopLevelAccelerationStructure::Build(const FBottomLevelAccelerationStructure& bottomLevelStructure,
                                            const FCommandPool& commandPool, const FQueue& queue, VkDevice vkDevice,
                                            const FPhysicalDeviceAttributes* pPhysicalDeviceAttributes)
