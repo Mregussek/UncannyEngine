@@ -41,27 +41,32 @@ public:
 
   void ResetSpecification();
 
+  [[nodiscard]] b32 HasMoved() const;
+
   void SetAspectRatio(f32 aspectRatio);
+
+// Getters
+public:
 
   [[nodiscard]] math::Matrix4x4f GetView() const;
   [[nodiscard]] math::Matrix4x4f GetProjection() const;
-  [[nodiscard]] b32 HasMoved() const;
-
   [[nodiscard]] FPerspectiveCameraSpecification& GetSpecification() { return m_Specification; } 
 
+// Private methods
 private:
 
   void ProcessKeyboardInput(IWindow* pWindow, f32 deltaTime);
   void ProcessMouseMovement(IWindow* pWindow, f32 deltaTime);
 
+// Members
 private:
 
   FPerspectiveCameraSpecification m_FirstSpecification{};
   FPerspectiveCameraSpecification m_Specification{};
 
+  FMousePosition m_LastMousePos{};
   math::Vector3f m_Up{};
   math::Vector3f m_Right{};
-  FMousePosition m_LastMousePos{};
 
   b8 m_FirstMouseMove{ UFALSE };
   b8 m_IsKeyboardPressed{ UFALSE };
