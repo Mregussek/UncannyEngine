@@ -29,8 +29,8 @@ void Application::Run() {
 
     m_Camera.ProcessMovement(m_Window.get(), deltaTime);
     {
-      FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-      m_CameraUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+      auto uniformData = m_Camera.GetUniformData();
+      m_CameraUniformBuffer.Fill(&uniformData, sizeof(uniformData), 1);
     }
 
     m_Swapchain.WaitForNextImage();
@@ -265,7 +265,7 @@ void Application::CreateEngineResources() {
         .accumulatePreviousColors = UTRUE
     };
     m_Camera.SetRayTracingSpecification(rayTracingSpecification);
-    FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
+    auto uniformData = m_Camera.GetUniformData();
 
     // Creating per frame buffer for camera...
     m_CameraUniformBuffer.Allocate(sizeof(uniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,

@@ -40,7 +40,7 @@ struct FCameraRayTracingSpecification
 };
 
 
-struct FPerspectiveCameraUniformData
+struct FPerspectiveRayTracingCameraUniformData
 {
   math::Matrix4x4f inversePerspective{};
   math::Matrix4x4f inverseView{};
@@ -60,23 +60,15 @@ public:
 
   void ProcessMovement(IWindow* pWindow, f32 deltaTime);
 
-  void ContinueAccumulatingPreviousColors();
-  void ResetAccumulatedFrameCounter();
-  void DontAccumulatePreviousColors();
-
   void ResetSpecification();
 
-  void SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification);
   void SetAspectRatio(f32 aspectRatio);
 
   [[nodiscard]] math::Matrix4x4f GetView() const;
   [[nodiscard]] math::Matrix4x4f GetProjection() const;
-  [[nodiscard]] FPerspectiveCameraUniformData GetUniformData() const;
   [[nodiscard]] b32 HasMoved() const;
-  [[nodiscard]] u32 GetAccumulatedFramesCounter() const { return m_NotMovingCameraFrameCounter; }
 
-  [[nodiscard]] FPerspectiveCameraSpecification& GetSpecification() { return m_Specification; }
-  [[nodiscard]] FCameraRayTracingSpecification& GetRayTracingSpecification() { return m_RayTracingSpecification; }
+  [[nodiscard]] FPerspectiveCameraSpecification& GetSpecification() { return m_Specification; } 
 
 private:
 
@@ -87,16 +79,44 @@ private:
 
   FPerspectiveCameraSpecification m_FirstSpecification{};
   FPerspectiveCameraSpecification m_Specification{};
-  FCameraRayTracingSpecification m_RayTracingSpecification{};
 
   math::Vector3f m_Up{};
   math::Vector3f m_Right{};
   FMousePosition m_LastMousePos{};
-  u32 m_NotMovingCameraFrameCounter{ 0 };
 
   b8 m_FirstMouseMove{ UFALSE };
   b8 m_IsKeyboardPressed{ UFALSE };
   b8 m_IsMousePressed{ UFALSE };
+
+};
+
+
+class FPerspectiveRayTracingCamera : public FPerspectiveCamera
+{
+public:
+
+  void ProcessMovement(IWindow* pWindow, f32 deltaTime);
+
+  void ContinueAccumulatingPreviousColors();
+  void ResetAccumulatedFrameCounter();
+  void DontAccumulatePreviousColors();
+
+  void SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification);
+
+// Getters
+public:
+
+  [[nodiscard]] FPerspectiveRayTracingCameraUniformData GetUniformData() const;
+
+  [[nodiscard]] FCameraRayTracingSpecification& GetRayTracingSpecification() { return m_RayTracingSpecification; }
+
+  [[nodiscard]] u32 GetAccumulatedFramesCounter() const { return m_NotMovingCameraFrameCounter; }
+
+// Members
+private:
+
+  FCameraRayTracingSpecification m_RayTracingSpecification{};
+  u32 m_NotMovingCameraFrameCounter{ 0 };
 
 };
 

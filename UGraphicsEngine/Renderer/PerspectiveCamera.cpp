@@ -21,35 +21,11 @@ void FPerspectiveCamera::Initialize(const FPerspectiveCameraSpecification& speci
 }
 
 
-void FPerspectiveCamera::ContinueAccumulatingPreviousColors()
-{
-  m_RayTracingSpecification.accumulatePreviousColors = UTRUE;
-}
-
-
-void FPerspectiveCamera::ResetAccumulatedFrameCounter()
-{
-  m_NotMovingCameraFrameCounter = 0;
-}
-
-
-void FPerspectiveCamera::DontAccumulatePreviousColors()
-{
-  m_RayTracingSpecification.accumulatePreviousColors = UFALSE;
-}
-
-
 void FPerspectiveCamera::ResetSpecification()
 {
   m_Specification = m_FirstSpecification;
   updateCameraVectors(m_Specification.yaw, m_Specification.pitch, m_Specification.worldUp, &m_Specification.front,
                       &m_Right, &m_Up);
-}
-
-
-void FPerspectiveCamera::SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification)
-{
-  m_RayTracingSpecification = rayTracingSpecification;
 }
 
 
@@ -138,17 +114,6 @@ void FPerspectiveCamera::ProcessMovement(IWindow* pWindow, f32 deltaTime)
 {
   ProcessKeyboardInput(pWindow, deltaTime);
   ProcessMouseMovement(pWindow, deltaTime);
-
-  if (HasMoved())
-  {
-    m_NotMovingCameraFrameCounter = 0;
-    return;
-  }
-
-  if (m_NotMovingCameraFrameCounter < m_RayTracingSpecification.maxFrameCounterLimit)
-  {
-    m_NotMovingCameraFrameCounter += 1;
-  }
 }
 
 
@@ -169,7 +134,55 @@ math::Matrix4x4f FPerspectiveCamera::GetProjection() const
 }
 
 
-FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
+b32 FPerspectiveCamera::HasMoved() const
+{
+  return m_IsKeyboardPressed or m_IsMousePressed;
+}
+
+
+
+void FPerspectiveRayTracingCamera::ProcessMovement(IWindow* pWindow, f32 deltaTime)
+{
+  FPerspectiveCamera::ProcessMovement(pWindow, deltaTime);
+
+  if (HasMoved())
+  {
+    m_NotMovingCameraFrameCounter = 0;
+    return;
+  }
+
+  if (m_NotMovingCameraFrameCounter < m_RayTracingSpecification.maxFrameCounterLimit)
+  {
+    m_NotMovingCameraFrameCounter += 1;
+  }
+}
+
+
+void FPerspectiveRayTracingCamera::ContinueAccumulatingPreviousColors()
+{
+  m_RayTracingSpecification.accumulatePreviousColors = UTRUE;
+}
+
+
+void FPerspectiveRayTracingCamera::ResetAccumulatedFrameCounter()
+{
+  m_NotMovingCameraFrameCounter = 0;
+}
+
+
+void FPerspectiveRayTracingCamera::DontAccumulatePreviousColors()
+{
+  m_RayTracingSpecification.accumulatePreviousColors = UFALSE;
+}
+
+
+void FPerspectiveRayTracingCamera::SetRayTracingSpecification(FCameraRayTracingSpecification rayTracingSpecification)
+{
+  m_RayTracingSpecification = rayTracingSpecification;
+}
+
+
+FPerspectiveRayTracingCameraUniformData FPerspectiveRayTracingCamera::GetUniformData() const
 {
   return {
     .inversePerspective = math::Inverse(GetProjection()),
@@ -180,12 +193,6 @@ FPerspectiveCameraUniformData FPerspectiveCamera::GetUniformData() const
     .maxSamplesPerPixel = m_RayTracingSpecification.maxSamplesPerPixel,
     .accumulateColor = m_RayTracingSpecification.accumulatePreviousColors
   };
-}
-
-
-b32 FPerspectiveCamera::HasMoved() const
-{
-  return m_IsKeyboardPressed or m_IsMousePressed;
 }
 
 

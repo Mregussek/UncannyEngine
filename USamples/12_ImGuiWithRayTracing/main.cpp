@@ -53,8 +53,8 @@ public:
 
       m_Camera.ProcessMovement(m_Window.get(), deltaTime);
       {
-        FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+        auto uniformData = m_Camera.GetUniformData();
+        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(uniformData), 1);
       }
 
       const vulkan::FQueue &graphicsQueue = m_RenderContext.GetLogicalDevice()->GetGraphicsQueue();
@@ -108,8 +108,8 @@ public:
 
         m_Camera.SetAspectRatio((f32)swapchainExtent.width / (f32)swapchainExtent.height);
         {
-          FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-          m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+          auto uniformData = m_Camera.GetUniformData();
+          m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(uniformData), 1);
         }
 
         m_DepthImage.Recreate(swapchainExtent);
@@ -199,12 +199,12 @@ private:
       m_Camera.SetRayTracingSpecification(rayTracingSpecification);
 
       // Creating per frame buffer for camera...
-      m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+      m_PerFrameUniformBuffer.Allocate(sizeof(FPerspectiveRayTracingCameraUniformData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, pLogicalDevice->GetHandle(),
                                        &pPhysicalDevice->GetAttributes());
       {
-        FPerspectiveCameraUniformData uniformData = m_Camera.GetUniformData();
-        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(FPerspectiveCameraUniformData), 1);
+        auto uniformData = m_Camera.GetUniformData();
+        m_PerFrameUniformBuffer.Fill(&uniformData, sizeof(uniformData), 1);
       }
     }
 
@@ -546,7 +546,7 @@ private:
   vulkan::FImage m_DepthImage{};
   vulkan::FImGuiRenderer m_ImGuiRenderer{};
 
-  FPerspectiveCamera m_Camera{};
+  FPerspectiveRayTracingCamera m_Camera{};
   vulkan::FBuffer m_PerFrameUniformBuffer{};
 
   FAssetRegistry m_AssetRegistry{};

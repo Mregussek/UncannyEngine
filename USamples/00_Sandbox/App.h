@@ -73,7 +73,7 @@ private:
   vulkan::FCommandPool m_CommandPool{};
   std::vector<vulkan::FCommandBuffer> m_CommandBuffers{};
 
-  FPerspectiveCamera m_Camera{};
+  FPerspectiveRayTracingCamera m_Camera{};
   vulkan::FBuffer m_CameraUniformBuffer{};
 
   vulkan::FImage m_OffscreenImage{};
