@@ -21,7 +21,7 @@
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/BottomLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Resources/TopLevelAccelerationStructure.h"
 #include "UGraphicsEngine/Renderer/Vulkan/Synchronization/Semaphore.h"
-#include "UGraphicsEngine/Renderer/PerspectiveCamera.h"
+#include "UGraphicsEngine/Renderer/PerspectiveRayTracingCamera.h"
 #include "UGraphicsEngine/Renderer/RenderMesh.h"
 #include "UGraphicsEngine/Renderer/Light.h"
 
