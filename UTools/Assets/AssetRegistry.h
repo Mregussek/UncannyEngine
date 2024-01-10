@@ -21,8 +21,12 @@ public:
 
   void Clear();
 
+// Getters
+public:
+
   [[nodiscard]] const FMeshAsset& GetMesh(u64 id) const { return m_MeshAssets.at(id); }
 
+// Members
 private:
 
   std::unordered_map<u64, FMeshAsset> m_MeshAssets{};

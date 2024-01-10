@@ -20,6 +20,8 @@ public:
 
   FEntity() = default;
 
+public:
+
   void Destroy();
 
   [[nodiscard]] b32 IsValid() const;
@@ -42,9 +44,13 @@ public:
     return m_pRegistry->erase<TComponent>(m_Entity);
   }
 
+// Private methods
 private:
 
   explicit FEntity(entt::registry* pRegistry);
+
+// Members
+private:
 
   entt::registry* m_pRegistry{ nullptr };
   entt::entity m_Entity{ entt::null };

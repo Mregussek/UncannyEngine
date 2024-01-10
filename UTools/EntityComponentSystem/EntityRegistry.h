@@ -22,8 +22,6 @@ public:
   FEntity Register();
   std::span<FEntity> Register(u32 count);
 
-  [[nodiscard]] std::span<const FEntity> GetEntities() const { return m_Entities; }
-
   template<ConceptComponent TComponent>
   void ForEach(std::function<void(TComponent&)> func)
   {
@@ -35,6 +33,12 @@ public:
     }
   }
 
+// Getters
+public:
+
+  [[nodiscard]] std::span<const FEntity> GetEntities() const { return m_Entities; }
+
+// Members
 private:
 
   entt::registry m_Registry{};

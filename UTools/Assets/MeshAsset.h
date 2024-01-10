@@ -46,15 +46,22 @@ class FMeshAsset
 public:
 
   FMeshAsset() = delete;
+
   explicit FMeshAsset(u64 id);
 
+public:
+
   void LoadObj(const char* path, b8 flipNormals);
+
+// Getters
+public:
 
   [[nodiscard]] const std::vector<FMeshAssetData>& GetMeshes() const { return m_Meshes; }
   [[nodiscard]] const std::vector<FMaterialData>& GetMaterials() const { return m_Materials; }
 
   [[nodiscard]] u64 ID() const { return m_ID; }
 
+// Members
 private:
 
   std::vector<FMeshAssetData> m_Meshes{};

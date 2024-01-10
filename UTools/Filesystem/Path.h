@@ -75,6 +75,7 @@ public:
 
   [[nodiscard]] const std::string& GetStringFilename() const { return m_Filename; }
 
+// Members
 private:
 
   std::string m_Path{};
